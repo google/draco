@@ -1,0 +1,142 @@
+// Copyright 2016 The Draco Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// File provides direct encoding of bits with arthmetic encoder interface.
+#ifndef DRACO_CORE_DIRECT_BIT_CODING_H_
+#define DRACO_CORE_DIRECT_BIT_CODING_H_
+
+#include <vector>
+
+#include "core/decoder_buffer.h"
+#include "core/encoder_buffer.h"
+
+namespace draco {
+
+class DirectBitEncoder {
+ public:
+  DirectBitEncoder();
+  ~DirectBitEncoder();
+
+  // Must be called before any Encode* function is called.
+  void StartEncoding();
+
+  // Encode one bit. If |bit| is true encode a 1, otherwise encode a 0.
+  void EncodeBit(bool bit) {
+    if (bit) {
+      local_bits_ |= 1 << (31 - num_local_bits_);
+    }
+    num_local_bits_++;
+    if (num_local_bits_ == 32) {
+      bits_.push_back(local_bits_);
+      num_local_bits_ = 0;
+      local_bits_ = 0;
+    }
+  }
+
+  // Encode |nibts| of |value|, starting from the least significant bit.
+  // |nbits| must be > 0 and <= 32.
+  void EncodeBits32(int nbits, uint32_t value) {
+    DCHECK_EQ(true, nbits <= 32);
+    DCHECK_EQ(true, nbits > 0);
+
+    const int remaining = 32 - num_local_bits_;
+
+    // Make sure there are no leading bits that should not be encoded and
+    // start from here.
+    value = value << (32 - nbits);
+    if (nbits <= remaining) {
+      value = value >> num_local_bits_;
+      local_bits_ = local_bits_ | value;
+      num_local_bits_ += nbits;
+      if (num_local_bits_ == 32) {
+        bits_.push_back(local_bits_);
+        local_bits_ = 0;
+        num_local_bits_ = 0;
+      }
+    } else {
+      value = value >> (32 - nbits);
+      num_local_bits_ = nbits - remaining;
+      const uint32_t value_l = value >> num_local_bits_;
+      local_bits_ = local_bits_ | value_l;
+      bits_.push_back(local_bits_);
+      local_bits_ = value << (32 - num_local_bits_);
+    }
+  }
+
+  // Ends the bit encoding and stores the result into the target_buffer.
+  void EndEncoding(EncoderBuffer *target_buffer);
+
+ private:
+  void Clear();
+
+  std::vector<uint32_t> bits_;
+  uint32_t local_bits_;
+  uint32_t num_local_bits_;
+};
+
+class DirectBitDecoder {
+ public:
+  DirectBitDecoder();
+  ~DirectBitDecoder();
+
+  // Sets |source_buffer| as the buffer to decode bits from.
+  void StartDecoding(DecoderBuffer *source_buffer);
+
+  // Decode one bit. Returns true if the bit is a 1, otherwsie false.
+  bool DecodeNextBit() {
+    const uint32_t selector = 1 << (31 - num_used_bits_);
+    const bool bit = *pos_ & selector;
+    ++num_used_bits_;
+    if (num_used_bits_ == 32) {
+      ++pos_;
+      num_used_bits_ = 0;
+    }
+    return bit;
+  }
+
+  // Decode the next |nbits| and return the sequence in |value|. |nbits| must be
+  // > 0 and <= 32.
+  void DecodeBits32(int nbits, uint32_t *value) {
+    DCHECK_EQ(true, nbits <= 32);
+    DCHECK_EQ(true, nbits > 0);
+    const uint32_t remaining = 32 - num_used_bits_;
+    if (nbits <= remaining) {
+      *value = (*pos_ << num_used_bits_) >> (32 - nbits);
+      num_used_bits_ += nbits;
+      if (num_used_bits_ == 32) {
+        ++pos_;
+        num_used_bits_ = 0;
+      }
+    } else {
+      const uint32_t value_l = ((*pos_) << num_used_bits_);
+      num_used_bits_ = nbits - remaining;
+      ++pos_;
+      const uint32_t value_r = (*pos_) >> (32 - num_used_bits_);
+      *value = (value_l >> (32 - num_used_bits_ - remaining)) | value_r;
+    }
+  }
+
+  void EndDecoding() {}
+
+ private:
+  void Clear();
+
+  std::vector<uint32_t> bits_;
+  std::vector<uint32_t>::const_iterator pos_;
+  uint32_t num_used_bits_;
+};
+
+}  // namespace draco
+
+#endif  // DRACO_CORE_DIRECT_BIT_CODING_H_
