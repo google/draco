@@ -18,12 +18,11 @@ Note: This is not an official Google product.
   + [FOARotator](#foarotator)
   + [FOAPhaseMatchedFilter](#foaphasematchedfilter)
   + [FORVirtualSpeaker](#forvirtualspeaker)
-- [Building](#building)
 - [Test](#test)
 - [Audio Codec compatibility](#audio-codec-compatibility)
 - [Related Resources](#related-resouces)
 
-##Building
+## Building
 
 For all the platforms first you need to generate the project files, then you
 need to compile the examples.
