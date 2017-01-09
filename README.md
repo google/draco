@@ -267,7 +267,7 @@ three.js renderer example
 -------------------------
 
 
-Here's an [example] of a geometric compressed with Draco loaded via a Javescript decoder using the three.js renderer.
+Here's an [example] of a geometric compressed with Draco loaded via a Javascript decoder using the three.js renderer.
 
 Please see the `javascript/example/README` file for more information.
 
