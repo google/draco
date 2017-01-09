@@ -5,10 +5,13 @@
 Description
 ===========
 
-Draco is used to compress and decompress 3D geometry data and point clouds.
+Draco is a library for compressing and decompressing 3D geometric [meshes] and [point clouds] intended to improve the storage and transmission of 3D graphics.
+
 Draco was designed and built for compression efficiency and speed. The code
 supports compressing points, connectivity information, texture coordinates,
-color information, normals, and any other generic attributes associated with geometry. With Draco, applications using 3D graphics can be significantly smaller without compromising visual fidelity. For users this means apps can now be downloaded faster, 3D graphics in the browser can load quicker, and VR and AR scenes can now be transmitted with a fraction of the bandwidth and rendered quickly. Draco is released as C++ source code that can be used to compress 3D graphics as well as C++ and Javascript decoders for the encoded data.
+color information, normals, and any other generic attributes associated with geometry. With Draco, applications using 3D graphics can be significantly smaller without compromising visual fidelity. For users this means apps can now be downloaded faster, 3D graphics in the browser can load quicker, and VR and AR scenes can now be transmitted with a fraction of the bandwidth and rendered quickly. 
+
+Draco is released as C++ source code that can be used to compress 3D graphics as well as C++ and Javascript decoders for the encoded data.
 
 Note: This is not an official Google product.
 
@@ -263,6 +266,9 @@ by changing `Makefile.emcc` and running `make -f Makefile.emcc`.
 three.js renderer example
 -------------------------
 
+
+Here's an [example] of a geometric compressed with Draco loaded via a Javascript decoder using the three.js renderer.
+
 Please see the `javascript/example/README` file for more information.
 
 
@@ -285,6 +291,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 References
 ==========
+[example]:https://storage.googleapis.com/demos.webmproject.org/draco/draco_loader_throw.html
+[meshes]: https://en.wikipedia.org/wiki/Polygon_mesh
+[point clouds]: https://en.wikipedia.org/wiki/Point_cloud
 [Bunny]: https://graphics.stanford.edu/data/3Dscanrep/
 
 Bunny model from Stanford's graphic department <https://graphics.stanford.edu/data/3Dscanrep/>
