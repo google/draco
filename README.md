@@ -16,12 +16,32 @@ Draco is released as C++ source code that can be used to compress 3D graphics as
 
 Note: This is not an official Google product.
 
+**Contents**
+
+  * [Building](#building)
+    * [CMake Basics](#cmake-basics)
+    * [Mac OS X](#mac-os-x)
+    * [Windows](#windows)
+    * [CMake Makefiles: Debugging and Optimization](#cmake-makefiles-debugging-and-optimization)
+    * [Android Studio Project Integration](#android-studio-project-integration)
+  * [Usage](#usage)
+    * [Command Line Applications](#command-line-applications)
+    * [Encoding Tool](#encoding-tool)
+    * [Encoding Point Clouds](#encoding-point-clouds)
+    * [Decoding Tool](#decoding-tool)
+    * [C++ Decoder API](#c-decoder-api)
+    * [Javascript Decoder](#javascript-decoder)
+    * [Javascript Decoder Performance](#javascript-decoder-performance)
+    * [three.js Renderer Example](#threejs-renderer-example)
+  * [Support](#support)
+  * [License](#license)
+  * [References](#references)
+
 
 Building
 ========
 For all the platforms first you need to generate the project files, then you
 need to compile the examples.
-
 
 CMake Basics
 ------------
@@ -100,7 +120,6 @@ And your standard debug build will be produced using:
 cmake . -DCMAKE_BUILD_TYPE=debug
 ~~~~~
 
-
 Android Studio Project Integration
 ----------------------------------
 
@@ -139,14 +158,13 @@ minimum SDK version of 18 or higher. To add Draco to your project:
 Usage
 ======
 
-Command line Applications
+Command Line Applications
 ------------------------
 
 The default target create from the build files will be the draco_encoder and
 draco_decoder command line applications. For both applications if you run them
 without any arguments or `-h`, the applications will output the usage and
 options.
-
 
 Encoding Tool
 -------------
@@ -198,7 +216,6 @@ This command line will encode the mesh input as a point cloud, even though the
 input might not produce compression that is representative of other point
 clouds. Specifically, one can expect much better compression rates for larger
 and denser point clouds.
-
 
 Decoding Tool
 -------------
@@ -253,7 +270,6 @@ destroy(buffer);
 
 Please see `javascript/emscripten/draco_web.idl` for the full API.
 
-
 Javascript Decoder Performance
 ------------------------------
 
@@ -263,15 +279,12 @@ Pre-allocating the memory sees about a 2x decoder speed improvement. If you
 know all of your project's memory requirements you can turn on static memory
 by changing `Makefile.emcc` and running `make -f Makefile.emcc`.
 
-
-three.js renderer example
+three.js Renderer Example
 -------------------------
-
 
 Here's an [example] of a geometric compressed with Draco loaded via a Javascript decoder using the three.js renderer.
 
 Please see the `javascript/example/README` file for more information.
-
 
 Support
 =======
@@ -280,7 +293,7 @@ For questions/comments please email <draco-3d-discuss@googlegroups.com>
 
 If you have found an error in this library, please file an issue at <https://github.com/google/draco/issues>
 
-Patches are encouraged, and may be submitted by forking this project and submitting a pull request through GitHub. See CONTRIBUTING for more detail.
+Patches are encouraged, and may be submitted by forking this project and submitting a pull request through GitHub. See [CONTRIBUTING] for more detail.
 
 License
 =======
@@ -296,5 +309,6 @@ References
 [meshes]: https://en.wikipedia.org/wiki/Polygon_mesh
 [point clouds]: https://en.wikipedia.org/wiki/Point_cloud
 [Bunny]: https://graphics.stanford.edu/data/3Dscanrep/
+[CONTRIBUTING]: https://raw.githubusercontent.com/google/draco/master/CONTRIBUTING
 
 Bunny model from Stanford's graphic department <https://graphics.stanford.edu/data/3Dscanrep/>
