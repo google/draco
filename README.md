@@ -156,7 +156,7 @@ line looks like this:
 A value of `0` for the quantization parameters will not perform any quantization on the specified attribute. Any value other than `0` will quantize the input values for the specified attribute to that number of bits.  For example:
 
 ~~~~~
-./draco_encoder -i testdata/bun_zipper.ply -o out.drc -qp 14` 
+./draco_encoder -i testdata/bun_zipper.ply -o out.drc -qp 14
 ~~~~~
 
 will quantize the positions to 14 bits (default for the position coordinates).
@@ -185,7 +185,7 @@ input file, `draco_encoder` will ignore the connectivity data and encode the
 positions from the mesh file.
 
 ~~~~~
-$ ./draco_encoder -point_cloud -i testdata/bun_zipper.ply -o out.drc
+./draco_encoder -point_cloud -i testdata/bun_zipper.ply -o out.drc
 ~~~~~
 
 This command line will encode the mesh input as a point cloud, even though the
@@ -201,7 +201,7 @@ Decoding Tool
 basic command line looks like this:
 
 ~~~~~
-$ ./draco_decoder -i in.drc -o out.obj
+./draco_decoder -i in.drc -o out.obj
 ~~~~~
 
 C++ Decoder API
