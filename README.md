@@ -1,4 +1,7 @@
 
+<p align="center">
+<img src="docs/DracoLogo.jpeg" />
+</p>
 Description
 ===========
 
