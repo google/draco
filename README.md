@@ -3,6 +3,9 @@
 <img src="docs/DracoLogo.jpeg" />
 </p>
 
+* ToC
+{:toc}
+
 Description
 ===========
 
