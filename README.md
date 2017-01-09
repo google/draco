@@ -2,15 +2,10 @@
 Description
 ===========
 
-Draco is used to compress and decompress 3d geometry data and point clouds.
+Draco is used to compress and decompress 3D geometry data and point clouds.
 Draco was designed and built for compression efficiency and speed. The code
 supports compressing points, connectivity information, texture coordinates,
-color information, normals, and any other generic attributes associated with
-geometry.
-
-Draco is released as C++ source code that can compress and decompress 3d
-geometry data and point clouds. The package also contains Javascript decoders
-for the encoded data.
+color information, normals, and any other generic attributes associated with geometry. With Draco, applications using 3D graphics can be significantly smaller without compromising visual fidelity. For users this means apps can now be downloaded faster, 3D graphics in the browser can load quicker, and VR and AR scenes can now be transmitted with a fraction of the bandwidth and rendered quickly. Draco is released as C++ source code that can be used to compress 3D graphics as well as C++ and Javascript decoders for the encoded data.
 
 Note: This is not an official Google product.
 
@@ -29,7 +24,7 @@ To generate project/make files for the default toolchain on your system simply
 run `cmake` in the root of the Draco repo:
 
 ~~~~~
-$ cmake .
+cmake .
 ~~~~~
 
 On Windows the above command will produce Visual Studio project files for the
@@ -41,23 +36,29 @@ the `cmake` command line. This argument must be followed by the name of a
 generator. Running `cmake` with the `--help` argument will list the available
 generators for your system.
 
+Mac OS X
+---------
+
 On Mac OS X you would run the following command to generate Xcode projects:
 
 ~~~~~
-$ cmake . -G Xcode
+cmake . -G Xcode
 ~~~~~
+
+Windows
+-------
 
 On a Windows box you would run the following command to generate Visual Studio
 2015 projects:
 
 ~~~~~
-$ cmake . -G "Visual Studio 14 2015"
+cmake . -G "Visual Studio 14 2015"
 ~~~~~
 
 To generate 64-bit Windows Visual Studio 2015 projects:
 
 ~~~~~
-$ cmake . "Visual Studio 14 2015 Win64"
+cmake . "Visual Studio 14 2015 Win64"
 ~~~~~
 
 
@@ -72,25 +73,25 @@ Omitting the build type produces makefiles that use build flags containing
 neither optimization nor debug flags:
 
 ~~~~~
-$ cmake .
+cmake .
 ~~~~~
 
 A makefile using release (optimized) flags is produced like this:
 
 ~~~~~
-$ cmake . -DCMAKE_BUILD_TYPE=release
+cmake . -DCMAKE_BUILD_TYPE=release
 ~~~~~
 
 A release build with debug info can be produced as well:
 
 ~~~~~
-$ cmake . -DCMAKE_BUILD_TYPE=relwithdebinfo
+cmake . -DCMAKE_BUILD_TYPE=relwithdebinfo
 ~~~~~
 
 And your standard debug build will be produced using:
 
 ~~~~~
-$ cmake . -DCMAKE_BUILD_TYPE=debug
+cmake . -DCMAKE_BUILD_TYPE=debug
 ~~~~~
 
 
@@ -129,15 +130,15 @@ minimum SDK version of 18 or higher. To add Draco to your project:
                             ${log-lib} )
      ~~~~~
 
-Examples
-========
+Usage
+======
 
 Commandline Applications
 ------------------------
 
-The default target create from the build files will be the `draco_encoder` and
-`draco_decoder` command line applications. For both applications if you run them
-without any arguments or `-h`, the applications will output the usage and
+The default target create from the build files will be the draco_encoder and
+draco_decoder command line applications. For both applications if you run them
+without any arguments or "-h", the applications will output the usage and
 options.
 
 
@@ -149,15 +150,16 @@ files. We have included Stanford's [Bunny] mesh for testing. The basic command
 line looks like this:
 
 ~~~~~
-$ ./draco_encoder -i testdata/bun_zipper.ply -o out.drc
+./draco_encoder -i testdata/bun_zipper.ply -o out.drc
 ~~~~~
 
-A value of `0` for the quantization parameters will not perform any quantization
-on the specified attribute. Any value other than `0` will quantize the input
-values for the specified attribute to that number of bits.
+A value of `0` for the quantization parameters will not perform any quantization on the specified attribute. Any value other than `0` will quantize the input values for the specified attribute to that number of bits.  For example:
 
-E.g. `./draco_encoder -i testdata/bun_zipper.ply -o out.drc -qp 14` will
-quantize the positions to 14 bits (default for the position coordinates).
+~~~~~
+./draco_encoder -i testdata/bun_zipper.ply -o out.drc -qp 14` 
+~~~~~
+
+will quantize the positions to 14 bits (default for the position coordinates).
 
 In general the more you quantize your attributes the better compression rate
 you will get. It is up to your project on how much deviation it will tolerate.
@@ -165,10 +167,14 @@ In general most projects can set quantizations values of about 14 without any
 noticeable difference in quality.
 
 The compression level parameter turns on/off different compression features.
-In general the highest setting, 10, will have the worst compression ratio but
-best decompression speed. And 0 will have the best compression ratio, but worst
-decompression speed.
 
+~~~~~
+./draco_encoder -i testdata/bun_zipper.ply -o out.drc -cl 8
+~~~~~
+
+In general the highest setting, 10, will have the most compression but
+worst decompression speed. And 0 will have the least compression, but best
+decompression speed. The default setting is 5.
 
 Encoding Point Clouds
 ---------------------
@@ -176,7 +182,7 @@ Encoding Point Clouds
 You can encode point cloud data with `draco_encoder` by specifying the
 `point_cloud parameter`. If you specify the `point_cloud parameter` with a mesh
 input file, `draco_encoder` will ignore the connectivity data and encode the
-positions from the mesh file. E.g.:
+positions from the mesh file.
 
 ~~~~~
 $ ./draco_encoder -point_cloud -i testdata/bun_zipper.ply -o out.drc
@@ -197,6 +203,26 @@ basic command line looks like this:
 ~~~~~
 $ ./draco_decoder -i in.drc -o out.obj
 ~~~~~
+
+C++ Decoder API
+-------------
+
+If you’d like to add decoding to your applications you will need to include the draco_dec library. In order to use the Draco decoder you need to initialize a DecoderBuffer with the compressed data. Then call DecodeMeshFromBuffer() to return a decoded Mesh object or call DecodePointCloudFromBuffer() to return a decoded PointCloud object. E.g.
+
+~~~~~
+draco::DecoderBuffer buffer;
+buffer.Init(data.data(), data.size());
+
+const draco::EncodedGeometryType geom_type =
+    draco::GetEncodedGeometryType(&buffer);
+  if (geom_type == draco::TRIANGULAR_MESH) {
+    unique_ptr<draco::Mesh> mesh = draco::DecodeMeshFromBuffer(&buffer);
+  } else if (geom_type == draco::POINT_CLOUD) {
+    unique_ptr<draco::PointCloud> pc = draco::DecodePointCloudFromBuffer(&buffer);
+  }
+~~~~~
+
+Please see “mesh/mesh.h” for the full Mesh class interface and “point_cloud/point_cloud.h” for the full PointCloud class interface.
 
 Javascript Decoder
 ------------------
@@ -243,4 +269,18 @@ Support
 
 For questions/comments please email <draco-3d-discuss@googlegroups.com>
 
+If you have found an error in this library, please file an issue at <https://github.com/google/draco/issues>
+
+Patches are encouraged, and may be submitted by forking this project and submitting a pull request through GitHub. See CONTRIBUTING for more detail.
+
+License
+=======
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+
+<http://www.apache.org/licenses/LICENSE-2.0>
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+References
+==========
 [Bunny]: https://graphics.stanford.edu/data/3Dscanrep/
