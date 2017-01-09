@@ -1,4 +1,7 @@
 
+<p align="center">
+<img src="docs/DracoLogo.jpeg" />
+</p>
 Description
 ===========
 
@@ -12,7 +15,6 @@ Note: This is not an official Google product.
 
 Building
 ========
-
 For all the platforms first you need to generate the project files, then you
 need to compile the examples.
 
@@ -133,7 +135,7 @@ minimum SDK version of 18 or higher. To add Draco to your project:
 Usage
 ======
 
-Commandline Applications
+Command line Applications
 ------------------------
 
 The default target create from the build files will be the draco_encoder and
@@ -222,7 +224,7 @@ const draco::EncodedGeometryType geom_type =
   }
 ~~~~~
 
-Please see “mesh/mesh.h” for the full Mesh class interface and “point_cloud/point_cloud.h” for the full PointCloud class interface.
+Please see 'mesh/mesh.h' for the full Mesh class interface and 'point_cloud/point_cloud.h' for the full PointCloud class interface.
 
 Javascript Decoder
 ------------------
@@ -284,3 +286,5 @@ Unless required by applicable law or agreed to in writing, software distributed 
 References
 ==========
 [Bunny]: https://graphics.stanford.edu/data/3Dscanrep/
+
+Bunny model from Stanford's graphic department <https://graphics.stanford.edu/data/3Dscanrep/>
