@@ -2,6 +2,7 @@
 <p align="center">
 <img src="docs/DracoLogo.jpeg" />
 </p>
+
 Description
 ===========
 
@@ -9,7 +10,7 @@ Draco is a library for compressing and decompressing 3D geometric [meshes] and [
 
 Draco was designed and built for compression efficiency and speed. The code
 supports compressing points, connectivity information, texture coordinates,
-color information, normals, and any other generic attributes associated with geometry. With Draco, applications using 3D graphics can be significantly smaller without compromising visual fidelity. For users this means apps can now be downloaded faster, 3D graphics in the browser can load quicker, and VR and AR scenes can now be transmitted with a fraction of the bandwidth and rendered quickly. 
+color information, normals, and any other generic attributes associated with geometry. With Draco, applications using 3D graphics can be significantly smaller without compromising visual fidelity. For users this means apps can now be downloaded faster, 3D graphics in the browser can load quicker, and VR and AR scenes can now be transmitted with a fraction of the bandwidth and rendered quickly.
 
 Draco is released as C++ source code that can be used to compress 3D graphics as well as C++ and Javascript decoders for the encoded data.
 
@@ -28,7 +29,7 @@ CMake Basics
 To generate project/make files for the default toolchain on your system simply
 run `cmake` in the root of the Draco repo:
 
-~~~~~
+~~~~~ bash
 cmake .
 ~~~~~
 
@@ -46,7 +47,7 @@ Mac OS X
 
 On Mac OS X you would run the following command to generate Xcode projects:
 
-~~~~~
+~~~~~ bash
 cmake . -G Xcode
 ~~~~~
 
@@ -56,13 +57,13 @@ Windows
 On a Windows box you would run the following command to generate Visual Studio
 2015 projects:
 
-~~~~~
+~~~~~ bash
 cmake . -G "Visual Studio 14 2015"
 ~~~~~
 
 To generate 64-bit Windows Visual Studio 2015 projects:
 
-~~~~~
+~~~~~ bash
 cmake . "Visual Studio 14 2015 Win64"
 ~~~~~
 
@@ -77,25 +78,25 @@ build configurations.
 Omitting the build type produces makefiles that use build flags containing
 neither optimization nor debug flags:
 
-~~~~~
+~~~~~ bash
 cmake .
 ~~~~~
 
 A makefile using release (optimized) flags is produced like this:
 
-~~~~~
+~~~~~ bash
 cmake . -DCMAKE_BUILD_TYPE=release
 ~~~~~
 
 A release build with debug info can be produced as well:
 
-~~~~~
+~~~~~ bash
 cmake . -DCMAKE_BUILD_TYPE=relwithdebinfo
 ~~~~~
 
 And your standard debug build will be produced using:
 
-~~~~~
+~~~~~ bash
 cmake . -DCMAKE_BUILD_TYPE=debug
 ~~~~~
 
@@ -110,7 +111,7 @@ minimum SDK version of 18 or higher. To add Draco to your project:
   1. Add the following somewhere within the `CMakeLists.txt` for your project
      before the `add_library()` for your project's native-lib:
 
-     ~~~~~
+     ~~~~~ cmake
      # Note "/path/to/draco" must be changed to the path where you have cloned
      # the Draco sources.
 
@@ -123,7 +124,7 @@ minimum SDK version of 18 or higher. To add Draco to your project:
      project's native-lib. The `target_link_libraries()` call for an empty
      activity    native project looks like this after the addition of Draco:
 
-     ~~~~~
+     ~~~~~ cmake
      target_link_libraries( # Specifies the target library.
                             native-lib
 
@@ -143,7 +144,7 @@ Command line Applications
 
 The default target create from the build files will be the draco_encoder and
 draco_decoder command line applications. For both applications if you run them
-without any arguments or "-h", the applications will output the usage and
+without any arguments or `-h`, the applications will output the usage and
 options.
 
 
@@ -154,13 +155,13 @@ Encoding Tool
 files. We have included Stanford's [Bunny] mesh for testing. The basic command
 line looks like this:
 
-~~~~~
+~~~~~ bash
 ./draco_encoder -i testdata/bun_zipper.ply -o out.drc
 ~~~~~
 
 A value of `0` for the quantization parameters will not perform any quantization on the specified attribute. Any value other than `0` will quantize the input values for the specified attribute to that number of bits.  For example:
 
-~~~~~
+~~~~~ bash
 ./draco_encoder -i testdata/bun_zipper.ply -o out.drc -qp 14
 ~~~~~
 
@@ -173,7 +174,7 @@ noticeable difference in quality.
 
 The compression level parameter turns on/off different compression features.
 
-~~~~~
+~~~~~ bash
 ./draco_encoder -i testdata/bun_zipper.ply -o out.drc -cl 8
 ~~~~~
 
@@ -189,7 +190,7 @@ You can encode point cloud data with `draco_encoder` by specifying the
 input file, `draco_encoder` will ignore the connectivity data and encode the
 positions from the mesh file.
 
-~~~~~
+~~~~~ bash
 ./draco_encoder -point_cloud -i testdata/bun_zipper.ply -o out.drc
 ~~~~~
 
@@ -205,7 +206,7 @@ Decoding Tool
 `draco_decoder` will read Draco files as input and output OBJ or PLY files. The
 basic command line looks like this:
 
-~~~~~
+~~~~~ bash
 ./draco_decoder -i in.drc -o out.obj
 ~~~~~
 
@@ -214,7 +215,7 @@ C++ Decoder API
 
 If you’d like to add decoding to your applications you will need to include the draco_dec library. In order to use the Draco decoder you need to initialize a DecoderBuffer with the compressed data. Then call DecodeMeshFromBuffer() to return a decoded Mesh object or call DecodePointCloudFromBuffer() to return a decoded PointCloud object. E.g.
 
-~~~~~
+~~~~~ cpp
 draco::DecoderBuffer buffer;
 buffer.Init(data.data(), data.size());
 
@@ -238,7 +239,7 @@ decoder you must create `DecoderBuffer` and `WebIDLWrapper` objects. Set the
 encoded data in the `DecoderBuffer`. Then call `DecodeMeshFromBuffer()`, which
 will return a Mesh object. E.g.
 
-~~~~~
+~~~~~ js
 var buffer = new Module.DecoderBuffer();
 buffer.Init(encFileData, encFileData.length);
 
