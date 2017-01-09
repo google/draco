@@ -10,8 +10,20 @@ color information, normals, and any other generic attributes associated with geo
 Note: This is not an official Google product.
 
 
-Building
-========
+- [Building](#Building)
+- [Usage](#usage)
+- [Advanced Usage](#advanced-usage)
+  + [FOADecoder](#foadecoder)
+  + [FOARouter](#foarouter)
+  + [FOARotator](#foarotator)
+  + [FOAPhaseMatchedFilter](#foaphasematchedfilter)
+  + [FORVirtualSpeaker](#forvirtualspeaker)
+- [Building](#building)
+- [Test](#test)
+- [Audio Codec compatibility](#audio-codec-compatibility)
+- [Related Resources](#related-resouces)
+
+##Building
 
 For all the platforms first you need to generate the project files, then you
 need to compile the examples.
