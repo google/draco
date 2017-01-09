@@ -266,6 +266,8 @@ by changing `Makefile.emcc` and running `make -f Makefile.emcc`.
 three.js renderer example
 -------------------------
 
+
+Here's an [example] of a geometric compressed with Draco lo
 Please see the `javascript/example/README` file for more information.
 
 
@@ -288,7 +290,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 References
 ==========
-[mesh]: https://en.wikipedia.org/wiki/Polygon_mesh
+[example]:https://storage.googleapis.com/demos.webmproject.org/draco/draco_loader_throw.html
+[meshes]: https://en.wikipedia.org/wiki/Polygon_mesh
 [point clouds]: https://en.wikipedia.org/wiki/Point_cloud
 [Bunny]: https://graphics.stanford.edu/data/3Dscanrep/
 
