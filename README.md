@@ -14,7 +14,6 @@ color information, normals, and any other generic attributes associated with geo
 
 Draco is released as C++ source code that can be used to compress 3D graphics as well as C++ and Javascript decoders for the encoded data.
 
-Note: This is not an official Google product.
 
 **Contents**
 
