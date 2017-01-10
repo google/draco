@@ -250,21 +250,28 @@ Javascript Decoder
 ------------------
 
 The Javascript decoder is located in `javascript/draco_decoder.js`. The
-Javascript decoder can currently only decode mesh geometry. In order to use the
-decoder you must create `DecoderBuffer` and `WebIDLWrapper` objects. Set the
-encoded data in the `DecoderBuffer`. Then call `DecodeMeshFromBuffer()`, which
-will return a Mesh object. E.g.
+Javascript decoder can decode mesh and point cloud. In order to use the
+decoder you must first create `DecoderBuffer` and `WebIDLWrapper` objects. Set the
+encoded data in the `DecoderBuffer`. Then call `GetEncodedGeometryType()` to identify
+the type of geometry, e.g. mesh or point cloud. Then call either `DecodeMeshFromBuffer()` or
+`DecodePointCloudFromBuffer()` which will return a Mesh object or a point cloud. E.g.
 
 ~~~~~ js
 var buffer = new Module.DecoderBuffer();
 buffer.Init(encFileData, encFileData.length);
 
 var wrapper = new WebIDLWrapper();
-var outputMesh = wrapper.DecodeMeshFromBuffer(buffer);
+const geometryType = wrapper.GetEncodedGeometryType(buffer);
+let outputGeometry;
+if (geometryType == DracoModule.TRIANGULAR_MESH) {
+  var outputGeometry = wrapper.DecodeMeshFromBuffer(buffer);
+} else {
+  var outputGeometry = wrapper.DecodePointCloudFromBuffer(buffer);
+}
 
-destroy(outputMesh);
-destroy(wrapper);
-destroy(buffer);
+DracoModule.destroy(outputGeometry);
+DracoModule.destroy(wrapper);
+DracoModule.destroy(buffer);
 ~~~~~
 
 Please see `javascript/emscripten/draco_web.idl` for the full API.
