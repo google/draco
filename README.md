@@ -6,16 +6,24 @@
 Description
 ===========
 
-Draco is a library for compressing and decompressing 3D geometric [meshes] and [point clouds] intended to improve the storage and transmission of 3D graphics.
+Draco is a library for compressing and decompressing 3D geometric [meshes] and
+[point clouds]. It is intended to improve the storage and transmission of 3D
+graphics.
 
 Draco was designed and built for compression efficiency and speed. The code
 supports compressing points, connectivity information, texture coordinates,
-color information, normals, and any other generic attributes associated with geometry. With Draco, applications using 3D graphics can be significantly smaller without compromising visual fidelity. For users this means apps can now be downloaded faster, 3D graphics in the browser can load quicker, and VR and AR scenes can now be transmitted with a fraction of the bandwidth and rendered quickly.
+color information, normals, and any other generic attributes associated with
+geometry. With Draco, applications using 3D graphics can be significantly
+smaller without compromising visual fidelity. For users, this means apps can
+now be downloaded faster, 3D graphics in the browser can load quicker, and VR
+and AR scenes can now be transmitted with a fraction of the bandwidth and
+rendered quickly.
 
-Draco is released as C++ source code that can be used to compress 3D graphics as well as C++ and Javascript decoders for the encoded data.
+Draco is released as C++ source code that can be used to compress 3D graphics
+as well as C++ and Javascript decoders for the encoded data.
 
 
-**Contents**
+_**Contents**_
 
   * [Building](#building)
     * [CMake Basics](#cmake-basics)
@@ -39,32 +47,32 @@ Draco is released as C++ source code that can be used to compress 3D graphics as
 
 Building
 ========
-For all the platforms first you need to generate the project files, then you
-need to compile the examples.
+For all platforms, you must first generate the project/make files and then
+compile the examples.
 
 CMake Basics
 ------------
 
-To generate project/make files for the default toolchain on your system simply
-run `cmake` in the root of the Draco repo:
+To generate project/make files for the default toolchain on your system, run
+`cmake` in the root of your clone Draco repository:
 
 ~~~~~ bash
 cmake .
 ~~~~~
 
-On Windows the above command will produce Visual Studio project files for the
-newest Visual Studio detected on the system. On Mac OS X and Linux systems, the
-above command will produce a makefile.
+On Windows, the above command will produce Visual Studio project files for the
+newest Visual Studio detected on the system. On Mac OS X and Linux systems,
+the above command will produce a `makefile`.
 
-To control what types of projects are generated the `-G` parameter is added to
-the `cmake` command line. This argument must be followed by the name of a
-generator. Running `cmake` with the `--help` argument will list the available
+To control what types of projects are generated, add the `-G` parameter to the
+`cmake` command. This argument must be followed by the name of a generator.
+Running `cmake` with the `--help` argument will list the available
 generators for your system.
 
 Mac OS X
 ---------
 
-On Mac OS X you would run the following command to generate Xcode projects:
+On Mac OS X, run the following command to generate Xcode projects:
 
 ~~~~~ bash
 cmake . -G Xcode
@@ -90,9 +98,9 @@ cmake . "Visual Studio 14 2015 Win64"
 CMake Makefiles: Debugging and Optimization
 -------------------------------------------
 
-Unlike Visual Studio and Xcode projects, the build configuration for make builds
-is controlled when you run `cmake`. The following examples demonstrate various
-build configurations.
+Unlike Visual Studio and Xcode projects, the build configuration for make
+builds is controlled when you run `cmake`. The following examples demonstrate
+various build configurations.
 
 Omitting the build type produces makefiles that use build flags containing
 neither optimization nor debug flags:
@@ -122,9 +130,9 @@ cmake . -DCMAKE_BUILD_TYPE=debug
 Android Studio Project Integration
 ----------------------------------
 
-To include Draco in an existing or new Android Studio project it simply needs
-to be referenced from the `cmake` file of an existing native project that has a
-minimum SDK version of 18 or higher. To add Draco to your project:
+To include Draco in an existing or new Android Studio project, reference it
+from the `cmake` file of an existing native project that has a minimum SDK
+version of 18 or higher. To add Draco to your project:
 
   1. Add the following somewhere within the `CMakeLists.txt` for your project
      before the `add_library()` for your project's native-lib:
@@ -138,9 +146,10 @@ minimum SDK version of 18 or higher. To add Draco to your project:
      include_directories("${CMAKE_BINARY_DIR}" /path/to/draco)
      ~~~~~
 
-  2. Add the library target "draco" to the `target_link_libraries()` call for your
-     project's native-lib. The `target_link_libraries()` call for an empty
-     activity    native project looks like this after the addition of Draco:
+  2. Add the library target "draco" to the `target_link_libraries()` call for
+     your project's native-lib. The `target_link_libraries()` call for an
+     empty activity native project looks like this after the addition of
+     Draco:
 
      ~~~~~ cmake
      target_link_libraries( # Specifies the target library.
@@ -160,15 +169,15 @@ Usage
 Command Line Applications
 ------------------------
 
-The default target create from the build files will be the draco_encoder and
-draco_decoder command line applications. For both applications if you run them
-without any arguments or `-h`, the applications will output the usage and
+The default target created from the build files will be the `draco_encoder`
+and `draco_decoder` command line applications. For both applications, if you
+run them without any arguments or `-h`, the applications will output usage and
 options.
 
 Encoding Tool
 -------------
 
-`draco_encoder` will read OBJ or PLY files as input and output Draco encoded
+`draco_encoder` will read OBJ or PLY files as input, and output Draco-encoded
 files. We have included Stanford's [Bunny] mesh for testing. The basic command
 line looks like this:
 
@@ -176,7 +185,8 @@ line looks like this:
 ./draco_encoder -i testdata/bun_zipper.ply -o out.drc
 ~~~~~
 
-A value of `0` for the quantization parameters will not perform any quantization on the specified attribute. Any value other than `0` will quantize the input values for the specified attribute to that number of bits.  For example:
+A value of `0` for the quantization parameter will not perform any quantization on the specified attribute. Any value other than `0` will quantize the input values for the specified attribute to that number of bits.
+For example:
 
 ~~~~~ bash
 ./draco_encoder -i testdata/bun_zipper.ply -o out.drc -qp 14
@@ -184,20 +194,21 @@ A value of `0` for the quantization parameters will not perform any quantization
 
 will quantize the positions to 14 bits (default for the position coordinates).
 
-In general the more you quantize your attributes the better compression rate
-you will get. It is up to your project on how much deviation it will tolerate.
-In general most projects can set quantizations values of about 14 without any
-noticeable difference in quality.
+In general, the more you quantize your attributes the better compression rate
+you will get. It is up to your project to decide how much deviation it will
+tolerate. In general, most projects can set quantizations values of about `14`
+without any noticeable difference in quality.
 
-The compression level parameter turns on/off different compression features.
+The compression level (`-cl`) parameter turns on/off different compression
+features.
 
 ~~~~~ bash
 ./draco_encoder -i testdata/bun_zipper.ply -o out.drc -cl 8
 ~~~~~
 
-In general the highest setting, 10, will have the most compression but
-worst decompression speed. And 0 will have the least compression, but best
-decompression speed. The default setting is 5.
+In general, the highest setting, `10`, will have the most compression but
+worst decompression speed. `0` will have the least compression, but best
+decompression speed. The default setting is `5`.
 
 Encoding Point Clouds
 ---------------------
@@ -219,8 +230,8 @@ and denser point clouds.
 Decoding Tool
 -------------
 
-`draco_decoder` will read Draco files as input and output OBJ or PLY files. The
-basic command line looks like this:
+`draco_decoder` will read Draco files as input, and output OBJ or PLY files.
+The basic command line looks like this:
 
 ~~~~~ bash
 ./draco_decoder -i in.drc -o out.obj
@@ -229,7 +240,11 @@ basic command line looks like this:
 C++ Decoder API
 -------------
 
-If you’d like to add decoding to your applications you will need to include the draco_dec library. In order to use the Draco decoder you need to initialize a DecoderBuffer with the compressed data. Then call DecodeMeshFromBuffer() to return a decoded Mesh object or call DecodePointCloudFromBuffer() to return a decoded PointCloud object. E.g.
+If you'd like to add decoding to your applications you will need to include
+the `draco_dec` library. In order to use the Draco decoder you need to initialize a `DecoderBuffer` with the compressed data. Then call
+`DecodeMeshFromBuffer()` to return a decoded mesh object or call
+`DecodePointCloudFromBuffer()` to return a decoded `PointCloud` object. For
+example:
 
 ~~~~~ cpp
 draco::DecoderBuffer buffer;
@@ -244,17 +259,18 @@ const draco::EncodedGeometryType geom_type =
   }
 ~~~~~
 
-Please see 'mesh/mesh.h' for the full Mesh class interface and 'point_cloud/point_cloud.h' for the full PointCloud class interface.
+Please see `mesh/mesh.h` for the full Mesh class interface and `point_cloud/point_cloud.h` for the full `PointCloud` class interface.
 
 Javascript Decoder
 ------------------
 
 The Javascript decoder is located in `javascript/draco_decoder.js`. The
 Javascript decoder can decode mesh and point cloud. In order to use the
-decoder you must first create `DecoderBuffer` and `WebIDLWrapper` objects. Set the
-encoded data in the `DecoderBuffer`. Then call `GetEncodedGeometryType()` to identify
-the type of geometry, e.g. mesh or point cloud. Then call either `DecodeMeshFromBuffer()` or
-`DecodePointCloudFromBuffer()` which will return a Mesh object or a point cloud. E.g.
+decoder you must first create `DecoderBuffer` and `WebIDLWrapper` objects. Set
+the encoded data in the `DecoderBuffer`. Then call `GetEncodedGeometryType()`
+to identify the type of geometry, e.g. mesh or point cloud. Then call either
+`DecodeMeshFromBuffer()` or `DecodePointCloudFromBuffer()`, which will return
+a Mesh object or a point cloud. For example:
 
 ~~~~~ js
 var buffer = new Module.DecoderBuffer();
@@ -282,13 +298,14 @@ Javascript Decoder Performance
 The Javascript decoder is built with dynamic memory. This will let the decoder
 work with all of the compressed data. But this option is not the fastest.
 Pre-allocating the memory sees about a 2x decoder speed improvement. If you
-know all of your project's memory requirements you can turn on static memory
+know all of your project's memory requirements, you can turn on static memory
 by changing `Makefile.emcc` and running `make -f Makefile.emcc`.
 
 three.js Renderer Example
 -------------------------
 
-Here's an [example] of a geometric compressed with Draco loaded via a Javascript decoder using the three.js renderer.
+Here's an [example] of a geometric compressed with Draco loaded via a
+Javascript decoder using the `three.js` renderer.
 
 Please see the `javascript/example/README` file for more information.
 
@@ -299,15 +316,22 @@ For questions/comments please email <draco-3d-discuss@googlegroups.com>
 
 If you have found an error in this library, please file an issue at <https://github.com/google/draco/issues>
 
-Patches are encouraged, and may be submitted by forking this project and submitting a pull request through GitHub. See [CONTRIBUTING] for more detail.
+Patches are encouraged, and may be submitted by forking this project and
+submitting a pull request through GitHub. See [CONTRIBUTING] for more detail.
 
 License
 =======
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use this file except in compliance with the License. You may obtain a copy of
+the License at
 
 <http://www.apache.org/licenses/LICENSE-2.0>
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations under
+the License.
 
 References
 ==========
