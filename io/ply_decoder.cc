@@ -86,8 +86,12 @@ bool PlyDecoder::DecodeFaceData(const PlyElement *face_element) {
   }
   const int64_t num_faces = face_element->num_entries();
   out_mesh_->SetNumFaces(num_faces);
-  const PlyProperty *const vertex_indices =
+  const PlyProperty *vertex_indices =
       face_element->GetPropertyByName("vertex_indices");
+  if (vertex_indices == nullptr) {
+    // The property name may be named either "vertex_indices" or "vertex_index".
+    vertex_indices = face_element->GetPropertyByName("vertex_index");
+  }
   if (vertex_indices == nullptr || !vertex_indices->is_list()) {
     return false;  // No faces defined.
   }
