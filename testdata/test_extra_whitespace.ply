@@ -1,0 +1,18 @@
+ply
+format   ascii 1.0	
+comment		manual generated
+ element vertex	3
+property float x
+property                           float y
+property float z
+property uchar red
+property uchar				green
+property uchar blue
+property uchar alpha
+	element face 1
+property list uchar int vertex_indices 
+end_header
+0.25 0.1 0 209 0 122 255
+0.5 0.9 0 77 0 205 255
+0.75 0.1 0 0 0 255 255
+3 0 1 2

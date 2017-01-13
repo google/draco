@@ -40,7 +40,7 @@ class RAnsBitEncoder {
 
   // Encode |nibts| of |value|, starting from the least significant bit.
   // |nbits| must be > 0 and <= 32.
-  void EncodeBits32(int nbits, uint32_t value);
+  void EncodeLeastSignificantBits32(int nbits, uint32_t value);
 
   // Ends the bit encoding and stores the result into the target_buffer.
   void EndEncoding(EncoderBuffer *target_buffer);
@@ -68,7 +68,7 @@ class RAnsBitDecoder {
 
   // Decode the next |nbits| and return the sequence in |value|. |nbits| must be
   // > 0 and <= 32.
-  void DecodeBits32(int nbits, uint32_t *value);
+  void DecodeLeastSignificantBits32(int nbits, uint32_t *value);
 
   void EndDecoding() {}
 

@@ -86,7 +86,7 @@ static uint32_t mem_get_le24(const void *vmem) {
   return val;
 }
 
-static uint32_t mem_get_le32(const void *vmem) {
+static inline uint32_t mem_get_le32(const void *vmem) {
   uint32_t val;
   const uint8_t *mem = (const uint8_t *)vmem;
 
@@ -472,11 +472,11 @@ class RAnsDecoder {
     probability_table_.resize(num_symbols);
     uint32_t cum_prob = 0;
     uint32_t act_prob = 0;
-    for (int i = 0; i < num_symbols; ++i) {
+    for (uint32_t i = 0; i < num_symbols; ++i) {
       probability_table_[i].prob = token_probs[i];
       probability_table_[i].cum_prob = cum_prob;
       cum_prob += token_probs[i];
-      for (int j = act_prob; j < cum_prob; ++j) {
+      for (uint32_t j = act_prob; j < cum_prob; ++j) {
         lut_table_[j] = i;
       }
       act_prob = cum_prob;

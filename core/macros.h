@@ -52,6 +52,10 @@ namespace draco {
 #define FALLTHROUGH_INTENDED void(0);
 #endif
 
+#ifndef LOG
+#define LOG(...) std::cout
+#endif
+
 #ifndef VLOG
 #define VLOG(...) std::cout
 #endif

@@ -49,7 +49,7 @@ class DecoderBuffer {
 
   // Decodes up to 32 bits into out_val. Can be called only in between
   // StartBitDecoding and EndBitDeoding. Otherwise returns false.
-  bool DecodeBits32(int nbits, uint32_t *out_value) {
+  bool DecodeLeastSignificantBits32(int nbits, uint32_t *out_value) {
     if (!bit_decoder_active())
       return false;
     bit_decoder_.GetBits(nbits, out_value);
@@ -68,7 +68,7 @@ class DecoderBuffer {
   }
 
   bool Decode(void *out_data, size_t size_to_decode) {
-    if (data_size_ < pos_ + size_to_decode)
+    if (data_size_ < static_cast<int64_t>(pos_ + size_to_decode))
       return false;  // Buffer overflow.
     memcpy(out_data, (data_ + pos_), size_to_decode);
     pos_ += size_to_decode;
@@ -79,14 +79,14 @@ class DecoderBuffer {
   template <typename T>
   bool Peek(T *out_val) {
     const size_t size_to_decode = sizeof(T);
-    if (data_size_ < pos_ + size_to_decode)
+    if (data_size_ < static_cast<int64_t>(pos_ + size_to_decode))
       return false;  // Buffer overflow.
     memcpy(out_val, (data_ + pos_), size_to_decode);
     return true;
   }
 
   bool Peek(void *out_data, size_t size_to_peek) {
-    if (data_size_ < pos_ + size_to_peek)
+    if (data_size_ < static_cast<int64_t>(pos_ + size_to_peek))
       return false;  // Buffer overflow.
     memcpy(out_data, (data_ + pos_), size_to_peek);
     return true;

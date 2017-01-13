@@ -63,7 +63,7 @@ class MeshPredictionSchemeMultiParallelogram
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeMultiParallelogram<DataTypeT, TransformT, MeshDataT>::
     Encode(const DataTypeT *in_data, CorrType *out_corr, int size,
-           int num_components, const PointIndex *entry_to_point_id_map) {
+           int num_components, const PointIndex * /* entry_to_point_id_map */) {
   this->transform().InitializeEncoding(in_data, size, num_components);
   const CornerTable *const table = this->mesh_data().corner_table();
   const std::vector<int32_t> *const vertex_to_data_map =
@@ -140,8 +140,8 @@ bool MeshPredictionSchemeMultiParallelogram<DataTypeT, TransformT, MeshDataT>::
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeMultiParallelogram<DataTypeT, TransformT, MeshDataT>::
-    Decode(const CorrType *in_corr, DataTypeT *out_data, int size,
-           int num_components, const PointIndex *entry_to_point_id_map) {
+    Decode(const CorrType *in_corr, DataTypeT *out_data, int /* size */,
+           int num_components, const PointIndex * /* entry_to_point_id_map */) {
   this->transform().InitializeDecoding(num_components);
 
   std::unique_ptr<DataTypeT[]> pred_vals(new DataTypeT[num_components]());
@@ -152,7 +152,8 @@ bool MeshPredictionSchemeMultiParallelogram<DataTypeT, TransformT, MeshDataT>::
   const std::vector<int32_t> *const vertex_to_data_map =
       this->mesh_data().vertex_to_data_map();
 
-  for (int p = 1; p < this->mesh_data().data_to_corner_map()->size(); ++p) {
+  const int corner_map_size = this->mesh_data().data_to_corner_map()->size();
+  for (int p = 1; p < corner_map_size; ++p) {
     const CornerIndex start_corner_id =
         this->mesh_data().data_to_corner_map()->at(p);
 

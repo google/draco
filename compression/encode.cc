@@ -57,7 +57,9 @@ bool EncodePointCloudToBuffer(const PointCloud &pc,
                               const EncoderOptions &options,
                               EncoderBuffer *out_buffer) {
   std::unique_ptr<PointCloudEncoder> encoder;
-  if (options.GetSpeed() < 10 && pc.num_attributes() == 1) {
+  const int encoding_method = options.GetGlobalInt("encoding_method", -1);
+  if (encoding_method == POINT_CLOUD_KD_TREE_ENCODING ||
+      (options.GetSpeed() < 10 && pc.num_attributes() == 1)) {
     const PointAttribute *const att = pc.attribute(0);
     bool create_kd_tree_encoder = true;
     // Kd-Tree encoder can be currently used only under following conditions:
@@ -76,9 +78,13 @@ bool EncodePointCloudToBuffer(const PointCloud &pc,
         options.GetAttributeInt(0, "quantization_bits", -1) <= 0)
       create_kd_tree_encoder = false;  // Quantization not enabled.
     if (create_kd_tree_encoder) {
-      // Create kD-tree encoder.
+      // Create kD-tree encoder (all checks passed).
       encoder =
           std::unique_ptr<PointCloudEncoder>(new PointCloudKdTreeEncoder());
+    } else if (encoding_method == POINT_CLOUD_KD_TREE_ENCODING) {
+      // Encoding method was explicitly specified but we cannot use it for the
+      // given input (some of the checks above failed).
+      return false;
     }
   }
   if (!encoder) {
@@ -141,6 +147,10 @@ void SetAttributeQuantization(Options *options, int quantization_bits) {
 void SetUseBuiltInAttributeCompression(EncoderOptions *options, bool enabled) {
   options->GetGlobalOptions()->SetBool("use_built_in_attribute_compression",
                                        enabled);
+}
+
+void SetEncodingMethod(EncoderOptions *options, int encoding_method) {
+  options->GetGlobalOptions()->SetInt("encoding_method", encoding_method);
 }
 
 void SetNamedAttributePredictionScheme(EncoderOptions *options,

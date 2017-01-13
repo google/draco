@@ -73,6 +73,23 @@ void SetAttributeQuantization(Options *options, int quantization_bits);
 // Default: [true].
 void SetUseBuiltInAttributeCompression(EncoderOptions *options, bool enabled);
 
+// Sets the desired encoding method for a given geometry. By default, encoding
+// method is selected based on the properties of the input geometry and based on
+// the other options selected in the used EncoderOptions (such as desired
+// encoding and decoding speed). This function should be called only when a
+// specific method is required.
+//
+// |encoding_method| can be one of the following as defined in
+// compression/config/compression_shared.h :
+//   POINT_CLOUD_SEQUENTIAL_ENCODING
+//   POINT_CLOUD_KD_TREE_ENCODING
+//   MESH_SEQUENTIAL_ENCODING
+//   MESH_EDGEBREAKER_ENCODING
+//
+// If the selected method cannot be used for the given input, the subsequent
+// call of EncodePointCloudToBuffer or EncodeMeshToBuffer is going to fail.
+void SetEncodingMethod(EncoderOptions *options, int encoding_method);
+
 // Sets the desired prediction method for a given attribute. By default,
 // prediction scheme is selected automatically by the encoder using other
 // provided options (such as speed) and input geometry type (mesh, point cloud).

@@ -61,13 +61,13 @@ class Mesh : public PointCloud {
   FaceIndex::ValueType num_faces() const { return faces_.size(); }
   const Face &face(FaceIndex face_id) const {
     DCHECK_LE(0, face_id.value());
-    DCHECK_LT(face_id.value(), faces_.size());
+    DCHECK_LT(face_id.value(), static_cast<int>(faces_.size()));
     return faces_[face_id];
   }
 
   void SetAttribute(int att_id, std::unique_ptr<PointAttribute> pa) override {
     PointCloud::SetAttribute(att_id, std::move(pa));
-    if (attribute_data_.size() <= att_id) {
+    if (static_cast<int>(attribute_data_.size()) <= att_id) {
       attribute_data_.resize(att_id + 1);
     }
   }

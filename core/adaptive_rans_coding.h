@@ -38,7 +38,7 @@ class AdaptiveRAnsBitEncoder {
 
   // Encode |nibts| of |value|, starting from the least significant bit.
   // |nbits| must be > 0 and <= 32.
-  void EncodeBits32(int nbits, uint32_t value) {
+  void EncodeLeastSignificantBits32(int nbits, uint32_t value) {
     DCHECK_EQ(true, nbits <= 32);
     DCHECK_EQ(true, nbits > 0);
     uint32_t selector = (1 << (nbits - 1));
@@ -72,7 +72,7 @@ class AdaptiveRAnsBitDecoder {
 
   // Decode the next |nbits| and return the sequence in |value|. |nbits| must be
   // > 0 and <= 32.
-  void DecodeBits32(int nbits, uint32_t *value);
+  void DecodeLeastSignificantBits32(int nbits, uint32_t *value);
 
   void EndDecoding() {}
 

@@ -46,8 +46,8 @@ bool EncoderBuffer::StartBitEncoding(int64_t required_bits, bool encode_size) {
   buffer_.resize(buffer_start_size + required_bytes);
   // Get the buffer data pointer for the bit encoder.
   const char *const data = buffer_.data() + buffer_start_size;
-  bit_encoder_ = std::unique_ptr<BitEncoder>(
-      new BitEncoder(const_cast<char *>(data), required_bytes));
+  bit_encoder_ =
+      std::unique_ptr<BitEncoder>(new BitEncoder(const_cast<char *>(data)));
   return true;
 }
 

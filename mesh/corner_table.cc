@@ -67,7 +67,7 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
   num_corners_on_vertices.reserve(num_corners());
   for (CornerIndex c(0); c < num_corners(); ++c) {
     const VertexIndex v1 = Vertex(c);
-    if (v1.value() >= num_corners_on_vertices.size())
+    if (v1.value() >= static_cast<int>(num_corners_on_vertices.size()))
       num_corners_on_vertices.resize(v1.value() + 1, 0);
     // For each corner there is always exactly one outgoing half-edge attached
     // to its vertex.
@@ -93,7 +93,7 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
   // vertices.
   std::vector<int> vertex_offset(num_corners_on_vertices.size());
   int offset = 0;
-  for (int i = 0; i < num_corners_on_vertices.size(); ++i) {
+  for (size_t i = 0; i < num_corners_on_vertices.size(); ++i) {
     vertex_offset[i] = offset;
     offset += num_corners_on_vertices[i];
   }
@@ -120,7 +120,7 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
     // The maximum number of half-edges attached to the sink vertex.
     const int num_corners_on_vert = num_corners_on_vertices[sink_v.value()];
     // Where to look for the first half-edge on the sink vertex.
-    int offset = vertex_offset[sink_v.value()];
+    offset = vertex_offset[sink_v.value()];
     for (int i = 0; i < num_corners_on_vert; ++i, ++offset) {
       const VertexIndex other_v = vertex_edges[offset].sink_vert;
       if (other_v < 0)
@@ -148,7 +148,7 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
       // No opposite corner found. Insert the new edge
       const int num_corners_on_source_vert =
           num_corners_on_vertices[source_v.value()];
-      int offset = vertex_offset[source_v.value()];
+      offset = vertex_offset[source_v.value()];
       for (int i = 0; i < num_corners_on_source_vert; ++i, ++offset) {
         // Find the first unused half-edge slot on the source vertex.
         if (vertex_edges[offset].sink_vert < 0) {

@@ -74,7 +74,7 @@ void UnitVectorToQuantizedOctahedralCoords(const T *vector,
   int32_t s = static_cast<int32_t>(floor(ss * max_value + 0.5));
   int32_t t = static_cast<int32_t>(floor(tt * max_value + 0.5));
 
-  const int32_t center_value = max_value / 2;
+  const int32_t center_value = static_cast<int32_t>(max_value / 2);
 
   // Convert all edge points in the top left and bottom right quadrants to
   // their corresponding position in the bottom left and top right quadrants.
@@ -82,8 +82,8 @@ void UnitVectorToQuantizedOctahedralCoords(const T *vector,
   // for the inversion to occur correctly.
   if ((s == 0 && t == 0) || (s == 0 && t == max_value) ||
       (s == max_value && t == 0)) {
-    s = max_value;
-    t = max_value;
+    s = static_cast<int32_t>(max_value);
+    t = static_cast<int32_t>(max_value);
   } else if (s == 0 && t > center_value) {
     t = center_value - (t - center_value);
   } else if (s == max_value && t < center_value) {
@@ -155,6 +155,42 @@ void QuantizedOctaherdalCoordsToUnitVector(int32_t in_s, int32_t in_t,
   max_quantized_value -= 1;
   OctaherdalCoordsToUnitVector(in_s / max_quantized_value,
                                in_t / max_quantized_value, out_vector);
+}
+
+template <typename T>
+bool IsInDiamond(const T &max_value_, const T &s, const T &t) {
+  return std::abs(static_cast<double>(s)) + std::abs(static_cast<double>(t)) <=
+         static_cast<double>(max_value_);
+}
+
+template <typename T>
+void InvertRepresentation(const T &max_value_, T *s, T *t) {
+  T sign_s = 0;
+  T sign_t = 0;
+  if (*s >= 0 && *t >= 0) {
+    sign_s = 1;
+    sign_t = 1;
+  } else if (*s <= 0 && *t <= 0) {
+    sign_s = -1;
+    sign_t = -1;
+  } else {
+    sign_s = (*s > 0) ? 1 : -1;
+    sign_t = (*t > 0) ? 1 : -1;
+  }
+
+  const T corner_point_s = sign_s * max_value_;
+  const T corner_point_t = sign_t * max_value_;
+  *s = 2 * *s - corner_point_s;
+  *t = 2 * *t - corner_point_t;
+  if (sign_s * sign_t >= 0) {
+    T temp = *s;
+    *s = -*t;
+    *t = -temp;
+  } else {
+    std::swap(*s, *t);
+  }
+  *s = (*s + corner_point_s) / 2;
+  *t = (*t + corner_point_t) / 2;
 }
 
 }  // namespace draco

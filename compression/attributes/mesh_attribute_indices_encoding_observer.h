@@ -44,7 +44,7 @@ class MeshAttributeIndicesEncodingObserver {
 
   // Interface for TraversalObserverT
 
-  void OnNewFaceVisited(FaceIndex face) {}
+  void OnNewFaceVisited(FaceIndex /* face */) {}
 
   void OnNewVertexVisited(VertexIndex vertex, CornerIndex corner) {
     const PointIndex point_id =

@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 #include "compression/attributes/sequential_attribute_decoders_controller.h"
-#include "compression/attributes/mesh_normal_attribute_decoder.h"
+#include "compression/attributes/sequential_normal_attribute_decoder.h"
 #include "compression/attributes/sequential_quantization_attribute_decoder.h"
 #include "compression/config/compression_shared.h"
 
@@ -75,8 +75,8 @@ SequentialAttributeDecodersController::CreateSequentialDecoder(
       return std::unique_ptr<SequentialAttributeDecoder>(
           new SequentialQuantizationAttributeDecoder());
     case SEQUENTIAL_ATTRIBUTE_ENCODER_NORMALS:
-      return std::unique_ptr<MeshNormalAttributeDecoder>(
-          new MeshNormalAttributeDecoder());
+      return std::unique_ptr<SequentialNormalAttributeDecoder>(
+          new SequentialNormalAttributeDecoder());
     default:
       break;
   }

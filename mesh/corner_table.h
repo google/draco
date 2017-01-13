@@ -211,7 +211,7 @@ class CornerTable {
     const FaceIndex face = Face(corner_id);
     faces_[face][LocalIndex(corner_id)] = vert_id;
     if (vert_id >= 0) {
-      if (vertex_corners_.size() <= vert_id.value())
+      if (vertex_corners_.size() <= static_cast<size_t>(vert_id.value()))
         vertex_corners_.resize(vert_id.value() + 1);
       vertex_corners_[vert_id] = corner_id;
     }

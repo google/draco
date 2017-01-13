@@ -91,7 +91,7 @@ bool PointCloudEncoder::GenerateAttributesEncoders() {
       return false;
   }
   attribute_to_encoder_map_.resize(point_cloud_->num_attributes());
-  for (int i = 0; i < attributes_encoders_.size(); ++i) {
+  for (uint32_t i = 0; i < attributes_encoders_.size(); ++i) {
     for (int j = 0; j < attributes_encoders_[i]->num_attributes(); ++j) {
       attribute_to_encoder_map_[attributes_encoders_[i]->GetAttributeId(j)] = i;
     }
@@ -143,11 +143,11 @@ bool PointCloudEncoder::RearrangeAttributesEncoders() {
   // but it will require changes in the current API.
   attributes_encoder_ids_order_.resize(attributes_encoders_.size());
   std::vector<bool> is_encoder_processed(attributes_encoders_.size(), false);
-  int num_processed_encoders = 0;
+  uint32_t num_processed_encoders = 0;
   while (num_processed_encoders < attributes_encoders_.size()) {
     // Flagged when any of the encoder get processed.
     bool encoder_processed = false;
-    for (int i = 0; i < attributes_encoders_.size(); ++i) {
+    for (uint32_t i = 0; i < attributes_encoders_.size(); ++i) {
       if (is_encoder_processed[i])
         continue;  // Encoder already processed.
       // Check if all parent encoders are already processed.
@@ -156,7 +156,7 @@ bool PointCloudEncoder::RearrangeAttributesEncoders() {
         const int32_t att_id = attributes_encoders_[i]->GetAttributeId(p);
         for (int ap = 0;
              ap < attributes_encoders_[i]->NumParentAttributes(att_id); ++ap) {
-          const int32_t parent_att_id =
+          const uint32_t parent_att_id =
               attributes_encoders_[i]->GetParentAttributeId(att_id, ap);
           const int32_t parent_encoder_id =
               attribute_to_encoder_map_[parent_att_id];
@@ -188,7 +188,8 @@ bool PointCloudEncoder::RearrangeAttributesEncoders() {
   std::vector<bool> is_attribute_processed(point_cloud_->num_attributes(),
                                            false);
   int num_processed_attributes;
-  for (int ae_order = 0; ae_order < attributes_encoders_.size(); ++ae_order) {
+  for (uint32_t ae_order = 0; ae_order < attributes_encoders_.size();
+       ++ae_order) {
     const int ae = attributes_encoder_ids_order_[ae_order];
     const int32_t num_encoder_attributes =
         attributes_encoders_[ae]->num_attributes();

@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 #include "compression/attributes/sequential_attribute_encoders_controller.h"
-#include "compression/attributes/mesh_normal_attribute_encoder.h"
+#include "compression/attributes/sequential_normal_attribute_encoder.h"
 #include "compression/attributes/sequential_quantization_attribute_encoder.h"
 #include "compression/point_cloud/point_cloud_encoder.h"
 
@@ -47,7 +47,7 @@ bool SequentialAttributeEncodersController::EncodeAttributesEncoderData(
   if (!AttributesEncoder::EncodeAttributesEncoderData(out_buffer))
     return false;
   // Encode a unique id of every sequential encoder.
-  for (int i = 0; i < sequential_encoders_.size(); ++i) {
+  for (uint32_t i = 0; i < sequential_encoders_.size(); ++i) {
     out_buffer->Encode(sequential_encoders_[i]->GetUniqueId());
   }
   return true;
@@ -57,7 +57,7 @@ bool SequentialAttributeEncodersController::EncodeAttributes(
     EncoderBuffer *buffer) {
   if (!sequencer_ || !sequencer_->GenerateSequence(&point_ids_))
     return false;
-  for (int i = 0; i < sequential_encoders_.size(); ++i) {
+  for (uint32_t i = 0; i < sequential_encoders_.size(); ++i) {
     if (!sequential_encoders_[i]->Encode(point_ids_, buffer))
       return false;
   }
@@ -95,7 +95,7 @@ SequentialAttributeEncodersController::CreateSequentialEncoder(int i) {
           // We currently only support normals with float coordinates
           // and must be quantized.
           return std::unique_ptr<SequentialAttributeEncoder>(
-              new MeshNormalAttributeEncoder());
+              new SequentialNormalAttributeEncoder());
         } else {
           return std::unique_ptr<SequentialAttributeEncoder>(
               new SequentialQuantizationAttributeEncoder());

@@ -88,7 +88,6 @@ void AdaptiveRAnsBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
   source_buffer->Advance(size_in_bytes);
 }
 
-// TODO(hemmer): Consider moving these to the .h file.
 bool AdaptiveRAnsBitDecoder::DecodeNextBit() {
   const uint8_t p0 = clamp_probability(p0_f_);
   const bool bit = static_cast<bool>(rabs_read(&ans_decoder_, p0));
@@ -96,7 +95,8 @@ bool AdaptiveRAnsBitDecoder::DecodeNextBit() {
   return bit;
 }
 
-void AdaptiveRAnsBitDecoder::DecodeBits32(int nbits, uint32_t *value) {
+void AdaptiveRAnsBitDecoder::DecodeLeastSignificantBits32(int nbits,
+                                                          uint32_t *value) {
   DCHECK_EQ(true, nbits <= 32);
   DCHECK_EQ(true, nbits > 0);
 

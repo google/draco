@@ -67,7 +67,7 @@ bool MeshCleanup::operator()(Mesh *mesh, const MeshCleanupOptions &options) {
     const PointIndex::ValueType num_original_points = mesh->num_points();
     // Map from old points to the new ones.
     IndexTypeVector<PointIndex, PointIndex> point_map(num_original_points);
-    if (num_new_points < mesh->num_points()) {
+    if (num_new_points < static_cast<int>(mesh->num_points())) {
       // Some of the points were removed. We need to remap the old points to the
       // new ones.
       num_new_points = 0;
@@ -118,7 +118,7 @@ bool MeshCleanup::operator()(Mesh *mesh, const MeshCleanupOptions &options) {
       bool att_indices_changed = false;
       // If there are some unused attribute entries, remap the attribute values
       // in the attribute buffer.
-      if (num_used_entries < att->size()) {
+      if (num_used_entries < static_cast<int>(att->size())) {
         att_index_map.resize(att->size());
         num_used_entries = 0;
         for (AttributeValueIndex i(0); i < att->size(); ++i) {
@@ -143,7 +143,7 @@ bool MeshCleanup::operator()(Mesh *mesh, const MeshCleanupOptions &options) {
         if (att->is_mapping_identity()) {
           // The mapping was identity. It'll remain identity only if the
           // number of point and attribute indices is still the same.
-          if (num_used_entries != mesh->num_points()) {
+          if (num_used_entries != static_cast<int>(mesh->num_points())) {
             // We need to create an explicit mapping.
             // First we need to initialize the explicit map to the original
             // number of points to recreate the original identity map.

@@ -56,6 +56,9 @@ class PointAttributeVectorIterator {
     ret.point_id_ += dif;
     return ret;
   }
+  bool operator<(const Self &other) const {
+    return point_id_ < other.point_id_;
+  }
 
  private:
   const PointAttribute *attribute_;

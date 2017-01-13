@@ -85,7 +85,6 @@ struct IntegerPointsKdTreeDecoderCompressionPolicy<10>
 // Decodes a point cloud encoded by IntegerPointsKdTreeEncoder.
 // |PointDiT| is a type representing a point with uint32_t coordinates.
 // must provide construction from three uint32_t and operator[].
-// TODO(hemmer): compression_level_t_t
 template <class PointDiT, int compression_level_t>
 class IntegerPointsKdTreeDecoder {
   typedef IntegerPointsKdTreeDecoderCompressionPolicy<compression_level_t>
@@ -104,11 +103,11 @@ class IntegerPointsKdTreeDecoder {
   bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT oit);
 
  private:
-  // For the sack of readability of code, we decided to make this exception
+  // For the sake of readability of code, we decided to make this exception
   // from the naming scheme.
   static constexpr int D = PointTraits<PointDiT>::Dimension();
 
-  uint32_t GetAxis(uint32_t num_remaining_points, PointDiT base,
+  uint32_t GetAxis(uint32_t num_remaining_points, const PointDiT &base,
                    std::array<uint32_t, D> levels, uint32_t last_axis);
 
   template <class OutputIteratorT>
@@ -117,12 +116,12 @@ class IntegerPointsKdTreeDecoder {
                     OutputIteratorT oit);
 
   void DecodeNumber(int nbits, uint32_t *value) {
-    numbers_decoder_.DecodeBits32(nbits, value);
+    numbers_decoder_.DecodeLeastSignificantBits32(nbits, value);
   }
 
   struct DecodingStatus {
     DecodingStatus(
-        uint32_t num_remaining_points_, PointDiT old_base_,
+        uint32_t num_remaining_points_, const PointDiT &old_base_,
         std::array<uint32_t, PointTraits<PointDiT>::Dimension()> levels_,
         uint32_t last_axis_)
         : num_remaining_points(num_remaining_points_),
@@ -175,7 +174,7 @@ bool IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodePoints(
 
 template <class PointDiT, int compression_level_t>
 uint32_t IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::GetAxis(
-    uint32_t num_remaining_points, PointDiT base,
+    uint32_t num_remaining_points, const PointDiT & /* base */,
     std::array<uint32_t, D> levels, uint32_t last_axis) {
   if (!Policy::select_axis)
     return DRACO_INCREMENT_MOD(last_axis, D);
@@ -188,7 +187,7 @@ uint32_t IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::GetAxis(
       }
     }
   } else {
-    axis_decoder_.DecodeBits32(4, &best_axis);
+    axis_decoder_.DecodeLeastSignificantBits32(4, &best_axis);
   }
 
   return best_axis;
@@ -219,7 +218,7 @@ void IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::OctreeDecode(
 
     // All axes have been fully subdivided, just output points.
     if ((bit_length_ - level) == 0) {
-      for (int i = 0; i < num_remaining_points; i++) {
+      for (int i = 0; i < static_cast<int>(num_remaining_points); i++) {
         *oit++ = old_base;
       }
       continue;
@@ -238,14 +237,14 @@ void IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::OctreeDecode(
         num_remaining_bits[i] = bit_length_ - levels[axes[i]];
       }
 
-      for (int i = 0; i < num_remaining_points; ++i) {
+      for (uint32_t i = 0; i < num_remaining_points; ++i) {
         // Get remaining bits, mind the carry if not starting at x.
         PointDiT p = PointTraits<PointDiT>::Origin();
-        for (int i = 0; i < D; i++) {
-          if (num_remaining_bits[i])
-            remaining_bits_decoder_.DecodeBits32(num_remaining_bits[i],
-                                                 &p[axes[i]]);
-          p[axes[i]] = old_base[axes[i]] | p[axes[i]];
+        for (int j = 0; j < static_cast<int>(D); j++) {
+          if (num_remaining_bits[j])
+            remaining_bits_decoder_.DecodeLeastSignificantBits32(
+                num_remaining_bits[j], &p[axes[j]]);
+          p[axes[j]] = old_base[axes[j]] | p[axes[j]];
         }
         *oit++ = p;
       }

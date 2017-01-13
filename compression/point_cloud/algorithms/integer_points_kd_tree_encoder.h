@@ -137,7 +137,7 @@ class IntegerPointsKdTreeEncoder {
   static constexpr int D = PointTraits<PointDiT>::Dimension();
   template <class RandomAccessIteratorT>
   uint32_t GetAxis(RandomAccessIteratorT begin, RandomAccessIteratorT end,
-                   PointDiT old_base, std::array<uint32_t, D> levels,
+                   const PointDiT &old_base, std::array<uint32_t, D> levels,
                    uint32_t last_axis);
 
   template <class RandomAccessIteratorT>
@@ -156,14 +156,14 @@ class IntegerPointsKdTreeEncoder {
   };
 
   void EncodeNumber(int nbits, uint32_t value) {
-    numbers_encoder_.EncodeBits32(nbits, value);
+    numbers_encoder_.EncodeLeastSignificantBits32(nbits, value);
   }
 
   template <class RandomAccessIteratorT>
   struct EncodingStatus {
     EncodingStatus(
         RandomAccessIteratorT begin_, RandomAccessIteratorT end_,
-        PointDiT old_base_,
+        const PointDiT &old_base_,
         std::array<uint32_t, PointTraits<PointDiT>::Dimension()> levels_,
         uint32_t last_axis_)
         : begin(begin_),
@@ -224,8 +224,9 @@ bool IntegerPointsKdTreeEncoder<PointDiT, compression_level_t>::EncodePoints(
 template <class PointDiT, int compression_level_t>
 template <class RandomAccessIteratorT>
 uint32_t IntegerPointsKdTreeEncoder<PointDiT, compression_level_t>::GetAxis(
-    RandomAccessIteratorT begin, RandomAccessIteratorT end, PointDiT old_base,
-    std::array<uint32_t, D> levels, uint32_t last_axis) {
+    RandomAccessIteratorT begin, RandomAccessIteratorT end,
+    const PointDiT &old_base, std::array<uint32_t, D> levels,
+    uint32_t last_axis) {
   if (!Policy::select_axis)
     return DRACO_INCREMENT_MOD(last_axis, D);
 
@@ -237,7 +238,6 @@ uint32_t IntegerPointsKdTreeEncoder<PointDiT, compression_level_t>::GetAxis(
 
   DCHECK_EQ(true, end - begin != 0);
 
-  // TODO(hemmer): Try to find the optimal value for this cut off.
   uint32_t best_axis = 0;
   if (end - begin < 64) {
     for (uint32_t axis = 1; axis < D; ++axis) {
@@ -281,7 +281,7 @@ uint32_t IntegerPointsKdTreeEncoder<PointDiT, compression_level_t>::GetAxis(
         }
       }
     }
-    axis_encoder_.EncodeBits32(4, best_axis);
+    axis_encoder_.EncodeLeastSignificantBits32(4, best_axis);
   }
 
   return best_axis;
@@ -332,12 +332,13 @@ void IntegerPointsKdTreeEncoder<PointDiT, compression_level_t>::OctreeEncode(
         num_remaining_bits[i] = bit_length_ - levels[axes[i]];
       }
 
-      for (int i = 0; i < num_remaining_points; ++i) {
+      for (uint32_t i = 0; i < num_remaining_points; ++i) {
         const PointDiT &p = *(begin + i);
-        for (int i = 0; i < D; i++) {
-          if (num_remaining_bits[i])
-            remaining_bits_encoder_.EncodeBits32(num_remaining_bits[i],
-                                                 p[axes[i]]);
+        for (int j = 0; j < D; j++) {
+          if (num_remaining_bits[j]) {
+            remaining_bits_encoder_.EncodeLeastSignificantBits32(
+                num_remaining_bits[j], p[axes[j]]);
+          }
         }
       }
       continue;

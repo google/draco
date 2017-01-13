@@ -40,7 +40,7 @@ class MeshEdgeBreakerTraversalPredictiveEncoder
     corner_table_ = encoder->GetCornerTable();
     // Initialize valences of all vertices.
     vertex_valences_.resize(corner_table_->num_vertices());
-    for (int i = 0; i < vertex_valences_.size(); ++i) {
+    for (uint32_t i = 0; i < vertex_valences_.size(); ++i) {
       vertex_valences_[i] = corner_table_->Valence(VertexIndex(i));
     }
   }

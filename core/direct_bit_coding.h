@@ -46,7 +46,7 @@ class DirectBitEncoder {
 
   // Encode |nibts| of |value|, starting from the least significant bit.
   // |nbits| must be > 0 and <= 32.
-  void EncodeBits32(int nbits, uint32_t value) {
+  void EncodeLeastSignificantBits32(int nbits, uint32_t value) {
     DCHECK_EQ(true, nbits <= 32);
     DCHECK_EQ(true, nbits > 0);
 
@@ -107,10 +107,10 @@ class DirectBitDecoder {
 
   // Decode the next |nbits| and return the sequence in |value|. |nbits| must be
   // > 0 and <= 32.
-  void DecodeBits32(int nbits, uint32_t *value) {
+  void DecodeLeastSignificantBits32(int nbits, uint32_t *value) {
     DCHECK_EQ(true, nbits <= 32);
     DCHECK_EQ(true, nbits > 0);
-    const uint32_t remaining = 32 - num_used_bits_;
+    const int remaining = 32 - num_used_bits_;
     if (nbits <= remaining) {
       *value = (*pos_ << num_used_bits_) >> (32 - nbits);
       num_used_bits_ += nbits;

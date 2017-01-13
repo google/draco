@@ -55,12 +55,12 @@ class MeshEdgeBreakerTraversalEncoder {
 
   // Called when a traversal starts from a new initial face.
   inline void EncodeStartFaceConfiguration(bool interior) {
-    start_face_buffer_.EncodeBits32(interior ? 1 : 0, 1);
+    start_face_buffer_.EncodeLeastSignificantBits32(1, interior ? 1 : 0);
   }
 
   // Called when a new corner is reached during the traversal. No-op for the
   // default encoder.
-  inline void NewCornerReached(CornerIndex corner) {}
+  inline void NewCornerReached(CornerIndex /* corner */) {}
 
   // Called whenever a new symbol is reached during the edgebreaker traversal.
   inline void EncodeSymbol(EdgeBreakerTopologyBitPattern symbol) {
@@ -84,8 +84,8 @@ class MeshEdgeBreakerTraversalEncoder {
     traversal_buffer_.StartBitEncoding(
         encoder_impl_->GetEncoder()->mesh()->num_faces() * 3, true);
     for (int i = symbols_.size() - 1; i >= 0; --i) {
-      traversal_buffer_.EncodeBits32(
-          symbols_[i], edge_breaker_topology_bit_pattern_length[symbols_[i]]);
+      traversal_buffer_.EncodeLeastSignificantBits32(
+          edge_breaker_topology_bit_pattern_length[symbols_[i]], symbols_[i]);
     }
     traversal_buffer_.EndBitEncoding();
     traversal_buffer_.Encode(start_face_buffer_.data(),

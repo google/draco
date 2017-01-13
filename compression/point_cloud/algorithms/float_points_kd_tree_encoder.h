@@ -43,7 +43,7 @@ namespace draco {
 // there are more leading zeros, which is then compressed better by the
 // arithmetic encoding.
 
-// TODO(hemmer): Make name consistent with other point cloud encoders.
+// TODO(hemmer): Remove class because it duplicates quantization code.
 class FloatPointsKdTreeEncoder {
  public:
   FloatPointsKdTreeEncoder();

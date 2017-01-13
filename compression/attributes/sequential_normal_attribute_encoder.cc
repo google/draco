@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "compression/attributes/mesh_normal_attribute_encoder.h"
+#include "compression/attributes/sequential_normal_attribute_encoder.h"
 #include "compression/attributes/normal_compression_utils.h"
 
 namespace draco {
 
-bool MeshNormalAttributeEncoder::Initialize(PointCloudEncoder *encoder,
-                                            int attribute_id) {
+bool SequentialNormalAttributeEncoder::Initialize(PointCloudEncoder *encoder,
+                                                  int attribute_id) {
   if (!SequentialIntegerAttributeEncoder::Initialize(encoder, attribute_id))
     return false;
   // Currently this encoder works only for 3-component normal vectors.
@@ -27,7 +27,7 @@ bool MeshNormalAttributeEncoder::Initialize(PointCloudEncoder *encoder,
   return true;
 }
 
-bool MeshNormalAttributeEncoder::PrepareValues(
+bool SequentialNormalAttributeEncoder::PrepareValues(
     const std::vector<PointIndex> &point_ids) {
   // Quantize all encoded values.
   const int quantization_bits = encoder()->options()->GetAttributeInt(
@@ -39,7 +39,7 @@ bool MeshNormalAttributeEncoder::PrepareValues(
   values()->clear();
   float att_val[3];
   values()->reserve(point_ids.size() * 2);
-  for (int i = 0; i < point_ids.size(); ++i) {
+  for (uint32_t i = 0; i < point_ids.size(); ++i) {
     const AttributeValueIndex att_id = attribute()->mapped_index(point_ids[i]);
     attribute()->GetValue(att_id, att_val);
     // Encode the vector into a s and t octaherdal coordinates.

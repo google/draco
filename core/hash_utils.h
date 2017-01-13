@@ -47,7 +47,7 @@ template <typename T>
 struct HashArray {
   size_t operator()(const T &a) const {
     size_t hash = 79;  // Magic number.
-    for (int i = 0; i < std::tuple_size<T>::value; ++i) {
+    for (unsigned int i = 0; i < std::tuple_size<T>::value; ++i) {
       hash = HashCombine(hash, ValueHash(a[i]));
     }
     return hash;

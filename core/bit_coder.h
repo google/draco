@@ -27,9 +27,8 @@ namespace draco {
 // Class to encode bits to a bit buffer.
 class BitEncoder {
  public:
-  // |data| is the buffer to write the bits into. |length| is the size of the
-  // buffer.
-  BitEncoder(char *data, size_t length);
+  // |data| is the buffer to write the bits into.
+  explicit BitEncoder(char *data);
 
   // Write |nbits| of |data| into the bit buffer.
   void PutBits(uint32_t data, int32_t nbits) {
@@ -45,7 +44,7 @@ class BitEncoder {
   // TODO(fgalligan): Remove this function once we know we do not need the
   // old API anymore.
   // This is a function of an old API, that currently does nothing.
-  void Flush(int left_over_bit_value) {}
+  void Flush(int /* left_over_bit_value */) {}
 
   // Return the number of bits required to store the given number
   static uint32_t BitsRequired(uint32_t x) {
@@ -69,7 +68,6 @@ class BitEncoder {
   }
 
   char *bit_buffer_;
-  size_t bit_buffer_length_;
   size_t bit_offset_;
 };
 
@@ -98,7 +96,7 @@ class BitDecoder {
 
   inline uint32_t EnsureBits(int k) {
     DCHECK_LE(k, 24);
-    DCHECK_LE(k, AvailBits());
+    DCHECK_LE(static_cast<uint64_t>(k), AvailBits());
 
     uint32_t buf = 0;
     for (int i = 0; i < k; ++i) {
