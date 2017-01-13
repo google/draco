@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef DRACO_COMPRESSION_ATTRIBUTES_MESH_NORMAL_ATTRIBUTE_ENCODER_H_
-#define DRACO_COMPRESSION_ATTRIBUTES_MESH_NORMAL_ATTRIBUTE_ENCODER_H_
+#ifndef DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_NORMAL_ATTRIBUTE_ENCODER_H_
+#define DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_NORMAL_ATTRIBUTE_ENCODER_H_
 
 #include "compression/attributes/prediction_schemes/prediction_scheme_encoder_factory.h"
 #include "compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_transform.h"
@@ -27,8 +27,8 @@ namespace draco {
 // in a better compression rate under the same accuracy settings. Note that this
 // encoder doesn't preserve the lengths of input vectors, therefore it will not
 // work correctly when the input values are not normalized.
-// TODO(hemmer): rename to SequentialNormalAttributeEncoder
-class MeshNormalAttributeEncoder : public SequentialIntegerAttributeEncoder {
+class SequentialNormalAttributeEncoder
+    : public SequentialIntegerAttributeEncoder {
  public:
   uint8_t GetUniqueId() const override {
     return SEQUENTIAL_ATTRIBUTE_ENCODER_NORMALS;
@@ -40,7 +40,7 @@ class MeshNormalAttributeEncoder : public SequentialIntegerAttributeEncoder {
   bool PrepareValues(const std::vector<PointIndex> &point_ids) override;
 
   std::unique_ptr<PredictionSchemeTypedInterface<int32_t>>
-  CreateIntPredictionScheme(PredictionSchemeMethod method) override {
+  CreateIntPredictionScheme(PredictionSchemeMethod /* method */) override {
     typedef PredictionSchemeNormalOctahedronTransform<int32_t> Transform;
     const int32_t quantization_bits = encoder()->options()->GetAttributeInt(
         attribute_id(), "quantization_bits", -1);
@@ -53,4 +53,4 @@ class MeshNormalAttributeEncoder : public SequentialIntegerAttributeEncoder {
 
 }  // namespace draco
 
-#endif  // DRACO_COMPRESSION_ATTRIBUTES_MESH_NORMAL_ATTRIBUTE_ENCODER_H_
+#endif  // DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_NORMAL_ATTRIBUTE_ENCODER_H_

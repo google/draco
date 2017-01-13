@@ -53,7 +53,8 @@ const PointAttribute *PointCloud::GetNamedAttribute(
 
 const PointAttribute *PointCloud::GetNamedAttributeByCustomId(
     GeometryAttribute::Type type, uint16_t custom_id) const {
-  for (int att_id = 0; att_id < named_attribute_index_[type].size(); ++att_id) {
+  for (size_t att_id = 0; att_id < named_attribute_index_[type].size();
+       ++att_id) {
     if (attributes_[named_attribute_index_[type][att_id]]->custom_id() ==
         custom_id)
       return attributes_[named_attribute_index_[type][att_id]].get();
@@ -90,7 +91,7 @@ int PointCloud::AddAttribute(
 
 void PointCloud::SetAttribute(int att_id, std::unique_ptr<PointAttribute> pa) {
   DCHECK(att_id >= 0);
-  if (attributes_.size() <= att_id) {
+  if (static_cast<int>(attributes_.size()) <= att_id) {
     attributes_.resize(att_id + 1);
   }
   if (pa->attribute_type() < GeometryAttribute::NAMED_ATTRIBUTES_COUNT) {

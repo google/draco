@@ -172,7 +172,7 @@ bool PlyReader::ParseProperty(DecoderBuffer *buffer) {
 }
 
 bool PlyReader::ParsePropertiesData(DecoderBuffer *buffer) {
-  for (int i = 0; i < elements_.size(); ++i) {
+  for (int i = 0; i < static_cast<int>(elements_.size()); ++i) {
     if (format_ == kLittleEndian) {
       if (!ParseElementData(buffer, i)) {
         return false;

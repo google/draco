@@ -15,6 +15,8 @@
 #ifndef DRACO_IO_PLY_PROPERTY_READER_H_
 #define DRACO_IO_PLY_PROPERTY_READER_H_
 
+#include <functional>
+
 #include "io/ply_reader.h"
 
 namespace draco {

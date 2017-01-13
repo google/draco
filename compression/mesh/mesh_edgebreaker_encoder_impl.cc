@@ -52,7 +52,7 @@ template <class TraversalEncoder>
 const MeshAttributeCornerTable *
 MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GetAttributeCornerTable(
     int att_id) const {
-  for (int i = 0; i < attribute_data_.size(); ++i) {
+  for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
     if (attribute_data_[i].attribute_index == att_id) {
       if (attribute_data_[i].is_connectivity_used)
         return &attribute_data_[i].connectivity_data;
@@ -66,7 +66,7 @@ template <class TraversalEncoder>
 const MeshAttributeIndicesEncodingData *
 MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GetAttributeEncodingData(
     int att_id) const {
-  for (int i = 0; i < attribute_data_.size(); ++i) {
+  for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
     if (attribute_data_[i].attribute_index == att_id)
       return &attribute_data_[i].encoding_data;
   }
@@ -84,7 +84,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
   const PointAttribute *const att =
       GetEncoder()->point_cloud()->attribute(att_id);
   int32_t att_data_id = -1;
-  for (int i = 0; i < attribute_data_.size(); ++i) {
+  for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
     if (attribute_data_[i].attribute_index == att_id) {
       att_data_id = i;
       break;
@@ -348,7 +348,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   // Encode topology split events.
   uint32_t num_events = topology_split_event_data_.size();
   encoder_->buffer()->Encode(num_events);
-  for (int i = 0; i < num_events; ++i) {
+  for (uint32_t i = 0; i < num_events; ++i) {
     // TODO(ostava): We can do a better encoding of the event data but it's not
     // really needed for now.
     const TopologySplitEventData &event_data = topology_split_event_data_[i];
@@ -361,7 +361,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   // Encode hole events data.
   num_events = hole_event_data_.size();
   encoder_->buffer()->Encode(num_events);
-  for (int i = 0; i < num_events; ++i) {
+  for (uint32_t i = 0; i < num_events; ++i) {
     // TODO(ostava): We can do a better encoding of the event data but it's not
     // really needed for now.
     // This should be also made platform independent.
@@ -653,7 +653,7 @@ int MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GetSplitSymbolIdOnFace(
 template <class TraversalEncoder>
 void MeshEdgeBreakerEncoderImpl<
     TraversalEncoder>::CheckAndStoreTopologySplitEvent(int src_symbol_id,
-                                                       int src_face_id,
+                                                       int /* src_face_id */,
                                                        EdgeFaceName src_edge,
                                                        int neighbor_face_id) {
   const int symbol_id = GetSplitSymbolIdOnFace(neighbor_face_id);
@@ -719,7 +719,7 @@ bool MeshEdgeBreakerEncoderImpl<
     if (opp_corner < 0)
       continue;  // Don't encode attribute seams on boundary edges.
 
-    for (int32_t i = 0; i < attribute_data_.size(); ++i) {
+    for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
       if (attribute_data_[i].connectivity_data.IsCornerOppositeToSeamEdge(
               corners[c])) {
         traversal_encoder_.EncodeAttributeSeam(i, true);

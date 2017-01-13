@@ -40,7 +40,7 @@ void RAnsBitEncoder::EncodeBit(bool bit) {
   }
 }
 
-void RAnsBitEncoder::EncodeBits32(int nbits, uint32_t value) {
+void RAnsBitEncoder::EncodeLeastSignificantBits32(int nbits, uint32_t value) {
   DCHECK_EQ(true, nbits <= 32);
   DCHECK_EQ(true, nbits > 0);
 
@@ -87,7 +87,6 @@ void RAnsBitEncoder::EndEncoding(EncoderBuffer *target_buffer) {
   zero_prob += (zero_prob == 0);
 
   // Space for 32 bit integer and some extra space.
-  // TODO(hemmer): Find out if this is really safe.
   std::vector<uint8_t> buffer((bits_.size() + 8) * 8);
   AnsCoder ans_coder;
   ans_write_init(&ans_coder, buffer.data());
@@ -142,7 +141,7 @@ bool RAnsBitDecoder::DecodeNextBit() {
   return bit > 0;
 }
 
-void RAnsBitDecoder::DecodeBits32(int nbits, uint32_t *value) {
+void RAnsBitDecoder::DecodeLeastSignificantBits32(int nbits, uint32_t *value) {
   DCHECK_EQ(true, nbits <= 32);
   DCHECK_EQ(true, nbits > 0);
 

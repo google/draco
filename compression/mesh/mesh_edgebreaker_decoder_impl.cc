@@ -39,17 +39,6 @@ namespace draco {
 // For more description about how the edges are used, see comment inside
 // ZipConnectivity() method.
 
-// The initial status of all edges.
-static constexpr CornerIndex EDGEBREAKER_FREE_EDGE_DEFAULT(kInvalidCornerIndex);
-
-// A mark assigned to free edge that was part of a face encoded as
-// with TOPOLOGY_C (or the init face).
-static constexpr CornerIndex EDGEBREAKER_FREE_EDGE_A(kInvalidCornerIndex + 1);
-
-// A mark assigned to free edge that was created when processing faces
-// with other topologies.
-static constexpr CornerIndex EDGEBREAKER_FREE_EDGE_B(kInvalidCornerIndex + 2);
-
 template <class TraversalDecoder>
 MeshEdgeBreakerDecoderImpl<TraversalDecoder>::MeshEdgeBreakerDecoderImpl()
     : decoder_(nullptr),
@@ -71,7 +60,7 @@ template <class TraversalDecoder>
 const MeshAttributeCornerTable *
 MeshEdgeBreakerDecoderImpl<TraversalDecoder>::GetAttributeCornerTable(
     int att_id) const {
-  for (int i = 0; i < attribute_data_.size(); ++i) {
+  for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
     const AttributesDecoder *const dec =
         decoder_->attributes_decoder(attribute_data_[i].decoder_id);
     for (int j = 0; j < dec->num_attributes(); ++j) {
@@ -89,7 +78,7 @@ template <class TraversalDecoder>
 const MeshAttributeIndicesEncodingData *
 MeshEdgeBreakerDecoderImpl<TraversalDecoder>::GetAttributeEncodingData(
     int att_id) const {
-  for (int i = 0; i < attribute_data_.size(); ++i) {
+  for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
     const AttributesDecoder *const dec =
         decoder_->attributes_decoder(attribute_data_[i].decoder_id);
     for (int j = 0; j < dec->num_attributes(); ++j) {
@@ -295,7 +284,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
 
   // Decode attribute connectivity.
   // Prepare data structure for decoding non-position attribute connectivites.
-  for (int i = 0; i < attribute_data_.size(); ++i) {
+  for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
     attribute_data_[i].connectivity_data.InitEmpty(corner_table_.get());
     // Add all seams.
     for (int32_t c : attribute_data_[i].attribute_seam_corners) {
@@ -307,7 +296,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
 
   pos_encoding_data_.vertex_to_encoded_attribute_value_index_map.resize(
       corner_table_->num_vertices());
-  for (int i = 0; i < attribute_data_.size(); ++i) {
+  for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
     // For non-position attributes, preallocate the vertex to value mapping
     // using the maximum number of vertices from the base corner table and the
     // attribute corner table (since the attribute decoder may use either of
@@ -621,7 +610,7 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
   uint32_t num_topology_splits;
   if (!decoder_buffer->Decode(&num_topology_splits))
     return -1;
-  for (int i = 0; i < num_topology_splits; ++i) {
+  for (uint32_t i = 0; i < num_topology_splits; ++i) {
     TopologySplitEventData event_data;
     if (!decoder_buffer->Decode(&event_data.split_symbol_id))
       return -1;
@@ -637,7 +626,7 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
   uint32_t num_hole_events;
   if (!decoder_buffer->Decode(&num_hole_events))
     return -1;
-  for (int i = 0; i < num_hole_events; ++i) {
+  for (uint32_t i = 0; i < num_hole_events; ++i) {
     HoleEventData event_data;
     if (!decoder_buffer->Decode(&event_data))
       return -1;
@@ -658,13 +647,13 @@ bool MeshEdgeBreakerDecoderImpl<
     if (opp_corner < 0) {
       // Don't decode attribute seams on boundary edges (every boundary edge
       // is automatically an attribute seam).
-      for (int32_t i = 0; i < attribute_data_.size(); ++i) {
+      for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
         attribute_data_[i].attribute_seam_corners.push_back(corners[c].value());
       }
       continue;
     }
 
-    for (int32_t i = 0; i < attribute_data_.size(); ++i) {
+    for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
       const bool is_seam = traversal_decoder_.DecodeAttributeSeam(i);
       if (is_seam)
         attribute_data_[i].attribute_seam_corners.push_back(corners[c].value());
@@ -724,7 +713,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners() {
     } else {
       // If we are not on the boundary we need to find the first seam (of any
       // attribute).
-      for (int i = 0; i < attribute_data_.size(); ++i) {
+      for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
         if (!attribute_data_[i].connectivity_data.IsCornerOnSeam(c))
           continue;  // No seam for this attribute, ignore it.
         // Else there needs to be at least one seam edge.
@@ -762,7 +751,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners() {
     c = corner_table_->SwingRight(c);
     while (c >= 0 && c != deduplication_first_corner) {
       bool attribute_seam = false;
-      for (int i = 0; i < attribute_data_.size(); ++i) {
+      for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
         if (attribute_data_[i].connectivity_data.Vertex(c) !=
             attribute_data_[i].connectivity_data.Vertex(prev_c)) {
           // Attribute index changed from the previous corner. We need to add a

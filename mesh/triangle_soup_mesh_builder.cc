@@ -70,7 +70,7 @@ std::unique_ptr<Mesh> TriangleSoupMeshBuilder::Finalize() {
     return nullptr;
   // Also deduplicate vertex indices.
   mesh_->DeduplicatePointIds();
-  for (int i = 0; i < attribute_element_types_.size(); ++i) {
+  for (size_t i = 0; i < attribute_element_types_.size(); ++i) {
     if (attribute_element_types_[i] >= 0) {
       mesh_->SetAttributeElementType(i, static_cast<MeshAttributeElementType>(
                                             attribute_element_types_[i]));

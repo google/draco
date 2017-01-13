@@ -66,7 +66,7 @@ class MeshPredictionSchemeParallelogram
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeParallelogram<DataTypeT, TransformT, MeshDataT>::
     Encode(const DataTypeT *in_data, CorrType *out_corr, int size,
-           int num_components, const PointIndex *entry_to_point_id_map) {
+           int num_components, const PointIndex * /* entry_to_point_id_map */) {
   this->transform().InitializeEncoding(in_data, size, num_components);
   std::unique_ptr<DataTypeT[]> pred_vals(new DataTypeT[num_components]());
 
@@ -117,8 +117,8 @@ bool MeshPredictionSchemeParallelogram<DataTypeT, TransformT, MeshDataT>::
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeParallelogram<DataTypeT, TransformT, MeshDataT>::
-    Decode(const CorrType *in_corr, DataTypeT *out_data, int size,
-           int num_components, const PointIndex *entry_to_point_id_map) {
+    Decode(const CorrType *in_corr, DataTypeT *out_data, int /* size */,
+           int num_components, const PointIndex * /* entry_to_point_id_map */) {
   this->transform().InitializeDecoding(num_components);
 
   const CornerTable *const table = this->mesh_data().corner_table();
@@ -130,7 +130,8 @@ bool MeshPredictionSchemeParallelogram<DataTypeT, TransformT, MeshDataT>::
   // Restore the first value.
   this->transform().ComputeOriginalValue(pred_vals.get(), in_corr, out_data, 0);
 
-  for (int p = 1; p < this->mesh_data().data_to_corner_map()->size(); ++p) {
+  const int corner_map_size = this->mesh_data().data_to_corner_map()->size();
+  for (int p = 1; p < corner_map_size; ++p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     int vert_opp = p, vert_next = p, vert_prev = p;
     const CornerIndex opp_corner = table->Opposite(corner_id);

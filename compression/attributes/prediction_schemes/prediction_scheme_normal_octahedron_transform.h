@@ -17,6 +17,7 @@
 
 #include <cmath>
 
+#include "compression/attributes/normal_compression_utils.h"
 #include "compression/attributes/prediction_schemes/prediction_scheme.h"
 #include "core/macros.h"
 #include "core/vector_d.h"
@@ -119,44 +120,15 @@ class PredictionSchemeNormalOctahedronTransform
     out_orig_vals[1] = orig[1];
   }
 
-  Point2 InvertRepresentation(Point2 p) const {
-    DataType sign_x = 0;
-    DataType sign_y = 0;
-    if (p[0] >= 0 && p[1] >= 0) {
-      sign_x = 1;
-      sign_y = 1;
-    } else if (p[0] <= 0 && p[1] <= 0) {
-      sign_x = -1;
-      sign_y = -1;
-    } else {
-      sign_x = (p[0] > 0) ? 1 : -1;
-      sign_y = (p[1] > 0) ? 1 : -1;
-    }
-
-    const Point2 t = Point2(sign_x * max_value_, sign_y * max_value_);
-    p = 2 * p - t;
-    if (sign_x * sign_y >= 0) {
-      p = Point2(-p[1], -p[0]);
-    } else {
-      p = Point2(p[1], p[0]);
-    }
-    p = (p + t) / 2;
-    return p;
-  }
-
-  bool IsInDiamond(const Point2 &p) const {
-    return std::abs(p[0]) + std::abs(p[1]) <= max_value_;
-  }
-
  private:
   Point2 ComputeCorrection(Point2 orig, Point2 pred) const {
     const Point2 t(max_value_, max_value_);
     orig = orig - t;
     pred = pred - t;
 
-    if (!IsInDiamond(pred)) {
-      orig = InvertRepresentation(orig);
-      pred = InvertRepresentation(pred);
+    if (!IsInDiamond( max_value_, pred[0], pred[1])) {
+      InvertRepresentation(max_value_, &orig[0], &orig[1]);
+      InvertRepresentation(max_value_, &pred[0], &pred[1]);
     }
 
     Point2 corr = orig - pred;
@@ -169,15 +141,15 @@ class PredictionSchemeNormalOctahedronTransform
     const Point2 t(max_value_, max_value_);
     pred = pred - t;
 
-    const bool pred_is_in_diamond = IsInDiamond(pred);
+    const bool pred_is_in_diamond = IsInDiamond( max_value_, pred[0], pred[1]);
     if (!pred_is_in_diamond) {
-      pred = InvertRepresentation(pred);
+      InvertRepresentation(max_value_, &pred[0], &pred[1]);
     }
     Point2 orig = pred + corr;
     orig[0] = ModMax(orig[0]);
     orig[1] = ModMax(orig[1]);
     if (!pred_is_in_diamond) {
-      orig = InvertRepresentation(orig);
+      InvertRepresentation(max_value_, &orig[0], &orig[1]);
     }
     orig = orig + t;
     return orig;

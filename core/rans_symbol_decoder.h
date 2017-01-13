@@ -56,7 +56,7 @@ bool RAnsSymbolDecoder<max_symbol_bit_length_t>::Create(DecoderBuffer *buffer) {
     return false;
   probability_table_.resize(num_symbols_);
   // Decode the table.
-  for (int i = 0; i < num_symbols_; ++i) {
+  for (uint32_t i = 0; i < num_symbols_; ++i) {
     uint32_t prob = 0;
     uint8_t byte_prob = 0;
     // Decode the first byte and extract the number of extra bytes we need to

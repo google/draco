@@ -54,7 +54,7 @@ bool SequentialAttributeEncoder::EncodeValues(
   const std::unique_ptr<uint8_t[]> value_data_ptr(new uint8_t[entry_size]);
   uint8_t *const value_data = value_data_ptr.get();
   // Encode all attribute values in their native raw format.
-  for (int i = 0; i < point_ids.size(); ++i) {
+  for (uint32_t i = 0; i < point_ids.size(); ++i) {
     const AttributeValueIndex entry_id = attribute_->mapped_index(point_ids[i]);
     attribute_->GetValue(entry_id, value_data);
     out_buffer->Encode(value_data, entry_size);

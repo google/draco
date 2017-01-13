@@ -66,7 +66,7 @@ class MeshTraversalSequencer : public PointsSequencer {
  protected:
   bool GenerateSequenceInternal() override {
     if (corner_order_) {
-      for (int i = 0; i < corner_order_->size(); ++i) {
+      for (uint32_t i = 0; i < corner_order_->size(); ++i) {
         ProcessCorner(corner_order_->at(i));
       }
     } else {

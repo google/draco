@@ -110,7 +110,7 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
 
     // To compute the maximum bit-length, first OR all values.
     uint32_t masked_value = 0;
-    for (int i = 0; i < values_.size(); ++i) {
+    for (uint32_t i = 0; i < values_.size(); ++i) {
       masked_value |= values_[i];
     }
     // Compute the msb of the ORed value.
@@ -126,7 +126,7 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
     if (num_bytes == sizeof(decltype(values_)::value_type)) {
       out_buffer->Encode(values_.data(), sizeof(int32_t) * values_.size());
     } else {
-      for (int i = 0; i < values_.size(); ++i) {
+      for (uint32_t i = 0; i < values_.size(); ++i) {
         out_buffer->Encode(&values_[i], num_bytes);
       }
     }

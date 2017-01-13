@@ -32,14 +32,14 @@ EncoderOptions::EncoderOptions() {}
 void EncoderOptions::SetGlobalOptions(const Options &o) { global_options_ = o; }
 
 void EncoderOptions::SetAttributeOptions(int32_t att_id, const Options &o) {
-  if (attribute_options_.size() <= att_id) {
+  if (attribute_options_.size() <= static_cast<size_t>(att_id)) {
     attribute_options_.resize(att_id + 1);
   }
   attribute_options_[att_id] = o;
 }
 
 Options *EncoderOptions::GetAttributeOptions(int32_t att_id) {
-  if (attribute_options_.size() <= att_id) {
+  if (attribute_options_.size() <= static_cast<size_t>(att_id)) {
     attribute_options_.resize(att_id + 1);
   }
   return &attribute_options_[att_id];
@@ -95,7 +95,7 @@ void EncoderOptions::SetGlobalString(const std::string &name,
 
 void EncoderOptions::SetAttributeInt(int32_t att_id, const std::string &name,
                                      int val) {
-  if (att_id >= attribute_options_.size()) {
+  if (att_id >= static_cast<int32_t>(attribute_options_.size())) {
     attribute_options_.resize(att_id + 1);
   }
   attribute_options_[att_id].SetInt(name, val);
@@ -103,7 +103,7 @@ void EncoderOptions::SetAttributeInt(int32_t att_id, const std::string &name,
 
 void EncoderOptions::SetAttributeBool(int32_t att_id, const std::string &name,
                                       bool val) {
-  if (att_id >= attribute_options_.size()) {
+  if (att_id >= static_cast<int32_t>(attribute_options_.size())) {
     attribute_options_.resize(att_id + 1);
   }
   attribute_options_[att_id].SetBool(name, val);
@@ -111,7 +111,7 @@ void EncoderOptions::SetAttributeBool(int32_t att_id, const std::string &name,
 
 void EncoderOptions::SetAttributeString(int32_t att_id, const std::string &name,
                                         const std::string &val) {
-  if (att_id >= attribute_options_.size()) {
+  if (att_id >= static_cast<int32_t>(attribute_options_.size())) {
     attribute_options_.resize(att_id + 1);
   }
   attribute_options_[att_id].SetString(name, val);
@@ -119,7 +119,7 @@ void EncoderOptions::SetAttributeString(int32_t att_id, const std::string &name,
 
 int EncoderOptions::GetAttributeInt(int32_t att_id, const std::string &name,
                                     int default_val) const {
-  if (att_id < attribute_options_.size()) {
+  if (att_id < static_cast<int32_t>(attribute_options_.size())) {
     if (attribute_options_[att_id].IsOptionSet(name))
       return attribute_options_[att_id].GetInt(name, default_val);
   }
@@ -128,7 +128,7 @@ int EncoderOptions::GetAttributeInt(int32_t att_id, const std::string &name,
 
 bool EncoderOptions::GetAttributeBool(int32_t att_id, const std::string &name,
                                       bool default_val) const {
-  if (att_id < attribute_options_.size()) {
+  if (att_id < static_cast<int32_t>(attribute_options_.size())) {
     if (attribute_options_[att_id].IsOptionSet(name))
       return attribute_options_[att_id].GetBool(name, default_val);
   }
@@ -138,7 +138,7 @@ bool EncoderOptions::GetAttributeBool(int32_t att_id, const std::string &name,
 std::string EncoderOptions::GetAttributeString(
     int32_t att_id, const std::string &name,
     const std::string &default_val) const {
-  if (att_id < attribute_options_.size()) {
+  if (att_id < static_cast<int32_t>(attribute_options_.size())) {
     if (attribute_options_[att_id].IsOptionSet(name))
       return attribute_options_[att_id].GetString(name, default_val);
   }

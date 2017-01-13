@@ -83,7 +83,7 @@ bool DecodeTaggedSymbols(int num_values, int num_components,
     // Decode the actual value.
     for (int j = 0; j < num_components; ++j) {
       uint32_t val;
-      if (!src_buffer->DecodeBits32(bit_length, &val))
+      if (!src_buffer->DecodeLeastSignificantBits32(bit_length, &val))
         return false;
       out_values[value_id++] = val;
     }

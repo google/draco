@@ -90,7 +90,7 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
       if (!in_buffer->Decode(values_.data(), sizeof(int32_t) * values_.size()))
         return false;
     } else {
-      for (int i = 0; i < values_.size(); ++i) {
+      for (uint32_t i = 0; i < values_.size(); ++i) {
         in_buffer->Decode(&values_[i], num_bytes);
       }
     }
@@ -151,7 +151,7 @@ void SequentialIntegerAttributeDecoder::StoreTypedValues(uint32_t num_values) {
       new AttributeTypeT[num_components]);
   int val_id = 0;
   int out_byte_pos = 0;
-  for (int i = 0; i < num_values; ++i) {
+  for (uint32_t i = 0; i < num_values; ++i) {
     for (int c = 0; c < num_components; ++c) {
       const AttributeTypeT value =
           static_cast<AttributeTypeT>(values_[val_id++]);

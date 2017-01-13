@@ -145,13 +145,13 @@ bool RAnsSymbolEncoder<max_symbol_bit_length_t>::Create(
               return false;  // Most frequent symbol would be empty.
             break;
           }
-          const int32_t new_prob =
+          const int32_t new_prob = static_cast<int32_t>(
               floor(act_rel_error_d *
-                    static_cast<double>(probability_table_[symbol_id].prob));
+                    static_cast<double>(probability_table_[symbol_id].prob)));
           int32_t fix = probability_table_[symbol_id].prob - new_prob;
-          if (fix == 0)
+          if (fix == 0u)
             fix = 1;
-          if (fix >= probability_table_[symbol_id].prob)
+          if (fix >= static_cast<int32_t>(probability_table_[symbol_id].prob))
             fix = probability_table_[symbol_id].prob - 1;
           if (fix > error)
             fix = error;
@@ -198,7 +198,7 @@ void RAnsSymbolEncoder<max_symbol_bit_length_t>::EncodeTable(
   buffer->Encode(num_symbols_);
   // Use varint encoding for the probabilities (first two bits represent the
   // number of bytes used - 1).
-  for (int i = 0; i < num_symbols_; ++i) {
+  for (uint32_t i = 0; i < num_symbols_; ++i) {
     const uint32_t prob = probability_table_[i].prob;
     int num_extra_bytes = 0;
     if (prob >= (1 << 6)) {

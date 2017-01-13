@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <iterator>
 
 namespace draco {
 namespace parser {

@@ -360,7 +360,7 @@ bool ObjDecoder::ParseMaterialLib(bool *error) {
   return true;
 }
 
-bool ObjDecoder::ParseMaterial(bool *error) {
+bool ObjDecoder::ParseMaterial(bool * /* error */) {
   if (counting_mode_)
     return false;  // Skip when we are counting definitions.
   if (material_att_id_ < 0)
@@ -458,7 +458,7 @@ bool ObjDecoder::ParseMaterialFile(const std::string &file_name, bool *error) {
   return true;
 }
 
-bool ObjDecoder::ParseMaterialFileDefinition(bool *error) {
+bool ObjDecoder::ParseMaterialFileDefinition(bool * /* error */) {
   char c;
   parser::SkipWhitespace(buffer());
   if (!buffer()->Peek(&c)) {

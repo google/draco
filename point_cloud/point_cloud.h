@@ -52,7 +52,7 @@ class PointCloud {
   int32_t num_attributes() const { return attributes_.size(); }
   const PointAttribute *attribute(int32_t att_id) const {
     DCHECK_LE(0, att_id);
-    DCHECK_LT(att_id, attributes_.size());
+    DCHECK_LT(att_id, static_cast<int32_t>(attributes_.size()));
     return attributes_[att_id].get();
   }
 
@@ -60,7 +60,7 @@ class PointCloud {
   // maintain the attribute's consistency with draco::PointCloud.
   PointAttribute *attribute(int32_t att_id) {
     DCHECK_LE(0, att_id);
-    DCHECK_LT(att_id, attributes_.size());
+    DCHECK_LT(att_id, static_cast<int32_t>(attributes_.size()));
     return attributes_[att_id].get();
   }
 
@@ -116,12 +116,13 @@ struct PointCloudHasher {
     hash = HashCombine(pc.attributes_.size(), hash);
     for (int i = 0; i < GeometryAttribute::NAMED_ATTRIBUTES_COUNT; ++i) {
       hash = HashCombine(pc.named_attribute_index_[i].size(), hash);
-      for (int j = 0; j < pc.named_attribute_index_[i].size(); ++j) {
+      for (int j = 0; j < static_cast<int>(pc.named_attribute_index_[i].size());
+           ++j) {
         hash = HashCombine(pc.named_attribute_index_[i][j], hash);
       }
     }
     // Hash attributes.
-    for (int i = 0; i < pc.attributes_.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(pc.attributes_.size()); ++i) {
       PointAttributeHasher att_hasher;
       hash = HashCombine(att_hasher(*pc.attributes_[i]), hash);
     }

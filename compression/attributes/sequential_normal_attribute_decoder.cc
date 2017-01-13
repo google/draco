@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "compression/attributes/mesh_normal_attribute_decoder.h"
+#include "compression/attributes/sequential_normal_attribute_decoder.h"
 #include "compression/attributes/normal_compression_utils.h"
 
 namespace draco {
 
-MeshNormalAttributeDecoder::MeshNormalAttributeDecoder()
+SequentialNormalAttributeDecoder::SequentialNormalAttributeDecoder()
     : quantization_bits_(-1) {}
 
-bool MeshNormalAttributeDecoder::Initialize(PointCloudDecoder *decoder,
-                                            int attribute_id) {
+bool SequentialNormalAttributeDecoder::Initialize(PointCloudDecoder *decoder,
+                                                  int attribute_id) {
   if (!SequentialIntegerAttributeDecoder::Initialize(decoder, attribute_id))
     return false;
   // Currently, this encoder works only for 3-component normal vectors.
@@ -30,7 +30,7 @@ bool MeshNormalAttributeDecoder::Initialize(PointCloudDecoder *decoder,
   return true;
 }
 
-bool MeshNormalAttributeDecoder::DecodeIntegerValues(
+bool SequentialNormalAttributeDecoder::DecodeIntegerValues(
     const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
   uint8_t quantization_bits;
   if (!in_buffer->Decode(&quantization_bits))
@@ -40,7 +40,7 @@ bool MeshNormalAttributeDecoder::DecodeIntegerValues(
                                                                 in_buffer);
 }
 
-bool MeshNormalAttributeDecoder::StoreValues(uint32_t num_points) {
+bool SequentialNormalAttributeDecoder::StoreValues(uint32_t num_points) {
   // Convert all quantized values back to floats.
   const int32_t max_quantized_value = (1 << quantization_bits_) - 1;
   const float max_quantized_value_f = static_cast<float>(max_quantized_value);
@@ -50,7 +50,7 @@ bool MeshNormalAttributeDecoder::StoreValues(uint32_t num_points) {
   float att_val[3];
   int quant_val_id = 0;
   int out_byte_pos = 0;
-  for (int i = 0; i < num_points; ++i) {
+  for (uint32_t i = 0; i < num_points; ++i) {
     const int32_t s = values()->at(quant_val_id++);
     const int32_t t = values()->at(quant_val_id++);
     QuantizedOctaherdalCoordsToUnitVector(s, t, max_quantized_value_f, att_val);

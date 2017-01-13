@@ -73,6 +73,7 @@ class MeshPredictionSchemeTexCoords
 
   GeometryAttribute::Type GetParentAttributeType(int i) const override {
     DCHECK_EQ(i, 0);
+    (void)i;
     return GeometryAttribute::POSITION;
   }
 
@@ -137,15 +138,16 @@ bool MeshPredictionSchemeTexCoords<DataTypeT, TransformT, MeshDataT>::Encode(
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeTexCoords<DataTypeT, TransformT, MeshDataT>::Decode(
-    const CorrType *in_corr, DataTypeT *out_data, int size, int num_components,
-    const PointIndex *entry_to_point_id_map) {
+    const CorrType *in_corr, DataTypeT *out_data, int /* size */,
+    int num_components, const PointIndex *entry_to_point_id_map) {
   num_components_ = num_components;
   entry_to_point_id_map_ = entry_to_point_id_map;
   predicted_value_ =
       std::unique_ptr<DataTypeT[]>(new DataTypeT[num_components]);
   this->transform().InitializeDecoding(num_components);
 
-  for (int p = 0; p < this->mesh_data().data_to_corner_map()->size(); ++p) {
+  const int corner_map_size = this->mesh_data().data_to_corner_map()->size();
+  for (int p = 0; p < corner_map_size; ++p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     ComputePredictedValue<false>(corner_id, out_data, p);
 
@@ -226,8 +228,8 @@ void MeshPredictionSchemeTexCoords<DataTypeT, TransformT, MeshDataT>::
     const Vector2f p_uv = GetTexCoordForEntryId(prev_data_id, data);
     if (p_uv == n_uv) {
       // We cannot do a reliable prediction on degenerated UV triangles.
-      predicted_value_[0] = p_uv[0];
-      predicted_value_[1] = p_uv[1];
+      predicted_value_[0] = static_cast<int>(p_uv[0]);
+      predicted_value_[1] = static_cast<int>(p_uv[1]);
       return;
     }
 
@@ -317,11 +319,11 @@ void MeshPredictionSchemeTexCoords<DataTypeT, TransformT, MeshDataT>::
     }
     if (std::is_integral<DataTypeT>::value) {
       // Round the predicted value for integer types.
-      predicted_value_[0] = floor(predicted_uv[0] + 0.5);
-      predicted_value_[1] = floor(predicted_uv[1] + 0.5);
+      predicted_value_[0] = static_cast<int>(floor(predicted_uv[0] + 0.5));
+      predicted_value_[1] = static_cast<int>(floor(predicted_uv[1] + 0.5));
     } else {
-      predicted_value_[0] = predicted_uv[0];
-      predicted_value_[1] = predicted_uv[1];
+      predicted_value_[0] = static_cast<int>(predicted_uv[0]);
+      predicted_value_[1] = static_cast<int>(predicted_uv[1]);
     }
     return;
   }

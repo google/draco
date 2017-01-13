@@ -40,7 +40,7 @@ class MeshEdgeBreakerTraversalDecoder {
 
   // Used to tell the decoder what is the number of expected decoded vertices.
   // Ignored by default.
-  void SetNumEncodedVertices(int num_vertices) {}
+  void SetNumEncodedVertices(int /* num_vertices */) {}
 
   // Set the number of non-position attribute data for which we need to decode
   // the connectivity.
@@ -76,30 +76,30 @@ class MeshEdgeBreakerTraversalDecoder {
   // Returns the configuration of a new initial face.
   inline bool DecodeStartFaceConfiguration() {
     uint32_t face_configuration;
-    start_face_buffer_.DecodeBits32(1, &face_configuration);
+    start_face_buffer_.DecodeLeastSignificantBits32(1, &face_configuration);
     return face_configuration;
   }
 
   // Returns the next edgebreaker symbol that was reached during the traversal.
   inline uint32_t DecodeSymbol() {
     uint32_t symbol;
-    buffer_.DecodeBits32(1, &symbol);
+    buffer_.DecodeLeastSignificantBits32(1, &symbol);
     if (symbol == TOPOLOGY_C) {
       return symbol;
     }
     // Else decode two additional bits.
     uint32_t symbol_suffix;
-    buffer_.DecodeBits32(2, &symbol_suffix);
+    buffer_.DecodeLeastSignificantBits32(2, &symbol_suffix);
     symbol |= (symbol_suffix << 1);
     return symbol;
   }
 
   // Called whenever a new active corner is set in the decoder.
-  inline void NewActiveCornerReached(CornerIndex corner) {}
+  inline void NewActiveCornerReached(CornerIndex /* corner */) {}
 
   // Called whenever |source| vertex is about to be merged into the |dest|
   // vertex.
-  inline void MergeVertices(VertexIndex dest, VertexIndex source) {}
+  inline void MergeVertices(VertexIndex /* dest */, VertexIndex /* source */) {}
 
   // Returns true if there is an attribute seam for the next processed pair
   // of visited faces.

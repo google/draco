@@ -54,17 +54,19 @@ class AttributesEncoder {
   // Returns the number of attributes that need to be encoded before the
   // specified attribute is encoded.
   // Note that the attribute is specified by its point attribute id.
-  virtual int NumParentAttributes(int32_t point_attribute_id) const {
+  virtual int NumParentAttributes(int32_t /* point_attribute_id */) const {
     return 0;
   }
 
-  virtual int GetParentAttributeId(int32_t point_attribute_id,
-                                   int32_t parent_i) const {
+  virtual int GetParentAttributeId(int32_t /* point_attribute_id */,
+                                   int32_t /* parent_i */) const {
     return -1;
   }
 
   // Marks a given attribute as a parent of another attribute.
-  virtual bool MarkParentAttribute(int32_t point_attribute_id) { return false; }
+  virtual bool MarkParentAttribute(int32_t /* point_attribute_id */) {
+    return false;
+  }
 
   // Returns an attribute containing the encoded version of the attribute data.
   // I.e., the data that is going to be used by the decoder after the attribute
@@ -74,13 +76,13 @@ class AttributesEncoder {
   // dependent attributes that require to use the same data that will be
   // availalbe during decoding.
   virtual const PointAttribute *GetLossyAttributeData(
-      int32_t point_attribute_id) {
+      int32_t /* point_attribute_id */) {
     return nullptr;
   }
 
   void AddAttributeId(int32_t id) {
     point_attribute_ids_.push_back(id);
-    if (id >= point_attribute_to_local_id_map_.size())
+    if (id >= static_cast<int32_t>(point_attribute_to_local_id_map_.size()))
       point_attribute_to_local_id_map_.resize(id + 1, -1);
     point_attribute_to_local_id_map_[id] = point_attribute_ids_.size() - 1;
   }
@@ -100,7 +102,8 @@ class AttributesEncoder {
 
  protected:
   int32_t GetLocalIdForPointAttribute(int32_t point_attribute_id) const {
-    if (point_attribute_id >= point_attribute_to_local_id_map_.size())
+    const int id_map_size = point_attribute_to_local_id_map_.size();
+    if (point_attribute_id >= id_map_size)
       return -1;
     return point_attribute_to_local_id_map_[point_attribute_id];
   }

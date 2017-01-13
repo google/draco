@@ -98,7 +98,7 @@ bool EncodeSymbols(const uint32_t *symbols, int num_values, int num_components,
   // Compute the total bit length used by all values. This will be used for
   // computing a heuristic that chooses the optimal entropy encoding scheme.
   uint64_t total_bit_length = 0;
-  for (int64_t i = 0; i < bit_lengths.size(); ++i) {
+  for (size_t i = 0; i < bit_lengths.size(); ++i) {
     total_bit_length += bit_lengths[i];
   }
 
@@ -106,13 +106,13 @@ bool EncodeSymbols(const uint32_t *symbols, int num_values, int num_components,
 
   // The average number of bits necessary for encoding a single entry value.
   const int64_t average_bit_length =
-      ceil(static_cast<double>(total_bit_length) /
-           static_cast<double>(num_component_values));
+      static_cast<int64_t>(ceil(static_cast<double>(total_bit_length) /
+                                static_cast<double>(num_component_values)));
   // The estimated average number of bits necessary for encoding a single
   // bit-length tag.
-  int64_t average_bits_per_tag =
+  int64_t average_bits_per_tag = static_cast<int64_t>(
       ceil(static_cast<float>(bits::MostSignificantBit(average_bit_length)) /
-           static_cast<float>(num_components));
+           static_cast<float>(num_components)));
   if (average_bits_per_tag <= 0)
     average_bits_per_tag = 1;
 
@@ -162,7 +162,7 @@ bool EncodeTaggedSymbols(const uint32_t *symbols, int num_values,
 
   // Compute the frequencies from input data.
   // Maximum integer value for the values across all components.
-  for (int i = 0; i < bit_lengths.size(); ++i) {
+  for (size_t i = 0; i < bit_lengths.size(); ++i) {
     // Update the frequency of the associated entry id.
     ++frequencies[bit_lengths[i]];
   }
@@ -193,7 +193,8 @@ bool EncodeTaggedSymbols(const uint32_t *symbols, int num_values,
       const int j = num_values - num_components - i;
       const int value_bit_length = bit_lengths[j / num_components];
       for (int c = 0; c < num_components; ++c) {
-        value_buffer.EncodeBits32(symbols[j + c], value_bit_length);
+        value_buffer.EncodeLeastSignificantBits32(value_bit_length,
+                                                  symbols[j + c]);
       }
     }
   } else {
@@ -203,7 +204,7 @@ bool EncodeTaggedSymbols(const uint32_t *symbols, int num_values,
       tag_encoder.EncodeSymbol(bit_length);
       // Now encode all values using the stored bit_length.
       for (int j = 0; j < num_components; ++j) {
-        value_buffer.EncodeBits32(symbols[i + j], bit_length);
+        value_buffer.EncodeLeastSignificantBits32(bit_length, symbols[i + j]);
       }
     }
   }

@@ -45,14 +45,14 @@ class EncoderBuffer {
 
   // Encode up to 32 bits into the buffer. Can be called only in between
   // StartBitEncoding and EndBitEncoding. Otherwise returns false.
-  // TODO(hemmer): Swap arguments to make it consistent with DecoderBuffer.
-  bool EncodeBits32(uint32_t value, int nbits) {
+  bool EncodeLeastSignificantBits32(int nbits, uint32_t value) {
     if (!bit_encoder_active())
       return false;
     bit_encoder_->PutBits(value, nbits);
     return true;
   }
 
+ public:
   // Encode an arbitrary data type.
   // Can be used only when we are not encoding a bit-sequence.
   // Returns false when the value couldn't be encoded.

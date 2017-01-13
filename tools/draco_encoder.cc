@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#include <cinttypes>
+#include <cstdlib>
 #include <fstream>
 
 #include "compression/encode.h"
@@ -71,7 +73,7 @@ int StringToInt(const std::string &s) {
 
 void PrintOptions(const draco::PointCloud &pc, const Options &options) {
   printf("Encoder options:\n");
-  printf("  Compression level = %d\n", 10 - options.compression_level);
+  printf("  Compression level = %d\n", options.compression_level);
   if (options.pos_quantization_bits <= 0) {
     printf("  Positions: No quantization\n");
   } else {
@@ -118,8 +120,8 @@ int EncodePointCloudToFile(const draco::PointCloud &pc,
     return -1;
   }
   out_file.write(buffer.data(), buffer.size());
-  printf("Encoded point cloud saved to %s (%ld ms to encode)\n", file.c_str(),
-         timer.GetInMs());
+  printf("Encoded point cloud saved to %s (%" PRId64 " ms to encode)\n",
+         file.c_str(), timer.GetInMs());
   printf("\nEncoded size = %zu bytes\n\n", buffer.size());
   return 0;
 }
@@ -143,7 +145,7 @@ int EncodeMeshToFile(const draco::Mesh &mesh,
     return -1;
   }
   out_file.write(buffer.data(), buffer.size());
-  printf("Encoded mesh saved to %s (%ld ms to encode)\n", file.c_str(),
+  printf("Encoded mesh saved to %s (%" PRId64 " ms to encode)\n", file.c_str(),
          timer.GetInMs());
   printf("\nEncoded size = %zu bytes\n\n", buffer.size());
   return 0;

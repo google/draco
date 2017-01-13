@@ -71,7 +71,7 @@ bool SequentialQuantizationAttributeDecoder::DequantizeValues(
   int out_byte_pos = 0;
   Dequantizer dequantizer;
   dequantizer.Init(max_value_dif_, max_quantized_value);
-  for (int i = 0; i < num_values; ++i) {
+  for (uint32_t i = 0; i < num_values; ++i) {
     for (int c = 0; c < num_components; ++c) {
       float value = dequantizer.DequantizeFloat(values()->at(quant_val_id++));
       value = value + min_value_[c];

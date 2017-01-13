@@ -125,7 +125,7 @@ bool SequentialQuantizationAttributeEncoder::QuantizeValues(
   const uint32_t max_quantized_value = (1 << (quantization_bits)) - 1;
   Quantizer quantizer;
   quantizer.Init(max_value_dif_, max_quantized_value);
-  for (int i = 0; i < point_ids.size(); ++i) {
+  for (uint32_t i = 0; i < point_ids.size(); ++i) {
     const AttributeValueIndex att_id = attrib->mapped_index(point_ids[i]);
     attribute()->GetValue(att_id, att_val.get());
     for (int c = 0; c < num_components; ++c) {

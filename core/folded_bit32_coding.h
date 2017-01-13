@@ -48,7 +48,7 @@ class FoldedBit32Encoder {
 
   // Encode |nbits| of |value|, starting from the least significant bit.
   // |nbits| must be > 0 and <= 32.
-  void EncodeBits32(int nbits, uint32_t value) {
+  void EncodeLeastSignificantBits32(int nbits, uint32_t value) {
     uint32_t selector = 1 << (nbits - 1);
     for (int i = 0; i < nbits; i++) {
       const bool bit = (value & selector);
@@ -96,7 +96,7 @@ class FoldedBit32Decoder {
 
   // Decode the next |nbits| and return the sequence in |value|. |nbits| must be
   // > 0 and <= 32.
-  void DecodeBits32(int nbits, uint32_t *value) {
+  void DecodeLeastSignificantBits32(int nbits, uint32_t *value) {
     uint32_t result = 0;
     for (int i = 0; i < nbits; ++i) {
       const bool bit = folded_number_decoders_[i].DecodeNextBit();

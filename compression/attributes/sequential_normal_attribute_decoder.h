@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef DRACO_COMPRESSION_ATTRIBUTES_MESH_NORMAL_ATTRIBUTE_DECODER_H_
-#define DRACO_COMPRESSION_ATTRIBUTES_MESH_NORMAL_ATTRIBUTE_DECODER_H_
+#ifndef DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_NORMAL_ATTRIBUTE_DECODER_H_
+#define DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_NORMAL_ATTRIBUTE_DECODER_H_
 
 #include "compression/attributes/prediction_schemes/prediction_scheme_decoder_factory.h"
 #include "compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_transform.h"
@@ -21,11 +21,11 @@
 
 namespace draco {
 
-// Decoder for attributes encoded with MeshNormalAttributeEncoder.
-// TODO(hemmer): rename to SequentialNormalAttributeDecoder
-class MeshNormalAttributeDecoder : public SequentialIntegerAttributeDecoder {
+// Decoder for attributes encoded with SequentialNormalAttributeEncoder.
+class SequentialNormalAttributeDecoder
+    : public SequentialIntegerAttributeDecoder {
  public:
-  MeshNormalAttributeDecoder();
+  SequentialNormalAttributeDecoder();
   bool Initialize(PointCloudDecoder *decoder, int attribute_id) override;
 
  protected:
@@ -61,4 +61,4 @@ class MeshNormalAttributeDecoder : public SequentialIntegerAttributeDecoder {
 
 }  // namespace draco
 
-#endif  // DRACO_COMPRESSION_ATTRIBUTES_MESH_NORMAL_ATTRIBUTE_DECODER_H_
+#endif  // DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_NORMAL_ATTRIBUTE_DECODER_H_

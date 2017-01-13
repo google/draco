@@ -43,7 +43,7 @@ class PointsSequencer {
   // sufficient information to compute the inverse map, because not all point
   // ids are necessarily contained within the map.
   // Must be implemented for sequencers that are used by attribute decoders.
-  virtual bool UpdatePointToAttributeIndexMapping(PointAttribute *attribute) {
+  virtual bool UpdatePointToAttributeIndexMapping(PointAttribute * /* attr */) {
     return false;
   }
 

@@ -16,8 +16,6 @@
 
 #include "compression/point_cloud/algorithms/point_cloud_types.h"
 
-// TODO(hemmer): make independent from dimension 3
-
 namespace draco {
 
 template class IntegerPointsKdTreeDecoder<Point3ui, 0>;
@@ -31,5 +29,17 @@ template class IntegerPointsKdTreeDecoder<Point3ui, 7>;
 template class IntegerPointsKdTreeDecoder<Point3ui, 8>;
 template class IntegerPointsKdTreeDecoder<Point3ui, 9>;
 template class IntegerPointsKdTreeDecoder<Point3ui, 10>;
+
+template class IntegerPointsKdTreeDecoder<Point4ui, 0>;
+template class IntegerPointsKdTreeDecoder<Point4ui, 1>;
+template class IntegerPointsKdTreeDecoder<Point4ui, 2>;
+template class IntegerPointsKdTreeDecoder<Point4ui, 3>;
+template class IntegerPointsKdTreeDecoder<Point4ui, 4>;
+template class IntegerPointsKdTreeDecoder<Point4ui, 5>;
+template class IntegerPointsKdTreeDecoder<Point4ui, 6>;
+template class IntegerPointsKdTreeDecoder<Point4ui, 7>;
+template class IntegerPointsKdTreeDecoder<Point4ui, 8>;
+template class IntegerPointsKdTreeDecoder<Point4ui, 9>;
+template class IntegerPointsKdTreeDecoder<Point4ui, 10>;
 
 }  // namespace draco

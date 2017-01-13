@@ -17,8 +17,7 @@
 // TODO(fgalligan): Remove this file.
 namespace draco {
 
-BitEncoder::BitEncoder(char *data, size_t length)
-    : bit_buffer_(data), bit_buffer_length_(length), bit_offset_(0) {}
+BitEncoder::BitEncoder(char *data) : bit_buffer_(data), bit_offset_(0) {}
 
 BitDecoder::BitDecoder()
     : bit_buffer_(nullptr), bit_buffer_end_(nullptr), bit_offset_(0) {}

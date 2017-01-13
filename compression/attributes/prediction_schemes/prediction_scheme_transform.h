@@ -40,7 +40,7 @@ class PredictionSchemeTransform {
   // Performs any custom initialization of the trasnform for the encoder.
   // |size| = total number of values in |orig_data| (i.e., number of entries *
   // number of components).
-  void InitializeEncoding(const DataTypeT *orig_data, int size,
+  void InitializeEncoding(const DataTypeT * /* orig_data */, int /* size */,
                           int num_components) {
     num_components_ = num_components;
   }
@@ -79,10 +79,10 @@ class PredictionSchemeTransform {
   }
 
   // Encode any transform specific data.
-  bool EncodeTransformData(EncoderBuffer *buffer) { return true; }
+  bool EncodeTransformData(EncoderBuffer * /* buffer */) { return true; }
 
   // Decodes any transform specific data. Called before Initialize() method.
-  bool DecodeTransformData(DecoderBuffer *buffer) { return true; }
+  bool DecodeTransformData(DecoderBuffer * /* buffer */) { return true; }
 
   // Should return true if all corrected values are guaranteed to be positive.
   bool AreCorrectionsPositive() const { return false; }

@@ -60,12 +60,14 @@ class PredictionScheme
   int GetNumParentAttributes() const override { return 0; }
 
   // Returns the type of each of the parent attribute.
-  GeometryAttribute::Type GetParentAttributeType(int i) const override {
+  GeometryAttribute::Type GetParentAttributeType(int /* i */) const override {
     return GeometryAttribute::INVALID;
   }
 
   // Sets the required parent attribute.
-  bool SetParentAttribute(const PointAttribute *att) override { return false; }
+  bool SetParentAttribute(const PointAttribute * /* att */) override {
+    return false;
+  }
 
   bool AreCorrectionsPositive() override {
     return transform_.AreCorrectionsPositive();

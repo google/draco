@@ -102,8 +102,8 @@ Unlike Visual Studio and Xcode projects, the build configuration for make
 builds is controlled when you run `cmake`. The following examples demonstrate
 various build configurations.
 
-Omitting the build type produces makefiles that use build flags containing
-neither optimization nor debug flags:
+Omitting the build type produces makefiles that use release build flags
+by default:
 
 ~~~~~ bash
 cmake .

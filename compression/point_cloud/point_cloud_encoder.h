@@ -101,7 +101,7 @@ class PointCloudEncoder {
   // Encodes any data that is necessary to recreate a given attribute encoder.
   // Note: this is called in order in which the attribute encoders are going to
   // be encoded.
-  virtual bool EncodeAttributesEncoderIdentifier(int32_t att_encoder_id) {
+  virtual bool EncodeAttributesEncoderIdentifier(int32_t /* att_encoder_id */) {
     return true;
   }
 

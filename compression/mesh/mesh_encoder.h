@@ -42,14 +42,14 @@ class MeshEncoder : public PointCloudEncoder {
 
   // Returns the attribute connectivity data or nullptr if it does not exist.
   virtual const MeshAttributeCornerTable *GetAttributeCornerTable(
-      int att_id) const {
+      int /* att_id */) const {
     return nullptr;
   }
 
   // Returns the encoding data for a given attribute or nullptr when the data
   // does not exist.
   virtual const MeshAttributeIndicesEncodingData *GetAttributeEncodingData(
-      int att_id) const {
+      int /* att_id */) const {
     return nullptr;
   }
 

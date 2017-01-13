@@ -32,14 +32,14 @@ uint64_t FingerprintString(const char *s, size_t len) {
     uint64_t new_hash = seed;
 
     if (num_chars_left > 7) {
-      const int off = i * 8;
-      new_hash = static_cast<uint64_t>(s[off]) << 56 |
-                 static_cast<uint64_t>(s[off + 1]) << 48 |
-                 static_cast<uint64_t>(s[off + 2]) << 40 |
-                 static_cast<uint64_t>(s[off + 3]) << 32 |
-                 static_cast<uint64_t>(s[off + 4]) << 24 |
-                 static_cast<uint64_t>(s[off + 5]) << 16 |
-                 static_cast<uint64_t>(s[off + 6]) << 8 | s[off + 7];
+      const int off2 = i * 8;
+      new_hash = static_cast<uint64_t>(s[off2]) << 56 |
+                 static_cast<uint64_t>(s[off2 + 1]) << 48 |
+                 static_cast<uint64_t>(s[off2 + 2]) << 40 |
+                 static_cast<uint64_t>(s[off2 + 3]) << 32 |
+                 static_cast<uint64_t>(s[off2 + 4]) << 24 |
+                 static_cast<uint64_t>(s[off2 + 5]) << 16 |
+                 static_cast<uint64_t>(s[off2 + 6]) << 8 | s[off2 + 7];
     } else {
       for (int j = 0; j < num_chars_left; ++j) {
         new_hash |= static_cast<uint64_t>(s[off + j])

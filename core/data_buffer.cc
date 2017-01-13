@@ -34,7 +34,7 @@ void DataBuffer::Update(const void *data, int64_t size, int64_t offset) {
     // If no data is provided, just resize the buffer.
     data_.resize(size + offset);
   } else {
-    if (size + offset > data_.size())
+    if (size + offset > static_cast<int64_t>(data_.size()))
       data_.resize(size + offset);
     const uint8_t *const byte_data = static_cast<const uint8_t *>(data);
     std::copy(byte_data, byte_data + size, data_.data() + offset);
