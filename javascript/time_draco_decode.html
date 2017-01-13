@@ -7,7 +7,7 @@
 <script type="text/javascript">
 
 // String to hold table output.
-var dt = '';
+let dt = '';
 
 function startTable() {
   dt += '<table><tr>';
@@ -15,7 +15,7 @@ function startTable() {
   dt += '<td>Total milli</td>';
   dt += '<td>Decode milli</td>';
   dt += '<td>Size bytes</td>';
-  dt += '<td>Num Faces</td>';
+  dt += '<td>Num points</td>';
 }
 
 function addCell(str, newRow) {
@@ -31,54 +31,60 @@ function finishTable() {
 
 function onDecodeClick() {
   startTable();
-  var inputs = document.getElementById('u').value.split(',');
+  const inputs = document.getElementById('u').value.split(',');
   s_log('Decoding ' + inputs.length + ' files...', true, true);
   TestMeshDecodingAsync(inputs, 0);
 }
 
 function onDecodeMultipleClick() {
   startTable();
-  var inputs = document.getElementById('u').value.split(',');
-  var decode_count = parseInt(document.getElementById('decode_count').value);
+  const inputs = document.getElementById('u').value.split(',');
+  const decode_count = parseInt(document.getElementById('decode_count').value);
   s_log('Decoding ' + (decode_count * inputs.length) + ' files...', true, true);
 
-  var fileList = [];
-  for (var i = 0; i < decode_count; ++i) {
+  let fileList = [];
+  for (let i = 0; i < decode_count; ++i) {
     fileList = fileList.concat(inputs);
   }
   TestMeshDecodingAsync(fileList, 0);
 }
 
 function TestMeshDecodingAsync(filenameList, index) {
-  var xhr = new XMLHttpRequest();
+  const xhr = new XMLHttpRequest();
   xhr.open("GET", filenameList[index], true);
   xhr.responseType = "arraybuffer";
 
   xhr.onload = function(event) {
-    var arrayBuffer = xhr.response;
+    const arrayBuffer = xhr.response;
     if (arrayBuffer) {
-      var byteArray = new Uint8Array(arrayBuffer);
+      const byteArray = new Uint8Array(arrayBuffer);
 
-      var total_t0 = performance.now();
+      const total_t0 = performance.now();
 
-      var buffer = new Module.DecoderBuffer();
+      const buffer = new Module.DecoderBuffer();
       buffer.Init(byteArray, byteArray.length);
 
-      var wrapper = new Module.WebIDLWrapper();
+      const wrapper = new Module.WebIDLWrapper();
 
-      var decode_t0 = performance.now();
-      var mesh = wrapper.DecodeMeshFromBuffer(buffer);
-      var t1 = performance.now();
+      const decode_t0 = performance.now();
+      const geometryType = wrapper.GetEncodedGeometryType(buffer);
+      let outputGeometry;
+      if (geometryType == Module.TRIANGULAR_MESH) {
+        outputGeometry = wrapper.DecodeMeshFromBuffer(buffer);
+      } else {
+        outputGeometry = wrapper.DecodePointCloudFromBuffer(buffer);
+      }
+      const t1 = performance.now();
 
       addCell(filenameList[index], true);
       addCell('' + (t1 - total_t0), false);
       addCell('' + (t1 - decode_t0), false);
       addCell('' + byteArray.length, false);
-      addCell('' + mesh.num_faces(), false);
+      addCell('' + outputGeometry.num_points(), false);
 
-      destroy(mesh);
-      destroy(wrapper);
-      destroy(buffer);
+      Module.destroy(outputGeometry);
+      Module.destroy(wrapper);
+      Module.destroy(buffer);
 
       if (index < filenameList.length - 1) {
         index = index + 1;

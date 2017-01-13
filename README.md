@@ -29,7 +29,10 @@ _**Contents**_
     * [CMake Basics](#cmake-basics)
     * [Mac OS X](#mac-os-x)
     * [Windows](#windows)
-    * [CMake Makefiles: Debugging and Optimization](#cmake-makefiles-debugging-and-optimization)
+    * [CMake Build Configuration](#cmake-build-config)
+      * [Debugging and Optimization](#debugging-and-optimization)
+      * [Googletest Integration](#googletest-integration)
+      * [Javascript Decoder](#build-javascript-decoder)
     * [Android Studio Project Integration](#android-studio-project-integration)
   * [Usage](#usage)
     * [Command Line Applications](#command-line-applications)
@@ -54,10 +57,11 @@ CMake Basics
 ------------
 
 To generate project/make files for the default toolchain on your system, run
-`cmake` in the root of your clone Draco repository:
+`cmake` from a directory where you would like to generate build files, and pass
+it the path to your Draco repository.
 
 ~~~~~ bash
-cmake .
+$ cmake path/to/draco
 ~~~~~
 
 On Windows, the above command will produce Visual Studio project files for the
@@ -75,7 +79,7 @@ Mac OS X
 On Mac OS X, run the following command to generate Xcode projects:
 
 ~~~~~ bash
-cmake . -G Xcode
+$ cmake path/to/draco -G Xcode
 ~~~~~
 
 Windows
@@ -85,18 +89,21 @@ On a Windows box you would run the following command to generate Visual Studio
 2015 projects:
 
 ~~~~~ bash
-cmake . -G "Visual Studio 14 2015"
+C:\Users\nobody> cmake path/to/draco -G "Visual Studio 14 2015"
 ~~~~~
 
 To generate 64-bit Windows Visual Studio 2015 projects:
 
 ~~~~~ bash
-cmake . "Visual Studio 14 2015 Win64"
+C:\Users\nobody> cmake path/to/draco "Visual Studio 14 2015 Win64"
 ~~~~~
 
 
-CMake Makefiles: Debugging and Optimization
--------------------------------------------
+CMake Build Configuration
+-------------------------
+
+Debugging and Optimization
+--------------------------
 
 Unlike Visual Studio and Xcode projects, the build configuration for make
 builds is controlled when you run `cmake`. The following examples demonstrate
@@ -106,26 +113,69 @@ Omitting the build type produces makefiles that use release build flags
 by default:
 
 ~~~~~ bash
-cmake .
+$ cmake path/to/draco
 ~~~~~
 
 A makefile using release (optimized) flags is produced like this:
 
 ~~~~~ bash
-cmake . -DCMAKE_BUILD_TYPE=release
+$ cmake path/to/draco -DCMAKE_BUILD_TYPE=release
 ~~~~~
 
 A release build with debug info can be produced as well:
 
 ~~~~~ bash
-cmake . -DCMAKE_BUILD_TYPE=relwithdebinfo
+$ cmake path/to/draco -DCMAKE_BUILD_TYPE=relwithdebinfo
 ~~~~~
 
 And your standard debug build will be produced using:
 
 ~~~~~ bash
-cmake . -DCMAKE_BUILD_TYPE=debug
+$ cmake path/to/draco -DCMAKE_BUILD_TYPE=debug
 ~~~~~
+
+
+Googletest Integration
+----------------------
+
+Draco includes testing support built using Googletest. To enable Googletest unit
+test support the ENABLE_TESTS cmake variable must be turned on at cmake
+generation time:
+
+~~~~~ bash
+$ cmake path/to/draco -DENABLE_TESTS=ON
+~~~~~
+
+When cmake is used as shown in the above example the Draco cmake file assumes
+that the Googletest source directory is a sibling of the Draco repository. To
+change the location to something else use the GTEST_SOURCE_DIR cmake variable:
+
+~~~~~ bash
+$ cmake path/to/draco -DENABLE_TESTS=ON -DGTEST_SOURCE_DIR=path/to/googletest
+~~~~~
+
+To run the tests just execute `draco_tests` from your toolchain's build output
+directory.
+
+
+Javascript Decoder
+------------------
+
+The javascript decoder can be built using the existing cmake build file by
+passing the path the Emscripten's cmake toolchain file at cmake generation time
+in the CMAKE_TOOLCHAIN_FILE variable.
+In addition, the EMSCRIPTEN environment variable must be set to the local path
+of the parent directory of the Emscripten tools directory.
+
+~~~~~ bash
+# Make the path to emscripten available to cmake.
+$ export EMSCRIPTEN=/path/to/emscripten/tools/parent
+
+# Emscripten.cmake can be found within your Emscripten installation directory,
+# it should be the subdir: cmake/Modules/Platform/Emscripten.cmake
+$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake
+~~~~~
+
 
 Android Studio Project Integration
 ----------------------------------
@@ -185,8 +235,9 @@ line looks like this:
 ./draco_encoder -i testdata/bun_zipper.ply -o out.drc
 ~~~~~
 
-A value of `0` for the quantization parameter will not perform any quantization on the specified attribute. Any value other than `0` will quantize the input values for the specified attribute to that number of bits.
-For example:
+A value of `0` for the quantization parameter will not perform any quantization
+on the specified attribute. Any value other than `0` will quantize the input
+values for the specified attribute to that number of bits. For example:
 
 ~~~~~ bash
 ./draco_encoder -i testdata/bun_zipper.ply -o out.drc -qp 14
@@ -241,7 +292,8 @@ C++ Decoder API
 -------------
 
 If you'd like to add decoding to your applications you will need to include
-the `draco_dec` library. In order to use the Draco decoder you need to initialize a `DecoderBuffer` with the compressed data. Then call
+the `draco_dec` library. In order to use the Draco decoder you need to
+initialize a `DecoderBuffer` with the compressed data. Then call
 `DecodeMeshFromBuffer()` to return a decoded mesh object or call
 `DecodePointCloudFromBuffer()` to return a decoded `PointCloud` object. For
 example:
@@ -252,14 +304,15 @@ buffer.Init(data.data(), data.size());
 
 const draco::EncodedGeometryType geom_type =
     draco::GetEncodedGeometryType(&buffer);
-  if (geom_type == draco::TRIANGULAR_MESH) {
-    unique_ptr<draco::Mesh> mesh = draco::DecodeMeshFromBuffer(&buffer);
-  } else if (geom_type == draco::POINT_CLOUD) {
-    unique_ptr<draco::PointCloud> pc = draco::DecodePointCloudFromBuffer(&buffer);
-  }
+if (geom_type == draco::TRIANGULAR_MESH) {
+  unique_ptr<draco::Mesh> mesh = draco::DecodeMeshFromBuffer(&buffer);
+} else if (geom_type == draco::POINT_CLOUD) {
+  unique_ptr<draco::PointCloud> pc = draco::DecodePointCloudFromBuffer(&buffer);
+}
 ~~~~~
 
-Please see `mesh/mesh.h` for the full Mesh class interface and `point_cloud/point_cloud.h` for the full `PointCloud` class interface.
+Please see `mesh/mesh.h` for the full Mesh class interface and
+`point_cloud/point_cloud.h` for the full `PointCloud` class interface.
 
 Javascript Decoder
 ------------------
@@ -273,21 +326,21 @@ to identify the type of geometry, e.g. mesh or point cloud. Then call either
 a Mesh object or a point cloud. For example:
 
 ~~~~~ js
-var buffer = new Module.DecoderBuffer();
+const buffer = new Module.DecoderBuffer();
 buffer.Init(encFileData, encFileData.length);
 
-var wrapper = new WebIDLWrapper();
+const wrapper = new Module.WebIDLWrapper();
 const geometryType = wrapper.GetEncodedGeometryType(buffer);
 let outputGeometry;
-if (geometryType == DracoModule.TRIANGULAR_MESH) {
-  var outputGeometry = wrapper.DecodeMeshFromBuffer(buffer);
+if (geometryType == Module.TRIANGULAR_MESH) {
+  outputGeometry = wrapper.DecodeMeshFromBuffer(buffer);
 } else {
-  var outputGeometry = wrapper.DecodePointCloudFromBuffer(buffer);
+  outputGeometry = wrapper.DecodePointCloudFromBuffer(buffer);
 }
 
-DracoModule.destroy(outputGeometry);
-DracoModule.destroy(wrapper);
-DracoModule.destroy(buffer);
+Module.destroy(outputGeometry);
+Module.destroy(wrapper);
+Module.destroy(buffer);
 ~~~~~
 
 Please see `javascript/emscripten/draco_web.idl` for the full API.
@@ -314,7 +367,8 @@ Support
 
 For questions/comments please email <draco-3d-discuss@googlegroups.com>
 
-If you have found an error in this library, please file an issue at <https://github.com/google/draco/issues>
+If you have found an error in this library, please file an issue at
+<https://github.com/google/draco/issues>
 
 Patches are encouraged, and may be submitted by forking this project and
 submitting a pull request through GitHub. See [CONTRIBUTING] for more detail.
