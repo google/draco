@@ -153,14 +153,14 @@ KD_TREE_ATTRIBUTES_DECODER_A    := kd_tree_attributes_decoder.a
 KD_TREE_ATTRIBUTES_DECODER_OBJS := \
     compression/attributes/kd_tree_attributes_decoder.o
 
-MESH_NORMAL_ATTRIBUTE_ENCODER_A    := \
-    mesh_normal_attribute_encoder.a
-MESH_NORMAL_ATTRIBUTE_OBJS := \
-    compression/attributes/mesh_normal_attribute_encoder.o
-MESH_NORMAL_ATTRIBUTE_DECODER_A    := \
-    mesh_normal_attribute_decoder.a
-MESH_NORMAL_ATTRIBUTE_DECODER_OBJS := \
-    compression/attributes/mesh_normal_attribute_decoder.o
+SEQUENTIAL_NORMAL_ATTRIBUTE_ENCODER_A    := \
+    sequential_normal_attribute_encoder.a
+SEQUENTIAL_NORMAL_ATTRIBUTE_OBJS := \
+    compression/attributes/sequential_normal_attribute_encoder.o
+SEQUENTIAL_NORMAL_ATTRIBUTE_DECODER_A    := \
+    sequential_normal_attribute_decoder.a
+SEQUENTIAL_NORMAL_ATTRIBUTE_DECODER_OBJS := \
+    compression/attributes/sequential_normal_attribute_decoder.o
 
 SEQUENTIAL_ATTRIBUTE_ENCODERS_CONTROLLER_A    := \
     sequential_attribute_encoders_controller.a
@@ -281,12 +281,12 @@ KD_TREE_ATTRIBUTES_ENCODER_OBJSA := \
 KD_TREE_ATTRIBUTES_DECODER_OBJSA := \
     $(addprefix $(OBJDIR)/, $(KD_TREE_ATTRIBUTES_DECODER_OBJS:.o=_a.o))
 
-MESH_NORMAL_ATTRIBUTE_ENCODER_OBJSA := \
+SEQUENTIAL_NORMAL_ATTRIBUTE_ENCODER_OBJSA := \
     $(addprefix $(OBJDIR)/, \
-        $(MESH_NORMAL_ATTRIBUTE_ENCODER_OBJS:.o=_a.o))
-MESH_NORMAL_ATTRIBUTE_DECODER_OBJSA := \
+        $(SEQUENTIAL_NORMAL_ATTRIBUTE_ENCODER_OBJS:.o=_a.o))
+SEQUENTIAL_NORMAL_ATTRIBUTE_DECODER_OBJSA := \
     $(addprefix $(OBJDIR)/, \
-        $(MESH_NORMAL_ATTRIBUTE_DECODER_OBJS:.o=_a.o))
+        $(SEQUENTIAL_NORMAL_ATTRIBUTE_DECODER_OBJS:.o=_a.o))
 
 SEQUENTIAL_ATTRIBUTE_ENCODERS_CONTROLLER_OBJSA := \
     $(addprefix $(OBJDIR)/, \
@@ -365,7 +365,7 @@ DRACO_ENCODER_OBJSA += $(MESH_ENCODER_BASE_OBJSA)
 DRACO_ENCODER_OBJSA += $(SEQUENTIAL_ATTRIBUTE_ENCODER_OBJSA)
 DRACO_ENCODER_OBJSA += $(SEQUENTIAL_INTEGER_ATTRIBUTE_ENCODER_OBJSA)
 DRACO_ENCODER_OBJSA += $(SEQUENTIAL_QUANTIZATION_ATTRIBUTE_ENCODER_OBJSA)
-DRACO_ENCODER_OBJSA += $(MESH_NORMAL_ATTRIBUTE_ENCODER_OBJSA)
+DRACO_ENCODER_OBJSA += $(SEQUENTIAL_NORMAL_ATTRIBUTE_ENCODER_OBJSA)
 DRACO_ENCODER_OBJSA += $(SEQUENTIAL_ATTRIBUTE_ENCODERS_CONTROLLER_OBJSA)
 DRACO_ENCODER_OBJSA += $(POINT_CLOUD_SEQUENTIAL_ENCODER_OBJSA)
 DRACO_ENCODER_OBJSA += $(POINT_CLOUD_KD_TREE_ENCODER_OBJSA)
@@ -384,7 +384,7 @@ DRACO_DECODER_OBJSA += $(MESH_DECODER_BASE_OBJSA)
 DRACO_DECODER_OBJSA += $(SEQUENTIAL_ATTRIBUTE_DECODER_OBJSA)
 DRACO_DECODER_OBJSA += $(SEQUENTIAL_INTEGER_ATTRIBUTE_DECODER_OBJSA)
 DRACO_DECODER_OBJSA += $(SEQUENTIAL_QUANTIZATION_ATTRIBUTE_DECODER_OBJSA)
-DRACO_DECODER_OBJSA += $(MESH_NORMAL_ATTRIBUTE_DECODER_OBJSA)
+DRACO_DECODER_OBJSA += $(SEQUENTIAL_NORMAL_ATTRIBUTE_DECODER_OBJSA)
 DRACO_DECODER_OBJSA += $(SEQUENTIAL_ATTRIBUTE_DECODERS_CONTROLLER_OBJSA)
 DRACO_DECODER_OBJSA += $(POINT_CLOUD_SEQUENTIAL_DECODER_OBJSA)
 DRACO_DECODER_OBJSA += $(POINT_CLOUD_KD_TREE_DECODER_OBJSA)
@@ -430,7 +430,7 @@ LIBS += $(LIBDIR)/libpoint_cloud_decoder_base.a
 LIBS += $(LIBDIR)/libsequential_integer_attribute_decoder.a
 LIBS += $(LIBDIR)/libsequential_attribute_decoder.a
 LIBS += $(LIBDIR)/libsequential_quantization_attribute_decoder.a
-LIBS += $(LIBDIR)/libmesh_normal_attribute_decoder.a
+LIBS += $(LIBDIR)/libsequential_normal_attribute_decoder.a
 LIBS += $(LIBDIR)/libquantization_utils.a
 LIBS += $(LIBDIR)/libmesh_encoder_base.a
 LIBS += $(LIBDIR)/libpoint_cloud_sequential_encoder.a
@@ -443,7 +443,7 @@ LIBS += $(LIBDIR)/libsequential_attribute_encoders_controller.a
 LIBS += $(LIBDIR)/libpoint_cloud_encoder_base.a
 LIBS += $(LIBDIR)/libsequential_integer_attribute_encoder.a
 LIBS += $(LIBDIR)/libsequential_quantization_attribute_encoder.a
-LIBS += $(LIBDIR)/libmesh_normal_attribute_encoder.a
+LIBS += $(LIBDIR)/libsequential_normal_attribute_encoder.a
 LIBS += $(LIBDIR)/libcorner_table.a
 LIBS += $(LIBDIR)/libmesh_attribute_corner_table.a
 LIBS += $(LIBDIR)/libmesh_misc.a
@@ -539,11 +539,11 @@ $(LIBDIR)/libkd_tree_attributes_encoder.a: $(KD_TREE_ATTRIBUTES_ENCODER_OBJSA)
 	$(AR) rcs $@ $^
 $(LIBDIR)/libkd_tree_attributes_decoder.a: $(KD_TREE_ATTRIBUTES_DECODER_OBJSA)
 	$(AR) rcs $@ $^
-$(LIBDIR)/libmesh_normal_attribute_encoder.a: \
-    $(MESH_NORMAL_ATTRIBUTE_ENCODER_OBJSA)
+$(LIBDIR)/libsequential_normal_attribute_encoder.a: \
+    $(SEQUENTIAL_NORMAL_ATTRIBUTE_ENCODER_OBJSA)
 	$(AR) rcs $@ $^
-$(LIBDIR)/libmesh_normal_attribute_decoder.a: \
-    $(MESH_NORMAL_ATTRIBUTE_DECODER_OBJSA)
+$(LIBDIR)/libsequential_normal_attribute_decoder.a: \
+    $(SEQUENTIAL_NORMAL_ATTRIBUTE_DECODER_OBJSA)
 	$(AR) rcs $@ $^
 $(LIBDIR)/libsequential_attribute_encoders_controller.a: \
     $(SEQUENTIAL_ATTRIBUTE_ENCODERS_CONTROLLER_OBJSA)
