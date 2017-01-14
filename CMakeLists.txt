@@ -385,6 +385,7 @@ set(draco_test_sources
     "${draco_root}/io/point_cloud_io_test.cc"
     "${draco_root}/mesh/mesh_cleanup_test.cc"
     "${draco_root}/mesh/mesh_test.cc"
+    "${draco_root}/mesh/triangle_soup_mesh_builder_test.cc"
     "${draco_root}/point_cloud/point_cloud_builder_test.cc")
 
 set(draco_version_sources
