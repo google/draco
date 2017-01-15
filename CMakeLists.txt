@@ -107,6 +107,11 @@ else ()
   endif ()
 
   if (ENABLE_TESTS)
+    if (MSVC)
+      # Default runtime selected by cmake collides with Googletest settings,
+      # just force all Draco builds to be static (instead of dll/msvcrt).
+      include("${draco_root}/cmake/msvc_runtime.cmake")
+    endif ()
     # Googletest defaults.
     set(GTEST_SOURCE_DIR
         "${draco_root}/../googletest" CACHE STRING
@@ -526,4 +531,18 @@ else ()
                         "${GTEST_SOURCE_DIR}/googletest/include")
     target_link_libraries(draco_tests draco gtest)
   endif ()
+
+  # Collect all of the header files in the tree, and add an install rule for
+  # each.
+  file(GLOB_RECURSE draco_headers RELATIVE ${draco_root} "*.h")
+  foreach (filename ${draco_headers})
+    get_filename_component(file_directory ${filename} DIRECTORY)
+    install(FILES ${filename} DESTINATION
+            "${CMAKE_INSTALL_PREFIX}/include/draco/${file_directory}")
+  endforeach()
+
+  # Add install rules for lib and executable targets.
+  install(TARGETS dracodec draco DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+  install(TARGETS draco_decoder draco_encoder DESTINATION
+          "${CMAKE_INSTALL_PREFIX}/bin")
 endif ()
