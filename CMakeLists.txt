@@ -526,4 +526,31 @@ else ()
                         "${GTEST_SOURCE_DIR}/googletest/include")
     target_link_libraries(draco_tests draco gtest)
   endif ()
+
+  # Headers installation
+  file ( GLOB_RECURSE draco_headers RELATIVE ${CMAKE_SOURCE_DIR} "*.h" )
+  foreach (filename ${draco_headers})
+    get_filename_component ( file_directory ${filename} DIRECTORY )
+    install ( FILES
+      ${filename}
+      DESTINATION
+      ${CMAKE_INSTALL_PREFIX}/include/${file_directory}
+      )
+  endforeach()
+
+  # Target installation
+  install ( TARGETS
+    dracodec
+    draco
+    DESTINATION
+    ${CMAKE_INSTALL_PREFIX}/lib
+    )
+
+  install ( TARGETS
+    draco_decoder
+    draco_encoder
+    DESTINATION
+    ${CMAKE_INSTALL_PREFIX}/bin
+    )
+
 endif ()
