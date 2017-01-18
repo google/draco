@@ -55,10 +55,10 @@ InStreamT &ReadMeshFromStream(std::unique_ptr<Mesh> *mesh, InStreamT &&is) {
   // Determine size of stream and write into a vector
   auto is_size = is.tellg();
   is.seekg(0, std::ios::end);
-  is_size = is.tellg() - is_size;
+  auto vec_size = is.tellg() - is_size;
   is.seekg(0, is_size);
   std::vector<char> data(is_size);
-  is.read(&data[0], is_size);
+  is.read(&data[0], vec_size);
 
   // Create a mesh from that data.
   DecoderBuffer buffer;
