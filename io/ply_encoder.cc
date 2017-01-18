@@ -24,7 +24,7 @@ PlyEncoder::PlyEncoder()
 
 bool PlyEncoder::EncodeToFile(const PointCloud &pc,
                               const std::string &file_name) {
-  std::ofstream file(file_name);
+  std::ofstream file(file_name, std::ios::binary);
   if (!file)
     return false;  // File coulnd't be opened.
   // Encode the mesh into a buffer.
