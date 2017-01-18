@@ -69,7 +69,7 @@ class PointAttribute : public GeometryAttribute {
   }
   // This function sets the mapping to be explicitly using the indices_map_
   // array that needs to be initialized by the caller.
-  void SetExplicitMapping(int64_t num_points) {
+  void SetExplicitMapping(size_t num_points) {
     identity_mapping_ = false;
     indices_map_.resize(num_points, kInvalidAttributeValueIndex);
   }

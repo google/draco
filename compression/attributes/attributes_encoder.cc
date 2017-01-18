@@ -20,7 +20,7 @@ AttributesEncoder::AttributesEncoder()
     : point_cloud_encoder_(nullptr), point_cloud_(nullptr) {}
 
 AttributesEncoder::AttributesEncoder(int att_id) : AttributesEncoder() {
-  point_attribute_ids_.push_back(att_id);
+  AddAttributeId(att_id);
 }
 
 bool AttributesEncoder::Initialize(PointCloudEncoder *encoder,

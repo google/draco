@@ -371,6 +371,7 @@ set(draco_test_sources
     "${draco_root}/compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_transform_test.cc"
     "${draco_root}/compression/attributes/sequential_integer_attribute_encoding_test.cc"
     "${draco_root}/compression/mesh/mesh_encoder_test.cc"
+    "${draco_root}/compression/mesh/mesh_edgebreaker_encoding_test.cc"
     "${draco_root}/compression/point_cloud/point_cloud_kd_tree_encoding_test.cc"
     "${draco_root}/compression/point_cloud/point_cloud_sequential_encoding_test.cc"
     "${draco_root}/core/bit_coder_test.cc"

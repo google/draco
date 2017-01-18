@@ -64,12 +64,29 @@ class PointCloud {
     return attributes_[att_id].get();
   }
 
+  // Adds a new attribute to the point cloud.
+  // Returns the attribute id.
   int AddAttribute(std::unique_ptr<PointAttribute> pa);
+
+  // Creates and adds a new attribute to the point cloud. The attribute has
+  // properties derived from the provided GeometryAttribute |att|.
+  // If |identity_mapping| is set to true, the attribute will use identity
+  // mapping between point indices and attribute value indices (i.e., each point
+  // has a unique attribute value).
+  // If |identity_mapping| is false, the mapping between point indices and
+  // attribute value indices is set to explicit, and it needs to be initialized
+  // manually using the PointAttribute::SetPointMapEntry() method.
+  // |num_attribute_values| can be used to specify the number of attribute
+  // values that are going to be stored in the newly created attribute.
+  // Returns attribute id of the newly created attribute.
   int AddAttribute(const GeometryAttribute &att, bool identity_mapping,
                    AttributeValueIndex::ValueType num_attribute_values);
+
+  // Assigns an attribute id to a given PointAttribute. If an attribute with the
+  // same attribute id already exists, it is deleted.
   virtual void SetAttribute(int att_id, std::unique_ptr<PointAttribute> pa);
 
-  // Deduplicate all attribute values (all attribute entries with the same
+  // Deduplicates all attribute values (all attribute entries with the same
   // value are merged into a single entry).
   virtual bool DeduplicateAttributeValues();
 
@@ -86,7 +103,7 @@ class PointCloud {
   void set_num_points(PointIndex::ValueType num) { num_points_ = num; }
 
  protected:
-  // Apply id mapping of deduplicated points (called by DeduplicatePointIds).
+  // Applies id mapping of deduplicated points (called by DeduplicatePointIds).
   virtual void ApplyPointIdDeduplication(
       const IndexTypeVector<PointIndex, PointIndex> &id_map,
       const std::vector<PointIndex> &unique_point_ids);

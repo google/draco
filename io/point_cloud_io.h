@@ -54,10 +54,10 @@ template <typename InStreamT>
 InStreamT &ReadPointCloudFromStream(std::unique_ptr<PointCloud> *point_cloud,
                                     InStreamT &&is) {
   // Determine size of stream and write into a vector
-  auto is_size = is.tellg();
+  const auto start_pos = is.tellg();
   is.seekg(0, std::ios::end);
-  is_size = is.tellg() - is_size;
-  is.seekg(0, std::ios::beg);
+  const std::streampos is_size = is.tellg() - start_pos;
+  is.seekg(start_pos);
   std::vector<char> data(is_size);
   is.read(&data[0], is_size);
 
