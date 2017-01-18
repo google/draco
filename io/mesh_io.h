@@ -56,7 +56,7 @@ InStreamT &ReadMeshFromStream(std::unique_ptr<Mesh> *mesh, InStreamT &&is) {
   auto is_size = is.tellg();
   is.seekg(0, std::ios::end);
   is_size = is.tellg() - is_size;
-  is.seekg(0, std::ios::beg);
+  is.seekg(0, is_size);
   std::vector<char> data(is_size);
   is.read(&data[0], is_size);
 
