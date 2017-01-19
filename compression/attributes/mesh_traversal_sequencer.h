@@ -47,7 +47,8 @@ class MeshTraversalSequencer : public PointsSequencer {
   bool UpdatePointToAttributeIndexMapping(PointAttribute *attribute) override {
     const auto *corner_table = traverser_.corner_table();
     attribute->SetExplicitMapping(mesh_->num_points());
-    const int32_t num_faces = mesh_->num_faces();
+    const size_t num_faces = mesh_->num_faces();
+    const size_t num_points = mesh_->num_points();
     for (FaceIndex f(0); f < num_faces; ++f) {
       const auto &face = mesh_->face(f);
       for (int p = 0; p < 3; ++p) {
@@ -57,6 +58,10 @@ class MeshTraversalSequencer : public PointsSequencer {
         const AttributeValueIndex att_entry_id(
             encoding_data_
                 ->vertex_to_encoded_attribute_value_index_map[vert_id.value()]);
+        if (att_entry_id.value() >= num_points) {
+          // There cannot be more attribute values than the number of points.
+          return false;
+        }
         attribute->SetPointMapEntry(point_id, att_entry_id);
       }
     }

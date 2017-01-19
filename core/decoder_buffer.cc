@@ -27,7 +27,8 @@ void DecoderBuffer::Init(const char *data, size_t data_size) {
 
 bool DecoderBuffer::StartBitDecoding(bool decode_size, uint64_t *out_size) {
   if (decode_size) {
-    Decode(out_size);
+    if (!Decode(out_size))
+      return false;
   }
   bit_mode_ = true;
   bit_decoder_.reset(data_head(), remaining_size());

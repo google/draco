@@ -126,7 +126,7 @@ class PredictionSchemeNormalOctahedronTransform
     orig = orig - t;
     pred = pred - t;
 
-    if (!IsInDiamond( max_value_, pred[0], pred[1])) {
+    if (!IsInDiamond(max_value_, pred[0], pred[1])) {
       InvertRepresentation(max_value_, &orig[0], &orig[1]);
       InvertRepresentation(max_value_, &pred[0], &pred[1]);
     }
@@ -141,7 +141,7 @@ class PredictionSchemeNormalOctahedronTransform
     const Point2 t(max_value_, max_value_);
     pred = pred - t;
 
-    const bool pred_is_in_diamond = IsInDiamond( max_value_, pred[0], pred[1]);
+    const bool pred_is_in_diamond = IsInDiamond(max_value_, pred[0], pred[1]);
     if (!pred_is_in_diamond) {
       InvertRepresentation(max_value_, &pred[0], &pred[1]);
     }

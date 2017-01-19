@@ -32,6 +32,8 @@ class RAnsSymbolDecoder {
   // Initialize the decoder and decode the probability table.
   bool Create(DecoderBuffer *buffer);
 
+  uint32_t num_symbols() const { return num_symbols_; }
+
   // Starts decoding from the buffer. The buffer will be advanced past the
   // encoded data after this call.
   void StartDecoding(DecoderBuffer *buffer);
@@ -55,6 +57,8 @@ bool RAnsSymbolDecoder<max_symbol_bit_length_t>::Create(DecoderBuffer *buffer) {
   if (!buffer->Decode(&num_symbols_))
     return false;
   probability_table_.resize(num_symbols_);
+  if (num_symbols_ == 0)
+    return true;
   // Decode the table.
   for (uint32_t i = 0; i < num_symbols_; ++i) {
     uint32_t prob = 0;
@@ -74,7 +78,8 @@ bool RAnsSymbolDecoder<max_symbol_bit_length_t>::Create(DecoderBuffer *buffer) {
     }
     probability_table_[i] = prob;
   }
-  ans_.rans_build_look_up_table(&probability_table_[0], num_symbols_);
+  if (!ans_.rans_build_look_up_table(&probability_table_[0], num_symbols_))
+    return false;
   return true;
 }
 

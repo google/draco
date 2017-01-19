@@ -49,28 +49,36 @@ class MeshEdgeBreakerTraversalDecoder {
   // Called before the traversal decoding is started.
   // Returns a buffer decoder that points to data that was encoded after the
   // traversal.
-  DecoderBuffer Start() {
+  bool Start(DecoderBuffer *out_buffer) {
     // Decode symbols from the main buffer decoder and face configurations from
     // the start_face_buffer decoder.
     uint64_t traversal_size;
-    buffer_.StartBitDecoding(true, &traversal_size);
+    if (!buffer_.StartBitDecoding(true, &traversal_size))
+      return false;
     start_face_buffer_.Init(buffer_.data_head(), buffer_.remaining_size());
+    if (traversal_size > start_face_buffer_.remaining_size())
+      return false;
     start_face_buffer_.Advance(traversal_size);
-    start_face_buffer_.StartBitDecoding(true, &traversal_size);
+    if (!start_face_buffer_.StartBitDecoding(true, &traversal_size))
+      return false;
     // Create a decoder that is set to the end of the encoded traversal data.
     DecoderBuffer ret;
     ret.Init(start_face_buffer_.data_head(),
              start_face_buffer_.remaining_size());
+    if (traversal_size > ret.remaining_size())
+      return false;
     ret.Advance(traversal_size);
     // Prepare attribute decoding.
     if (num_attribute_data_ > 0) {
       attribute_connectivity_decoders_ = std::unique_ptr<BinaryDecoder[]>(
           new BinaryDecoder[num_attribute_data_]);
       for (int i = 0; i < num_attribute_data_; ++i) {
-        attribute_connectivity_decoders_[i].StartDecoding(&ret);
+        if (!attribute_connectivity_decoders_[i].StartDecoding(&ret))
+          return false;
       }
     }
-    return ret;
+    *out_buffer = ret;
+    return true;
   }
 
   // Returns the configuration of a new initial face.

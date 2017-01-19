@@ -37,16 +37,19 @@ class MeshEdgeBreakerTraversalPredictiveDecoder
   }
   void SetNumEncodedVertices(int num_vertices) { num_vertices_ = num_vertices; }
 
-  DecoderBuffer Start() {
-    DecoderBuffer buffer = MeshEdgeBreakerTraversalDecoder::Start();
+  bool Start(DecoderBuffer *out_buffer) {
+    if (!MeshEdgeBreakerTraversalDecoder::Start(out_buffer))
+      return false;
     int32_t num_split_symbols;
-    buffer.Decode(&num_split_symbols);
+    if (!out_buffer->Decode(&num_split_symbols))
+      return false;
     // Add one vertex for each split symbol.
     num_vertices_ += num_split_symbols;
     // Set the valences of all initial vertices to 0.
     vertex_valences_.resize(num_vertices_, 0);
-    prediction_decoder_.StartDecoding(&buffer);
-    return buffer;
+    if (!prediction_decoder_.StartDecoding(out_buffer))
+      return false;
+    return true;
   }
 
   inline uint32_t DecodeSymbol() {

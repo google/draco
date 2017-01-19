@@ -100,6 +100,9 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::CreateAttributesDecoder(
     return false;
 
   if (att_data_id >= 0) {
+    if (att_data_id >= attribute_data_.size()) {
+      return false;  // Unexpected attribute data.
+    }
     attribute_data_[att_data_id].decoder_id = att_decoder_id;
   }
 
@@ -138,6 +141,9 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::CreateAttributesDecoder(
     sequencer = std::move(traversal_sequencer);
 
   } else {
+    if (att_data_id < 0)
+      return false;  // Attribute data must be specified.
+
     // Per-corner attribute decoder.
     typedef CornerTableTraversalProcessor<MeshAttributeCornerTable>
         AttProcessor;
@@ -225,6 +231,13 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   if (!decoder_->buffer()->Decode(&num_encoded_symbols))
     return false;
 
+  if (num_faces < num_encoded_symbols) {
+    // Number of faces needs to be the same or greater than the number of
+    // symbols (it can be greater because the initial face may not be encoded as
+    // a symbol).
+    return false;
+  }
+
   uint32_t num_encoded_split_symbols;
   if (!decoder_->buffer()->Decode(&num_encoded_split_symbols))
     return false;
@@ -252,7 +265,9 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   traversal_decoder_.SetNumEncodedVertices(num_encoded_vertices_);
   traversal_decoder_.SetNumAttributeData(num_attribute_data);
 
-  const DecoderBuffer traversal_end_buffer = traversal_decoder_.Start();
+  DecoderBuffer traversal_end_buffer;
+  if (!traversal_decoder_.Start(&traversal_end_buffer))
+    return false;
 
   const int num_connectivity_verts = DecodeConnectivity(num_encoded_symbols);
   if (num_connectivity_verts == -1)
@@ -340,6 +355,7 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
   std::unordered_map<int, CornerIndex> topology_split_active_corners;
 
   int num_vertices = 0;
+  int max_num_vertices = is_vert_hole_.size();
   int num_faces = 0;
   for (int symbol_id = 0; symbol_id < num_symbols; ++symbol_id) {
     const FaceIndex face(num_faces++);
@@ -384,6 +400,8 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
           corner + 1, corner_table_->Vertex(corner_table_->Next(corner_b)));
       corner_table_->MapCornerToVertex(
           corner + 2, corner_table_->Vertex(corner_table_->Previous(corner_a)));
+      if (num_vertices > max_num_vertices)
+        return -1;  // Unexpected number of decoded vertices.
       // Mark the vertex |x| as interior.
       is_vert_hole_[vertex_x.value()] = false;
       // Update the corner on the active stack.
@@ -484,6 +502,9 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       // Add the tip corner to the active stack.
       active_corner_stack.push_back(corner);
       check_topology_split = true;
+    } else {
+      // Error. Unknown symbol decoded.
+      return -1;
     }
     // Inform the traversal decoder that a new corner has been reached.
     traversal_decoder_.NewActiveCornerReached(active_corner_stack.back());
@@ -503,6 +524,8 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       int encoder_split_symbol_id;
       while (IsTopologySplit(encoder_symbol_id, &split_edge,
                              &encoder_split_symbol_id)) {
+        if (encoder_split_symbol_id < 0)
+          return -1;  // Wrong split symbol id.
         // Symbol was part of a topology split. Now we need to determine which
         // edge should be added to the active edges stack.
         const CornerIndex act_top_corner = active_corner_stack.back();
@@ -530,7 +553,8 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       }
     }
   }
-
+  if (num_vertices > max_num_vertices)
+    return -1;  // Unexpected number of decoded vertices.
   // Decode start faces and connect them to the faces from the active stack.
   while (active_corner_stack.size() > 0) {
     const CornerIndex corner = active_corner_stack.back();
@@ -598,6 +622,8 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       init_corners_.push_back(corner);
     }
   }
+  if (num_faces != corner_table_->num_faces())
+    return -1;  // Unexcpected number of decoded faces.
   vertex_id_map_.resize(num_vertices);
   return num_vertices;
 }

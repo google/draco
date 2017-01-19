@@ -27,6 +27,9 @@ bool SequentialNormalAttributeDecoder::Initialize(PointCloudDecoder *decoder,
   // Currently, this encoder works only for 3-component normal vectors.
   if (attribute()->components_count() != 3)
     return false;
+  // Also the data type must be DT_FLOAT32.
+  if (attribute()->data_type() != DT_FLOAT32)
+    return false;
   return true;
 }
 

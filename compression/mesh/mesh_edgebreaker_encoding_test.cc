@@ -28,9 +28,7 @@ namespace draco {
 
 class MeshEdgebreakerEncodingTest : public ::testing::Test {
  protected:
-  void TestFile(const std::string &file_name) {
-    TestFile(file_name, -1);
-  }
+  void TestFile(const std::string &file_name) { TestFile(file_name, -1); }
 
   void TestFile(const std::string &file_name, int compression_level) {
     const std::string path = GetTestFileFullPath(file_name);

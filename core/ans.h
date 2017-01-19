@@ -466,7 +466,8 @@ class RAnsDecoder {
   }
 
   // Construct a look up table with |rans_precision| number of entries.
-  inline void rans_build_look_up_table(const uint32_t token_probs[],
+  // Returns false if the table couldn't be built (because of wrong input data).
+  inline bool rans_build_look_up_table(const uint32_t token_probs[],
                                        uint32_t num_symbols) {
     lut_table_.resize(rans_precision);
     probability_table_.resize(num_symbols);
@@ -476,12 +477,16 @@ class RAnsDecoder {
       probability_table_[i].prob = token_probs[i];
       probability_table_[i].cum_prob = cum_prob;
       cum_prob += token_probs[i];
+      if (cum_prob > rans_precision) {
+        return false;
+      }
       for (uint32_t j = act_prob; j < cum_prob; ++j) {
         lut_table_[j] = i;
       }
       act_prob = cum_prob;
     }
     assert(cum_prob == rans_precision);
+    return true;
   }
 
  private:
