@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+'use strict';
+
 THREE.DRACOLoader = function(manager) {
     this.manager = (manager !== undefined) ? manager :
         THREE.DefaultLoadingManager;

@@ -220,7 +220,8 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   last_vert_id_ = -1;
 
   int8_t num_attribute_data;
-  if (!decoder_->buffer()->Decode(&num_attribute_data))
+  if (!decoder_->buffer()->Decode(&num_attribute_data) ||
+      num_attribute_data < 0)
     return false;
 
   attribute_data_.clear();

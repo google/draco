@@ -45,11 +45,13 @@
     <script src="draco_decoder.js"></script>
     <script src="DRACOLoader.js"></script>
     <script>
+      'use strict';
+
       // Module that exposes all the core funcionality of the Draco decoder.
       const DracoModule = Module;
 
       let container;
-      let camera, scene, renderer;
+      let camera, cameraTarget, scene, renderer;
       let mouseX = 0, mouseY = 0;
 
       let windowHalfX = window.innerWidth / 2;

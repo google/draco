@@ -84,11 +84,12 @@ class FoldedBit32Decoder {
   ~FoldedBit32Decoder() {}
 
   // Sets |source_buffer| as the buffer to decode bits from.
-  void StartDecoding(DecoderBuffer *source_buffer) {
+  bool StartDecoding(DecoderBuffer *source_buffer) {
     for (int i = 0; i < 32; i++) {
-      folded_number_decoders_[i].StartDecoding(source_buffer);
+      if (!folded_number_decoders_[i].StartDecoding(source_buffer))
+        return false;
     }
-    bit_decoder_.StartDecoding(source_buffer);
+    return bit_decoder_.StartDecoding(source_buffer);
   }
 
   // Decode one bit. Returns true if the bit is a 1, otherwise false.

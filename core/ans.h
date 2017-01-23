@@ -411,7 +411,8 @@ class RAnsDecoder {
   RAnsDecoder() {}
 
   // Initializes the decoder from the input buffer. The |offset| specifies the
-  // number of bytes encoded by the encoder.
+  // number of bytes encoded by the encoder. A non zero return value is an
+  // error.
   inline int read_init(const uint8_t *const buf, int offset) {
     unsigned x;
     if (offset < 1)
@@ -485,7 +486,9 @@ class RAnsDecoder {
       }
       act_prob = cum_prob;
     }
-    assert(cum_prob == rans_precision);
+    if (cum_prob != rans_precision) {
+      return false;
+    }
     return true;
   }
 

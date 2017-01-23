@@ -76,16 +76,21 @@ AdaptiveRAnsBitDecoder::AdaptiveRAnsBitDecoder() : p0_f_(0.5) {}
 
 AdaptiveRAnsBitDecoder::~AdaptiveRAnsBitDecoder() { Clear(); }
 
-void AdaptiveRAnsBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
+bool AdaptiveRAnsBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
   Clear();
 
   uint32_t size_in_bytes;
-  source_buffer->Decode(&size_in_bytes);
-
-  ans_read_init(&ans_decoder_, reinterpret_cast<uint8_t *>(const_cast<char *>(
-                                   source_buffer->data_head())),
-                size_in_bytes);
+  if (!source_buffer->Decode(&size_in_bytes))
+    return false;
+  if (size_in_bytes > source_buffer->remaining_size())
+      return false;
+  if (ans_read_init(&ans_decoder_,
+                    reinterpret_cast<uint8_t *>(
+                        const_cast<char *>(source_buffer->data_head())),
+                    size_in_bytes) != 0)
+    return false;
   source_buffer->Advance(size_in_bytes);
+  return true;
 }
 
 bool AdaptiveRAnsBitDecoder::DecodeNextBit() {

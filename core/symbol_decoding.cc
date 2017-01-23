@@ -71,7 +71,8 @@ bool DecodeTaggedSymbols(int num_values, int num_components,
   if (!tag_decoder.Create(src_buffer))
     return false;
 
-  tag_decoder.StartDecoding(src_buffer);
+  if (!tag_decoder.StartDecoding(src_buffer))
+    return false;
 
   if (num_values > 0 && tag_decoder.num_symbols() == 0)
     return false;  // Wrong number of symbols.
@@ -106,7 +107,8 @@ bool DecodeRawSymbolsInternal(int num_values, DecoderBuffer *src_buffer,
   if (num_values > 0 && decoder.num_symbols() == 0)
     return false;  // Wrong number of symbols.
 
-  decoder.StartDecoding(src_buffer);
+  if (!decoder.StartDecoding(src_buffer))
+    return false;
   for (int i = 0; i < num_values; ++i) {
     // Decode a symbol into the value.
     const uint32_t value = decoder.DecodeSymbol();

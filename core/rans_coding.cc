@@ -125,17 +125,21 @@ RAnsBitDecoder::~RAnsBitDecoder() { Clear(); }
 bool RAnsBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
   Clear();
 
-  source_buffer->Decode(&prob_zero_);
+  if (!source_buffer->Decode(&prob_zero_))
+    return false;
 
   uint32_t size_in_bytes;
-  source_buffer->Decode(&size_in_bytes);
+  if (!source_buffer->Decode(&size_in_bytes))
+    return false;
 
   if (size_in_bytes > source_buffer->remaining_size())
     return false;
 
-  ans_read_init(&ans_decoder_, reinterpret_cast<uint8_t *>(const_cast<char *>(
-                                   source_buffer->data_head())),
-                size_in_bytes);
+  if (ans_read_init(&ans_decoder_,
+                    reinterpret_cast<uint8_t *>(
+                        const_cast<char *>(source_buffer->data_head())),
+                    size_in_bytes) != 0)
+    return false;
   source_buffer->Advance(size_in_bytes);
   return true;
 }

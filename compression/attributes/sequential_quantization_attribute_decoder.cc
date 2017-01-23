@@ -54,7 +54,8 @@ bool SequentialQuantizationAttributeDecoder::DecodeQuantizedDataInfo() {
   if (!decoder()->buffer()->Decode(&max_value_dif_))
     return false;
   uint8_t quantization_bits;
-  if (!decoder()->buffer()->Decode(&quantization_bits))
+  if (!decoder()->buffer()->Decode(&quantization_bits) ||
+      quantization_bits > 31)
     return false;
   quantization_bits_ = quantization_bits;
   return true;

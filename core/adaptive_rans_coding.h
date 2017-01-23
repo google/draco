@@ -65,7 +65,7 @@ class AdaptiveRAnsBitDecoder {
   ~AdaptiveRAnsBitDecoder();
 
   // Sets |source_buffer| as the buffer to decode bits from.
-  void StartDecoding(DecoderBuffer *source_buffer);
+  bool StartDecoding(DecoderBuffer *source_buffer);
 
   // Decode one bit. Returns true if the bit is a 1, otherwsie false.
   bool DecodeNextBit();

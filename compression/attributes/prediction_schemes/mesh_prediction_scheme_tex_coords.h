@@ -186,7 +186,8 @@ bool MeshPredictionSchemeTexCoords<DataTypeT, TransformT, MeshDataT>::
   orientations_.resize(num_orientations);
   bool last_orientation = true;
   BinaryDecoder decoder;
-  decoder.StartDecoding(buffer);
+  if (!decoder.StartDecoding(buffer))
+    return false;
   for (int i = 0; i < num_orientations; ++i) {
     if (!decoder.DecodeNextBit())
       last_orientation = !last_orientation;

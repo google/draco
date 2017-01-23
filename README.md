@@ -32,7 +32,7 @@ _**Contents**_
     * [CMake Build Configuration](#cmake-build-config)
       * [Debugging and Optimization](#debugging-and-optimization)
       * [Googletest Integration](#googletest-integration)
-      * [Javascript Decoder](#build-javascript-decoder)
+      * [Javascript Decoder](#javascript-decoder)
     * [Android Studio Project Integration](#android-studio-project-integration)
   * [Usage](#usage)
     * [Command Line Applications](#command-line-applications)
@@ -40,7 +40,7 @@ _**Contents**_
     * [Encoding Point Clouds](#encoding-point-clouds)
     * [Decoding Tool](#decoding-tool)
     * [C++ Decoder API](#c-decoder-api)
-    * [Javascript Decoder](#javascript-decoder)
+    * [Javascript Decoder API](#javascript-decoder-api)
     * [Javascript Decoder Performance](#javascript-decoder-performance)
     * [three.js Renderer Example](#threejs-renderer-example)
   * [Support](#support)
@@ -95,7 +95,7 @@ C:\Users\nobody> cmake path/to/draco -G "Visual Studio 14 2015"
 To generate 64-bit Windows Visual Studio 2015 projects:
 
 ~~~~~ bash
-C:\Users\nobody> cmake path/to/draco "Visual Studio 14 2015 Win64"
+C:\Users\nobody> cmake path/to/draco -G "Visual Studio 14 2015 Win64"
 ~~~~~
 
 
@@ -314,8 +314,8 @@ if (geom_type == draco::TRIANGULAR_MESH) {
 Please see `mesh/mesh.h` for the full Mesh class interface and
 `point_cloud/point_cloud.h` for the full `PointCloud` class interface.
 
-Javascript Decoder
-------------------
+Javascript Decoder API
+----------------------
 
 The Javascript decoder is located in `javascript/draco_decoder.js`. The
 Javascript decoder can decode mesh and point cloud. In order to use the

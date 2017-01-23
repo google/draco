@@ -156,10 +156,14 @@ bool IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodePoints(
   if (num_points_ == 0)
     return true;
 
-  numbers_decoder_.StartDecoding(buffer);
-  remaining_bits_decoder_.StartDecoding(buffer);
-  axis_decoder_.StartDecoding(buffer);
-  half_decoder_.StartDecoding(buffer);
+  if (!numbers_decoder_.StartDecoding(buffer))
+    return false;
+  if (!remaining_bits_decoder_.StartDecoding(buffer))
+    return false;
+  if (!axis_decoder_.StartDecoding(buffer))
+    return false;
+  if (!half_decoder_.StartDecoding(buffer))
+    return false;
 
   OctreeDecode(num_points_, PointTraits<PointDiT>::Origin(),
                PointTraits<PointDiT>::ZeroArray(), 0, oit);

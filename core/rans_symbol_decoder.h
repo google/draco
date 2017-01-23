@@ -36,7 +36,7 @@ class RAnsSymbolDecoder {
 
   // Starts decoding from the buffer. The buffer will be advanced past the
   // encoded data after this call.
-  void StartDecoding(DecoderBuffer *buffer);
+  bool StartDecoding(DecoderBuffer *buffer);
   uint32_t DecodeSymbol() { return ans_.rans_read(); }
   void EndDecoding();
 
@@ -84,16 +84,21 @@ bool RAnsSymbolDecoder<max_symbol_bit_length_t>::Create(DecoderBuffer *buffer) {
 }
 
 template <int max_symbol_bit_length_t>
-void RAnsSymbolDecoder<max_symbol_bit_length_t>::StartDecoding(
+bool RAnsSymbolDecoder<max_symbol_bit_length_t>::StartDecoding(
     DecoderBuffer *buffer) {
   uint64_t bytes_encoded;
   // Decode the number of bytes encoded by the encoder.
-  buffer->Decode(&bytes_encoded);
+  if (!buffer->Decode(&bytes_encoded))
+    return false;
+  if (bytes_encoded > buffer->remaining_size())
+    return false;
   const uint8_t *const data_head =
       reinterpret_cast<const uint8_t *>(buffer->data_head());
   // Advance the buffer past the rANS data.
   buffer->Advance(bytes_encoded);
-  ans_.read_init(data_head, bytes_encoded);
+  if (ans_.read_init(data_head, bytes_encoded) != 0)
+    return false;
+  return true;
 }
 
 template <int max_symbol_bit_length_t>

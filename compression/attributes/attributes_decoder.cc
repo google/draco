@@ -28,7 +28,7 @@ bool AttributesDecoder::Initialize(PointCloudDecoder *decoder, PointCloud *pc) {
 bool AttributesDecoder::DecodeAttributesDecoderData(DecoderBuffer *in_buffer) {
   // Decode and create attributes.
   int32_t num_attributes;
-  if (!in_buffer->Decode(&num_attributes))
+  if (!in_buffer->Decode(&num_attributes) || num_attributes <= 0)
     return false;
   point_attribute_ids_.resize(num_attributes);
   PointCloud *pc = point_cloud_;

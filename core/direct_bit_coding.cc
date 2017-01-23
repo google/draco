@@ -41,14 +41,19 @@ DirectBitDecoder::DirectBitDecoder() : pos_(bits_.end()), num_used_bits_(0) {}
 
 DirectBitDecoder::~DirectBitDecoder() { Clear(); }
 
-void DirectBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
+bool DirectBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
   Clear();
   uint32_t size_in_bytes;
-  source_buffer->Decode(&size_in_bytes);
+  if (!source_buffer->Decode(&size_in_bytes))
+    return false;
+  if (size_in_bytes > source_buffer->remaining_size())
+    return false;
   bits_.resize(size_in_bytes / 4);
-  source_buffer->Decode(bits_.data(), size_in_bytes);
+  if (!source_buffer->Decode(bits_.data(), size_in_bytes))
+    return false;
   pos_ = bits_.begin();
   num_used_bits_ = 0;
+  return true;
 }
 
 void DirectBitDecoder::Clear() {
