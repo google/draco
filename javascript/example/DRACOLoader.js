@@ -75,7 +75,7 @@ THREE.DRACOLoader.prototype = {
         /*
          * Example on how to retrieve mesh and attributes.
          */
-        let numFaces, numPoints, numVertexCoordinates, numAttributes;
+        let numFaces, numPoints, numVertexCoordinates, numTextureCoordinates, numAttributes;
         // For output basic geometry information.
         let geometryInfoStr;
         if (geometryType == DracoModule.TRIANGULAR_MESH) {
@@ -87,6 +87,7 @@ THREE.DRACOLoader.prototype = {
         }
         numPoints = dracoGeometry.num_points();
         numVertexCoordinates = numPoints * 3;
+        numTextureCoordinates = numPoints * 2;
         numAttributes = dracoGeometry.num_attributes();
         geometryInfoStr = "Number of points loaded: " + numPoints.toString()
             + ".\n";
@@ -130,6 +131,18 @@ THREE.DRACOLoader.prototype = {
                                                 norAttributeData);
         }
 
+        // Get texture coord attributes if exists.
+        const texCoordAttId =
+            wrapper.GetAttributeId(dracoGeometry, Module.TEX_COORD);
+        let textCoordAttributeData;
+        if (texCoordAttId != -1) {
+          geometryInfoStr += "\nLoaded texture coordinate attribute.\n";
+          const texCoordAttribute = wrapper.GetAttribute(dracoGeometry, texCoordAttId);
+          textCoordAttributeData = new DracoModule.DracoFloat32Array();
+          wrapper.GetAttributeFloatForAllPoints(dracoGeometry, texCoordAttribute,
+                                                textCoordAttributeData);
+        }
+
         // Structure for converting to THREEJS geometry later.
         const geometryBuffer = {
             indices: [],
@@ -161,12 +174,24 @@ THREE.DRACOLoader.prototype = {
                   norAttributeData.GetValue(i + 2));
             }
         }
+
+        for (let i = 0; i < numTextureCoordinates; i += 2) {
+            // Add texture coordinates.
+            if (texCoordAttId != -1) {
+              geometryBuffer.uvs.push(
+                  textCoordAttributeData.GetValue(i),
+                  textCoordAttributeData.GetValue(i + 1));
+            }
+          }
+
         DracoModule.destroy(posAttributeData);
         if (colorAttId != -1)
           DracoModule.destroy(colAttributeData);
         if (normalAttId != -1)
           DracoModule.destroy(norAttributeData);
-
+        if (texCoordAttId != -1)
+          DracoModule.destroy(textCoordAttributeData);
+        
         // For mesh, we need to generate the faces.
         if (geometryType == DracoModule.TRIANGULAR_MESH) {
           const numIndices = numFaces * 3;
@@ -197,6 +222,10 @@ THREE.DRACOLoader.prototype = {
         if (normalAttId != -1) {
           geometry.addAttribute('normal',
               new THREE.Float32BufferAttribute(geometryBuffer.normals, 3));
+        }
+        if (texCoordAttId != -1) {
+          geometry.addAttribute('uv',
+              new THREE.Float32BufferAttribute(geometryBuffer.uvs, 2));
         }
         return geometry;
     }
