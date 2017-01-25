@@ -175,14 +175,14 @@ THREE.DRACOLoader.prototype = {
             }
         }
 
-        for (let i = 0; i < numTextureCoordinates; i += 2) {
-            // Add texture coordinates.
-            if (texCoordAttId != -1) {
-              geometryBuffer.uvs.push(
-                  textCoordAttributeData.GetValue(i),
-                  textCoordAttributeData.GetValue(i + 1));
-            }
+        // Add texture coordinates.
+        if (texCoordAttId != -1) {
+          for (let i = 0; i < numTextureCoordinates; i += 2) {
+            geometryBuffer.uvs.push(
+                textCoordAttributeData.GetValue(i),
+                textCoordAttributeData.GetValue(i + 1));
           }
+        }
 
         DracoModule.destroy(posAttributeData);
         if (colorAttId != -1)
