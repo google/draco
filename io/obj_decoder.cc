@@ -309,14 +309,23 @@ bool ObjDecoder::ParseFace(bool *error) {
       if (indices[0] > 0) {
         out_point_cloud_->attribute(pos_att_id_)
             ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[0] - 1));
+      } else if (indices[0] < 0) {
+        out_point_cloud_->attribute(pos_att_id_)
+            ->SetPointMapEntry(vert_id, AttributeValueIndex(num_positions_ + indices[0]));
       }
       if (indices[1] > 0) {
         out_point_cloud_->attribute(tex_att_id_)
             ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[1] - 1));
+      } else if (indices[1] < 0) {
+        out_point_cloud_->attribute(tex_att_id_)
+            ->SetPointMapEntry(vert_id, AttributeValueIndex(num_tex_coords_ + indices[1]));
       }
       if (indices[2] > 0) {
         out_point_cloud_->attribute(norm_att_id_)
             ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[2] - 1));
+      } else if (indices[2] < 0) {
+          out_point_cloud_->attribute(norm_att_id_)
+            ->SetPointMapEntry(vert_id, AttributeValueIndex(num_normals_ + indices[2]));
       }
       if (material_att_id_ >= 0) {
         out_point_cloud_->attribute(material_att_id_)
@@ -393,7 +402,7 @@ bool ObjDecoder::ParseVertexIndices(std::array<int32_t, 3> *out_indices) {
   // 4. POS_INDEX//NORMAL_INDEX
   parser::SkipWhitespace(buffer());
   if (!parser::ParseSignedInt(buffer(), &(*out_indices)[0]) ||
-      (*out_indices)[0] < 1)
+      (*out_indices)[0] == 0)
     return false;  // Position index must be present and valid.
   (*out_indices)[1] = (*out_indices)[2] = 0;
   char ch;
@@ -408,7 +417,7 @@ bool ObjDecoder::ParseVertexIndices(std::array<int32_t, 3> *out_indices) {
   if (ch != '/') {
     // Must be texture coord index.
     if (!parser::ParseSignedInt(buffer(), &(*out_indices)[1]) ||
-        (*out_indices)[1] < 1)
+        (*out_indices)[1] == 0)
       return false;  // Texture index must be present and valid.
   }
   if (!buffer()->Peek(&ch))
@@ -417,7 +426,7 @@ bool ObjDecoder::ParseVertexIndices(std::array<int32_t, 3> *out_indices) {
     buffer()->Advance(1);
     // Read normal index.
     if (!parser::ParseSignedInt(buffer(), &(*out_indices)[2]) ||
-        (*out_indices)[2] < 1)
+        (*out_indices)[2] == 0)
       return false;  // Normal index must be present and valid.
   }
   return true;
