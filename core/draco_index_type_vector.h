@@ -30,6 +30,9 @@ namespace draco {
 template <class IndexTypeT, class ValueTypeT>
 class IndexTypeVector {
  public:
+  typedef typename std::vector<ValueTypeT>::const_reference const_reference;
+  typedef typename std::vector<ValueTypeT>::reference reference;
+
   IndexTypeVector() {}
   explicit IndexTypeVector(size_t size) : vector_(size) {}
   IndexTypeVector(size_t size, const ValueTypeT &val) : vector_(size, val) {}
@@ -45,16 +48,16 @@ class IndexTypeVector {
   void push_back(const ValueTypeT &val) { vector_.push_back(val); }
   void push_back(ValueTypeT &&val) { vector_.push_back(std::move(val)); }
 
-  inline ValueTypeT &operator[](const IndexTypeT &index) {
+  inline reference operator[](const IndexTypeT &index) {
     return vector_[index.value()];
   }
-  inline const ValueTypeT &operator[](const IndexTypeT &index) const {
+  inline const_reference operator[](const IndexTypeT &index) const {
     return vector_[index.value()];
   }
-  inline ValueTypeT &at(const IndexTypeT &index) {
+  inline reference at(const IndexTypeT &index) {
     return vector_[index.value()];
   }
-  inline const ValueTypeT &at(const IndexTypeT &index) const {
+  inline const_reference at(const IndexTypeT &index) const {
     return vector_[index.value()];
   }
   const ValueTypeT *data() const { return vector_.data(); }

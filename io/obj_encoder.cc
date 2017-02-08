@@ -95,7 +95,7 @@ bool ObjEncoder::EncodePositions() {
       return false;
     buffer()->Encode("v ", 2);
     EncodeFloatList(&value[0], 3);
-    buffer()->Encode("\r\n", 2);
+    buffer()->Encode("\n", 1);
   }
   pos_att_ = att;
   return true;
@@ -112,7 +112,7 @@ bool ObjEncoder::EncodeTextureCoordinates() {
       return false;
     buffer()->Encode("vt ", 3);
     EncodeFloatList(&value[0], 2);
-    buffer()->Encode("\r\n", 2);
+    buffer()->Encode("\n", 1);
   }
   tex_coord_att_ = att;
   return true;
@@ -129,7 +129,7 @@ bool ObjEncoder::EncodeNormals() {
       return false;
     buffer()->Encode("vn ", 3);
     EncodeFloatList(&value[0], 3);
-    buffer()->Encode("\r\n", 2);
+    buffer()->Encode("\n", 1);
   }
   normal_att_ = att;
   return true;
@@ -142,7 +142,7 @@ bool ObjEncoder::EncodeFaces() {
       if (!EncodeFaceCorner(i, j))
         return false;
     }
-    buffer()->Encode("\r\n", 2);
+    buffer()->Encode("\n", 1);
   }
   return true;
 }

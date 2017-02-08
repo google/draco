@@ -16,6 +16,36 @@
 
 namespace draco {
 
+PredictionSchemeMethod SelectPredictionMethod(
+    int att_id, const PointCloudEncoder *encoder) {
+  if (encoder->options()->GetSpeed() >= 10) {
+    return PREDICTION_NONE;  // No prediction when the fastest speed is
+                             // requested.
+  }
+  if (encoder->GetGeometryType() == TRIANGULAR_MESH) {
+    // Use speed setting to select the best encoding method.
+    const PointAttribute *const att = encoder->point_cloud()->attribute(att_id);
+    if (att->attribute_type() == GeometryAttribute::TEX_COORD) {
+      if (encoder->options()->GetSpeed() < 4) {
+        // Use texture coordinate prediction for speeds 0, 1, 2, 3.
+        return MESH_PREDICTION_TEX_COORDS;
+      }
+    }
+    // Handle other attribute types.
+    if (encoder->options()->GetSpeed() >= 8) {
+      return PREDICTION_DIFFERENCE;
+    }
+    if (encoder->options()->GetSpeed() >= 2) {
+      // Parallelogram prediction is used for speeds 2 - 7.
+      return MESH_PREDICTION_PARALLELOGRAM;
+    }
+    // Multi-parallelogram is used for speeds 0, 1.
+    return MESH_PREDICTION_MULTI_PARALLELOGRAM;
+  }
+  // Default option is delta coding.
+  return PREDICTION_DIFFERENCE;
+}
+
 // Returns the preferred prediction scheme based on the encoder options.
 PredictionSchemeMethod GetPredictionMethodFromOptions(
     int att_id, const EncoderOptions &options) {

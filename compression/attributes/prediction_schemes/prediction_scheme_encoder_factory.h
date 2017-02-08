@@ -23,6 +23,11 @@
 
 namespace draco {
 
+// Selects a prediction method based on the input geometry type and based on the
+// encoder options.
+PredictionSchemeMethod SelectPredictionMethod(int att_id,
+                                              const PointCloudEncoder *encoder);
+
 // Creates a prediction scheme for a given encoder and given prediction method.
 // The prediction schemes are automatically initialized with encoder specific
 // data if needed.
@@ -34,23 +39,9 @@ CreatePredictionSchemeForEncoder(PredictionSchemeMethod method, int att_id,
                                  const TransformT &transform) {
   const PointAttribute *const att = encoder->point_cloud()->attribute(att_id);
   if (method == PREDICTION_UNDEFINED) {
-    if (encoder->options()->GetSpeed() >= 10) {
-      return nullptr;  // No prediction when the fastest speed is requested.
-    }
-    if (encoder->GetGeometryType() == TRIANGULAR_MESH) {
-      // Use speed setting to select the best encoding method.
-      if (encoder->options()->GetSpeed() >= 8) {
-        method = PREDICTION_DIFFERENCE;
-      } else if (encoder->options()->GetSpeed() >= 5) {
-        method = MESH_PREDICTION_PARALLELOGRAM;
-      } else {
-        if (att->attribute_type() == GeometryAttribute::TEX_COORD) {
-          method = MESH_PREDICTION_TEX_COORDS;
-        } else {
-          method = MESH_PREDICTION_MULTI_PARALLELOGRAM;
-        }
-      }
-    }
+    method = SelectPredictionMethod(att_id, encoder);
+    if (method == PREDICTION_NONE)
+      return nullptr;  // No prediction is used.
   }
   if (encoder->GetGeometryType() == TRIANGULAR_MESH) {
     // Cast the encoder to mesh encoder. This is not necessarily safe if there

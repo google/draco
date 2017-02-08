@@ -36,10 +36,10 @@ struct DataBufferDescriptor {
 class DataBuffer {
  public:
   DataBuffer();
-  void Update(const void *data, int64_t size);
+  bool Update(const void *data, int64_t size);
   // TODO(zhafang): The two update functions should be combined. I will
   // leave for now in case it breaks any geometry compression tools.
-  void Update(const void *data, int64_t size, int64_t offset);
+  bool Update(const void *data, int64_t size, int64_t offset);
   void WriteDataToStream(std::ostream &stream);
   // Reads data from the buffer. Potentially unsafe, called needs to ensure
   // the accessed memory is valid.

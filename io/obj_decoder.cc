@@ -311,22 +311,38 @@ bool ObjDecoder::ParseFace(bool *error) {
             ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[0] - 1));
       } else if (indices[0] < 0) {
         out_point_cloud_->attribute(pos_att_id_)
-            ->SetPointMapEntry(vert_id, AttributeValueIndex(num_positions_ + indices[0]));
+            ->SetPointMapEntry(
+                vert_id, AttributeValueIndex(num_positions_ + indices[0]));
       }
+
       if (indices[1] > 0) {
         out_point_cloud_->attribute(tex_att_id_)
             ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[1] - 1));
       } else if (indices[1] < 0) {
         out_point_cloud_->attribute(tex_att_id_)
-            ->SetPointMapEntry(vert_id, AttributeValueIndex(num_tex_coords_ + indices[1]));
+            ->SetPointMapEntry(
+                vert_id, AttributeValueIndex(num_tex_coords_ + indices[1]));
+      } else if (tex_att_id_ >= 0) {
+        // Texture index not provided but expected. Insert 0 entry as the
+        // default value.
+        out_point_cloud_->attribute(tex_att_id_)
+            ->SetPointMapEntry(vert_id, AttributeValueIndex(0));
       }
+
       if (indices[2] > 0) {
         out_point_cloud_->attribute(norm_att_id_)
             ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[2] - 1));
       } else if (indices[2] < 0) {
-          out_point_cloud_->attribute(norm_att_id_)
-            ->SetPointMapEntry(vert_id, AttributeValueIndex(num_normals_ + indices[2]));
+        out_point_cloud_->attribute(norm_att_id_)
+            ->SetPointMapEntry(vert_id,
+                               AttributeValueIndex(num_normals_ + indices[2]));
+      } else if (norm_att_id_ >= 0) {
+        // Normal index not provided but expected. Insert 0 entry as the default
+        // value.
+        out_point_cloud_->attribute(norm_att_id_)
+            ->SetPointMapEntry(vert_id, AttributeValueIndex(0));
       }
+
       if (material_att_id_ >= 0) {
         out_point_cloud_->attribute(material_att_id_)
             ->SetPointMapEntry(vert_id, AttributeValueIndex(last_material_id_));

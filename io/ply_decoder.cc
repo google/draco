@@ -132,6 +132,11 @@ bool PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
   // Decode vertex positions.
   {
     // TODO(ostava): For now assume the position types are float32.
+    if (x_prop->data_type() != DT_FLOAT32 ||
+        y_prop->data_type() != DT_FLOAT32 ||
+        z_prop->data_type() != DT_FLOAT32) {
+      return false;
+    }
     PlyPropertyReader<float> x_reader(x_prop);
     PlyPropertyReader<float> y_reader(y_prop);
     PlyPropertyReader<float> z_reader(z_prop);
@@ -146,6 +151,33 @@ bool PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
       val[2] = z_reader.ReadValue(i);
       out_point_cloud_->attribute(att_id)->SetAttributeValue(
           AttributeValueIndex(i), &val[0]);
+    }
+  }
+
+  // Decode normals if present.
+  const PlyProperty *const n_x_prop = vertex_element->GetPropertyByName("nx");
+  const PlyProperty *const n_y_prop = vertex_element->GetPropertyByName("ny");
+  const PlyProperty *const n_z_prop = vertex_element->GetPropertyByName("nz");
+  if (n_x_prop != nullptr && n_y_prop != nullptr && n_z_prop != nullptr) {
+    // For now, all normal properties must be set and of type float32
+    if (n_x_prop->data_type() == DT_FLOAT32 &&
+        n_y_prop->data_type() == DT_FLOAT32 &&
+        n_z_prop->data_type() == DT_FLOAT32) {
+      PlyPropertyReader<float> x_reader(n_x_prop);
+      PlyPropertyReader<float> y_reader(n_y_prop);
+      PlyPropertyReader<float> z_reader(n_z_prop);
+      GeometryAttribute va;
+      va.Init(GeometryAttribute::NORMAL, nullptr, 3, DT_FLOAT32, false,
+              sizeof(float) * 3, 0);
+      const int att_id = out_point_cloud_->AddAttribute(va, true, num_vertices);
+      for (PointIndex::ValueType i = 0; i < num_vertices; ++i) {
+        std::array<float, 3> val;
+        val[0] = x_reader.ReadValue(i);
+        val[1] = y_reader.ReadValue(i);
+        val[2] = z_reader.ReadValue(i);
+        out_point_cloud_->attribute(att_id)->SetAttributeValue(
+            AttributeValueIndex(i), &val[0]);
+      }
     }
   }
 

@@ -83,7 +83,7 @@ bool AdaptiveRAnsBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
   if (!source_buffer->Decode(&size_in_bytes))
     return false;
   if (size_in_bytes > source_buffer->remaining_size())
-      return false;
+    return false;
   if (ans_read_init(&ans_decoder_,
                     reinterpret_cast<uint8_t *>(
                         const_cast<char *>(source_buffer->data_head())),

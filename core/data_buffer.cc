@@ -18,7 +18,10 @@ namespace draco {
 
 DataBuffer::DataBuffer() {}
 
-void DataBuffer::Update(const void *data, int64_t size) {
+bool DataBuffer::Update(const void *data, int64_t size) {
+  if (size < 0)
+    return false;
+
   if (data == nullptr) {
     // If no data is provided, just resize the buffer.
     data_.resize(size);
@@ -27,19 +30,25 @@ void DataBuffer::Update(const void *data, int64_t size) {
     data_.assign(byte_data, byte_data + size);
   }
   descriptor_.buffer_update_count++;
+  return true;
 }
 
-void DataBuffer::Update(const void *data, int64_t size, int64_t offset) {
+bool DataBuffer::Update(const void *data, int64_t size, int64_t offset) {
   if (data == nullptr) {
+    if (size + offset < 0)
+      return false;
     // If no data is provided, just resize the buffer.
     data_.resize(size + offset);
   } else {
+    if (size < 0)
+      return false;
     if (size + offset > static_cast<int64_t>(data_.size()))
       data_.resize(size + offset);
     const uint8_t *const byte_data = static_cast<const uint8_t *>(data);
     std::copy(byte_data, byte_data + size, data_.data() + offset);
   }
   descriptor_.buffer_update_count++;
+  return true;
 }
 
 void DataBuffer::WriteDataToStream(std::ostream &stream) {

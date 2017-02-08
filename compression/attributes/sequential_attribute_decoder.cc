@@ -36,7 +36,8 @@ bool SequentialAttributeDecoder::InitializeStandalone(
 
 bool SequentialAttributeDecoder::Decode(
     const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
-  attribute_->Reset(point_ids.size());
+  if (!attribute_->Reset(point_ids.size()))
+    return false;
   if (!DecodeValues(point_ids, in_buffer))
     return false;
   return true;

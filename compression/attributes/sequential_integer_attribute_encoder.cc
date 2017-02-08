@@ -97,9 +97,8 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
                                reinterpret_cast<uint32_t *>(values_.data()));
   }
 
-  if (encoder() == nullptr ||
-      encoder()->options()->GetGlobalBool("use_built_in_attribute_compression",
-                                          true)) {
+  if (encoder() == nullptr || encoder()->options()->GetGlobalBool(
+                                  "use_built_in_attribute_compression", true)) {
     out_buffer->Encode(static_cast<uint8_t>(1));
     EncodeSymbols(reinterpret_cast<uint32_t *>(values_.data()),
                   point_ids.size() * num_components, num_components,

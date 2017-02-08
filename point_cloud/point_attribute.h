@@ -39,7 +39,7 @@ class PointAttribute : public GeometryAttribute {
   PointAttribute &operator=(PointAttribute &&attribute) = default;
 
   // Prepares the attribute storage for the specified number of entries.
-  void Reset(size_t num_attribute_values);
+  bool Reset(size_t num_attribute_values);
 
   size_t size() const { return num_unique_entries_; }
   AttributeValueIndex mapped_index(PointIndex point_index) const {

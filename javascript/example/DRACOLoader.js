@@ -75,7 +75,8 @@ THREE.DRACOLoader.prototype = {
         /*
          * Example on how to retrieve mesh and attributes.
          */
-        let numFaces, numPoints, numVertexCoordinates, numTextureCoordinates, numAttributes;
+        let numFaces, numPoints;
+        let numVertexCoordinates, numTextureCoordinates, numAttributes;
         // For output basic geometry information.
         let geometryInfoStr;
         if (geometryType == DracoModule.TRIANGULAR_MESH) {
@@ -137,9 +138,11 @@ THREE.DRACOLoader.prototype = {
         let textCoordAttributeData;
         if (texCoordAttId != -1) {
           geometryInfoStr += "\nLoaded texture coordinate attribute.\n";
-          const texCoordAttribute = wrapper.GetAttribute(dracoGeometry, texCoordAttId);
+          const texCoordAttribute = wrapper.GetAttribute(dracoGeometry,
+                                                         texCoordAttId);
           textCoordAttributeData = new DracoModule.DracoFloat32Array();
-          wrapper.GetAttributeFloatForAllPoints(dracoGeometry, texCoordAttribute,
+          wrapper.GetAttributeFloatForAllPoints(dracoGeometry,
+                                                texCoordAttribute,
                                                 textCoordAttributeData);
         }
 
@@ -191,7 +194,7 @@ THREE.DRACOLoader.prototype = {
           DracoModule.destroy(norAttributeData);
         if (texCoordAttId != -1)
           DracoModule.destroy(textCoordAttributeData);
-        
+
         // For mesh, we need to generate the faces.
         if (geometryType == DracoModule.TRIANGULAR_MESH) {
           const numIndices = numFaces * 3;

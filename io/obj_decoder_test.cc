@@ -48,5 +48,10 @@ TEST_F(ObjDecoderTest, ExtraVertexOBJ) {
   test_decoding(file_name);
 }
 
+TEST_F(ObjDecoderTest, ParialAttributesOBJ) {
+  const std::string file_name = "cube_att_partial.obj";
+  test_decoding(file_name);
+}
+
 
 }  // namespace draco

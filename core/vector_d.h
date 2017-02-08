@@ -24,41 +24,43 @@ namespace draco {
 // D-dimensional vector class with basic operations.
 template <class CoeffT, int dimension_t>
 class VectorD {
-  typedef VectorD<CoeffT, dimension_t> Self;
-
  public:
+  typedef VectorD<CoeffT, dimension_t> Self;
+  typedef CoeffT CoefficientType;
+  static constexpr int dimension = dimension_t;
+
   VectorD() {
     for (int i = 0; i < dimension_t; ++i)
       (*this)[i] = CoeffT(0);
   }
 
   // The following constructor does not compile in opt mode, which for now led
-  // to the further down, which is not ideal.
+  // to the constructors further down, which is not ideal.
   // TODO(hemmer): fix constructor below and remove others.
   // template <typename... Args>
   // explicit VectorD(Args... args) : v_({args...}) {}
 
   VectorD(const CoeffT &c0, const CoeffT &c1) : v_({{c0, c1}}) {
-    CHECK(dimension_t == 2);
+    CHECK_EQ(dimension_t, 2);
     v_[0] = c0;
     v_[1] = c1;
   }
 
   VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2)
       : v_({{c0, c1, c2}}) {
-    CHECK(dimension_t == 3);
+    CHECK_EQ(dimension_t, 3);
   }
 
   VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2,
           const CoeffT &c3)
       : v_({{c0, c1, c2, c3}}) {
-    CHECK(dimension_t == 4);
+    CHECK_EQ(dimension_t, 4);
   }
 
   VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2,
           const CoeffT &c3, const CoeffT &c4)
       : v_({{c0, c1, c2, c3, c4}}) {
-    CHECK(dimension_t == 5);
+    CHECK_EQ(dimension_t, 5);
   }
 
   VectorD(const Self &o) {
@@ -160,6 +162,25 @@ VectorD<CoeffT, dimension_t> operator*(const CoeffT &o,
   return v * o;
 }
 
+// Calculates the squared distance between two points.
+template <class CoeffT, int dimension_t>
+CoeffT SquaredDistance(const VectorD<CoeffT, dimension_t> v1,
+                       const VectorD<CoeffT, dimension_t> v2) {
+  CoeffT difference;
+  CoeffT squared_distance = 0;
+  // Check each index seperately so difference is never negative and underflow
+  // is avoided for unsigned types.
+  for (int i = 0; i < dimension_t; ++i) {
+    if (v1[i] >= v2[i]) {
+      difference = v1[i] - v2[i];
+    } else {
+      difference = v2[i] - v1[i];
+    }
+    squared_distance += (difference * difference);
+  }
+  return squared_distance;
+}
+
 typedef VectorD<float, 2> Vector2f;
 typedef VectorD<float, 3> Vector3f;
 typedef VectorD<float, 4> Vector4f;
@@ -171,5 +192,16 @@ typedef VectorD<uint32_t, 4> Vector4ui;
 typedef VectorD<uint32_t, 5> Vector5ui;
 
 }  // namespace draco
+
+template <typename Char, typename CharTraits, class CoeffT, int dimension_t>
+inline ::std::basic_ostream<Char, CharTraits> &operator<<(
+    ::std::basic_ostream<Char, CharTraits> &out,
+    const draco::VectorD<CoeffT, dimension_t> &vec) {
+  for (int i = 0; i < dimension_t - 1; ++i) {
+    out << vec[i] << " ";
+  }
+  out << vec[dimension_t - 1];
+  return out;
+}
 
 #endif  // DRACO_CORE_VECTOR_D_H_

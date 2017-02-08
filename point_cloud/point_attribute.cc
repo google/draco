@@ -32,15 +32,17 @@ PointAttribute::PointAttribute(const GeometryAttribute &att)
       num_unique_entries_(0),
       identity_mapping_(false) {}
 
-void PointAttribute::Reset(size_t num_attribute_values) {
+bool PointAttribute::Reset(size_t num_attribute_values) {
   if (attribute_buffer_ == nullptr) {
     attribute_buffer_ = std::unique_ptr<DataBuffer>(new DataBuffer());
   }
   const int64_t entry_size = DataTypeLength(data_type()) * components_count();
-  attribute_buffer_->Update(nullptr, num_attribute_values * entry_size);
+  if (!attribute_buffer_->Update(nullptr, num_attribute_values * entry_size))
+    return false;
   // Assign the new buffer to the parent attribute.
   ResetBuffer(attribute_buffer_.get(), entry_size, 0);
   num_unique_entries_ = num_attribute_values;
+  return true;
 }
 
 AttributeValueIndex::ValueType PointAttribute::DeduplicateValues(
