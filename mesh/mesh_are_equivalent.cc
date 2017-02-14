@@ -136,8 +136,8 @@ bool MeshAreEquivalent::operator()(const Mesh &mesh0, const Mesh &mesh1) {
     DCHECK(att1->IsValid());
 
     // Prepare blocks of memomry to hold data of corners for this attribute.
-    std::unique_ptr<uint8[]> data0(new uint8[att0->byte_stride()]);
-    std::unique_ptr<uint8[]> data1(new uint8[att0->byte_stride()]);
+    std::unique_ptr<uint8_t[]> data0(new uint8_t[att0->byte_stride()]);
+    std::unique_ptr<uint8_t[]> data1(new uint8_t[att0->byte_stride()]);
 
     // Check every corner of every face.
     for (int i = 0; i < num_faces_; ++i) {
