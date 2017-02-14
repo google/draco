@@ -38,6 +38,7 @@ interface PointAttribute {
   boolean normalized();
   long byte_stride();
   long byte_offset();
+  long custom_id();
 };
 
 [Prefix="draco::"]

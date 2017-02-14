@@ -104,6 +104,4 @@ bool FloatPointsKdTreeEncoder::EncodePointCloud(InputIteratorT points_begin,
 
 }  // namespace draco
 
-#undef BIT_ENCODER_TYPE
-
 #endif  // DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_KD_TREE_ENCODER_H_

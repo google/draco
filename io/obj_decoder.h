@@ -68,6 +68,7 @@ class ObjDecoder {
   bool ParseFace(bool *error);
   bool ParseMaterialLib(bool *error);
   bool ParseMaterial(bool *error);
+  bool ParseObject(bool *error);
 
   // Parses triplet of position, tex coords and normal indices.
   // Returns false on error.
@@ -84,11 +85,13 @@ class ObjDecoder {
   int num_positions_;
   int num_tex_coords_;
   int num_normals_;
+  int num_sub_objects_;
 
   int pos_att_id_;
   int tex_att_id_;
   int norm_att_id_;
   int material_att_id_;
+  int sub_obj_att_id_;  // Attribute id for storing sub-objects.
 
   bool deduplicate_input_values_;
 

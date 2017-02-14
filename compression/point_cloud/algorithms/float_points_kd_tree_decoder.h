@@ -78,6 +78,4 @@ bool FloatPointsKdTreeDecoder::DecodePointCloud(DecoderBuffer *buffer,
 
 }  // namespace draco
 
-#undef BIT_DECODER_TYPE
-
 #endif  // DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_KD_TREE_DECODER_H_

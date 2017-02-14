@@ -28,10 +28,12 @@ ObjDecoder::ObjDecoder()
       num_positions_(0),
       num_tex_coords_(0),
       num_normals_(0),
+      num_sub_objects_(0),
       pos_att_id_(-1),
       tex_att_id_(-1),
       norm_att_id_(-1),
       material_att_id_(-1),
+      sub_obj_att_id_(-1),
       deduplicate_input_values_(true),
       last_material_id_(0),
       open_material_file_(false),
@@ -87,6 +89,7 @@ bool ObjDecoder::DecodeInternal() {
   counting_mode_ = true;
   ResetCounters();
   material_name_to_id_.clear();
+  num_sub_objects_ = 0;
   // Parse all lines.
   bool error = false;
   while (ParseDefinition(&error) && !error) {
@@ -137,6 +140,26 @@ bool ObjDecoder::DecodeInternal() {
     for (AttributeValueIndex i(0); i < material_name_to_id_.size(); ++i) {
       out_point_cloud_->attribute(material_att_id_)->SetAttributeValue(i, &i);
     }
+    // Set custom id 0 for the material attribute.
+    out_point_cloud_->attribute(material_att_id_)->set_custom_id(0);
+  }
+  if (num_sub_objects_ > 1) {
+    GeometryAttribute va;
+    if (num_sub_objects_ < 256) {
+      va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT8, false, 1, 0);
+    } else if (num_sub_objects_ < (1 << 16)) {
+      va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT16, false, 2, 0);
+    } else {
+      va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT32, false, 4, 0);
+    }
+    sub_obj_att_id_ =
+        out_point_cloud_->AddAttribute(va, false, num_sub_objects_);
+    // Fill the sub object id entries.
+    for (AttributeValueIndex i(0); i < num_sub_objects_; ++i) {
+      out_point_cloud_->attribute(sub_obj_att_id_)->SetAttributeValue(i, &i);
+    }
+    // Set custom id 1 for the sub object attribute.
+    out_point_cloud_->attribute(sub_obj_att_id_)->set_custom_id(1);
   }
 
   // Perform a second iteration of parsing and fill all the data.
@@ -171,6 +194,7 @@ void ObjDecoder::ResetCounters() {
   num_tex_coords_ = 0;
   num_normals_ = 0;
   last_material_id_ = 0;
+  num_sub_objects_ = 0;
 }
 
 bool ObjDecoder::ParseDefinition(bool *error) {
@@ -196,6 +220,8 @@ bool ObjDecoder::ParseDefinition(bool *error) {
   if (ParseMaterial(error))
     return true;
   if (ParseMaterialLib(error))
+    return true;
+  if (ParseObject(error))
     return true;
   // No known definition was found. Ignore the line.
   parser::SkipLine(buffer());
@@ -347,6 +373,12 @@ bool ObjDecoder::ParseFace(bool *error) {
         out_point_cloud_->attribute(material_att_id_)
             ->SetPointMapEntry(vert_id, AttributeValueIndex(last_material_id_));
       }
+
+      if (sub_obj_att_id_ >= 0) {
+        const int sub_obj_id = num_sub_objects_ > 0 ? num_sub_objects_ - 1 : 0;
+        out_point_cloud_->attribute(sub_obj_att_id_)
+            ->SetPointMapEntry(vert_id, AttributeValueIndex(sub_obj_id));
+      }
     }
   }
   ++num_obj_faces_;
@@ -407,6 +439,22 @@ bool ObjDecoder::ParseMaterial(bool * /* error */) {
     return true;
   }
   last_material_id_ = it->second;
+  return true;
+}
+
+bool ObjDecoder::ParseObject(bool *error) {
+  std::array<char, 2> c;
+  if (!buffer()->Peek(&c)) {
+    return false;
+  }
+  if (std::memcmp(&c[0], "o ", 2) != 0)
+    return false;
+  buffer()->Advance(1);
+  parser::SkipWhitespace(buffer());
+  std::string obj_name;
+  if (!parser::ParseString(buffer(), &obj_name))
+    return false;
+  num_sub_objects_++;
   return true;
 }
 

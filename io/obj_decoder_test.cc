@@ -54,4 +54,21 @@ TEST_F(ObjDecoderTest, ParialAttributesOBJ) {
 }
 
 
+TEST_F(ObjDecoderTest, SubObjects) {
+  // Tests loading an Obj with sub objects.
+  const std::string file_name = "cube_att_sub_o.obj";
+  const std::unique_ptr<Mesh> mesh(DecodeObj<Mesh>(file_name));
+  ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
+  ASSERT_GT(mesh->num_faces(), 0);
+
+  // A sub object attribute should be the fourth attribute of the mesh (in this
+  // case).
+  ASSERT_EQ(mesh->num_attributes(), 4);
+  ASSERT_EQ(mesh->attribute(3)->attribute_type(), GeometryAttribute::GENERIC);
+  // There should be 3 different sub objects used in the model.
+  ASSERT_EQ(mesh->attribute(3)->size(), 3);
+  // Verify that the sub object attribute has custom id == 1.
+  ASSERT_EQ(mesh->attribute(3)->custom_id(), 1);
+}
+
 }  // namespace draco
