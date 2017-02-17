@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "compression/point_cloud/algorithms/float_points_kd_tree_decoder.h"
+#include "compression/point_cloud/algorithms/float_points_tree_decoder.h"
 
 #include <algorithm>
 
@@ -23,24 +23,14 @@
 
 namespace draco {
 
-FloatPointsKdTreeDecoder::FloatPointsKdTreeDecoder()
+FloatPointsTreeDecoder::FloatPointsTreeDecoder()
     : num_points_(0), compression_level_(0) {
   qinfo_.quantization_bits = 0;
   qinfo_.range = 0;
 }
 
-bool FloatPointsKdTreeDecoder::DecodePointCloudInternal(
+bool FloatPointsTreeDecoder::DecodePointCloudKdTreeInternal(
     DecoderBuffer *buffer, std::vector<Point3ui> *qpoints) {
-  uint32_t decoded_version;
-  if (!buffer->Decode(&decoded_version))
-    return false;
-
-  if (decoded_version != version()) {
-    fprintf(stderr,
-            "Version not supported, did you try to load an old file? \n");
-    return false;
-  }
-
   if (!buffer->Decode(&qinfo_.quantization_bits))
     return false;
   if (!buffer->Decode(&qinfo_.range))
@@ -124,5 +114,6 @@ bool FloatPointsKdTreeDecoder::DecodePointCloudInternal(
   DCHECK_EQ(true, qpoints->size() == num_points_);
   return true;
 }
+
 
 }  // namespace draco

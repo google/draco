@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_KD_TREE_DECODER_H_
-#define DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_KD_TREE_DECODER_H_
+#ifndef DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_TREE_DECODER_H_
+#define DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_TREE_DECODER_H_
 
 #include <memory>
 
+#include "compression/point_cloud/algorithms/point_cloud_compression_method.h"
 #include "compression/point_cloud/algorithms/point_cloud_types.h"
 #include "compression/point_cloud/algorithms/quantize_points_3.h"
 #include "core/decoder_buffer.h"
 
 namespace draco {
 
-// Decodes a point cloud encoded by PointCloudKdTreeEncoder.
-class FloatPointsKdTreeDecoder {
+// Decodes a point cloud encoded by PointCloudTreeEncoder.
+class FloatPointsTreeDecoder {
  public:
-  FloatPointsKdTreeDecoder();
+  FloatPointsTreeDecoder();
 
   // Decodes a point cloud from |buffer|.
   template <class OutputIteratorT>
@@ -48,34 +49,54 @@ class FloatPointsKdTreeDecoder {
   float range() const { return qinfo_.range; }
   uint32_t num_points() const { return num_points_; }
   uint32_t version() const { return version_; }
-  std::string identification_string() const {
-    return "FloatPointsKdTreeDecoder";
-  }
+  std::string identification_string() const { return "FloatPointsTreeDecoder"; }
 
  private:
-  bool DecodePointCloudInternal(DecoderBuffer *buffer,
-                                std::vector<Point3ui> *qpoints);
+  bool DecodePointCloudKdTreeInternal(DecoderBuffer *buffer,
+                                      std::vector<Point3ui> *qpoints);
 
-  static const uint32_t version_ = 2;
+  static const uint32_t version_ = 3;
   QuantizationInfo qinfo_;
   uint32_t num_points_;
   uint32_t compression_level_;
 };
 
 template <class OutputIteratorT>
-bool FloatPointsKdTreeDecoder::DecodePointCloud(DecoderBuffer *buffer,
-                                                OutputIteratorT out)
-
-{
+bool FloatPointsTreeDecoder::DecodePointCloud(DecoderBuffer *buffer,
+                                              OutputIteratorT out) {
   std::vector<Point3ui> qpoints;
-  if (!DecodePointCloudInternal(buffer, &qpoints))
+
+  uint32_t decoded_version;
+  if (!buffer->Decode(&decoded_version))
     return false;
 
-  DequantizePoints3(qpoints.begin(), qpoints.end(), qinfo_, out);
+  if (decoded_version == 3) {
+    int8_t method_number;
+    if (!buffer->Decode(&method_number))
+      return false;
 
+    const PointCloudCompressionMethod method =
+        static_cast<PointCloudCompressionMethod>(method_number);
+
+    if (method == KDTREE) {
+      if (!DecodePointCloudKdTreeInternal(buffer, &qpoints))
+        return false;
+    } else {  // Unsupported method.
+      fprintf(stderr, "Method not supported. \n");
+      return false;
+    }
+  } else if (decoded_version == 2) {  // Version 2 only uses KDTREE method.
+    if (!DecodePointCloudKdTreeInternal(buffer, &qpoints))
+      return false;
+  } else {  // Unsupported version.
+    fprintf(stderr, "Version not supported. \n");
+    return false;
+  }
+
+  DequantizePoints3(qpoints.begin(), qpoints.end(), qinfo_, out);
   return true;
 }
 
 }  // namespace draco
 
-#endif  // DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_KD_TREE_DECODER_H_
+#endif  // DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_TREE_DECODER_H_

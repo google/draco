@@ -14,7 +14,7 @@
 //
 #include "compression/attributes/kd_tree_attributes_decoder.h"
 #include "compression/attributes/kd_tree_attributes_shared.h"
-#include "compression/point_cloud/algorithms/float_points_kd_tree_decoder.h"
+#include "compression/point_cloud/algorithms/float_points_tree_decoder.h"
 #include "compression/point_cloud/algorithms/integer_points_kd_tree_decoder.h"
 #include "compression/point_cloud/point_cloud_decoder.h"
 
@@ -68,7 +68,7 @@ bool KdTreeAttributesDecoder::DecodeAttributes(DecoderBuffer *in_buffer) {
     if (!in_buffer->Decode(&num_points))
       return false;
     att->Reset(num_points);
-    FloatPointsKdTreeDecoder decoder;
+    FloatPointsTreeDecoder decoder;
     PointAttributeVectorOutputIterator<float, 3> out_it(att);
     if (!decoder.DecodePointCloud(in_buffer, out_it))
       return false;

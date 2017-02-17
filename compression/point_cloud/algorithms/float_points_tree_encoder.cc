@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "compression/point_cloud/algorithms/float_points_kd_tree_encoder.h"
+#include "compression/point_cloud/algorithms/float_points_tree_encoder.h"
 
 #include <algorithm>
 #include <cmath>
@@ -22,23 +22,25 @@
 
 namespace draco {
 
-const uint32_t FloatPointsKdTreeEncoder::version_ = 2;
+const uint32_t FloatPointsTreeEncoder::version_ = 3;
 
-FloatPointsKdTreeEncoder::FloatPointsKdTreeEncoder()
-    : num_points_(0), compression_level_(8) {
+FloatPointsTreeEncoder::FloatPointsTreeEncoder(
+    PointCloudCompressionMethod method)
+    : method_(method), num_points_(0), compression_level_(8) {
   qinfo_.quantization_bits = 16;
   qinfo_.range = 0;
 }
 
-FloatPointsKdTreeEncoder::FloatPointsKdTreeEncoder(uint32_t quantization_bits,
-                                                   uint32_t compression_level)
-    : num_points_(0), compression_level_(compression_level) {
+FloatPointsTreeEncoder::FloatPointsTreeEncoder(
+    PointCloudCompressionMethod method, uint32_t quantization_bits,
+    uint32_t compression_level)
+    : method_(method), num_points_(0), compression_level_(compression_level) {
   DCHECK_LE(compression_level_, 10);
   qinfo_.quantization_bits = quantization_bits;
   qinfo_.range = 0;
 }
 
-bool FloatPointsKdTreeEncoder::EncodePointCloudInternal(
+bool FloatPointsTreeEncoder::EncodePointCloudKdTreeInternal(
     std::vector<Point3ui> *qpoints) {
   DCHECK_LE(compression_level_, 10);
   switch (compression_level_) {
@@ -112,5 +114,6 @@ bool FloatPointsKdTreeEncoder::EncodePointCloudInternal(
 
   return true;
 }
+
 
 }  // namespace draco

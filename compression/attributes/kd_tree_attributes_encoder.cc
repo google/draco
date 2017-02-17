@@ -14,7 +14,7 @@
 //
 #include "compression/attributes/kd_tree_attributes_encoder.h"
 #include "compression/attributes/kd_tree_attributes_shared.h"
-#include "compression/point_cloud/algorithms/float_points_kd_tree_encoder.h"
+#include "compression/point_cloud/algorithms/float_points_tree_encoder.h"
 #include "compression/point_cloud/algorithms/integer_points_kd_tree_encoder.h"
 #include "compression/point_cloud/point_cloud_encoder.h"
 
@@ -93,8 +93,8 @@ bool KdTreeAttributesEncoder::EncodeAttributes(EncoderBuffer *out_buffer) {
     out_buffer->Encode(
         static_cast<uint32_t>(encoder()->point_cloud()->num_points()));
     typedef PointAttributeVectorIterator<float, 3> AttributeIterator;
-    FloatPointsKdTreeEncoder points_encoder(quantization_bits,
-                                            compression_level);
+    FloatPointsTreeEncoder points_encoder(KDTREE, quantization_bits,
+                                          compression_level);
     if (!points_encoder.EncodePointCloud(
             AttributeIterator(att),
             AttributeIterator(att) + encoder()->point_cloud()->num_points()))

@@ -218,15 +218,15 @@ MESH_ATTRIBUTE_CORNER_TABLE_OBJS := mesh/mesh_attribute_corner_table.o
 MESH_MISC_A    := libmesh_misc.a
 MESH_MISC_OBJS := mesh/mesh_misc_functions.o
 
-FLOAT_POINTS_KD_TREE_DECODER_A    := \
-    libfloat_points_kd_tree_decoder.a
-FLOAT_POINTS_KD_TREE_DECODER_OBJS := \
-    compression/point_cloud/algorithms/float_points_kd_tree_decoder.o
+FLOAT_POINTS_TREE_DECODER_A    := \
+    libfloat_points_tree_decoder.a
+FLOAT_POINTS_TREE_DECODER_OBJS := \
+    compression/point_cloud/algorithms/float_points_tree_decoder.o
 
-FLOAT_POINTS_KD_TREE_ENCODER_A    := \
-    libfloat_points_kd_tree_encoder.a
-FLOAT_POINTS_KD_TREE_ENCODER_OBJS := \
-    compression/point_cloud/algorithms/float_points_kd_tree_encoder.o
+FLOAT_POINTS_TREE_ENCODER_A    := \
+    libfloat_points_tree_encoder.a
+FLOAT_POINTS_TREE_ENCODER_OBJS := \
+    compression/point_cloud/algorithms/float_points_tree_encoder.o
 
 INTEGER_POINTS_KD_TREE_DECODER_A    := \
     libinteger_points_kd_tree_decoder.a
@@ -330,10 +330,10 @@ MESH_IO_OBJSA := $(addprefix $(OBJDIR)/,$(MESH_IO_OBJS:.o=_a.o))
 PLY_ENCODER_OBJSA := $(addprefix $(OBJDIR)/,$(PLY_ENCODER_OBJS:.o=_a.o))
 PLY_DECODER_OBJSA := $(addprefix $(OBJDIR)/,$(PLY_DECODER_OBJS:.o=_a.o))
 
-FLOAT_POINTS_KD_TREE_DECODER_OBJSA := \
-    $(addprefix $(OBJDIR)/,$(FLOAT_POINTS_KD_TREE_DECODER_OBJS:.o=_a.o))
-FLOAT_POINTS_KD_TREE_ENCODER_OBJSA := \
-    $(addprefix $(OBJDIR)/,$(FLOAT_POINTS_KD_TREE_ENCODER_OBJS:.o=_a.o))
+FLOAT_POINTS_TREE_DECODER_OBJSA := \
+    $(addprefix $(OBJDIR)/,$(FLOAT_POINTS_TREE_DECODER_OBJS:.o=_a.o))
+FLOAT_POINTS_TREE_ENCODER_OBJSA := \
+    $(addprefix $(OBJDIR)/,$(FLOAT_POINTS_TREE_ENCODER_OBJS:.o=_a.o))
 INTEGER_POINTS_KD_TREE_DECODER_OBJSA := \
     $(addprefix $(OBJDIR)/,$(INTEGER_POINTS_KD_TREE_DECODER_OBJS:.o=_a.o))
 INTEGER_POINTS_KD_TREE_ENCODER_OBJSA := \
@@ -370,7 +370,7 @@ DRACO_ENCODER_OBJSA += $(SEQUENTIAL_ATTRIBUTE_ENCODERS_CONTROLLER_OBJSA)
 DRACO_ENCODER_OBJSA += $(POINT_CLOUD_SEQUENTIAL_ENCODER_OBJSA)
 DRACO_ENCODER_OBJSA += $(POINT_CLOUD_KD_TREE_ENCODER_OBJSA)
 DRACO_ENCODER_OBJSA += $(KD_TREE_ATTRIBUTES_ENCODER_OBJSA)
-DRACO_ENCODER_OBJSA += $(FLOAT_POINTS_KD_TREE_ENCODER_OBJSA)
+DRACO_ENCODER_OBJSA += $(FLOAT_POINTS_TREE_ENCODER_OBJSA)
 DRACO_ENCODER_OBJSA += $(INTEGER_POINTS_KD_TREE_ENCODER_OBJSA)
 DRACO_ENCODER_OBJSA += $(MESH_SEQUENTIAL_ENCODER_OBJSA)
 DRACO_ENCODER_OBJSA += $(MESH_EDGEBREAKER_ENCODER_OBJSA)
@@ -389,7 +389,7 @@ DRACO_DECODER_OBJSA += $(SEQUENTIAL_ATTRIBUTE_DECODERS_CONTROLLER_OBJSA)
 DRACO_DECODER_OBJSA += $(POINT_CLOUD_SEQUENTIAL_DECODER_OBJSA)
 DRACO_DECODER_OBJSA += $(POINT_CLOUD_KD_TREE_DECODER_OBJSA)
 DRACO_DECODER_OBJSA += $(KD_TREE_ATTRIBUTES_DECODER_OBJSA)
-DRACO_DECODER_OBJSA += $(FLOAT_POINTS_KD_TREE_DECODER_OBJSA)
+DRACO_DECODER_OBJSA += $(FLOAT_POINTS_TREE_DECODER_OBJSA)
 DRACO_DECODER_OBJSA += $(INTEGER_POINTS_KD_TREE_DECODER_OBJSA)
 DRACO_DECODER_OBJSA += $(MESH_SEQUENTIAL_DECODER_OBJSA)
 DRACO_DECODER_OBJSA += $(MESH_EDGEBREAKER_DECODER_OBJSA)
@@ -455,8 +455,8 @@ LIBS += $(LIBDIR)/libdecoder_buffer.a
 LIBS += $(LIBDIR)/libencoder_buffer.a
 LIBS += $(LIBDIR)/libcycle_timer.a
 
-POINTS_LIBS := $(LIBDIR)/libfloat_points_kd_tree_decoder.a
-POINTS_LIBS += $(LIBDIR)/libfloat_points_kd_tree_encoder.a
+POINTS_LIBS := $(LIBDIR)/libfloat_points_tree_decoder.a
+POINTS_LIBS += $(LIBDIR)/libfloat_points_tree_encoder.a
 POINTS_LIBS += $(LIBDIR)/libinteger_points_kd_tree_decoder.a
 POINTS_LIBS += $(LIBDIR)/libinteger_points_kd_tree_encoder.a
 POINTS_LIBS += $(LIBDIR)/libdirect_bit_coding.a
@@ -609,10 +609,10 @@ $(LIBDIR)/libply_encoder.a: $(PLY_ENCODER_OBJSA)
 $(LIBDIR)/libply_decoder.a: $(PLY_DECODER_OBJSA)
 	$(AR) rcs $@ $^
 
-$(LIBDIR)/libfloat_points_kd_tree_decoder.a: $(FLOAT_POINTS_KD_TREE_DECODER_OBJSA)
+$(LIBDIR)/libfloat_points_tree_decoder.a: $(FLOAT_POINTS_TREE_DECODER_OBJSA)
 	$(AR) rcs $@ $^
 
-$(LIBDIR)/libfloat_points_kd_tree_encoder.a: $(FLOAT_POINTS_KD_TREE_ENCODER_OBJSA)
+$(LIBDIR)/libfloat_points_tree_encoder.a: $(FLOAT_POINTS_TREE_ENCODER_OBJSA)
 	$(AR) rcs $@ $^
 
 $(LIBDIR)/libinteger_points_kd_tree_decoder.a: \

@@ -66,11 +66,13 @@ THREE.DRACOLoader.prototype = {
 
     convertDracoGeometryTo3JS: function(wrapper, geometryType, buffer) {
         let dracoGeometry;
+        const start_time = performance.now();
         if (geometryType == DracoModule.TRIANGULAR_MESH) {
           dracoGeometry = wrapper.DecodeMeshFromBuffer(buffer);
         } else {
           dracoGeometry = wrapper.DecodePointCloudFromBuffer(buffer);
         }
+        const decode_end = performance.now();
         DracoModule.destroy(buffer);
         /*
          * Example on how to retrieve mesh and attributes.
@@ -147,43 +149,43 @@ THREE.DRACOLoader.prototype = {
         }
 
         // Structure for converting to THREEJS geometry later.
+        const numIndices = numFaces * 3;
         const geometryBuffer = {
-            indices: [],
-            vertices: [],
-            normals: [],
-            uvs: [],
-            colors: []
+            indices: new Uint32Array(numIndices),
+            vertices: new Float32Array(numVertexCoordinates),
+            normals: new Float32Array(numVertexCoordinates),
+            uvs: new Float32Array(numTextureCoordinates),
+            colors: new Float32Array(numVertexCoordinates)
         };
+
         for (let i = 0; i < numVertexCoordinates; i += 3) {
-            geometryBuffer.vertices.push(
-                posAttributeData.GetValue(i),
-                posAttributeData.GetValue(i + 1),
-                posAttributeData.GetValue(i + 2));
+            geometryBuffer.vertices[i] = posAttributeData.GetValue(i);
+            geometryBuffer.vertices[i + 1] = posAttributeData.GetValue(i + 1);
+            geometryBuffer.vertices[i + 2] = posAttributeData.GetValue(i + 2);
             // Add color.
             if (colorAttId != -1) {
-              geometryBuffer.colors.push(
-                  colAttributeData.GetValue(i),
-                  colAttributeData.GetValue(i + 1),
-                  colAttributeData.GetValue(i + 2));
+              geometryBuffer.colors[i] = colAttributeData.GetValue(i);
+              geometryBuffer.colors[i + 1] = colAttributeData.GetValue(i + 1);
+              geometryBuffer.colors[i + 2] = colAttributeData.GetValue(i + 2);
             } else {
-              // Default is white.
-              geometryBuffer.colors.push(1.0, 1.0, 1.0);
+              // Default is white. This is faster than TypedArray.fill().
+              geometryBuffer.colors[i] = 1.0;
+              geometryBuffer.colors[i + 1] = 1.0;
+              geometryBuffer.colors[i + 2] = 1.0;
             }
             // Add normal.
             if (normalAttId != -1) {
-              geometryBuffer.normals.push(
-                  norAttributeData.GetValue(i),
-                  norAttributeData.GetValue(i + 1),
-                  norAttributeData.GetValue(i + 2));
+              geometryBuffer.normals[i] = norAttributeData.GetValue(i);
+              geometryBuffer.normals[i + 1] = norAttributeData.GetValue(i + 1);
+              geometryBuffer.normals[i + 2] = norAttributeData.GetValue(i + 2);
             }
         }
 
         // Add texture coordinates.
         if (texCoordAttId != -1) {
           for (let i = 0; i < numTextureCoordinates; i += 2) {
-            geometryBuffer.uvs.push(
-                textCoordAttributeData.GetValue(i),
-                textCoordAttributeData.GetValue(i + 1));
+            geometryBuffer.uvs[i] = textCoordAttributeData.GetValue(i);
+            geometryBuffer.uvs[i + 1] = textCoordAttributeData.GetValue(i + 1);
           }
         }
 
@@ -197,12 +199,13 @@ THREE.DRACOLoader.prototype = {
 
         // For mesh, we need to generate the faces.
         if (geometryType == DracoModule.TRIANGULAR_MESH) {
-          const numIndices = numFaces * 3;
           const ia = new DracoInt32Array();
           for (let i = 0; i < numFaces; ++i) {
             wrapper.GetFaceFromMesh(dracoGeometry, i, ia);
-            geometryBuffer.indices.push(
-                ia.GetValue(0), ia.GetValue(1), ia.GetValue(2));
+            const index = i * 3;
+            geometryBuffer.indices[index] = ia.GetValue(0);
+            geometryBuffer.indices[index + 1] = ia.GetValue(1);
+            geometryBuffer.indices[index + 2] = ia.GetValue(2);
           }
           DracoModule.destroy(ia);
         }
@@ -230,6 +233,9 @@ THREE.DRACOLoader.prototype = {
           geometry.addAttribute('uv',
               new THREE.Float32BufferAttribute(geometryBuffer.uvs, 2));
         }
+        fileDisplayArea.innerText += ' decode:' + (decode_end - start_time);
+        fileDisplayArea.innerText +=
+            ' import:' + (performance.now() - decode_end);
         return geometry;
     }
 };

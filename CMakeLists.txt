@@ -350,19 +350,20 @@ set(draco_point_cloud_sources
     "${draco_root}/point_cloud/point_cloud_builder.h")
 
 set(draco_points_common_sources
+    "${draco_root}/compression/point_cloud/algorithms/point_cloud_compression_method.h"
     "${draco_root}/compression/point_cloud/algorithms/point_cloud_types.h"
     "${draco_root}/compression/point_cloud/algorithms/quantize_points_3.h"
     "${draco_root}/compression/point_cloud/algorithms/queuing_policy.h")
 
 set(draco_points_decoder_sources
-    "${draco_root}/compression/point_cloud/algorithms/float_points_kd_tree_decoder.cc"
-    "${draco_root}/compression/point_cloud/algorithms/float_points_kd_tree_decoder.h"
+    "${draco_root}/compression/point_cloud/algorithms/float_points_tree_decoder.cc"
+    "${draco_root}/compression/point_cloud/algorithms/float_points_tree_decoder.h"
     "${draco_root}/compression/point_cloud/algorithms/integer_points_kd_tree_decoder.cc"
     "${draco_root}/compression/point_cloud/algorithms/integer_points_kd_tree_decoder.h")
 
 set(draco_points_encoder_sources
-    "${draco_root}/compression/point_cloud/algorithms/float_points_kd_tree_encoder.cc"
-    "${draco_root}/compression/point_cloud/algorithms/float_points_kd_tree_encoder.h"
+    "${draco_root}/compression/point_cloud/algorithms/float_points_tree_encoder.cc"
+    "${draco_root}/compression/point_cloud/algorithms/float_points_tree_encoder.h"
     "${draco_root}/compression/point_cloud/algorithms/integer_points_kd_tree_encoder.cc"
     "${draco_root}/compression/point_cloud/algorithms/integer_points_kd_tree_encoder.h")
 

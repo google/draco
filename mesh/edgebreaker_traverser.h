@@ -99,6 +99,9 @@ class EdgeBreakerTraverser {
     edgebreaker_observer_ = edgebreaker_observer;
   }
   void TraverseFromCorner(CornerIndex corner_id) {
+    if (processor_.IsFaceVisited(corner_id))
+      return;  // Already traversed.
+
     corner_traversal_stack_.clear();
     corner_traversal_stack_.push_back(corner_id);
     // For the first face, check the remaining corners as they may not be

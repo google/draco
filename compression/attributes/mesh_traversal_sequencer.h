@@ -85,9 +85,6 @@ class MeshTraversalSequencer : public PointsSequencer {
 
  private:
   void ProcessCorner(CornerIndex corner_id) {
-    const FaceIndex face_id(corner_id.value() / 3);
-    if (traverser_.traversal_processor().IsFaceVisited(face_id))
-      return;
     traverser_.TraverseFromCorner(corner_id);
   }
 

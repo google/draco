@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_KD_TREE_ENCODER_H_
-#define DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_KD_TREE_ENCODER_H_
+#ifndef DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_TREE_ENCODER_H_
+#define DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_TREE_ENCODER_H_
 
 #include <memory>
 #include <vector>
 
+#include "compression/point_cloud/algorithms/point_cloud_compression_method.h"
 #include "compression/point_cloud/algorithms/point_cloud_types.h"
 #include "compression/point_cloud/algorithms/quantize_points_3.h"
 #include "core/encoder_buffer.h"
@@ -44,11 +45,12 @@ namespace draco {
 // arithmetic encoding.
 
 // TODO(hemmer): Remove class because it duplicates quantization code.
-class FloatPointsKdTreeEncoder {
+class FloatPointsTreeEncoder {
  public:
-  FloatPointsKdTreeEncoder();
-  explicit FloatPointsKdTreeEncoder(uint32_t quantization_bits,
-                                    uint32_t compression_level);
+  FloatPointsTreeEncoder(PointCloudCompressionMethod method);
+  explicit FloatPointsTreeEncoder(PointCloudCompressionMethod method,
+                                  uint32_t quantization_bits,
+                                  uint32_t compression_level);
 
   template <class InputIteratorT>
   bool EncodePointCloud(InputIteratorT points_begin, InputIteratorT points_end);
@@ -61,24 +63,23 @@ class FloatPointsKdTreeEncoder {
   uint32_t &compression_level() { return compression_level_; }
   float range() const { return qinfo_.range; }
   uint32_t num_points() const { return num_points_; }
-  std::string identification_string() const {
-    return "FloatPointsKdTreeEncoder";
-  }
+  std::string identification_string() const { return "FloatPointsTreeEncoder"; }
 
  private:
   void Clear() { buffer_.Clear(); }
-  bool EncodePointCloudInternal(std::vector<Point3ui> *qpoints);
+  bool EncodePointCloudKdTreeInternal(std::vector<Point3ui> *qpoints);
 
   static const uint32_t version_;
   QuantizationInfo qinfo_;
+  PointCloudCompressionMethod method_;
   uint32_t num_points_;
   EncoderBuffer buffer_;
   uint32_t compression_level_;
 };
 
 template <class InputIteratorT>
-bool FloatPointsKdTreeEncoder::EncodePointCloud(InputIteratorT points_begin,
-                                                InputIteratorT points_end) {
+bool FloatPointsTreeEncoder::EncodePointCloud(InputIteratorT points_begin,
+                                              InputIteratorT points_end) {
   Clear();
 
   // Collect necessary data for encoding.
@@ -93,15 +94,25 @@ bool FloatPointsKdTreeEncoder::EncodePointCloud(InputIteratorT points_begin,
 
   // Encode header.
   buffer()->Encode(version_);
+  buffer()->Encode(static_cast<int8_t>(method_));
   buffer()->Encode(qinfo_.quantization_bits);
   buffer()->Encode(qinfo_.range);
   buffer()->Encode(num_points_);
-  buffer()->Encode(compression_level_);
+
+  if (method_ == KDTREE)
+    buffer()->Encode(compression_level_);
+
   if (num_points_ == 0)
     return true;
-  return EncodePointCloudInternal(&qpoints);
+
+  if (method_ == KDTREE) {
+    return EncodePointCloudKdTreeInternal(&qpoints);
+  } else {  // Unsupported method.
+    fprintf(stderr, "Method not supported. \n");
+    return false;
+  }
 }
 
 }  // namespace draco
 
-#endif  // DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_KD_TREE_ENCODER_H_
+#endif  // DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_TREE_ENCODER_H_
