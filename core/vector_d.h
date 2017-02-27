@@ -16,6 +16,7 @@
 #define DRACO_CORE_VECTOR_D_H_
 
 #include <inttypes.h>
+#include <algorithm>
 #include <array>
 
 #include "core/macros.h"
@@ -148,6 +149,15 @@ class VectorD {
       ret += (*this)[i] * o[i];
     }
     return ret;
+  }
+  void Normalize() {
+    const CoeffT magnitude = sqrt(this->SquaredNorm());
+    if (magnitude == 0) {
+      return;
+    }
+    for (int i = 0; i < dimension_t; ++i) {
+      (*this)[i] /= magnitude;
+    }
   }
   CoeffT *data() { return &(v_[0]); }
 

@@ -80,6 +80,7 @@ template <class TraversalProcessorT, class TraversalObserverT,
           class EdgeBreakerObserverT = EdgeBreakerObserver>
 class EdgeBreakerTraverser {
  public:
+  typedef TraversalProcessorT TraversalProcessor;
   typedef typename TraversalProcessorT::CornerTable CornerTable;
 
   EdgeBreakerTraverser() {}
@@ -98,6 +99,13 @@ class EdgeBreakerTraverser {
     Init(processor, traversal_observer);
     edgebreaker_observer_ = edgebreaker_observer;
   }
+
+  // Called before any traversing starts.
+  void OnTraversalStart() {}
+
+  // Called when all the traversing is done.
+  void OnTraversalEnd() {}
+
   void TraverseFromCorner(CornerIndex corner_id) {
     if (processor_.IsFaceVisited(corner_id))
       return;  // Already traversed.
@@ -198,6 +206,9 @@ class EdgeBreakerTraverser {
 
   const CornerTable *corner_table() const { return corner_table_; }
   const TraversalProcessorT &traversal_processor() const { return processor_; }
+  const TraversalObserverT &traversal_observer() const {
+    return traversal_observer_;
+  }
 
  private:
   const CornerTable *corner_table_;

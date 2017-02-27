@@ -24,6 +24,10 @@ namespace draco {
 void ConvertSymbolsToSignedInts(const uint32_t *in, int in_values,
                                 int32_t *out);
 
+// Converts a single unsigned integer symbol encoded with an entropy encoder
+// back to a signed value.
+int32_t ConvertSymbolToSignedInt(uint32_t val);
+
 // Decodes an array of symbols that was previously encoded with an entropy code.
 // Returns false on error.
 bool DecodeSymbols(int num_values, int num_components,

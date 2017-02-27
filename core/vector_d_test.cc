@@ -47,7 +47,7 @@ TEST_F(VectorDTest, TestOperators) {
     ASSERT_EQ(v[1], 0);
     ASSERT_EQ(v[2], 0);
   }
-  const Vector3f v(1, 2, 3);
+  Vector3f v(1, 2, 3);
   ASSERT_EQ(v[0], 1);
   ASSERT_EQ(v[1], 2);
   ASSERT_EQ(v[2], 3);
@@ -83,6 +83,25 @@ TEST_F(VectorDTest, TestOperators) {
 
   ASSERT_EQ(v.SquaredNorm(), 14);
   ASSERT_EQ(v.Dot(v), 14);
+
+  Vector3f new_v = v;
+  new_v.Normalize();
+  const float eps = 0.001;
+  const float magnitude = sqrt(v.SquaredNorm());
+  const float new_magnitude = sqrt(new_v.SquaredNorm());
+  ASSERT_LE(new_magnitude, 1 + eps);
+  ASSERT_GE(new_magnitude, 1 - eps);
+  for (int i = 0; i < 3; ++i) {
+    new_v[i] *= magnitude;
+    ASSERT_LE(new_v[i], v[i] + eps);
+    ASSERT_GE(new_v[i], v[i] - eps);
+  }
+
+  Vector3f x(0, 0, 0);
+  x.Normalize();
+  for (int i = 0; i < 3; ++i) {
+    ASSERT_EQ(0, x[i]);
+  }
 }
 
 TEST_F(VectorDTest, TestSquaredDistance) {

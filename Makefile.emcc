@@ -56,6 +56,9 @@ ALL_C_OPTS += -O3
 ALL_C_OPTS += -s ALLOW_MEMORY_GROWTH=1
 #ALL_C_OPTS += -s TOTAL_MEMORY=67108864
 
+# Export the main module as "DracoModule".
+ALL_C_OPTS += -s MODULARIZE=1 -s EXPORT_NAME="'DracoModule'"
+
 # Do not create a .mem file.
 ALL_C_OPTS += --memory-init-file 0
 

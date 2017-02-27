@@ -101,7 +101,6 @@ class Mesh : public PointCloud {
   // that converts vertex indices into attribute indices.
   IndexTypeVector<FaceIndex, Face> faces_;
 
-  friend class MeshBuilder;
   friend struct MeshHasher;
 };
 

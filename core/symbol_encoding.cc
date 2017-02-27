@@ -33,15 +33,18 @@ void ConvertSignedIntsToSymbols(const int32_t *in, int in_values,
   // encoding.
   // Put the sign bit into LSB pos and shift the rest one bit left.
   for (int i = 0; i < in_values; ++i) {
-    int32_t val = in[i];
-    const bool is_negative = (val < 0);
-    if (is_negative)
-      val = -val - 1;  // Map -1 to 0, -2 to -1, etc..
-    val <<= 1;
-    if (is_negative)
-      val |= 1;
-    out[i] = static_cast<uint32_t>(val);
+    out[i] = ConvertSignedIntToSymbol(in[i]);
   }
+}
+
+uint32_t ConvertSignedIntToSymbol(int32_t val) {
+  const bool is_negative = (val < 0);
+  if (is_negative)
+    val = -val - 1;  // Map -1 to 0, -2 to -1, etc..
+  val <<= 1;
+  if (is_negative)
+    val |= 1;
+  return static_cast<uint32_t>(val);
 }
 
 // Computes bit lengths of the input values. If num_components > 1, the values

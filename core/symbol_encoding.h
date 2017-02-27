@@ -24,6 +24,10 @@ namespace draco {
 void ConvertSignedIntsToSymbols(const int32_t *in, int in_values,
                                 uint32_t *out);
 
+// Helper function that converts a single signed integer value into an unsigned
+// integer symbol that can be encoded using an entropy encoder.
+uint32_t ConvertSignedIntToSymbol(int32_t val);
+
 // Encodes an array of symbols using an entropy coding. This function
 // automatically decides whether to encode the symbol values using using bit
 // length tags (see EncodeTaggedSymbols), or whether to encode them directly

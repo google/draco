@@ -25,14 +25,17 @@ namespace draco {
 void ConvertSymbolsToSignedInts(const uint32_t *in, int in_values,
                                 int32_t *out) {
   for (int i = 0; i < in_values; ++i) {
-    uint32_t val = in[i];
-    const bool is_negative = (val & 1);
-    val >>= 1;
-    int32_t ret = static_cast<int32_t>(val);
-    if (is_negative)
-      ret = -ret - 1;
-    out[i] = ret;
+    out[i] = ConvertSymbolToSignedInt(in[i]);
   }
+}
+
+int32_t ConvertSymbolToSignedInt(uint32_t val) {
+  const bool is_negative = (val & 1);
+  val >>= 1;
+  int32_t ret = static_cast<int32_t>(val);
+  if (is_negative)
+    ret = -ret - 1;
+  return ret;
 }
 
 template <template <int> class SymbolDecoderT>

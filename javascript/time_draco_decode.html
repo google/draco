@@ -9,6 +9,7 @@
 
 // String to hold table output.
 let dt = '';
+const dracoDecoder = DracoModule();
 
 function startTable() {
   dt += '<table><tr>';
@@ -62,15 +63,15 @@ function TestMeshDecodingAsync(filenameList, index) {
 
       const total_t0 = performance.now();
 
-      const buffer = new Module.DecoderBuffer();
+      const buffer = new dracoDecoder.DecoderBuffer();
       buffer.Init(byteArray, byteArray.length);
 
-      const wrapper = new Module.WebIDLWrapper();
+      const wrapper = new dracoDecoder.WebIDLWrapper();
 
       const decode_t0 = performance.now();
       const geometryType = wrapper.GetEncodedGeometryType(buffer);
       let outputGeometry;
-      if (geometryType == Module.TRIANGULAR_MESH) {
+      if (geometryType == dracoDecoder.TRIANGULAR_MESH) {
         outputGeometry = wrapper.DecodeMeshFromBuffer(buffer);
       } else {
         outputGeometry = wrapper.DecodePointCloudFromBuffer(buffer);
@@ -83,9 +84,9 @@ function TestMeshDecodingAsync(filenameList, index) {
       addCell('' + byteArray.length, false);
       addCell('' + outputGeometry.num_points(), false);
 
-      Module.destroy(outputGeometry);
-      Module.destroy(wrapper);
-      Module.destroy(buffer);
+      dracoDecoder.destroy(outputGeometry);
+      dracoDecoder.destroy(wrapper);
+      dracoDecoder.destroy(buffer);
 
       if (index < filenameList.length - 1) {
         index = index + 1;
