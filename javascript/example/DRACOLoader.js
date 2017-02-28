@@ -39,32 +39,45 @@ THREE.DRACOLoader.prototype = {
         this.path = value;
     },
 
-    decodeDracoFile: function(rawBuffer) {
-        const scope = this;
-        /*
-         * Here is how to use Draco Javascript decoder and get the geometry.
-         */
-        const buffer = new dracoDecoder.DecoderBuffer();
-        buffer.Init(new Int8Array(rawBuffer), rawBuffer.byteLength);
-        const wrapper = new dracoDecoder.WebIDLWrapper();
+    decodeDracoFile: ( function() {
+        let dracoDecoder;
 
-        /*
-         * Determine what type is this file: mesh or point cloud.
-         */
-        const geometryType = wrapper.GetEncodedGeometryType(buffer);
-        if (geometryType == dracoDecoder.TRIANGULAR_MESH) {
-          fileDisplayArea.innerText = "Loaded a mesh.\n";
-        } else if (geometryType == dracoDecoder.POINT_CLOUD) {
-          fileDisplayArea.innerText = "Loaded a point cloud.\n";
+        if (typeof DracoModule === 'function') {
+          dracoDecoder = DracoModule();
         } else {
-          const errorMsg = "Error: Unknown geometry type.";
-          fileDisplayArea.innerText = errorMsg;
-          throw new Error(errorMsg);
+          console.error('THREE.DRACOLoader: DracoModule not found.');
+          return;
         }
-        return scope.convertDracoGeometryTo3JS(wrapper, geometryType, buffer);
-    },
 
-    convertDracoGeometryTo3JS: function(wrapper, geometryType, buffer) {
+        return function(rawBuffer) {
+          const scope = this;
+          /*
+           * Here is how to use Draco Javascript decoder and get the geometry.
+           */
+          const buffer = new dracoDecoder.DecoderBuffer();
+          buffer.Init(new Int8Array(rawBuffer), rawBuffer.byteLength);
+          const wrapper = new dracoDecoder.WebIDLWrapper();
+
+          /*
+           * Determine what type is this file: mesh or point cloud.
+           */
+          const geometryType = wrapper.GetEncodedGeometryType(buffer);
+          if (geometryType == dracoDecoder.TRIANGULAR_MESH) {
+            fileDisplayArea.innerText = "Loaded a mesh.\n";
+          } else if (geometryType == dracoDecoder.POINT_CLOUD) {
+            fileDisplayArea.innerText = "Loaded a point cloud.\n";
+          } else {
+            const errorMsg = "Error: Unknown geometry type.";
+            fileDisplayArea.innerText = errorMsg;
+            throw new Error(errorMsg);
+          }
+          return scope.convertDracoGeometryTo3JS(wrapper, geometryType, buffer,
+                                                 dracoDecoder);
+        }
+    } )(),
+
+    convertDracoGeometryTo3JS: function(wrapper, geometryType, buffer,
+                                        dracoDecoder) {
         let dracoGeometry;
         const start_time = performance.now();
         if (geometryType == dracoDecoder.TRIANGULAR_MESH) {
