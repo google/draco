@@ -177,10 +177,11 @@ THREE.DRACOLoader.prototype = {
             geometryBuffer.vertices[i + 1] = posAttributeData.GetValue(i + 1);
             geometryBuffer.vertices[i + 2] = posAttributeData.GetValue(i + 2);
             // Add color.
+            // ThreeJS vertex colors need to be normalized to properly display
             if (colorAttId != -1) {
-              geometryBuffer.colors[i] = colAttributeData.GetValue(i);
-              geometryBuffer.colors[i + 1] = colAttributeData.GetValue(i + 1);
-              geometryBuffer.colors[i + 2] = colAttributeData.GetValue(i + 2);
+              geometryBuffer.colors[i] = colAttributeData.GetValue(i) / 255;
+              geometryBuffer.colors[i + 1] = colAttributeData.GetValue(i + 1) / 255;
+              geometryBuffer.colors[i + 2] = colAttributeData.GetValue(i + 2) / 255;
             } else {
               // Default is white. This is faster than TypedArray.fill().
               geometryBuffer.colors[i] = 1.0;
