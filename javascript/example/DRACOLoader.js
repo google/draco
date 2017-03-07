@@ -177,8 +177,7 @@ THREE.DRACOLoader.prototype = {
             geometryBuffer.vertices[i + 1] = posAttributeData.GetValue(i + 1);
             geometryBuffer.vertices[i + 2] = posAttributeData.GetValue(i + 2);
             // Add color.
-            // 03/05/2017, mackuntu@: ThreeJS vertex colors need to be
-            // normalized to properly display
+            // ThreeJS vertex colors need to be normalized to properly display
             if (colorAttId != -1) {
               geometryBuffer.colors[i] = colAttributeData.GetValue(i) / 255;
               geometryBuffer.colors[i + 1] = colAttributeData.GetValue(i + 1) / 255;
