@@ -133,8 +133,7 @@ bool EncodeSymbols(const uint32_t *symbols, int num_values, int num_components,
 
   // The maximum bit length of a single entry value that we can encode using
   // the raw scheme.
-
-  const int max_value_bit_length = bits::MostSignificantBit(max_value);
+  const int max_value_bit_length = bits::MostSignificantBit(max_value) + 1;
 
   if (tagged_scheme_total_bits < raw_scheme_total_bits ||
       max_value_bit_length > kMaxRawEncodingBitLength) {
@@ -266,7 +265,7 @@ bool EncodeRawSymbols(const uint32_t *symbols, int num_values,
     max_value_bits = bits::MostSignificantBit(max_entry_value);
   }
   const int max_value_bit_length = max_value_bits + 1;
-  // Currently, we don't support encoding of values larger than 2^20.
+  // Currently, we don't support encoding of values larger than 2^18.
   if (max_value_bit_length > kMaxRawEncodingBitLength)
     return false;
   target_buffer->Encode(static_cast<uint8_t>(max_value_bit_length));

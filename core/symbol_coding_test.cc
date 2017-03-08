@@ -94,7 +94,7 @@ TEST_F(SymbolCodingTest, TestOneSymbol) {
   }
 }
 
-TEST_F(SymbolCodingTest, TestBitLengthsl) {
+TEST_F(SymbolCodingTest, TestBitLengths) {
   // This test verifies that SymbolCoding successfully encodes symbols of
   // various bitlengths
   EncoderBuffer eb;
@@ -113,6 +113,23 @@ TEST_F(SymbolCodingTest, TestBitLengthsl) {
     for (int j = 0; j < i + 1; ++j) {
       ASSERT_EQ(in[j], out[j]);
     }
+  }
+}
+
+TEST_F(SymbolCodingTest, TestLargeNumberCondition) {
+  // This test verifies that SymbolCoding successfully encodes large symbols
+  // that are on the boundary between raw scheme and tagged scheme (18 bits).
+  EncoderBuffer eb;
+  constexpr int num_symbols = 1000000;
+  const std::vector<uint32_t> in(num_symbols, 1 << 18);
+  ASSERT_TRUE(EncodeSymbols(in.data(), in.size(), 1, &eb));
+
+  std::vector<uint32_t> out(in.size());
+  DecoderBuffer db;
+  db.Init(eb.data(), eb.size());
+  ASSERT_TRUE(DecodeSymbols(in.size(), 1, &db, &out[0]));
+  for (uint32_t i = 0; i < in.size(); ++i) {
+    ASSERT_EQ(in[i], out[i]);
   }
 }
 

@@ -40,7 +40,7 @@ Options::Options()
       pos_quantization_bits(14),
       tex_coords_quantization_bits(12),
       normals_quantization_bits(10),
-      compression_level(5) {}
+      compression_level(7) {}
 
 void Usage() {
   printf("Usage: draco_encoder [options] -i input\n");
@@ -63,7 +63,7 @@ void Usage() {
       "attribute, default=10.\n");
   printf(
       "  -cl <value>           compression level [0-10], most=10, least=0, "
-      "default=5.\n");
+      "default=7.\n");
 }
 
 int StringToInt(const std::string &s) {
@@ -246,7 +246,18 @@ int main(int argc, char **argv) {
   }
 
   PrintOptions(*pc.get(), options);
+
+  int ret = -1;
   if (mesh && mesh->num_faces() > 0)
-    return EncodeMeshToFile(*mesh, encoder_options, options.output);
-  return EncodePointCloudToFile(*pc.get(), encoder_options, options.output);
+    ret = EncodeMeshToFile(*mesh, encoder_options, options.output);
+  else
+    ret = EncodePointCloudToFile(*pc.get(), encoder_options, options.output);
+
+  if (ret != -1 && options.compression_level < 10) {
+    printf(
+        "For better compression, increase the compression level '-cl' (up to "
+        "10).\n\n");
+  }
+
+  return ret;
 }

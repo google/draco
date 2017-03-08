@@ -9,6 +9,8 @@ include("${draco_root}/cmake/compiler_flags.cmake")
 # Draco requires C++11 support.
 require_cxx_flag_nomsvc("-std=c++11")
 
+option(ENABLE_POINT_CLOUD_COMPRESSION "" ON)
+option(ENABLE_MESH_COMPRESSION "" ON)
 option(ENABLE_STANDARD_EDGEBREAKER "" ON)
 option(ENABLE_PREDICTIVE_EDGEBREAKER "" ON)
 option(ENABLE_EXTRA_WARNINGS "" OFF)
@@ -17,6 +19,12 @@ option(ENABLE_WERROR "" OFF)
 option(ENABLE_WEXTRA "" OFF)
 option(IGNORE_EMPTY_BUILD_TYPE "" OFF)
 
+if (ENABLE_POINT_CLOUD_COMPRESSION)
+  add_cxx_preproc_definition("DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED")
+endif ()
+if (ENABLE_MESH_COMPRESSION)
+  add_cxx_preproc_definition("DRACO_MESH_COMPRESSION_SUPPORTED")
+endif ()
 if (ENABLE_STANDARD_EDGEBREAKER)
   add_cxx_preproc_definition("DRACO_STANDARD_EDGEBREAKER_SUPPORTED")
 endif ()
@@ -412,6 +420,11 @@ if (EMSCRIPTEN)
   add_compiler_flag_if_supported("-s ALLOW_MEMORY_GROWTH=1")
   add_compiler_flag_if_supported("--memory-init-file 0")
   add_compiler_flag_if_supported("-fno-omit-frame-pointer")
+  add_compiler_flag_if_supported(-s MODULARIZE=1)
+  add_compiler_flag_if_supported(-s EXPORT_NAME="'DracoModule'")
+  add_compiler_flag_if_supported(--llvm-lto 1)
+  add_compiler_flag_if_supported(-s NO_FILESYSTEM=1)
+  add_compiler_flag_if_supported(-s ELIMINATE_DUPLICATE_FUNCTIONS=1)
 
   if (CMAKE_BUILD_TYPE STREQUAL "")
     # Force -O3 when no build type is specified.
@@ -504,6 +517,18 @@ else ()
               $<TARGET_OBJECTS:draco_mesh>
               $<TARGET_OBJECTS:draco_point_cloud>
               $<TARGET_OBJECTS:draco_points_decoder>)
+  add_library(dracoenc
+              ${draco_version_sources}
+              $<TARGET_OBJECTS:draco_compression_attributes_encoder>
+              $<TARGET_OBJECTS:draco_compression_attributes_pred_schemes>
+              $<TARGET_OBJECTS:draco_compression_config>
+              $<TARGET_OBJECTS:draco_compression_encode>
+              $<TARGET_OBJECTS:draco_compression_mesh_encoder>
+              $<TARGET_OBJECTS:draco_compression_point_cloud_encoder>
+              $<TARGET_OBJECTS:draco_core>
+              $<TARGET_OBJECTS:draco_mesh>
+              $<TARGET_OBJECTS:draco_point_cloud>
+              $<TARGET_OBJECTS:draco_points_encoder>)
   add_library(draco
               ${draco_version_sources}
               $<TARGET_OBJECTS:draco_compression_attributes_decoder>

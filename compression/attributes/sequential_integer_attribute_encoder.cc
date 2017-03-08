@@ -100,9 +100,11 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
   if (encoder() == nullptr || encoder()->options()->GetGlobalBool(
                                   "use_built_in_attribute_compression", true)) {
     out_buffer->Encode(static_cast<uint8_t>(1));
-    EncodeSymbols(reinterpret_cast<uint32_t *>(values_.data()),
-                  point_ids.size() * num_components, num_components,
-                  out_buffer);
+    if (!EncodeSymbols(reinterpret_cast<uint32_t *>(values_.data()),
+                       point_ids.size() * num_components, num_components,
+                       out_buffer)) {
+      return false;
+    }
   } else {
     // No compression. Just store the raw integer values, using the number of
     // bytes as needed.

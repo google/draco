@@ -15,10 +15,16 @@
 #include "compression/decode.h"
 
 #include "compression/config/compression_shared.h"
+
+#ifdef DRACO_MESH_COMPRESSION_SUPPORTED
 #include "compression/mesh/mesh_edgebreaker_decoder.h"
 #include "compression/mesh/mesh_sequential_decoder.h"
+#endif
+
+#ifdef DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED
 #include "compression/point_cloud/point_cloud_kd_tree_decoder.h"
 #include "compression/point_cloud/point_cloud_sequential_decoder.h"
+#endif
 
 namespace draco {
 
@@ -56,6 +62,7 @@ EncodedGeometryType GetEncodedGeometryType(DecoderBuffer *in_buffer) {
   return geom_type;
 }
 
+#ifdef DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED
 std::unique_ptr<PointCloudDecoder> CreatePointCloudDecoder(int8_t method) {
   if (method == POINT_CLOUD_SEQUENTIAL_ENCODING) {
     return std::unique_ptr<PointCloudDecoder>(
@@ -65,7 +72,9 @@ std::unique_ptr<PointCloudDecoder> CreatePointCloudDecoder(int8_t method) {
   }
   return nullptr;
 }
+#endif
 
+#ifdef DRACO_MESH_COMPRESSION_SUPPORTED
 std::unique_ptr<MeshDecoder> CreateMeshDecoder(uint8_t method) {
   if (method == MESH_SEQUENTIAL_ENCODING) {
     return std::unique_ptr<MeshDecoder>(new MeshSequentialDecoder());
@@ -74,6 +83,7 @@ std::unique_ptr<MeshDecoder> CreateMeshDecoder(uint8_t method) {
   }
   return nullptr;
 }
+#endif
 
 std::unique_ptr<PointCloud> DecodePointCloudFromBuffer(
     DecoderBuffer *in_buffer) {
@@ -82,6 +92,7 @@ std::unique_ptr<PointCloud> DecodePointCloudFromBuffer(
   if (!ParseHeader(in_buffer, &encoder_type, &method))
     return nullptr;
   if (encoder_type == POINT_CLOUD) {
+#ifdef DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED
     std::unique_ptr<PointCloudDecoder> decoder =
         CreatePointCloudDecoder(method);
     if (!decoder)
@@ -90,7 +101,9 @@ std::unique_ptr<PointCloud> DecodePointCloudFromBuffer(
     if (!decoder->Decode(in_buffer, point_cloud.get()))
       return nullptr;
     return point_cloud;
+#endif
   } else if (encoder_type == TRIANGULAR_MESH) {
+#ifdef DRACO_MESH_COMPRESSION_SUPPORTED
     std::unique_ptr<MeshDecoder> decoder = CreateMeshDecoder(method);
     if (!decoder)
       return nullptr;
@@ -98,11 +111,13 @@ std::unique_ptr<PointCloud> DecodePointCloudFromBuffer(
     if (!decoder->Decode(in_buffer, mesh.get()))
       return nullptr;
     return std::move(mesh);
+#endif
   }
   return nullptr;
 }
 
 std::unique_ptr<Mesh> DecodeMeshFromBuffer(DecoderBuffer *in_buffer) {
+#ifdef DRACO_MESH_COMPRESSION_SUPPORTED
   EncodedGeometryType encoder_type;
   int8_t method;
   if (!ParseHeader(in_buffer, &encoder_type, &method))
@@ -117,6 +132,9 @@ std::unique_ptr<Mesh> DecodeMeshFromBuffer(DecoderBuffer *in_buffer) {
   if (!decoder->Decode(in_buffer, mesh.get()))
     return nullptr;
   return mesh;
+#else
+  return nullptr;
+#endif
 }
 
 }  // namespace draco
