@@ -76,7 +76,8 @@ THREE.DRACOLoader.prototype = {
               console.log('Loaded a point cloud.');
             }
           } else {
-            console.error('THREE.DRACOLoader: Unknown geometry type.');
+            const errorMsg = 'THREE.DRACOLoader: Unknown geometry type.'
+            console.error(errorMsg);
             throw new Error(errorMsg);
           }
           return scope.convertDracoGeometryTo3JS(wrapper, geometryType, buffer,
@@ -124,7 +125,8 @@ THREE.DRACOLoader.prototype = {
         const posAttId = wrapper.GetAttributeId(dracoGeometry,
                                                 dracoDecoder.POSITION);
         if (posAttId == -1) {
-          console.error('THREE.DRACOLoader: No position attribute found.');
+          const errorMsg = 'THREE.DRACOLoader: No position attribute found.';
+          console.error(errorMsg);
           dracoDecoder.destroy(wrapper);
           dracoDecoder.destroy(dracoGeometry);
           throw new Error(errorMsg);
