@@ -141,7 +141,13 @@
           const reader = new FileReader();
           reader.onload = function(e) {
             const dracoLoader = new THREE.DRACOLoader();
+            // Enable logging to console output.
+            dracoLoader.setVerbosity(1);
             const bufferGeometry = dracoLoader.decodeDracoFile(reader.result);
+            if (dracoLoader.decode_time !== undefined) {
+              fileDisplayArea.innerText = 'Decode time = ' + dracoLoader.decode_time + '\n' +
+                                          'Import time = ' + dracoLoader.import_time;
+            }
             const material = new THREE.MeshStandardMaterial({vertexColors: THREE.VertexColors});
 
             let geometry;
