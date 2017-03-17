@@ -6,7 +6,7 @@ How to run the example code:
 
 (1) Clone this project to a working directory, e.g. draco/.
 
-(2) From your working directory, start a local http server.
+(2) From the project's root directory, start a local http server.
 E.g, with Python, you could run "python -m SimpleHTTPServer".
 
 (3) Load javascript/example/webgl_loader_draco.html. You should be able to see
