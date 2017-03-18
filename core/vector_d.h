@@ -18,6 +18,7 @@
 #include <inttypes.h>
 #include <algorithm>
 #include <array>
+#include <cmath>
 
 #include "core/macros.h"
 
