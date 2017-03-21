@@ -20,6 +20,9 @@
 namespace draco {
 namespace parser {
 
+// Skips to first character not included in |skip_chars|.
+void SkipCharacters(DecoderBuffer *buffer, const char *skip_chars);
+
 // Skips any whitespace until a regular character is reached.
 void SkipWhitespace(DecoderBuffer *buffer);
 

@@ -22,6 +22,26 @@
 namespace draco {
 namespace parser {
 
+void SkipCharacters(DecoderBuffer *buffer, const char *skip_chars) {
+  if (skip_chars == nullptr)
+    return;
+  const int num_skip_chars = strlen(skip_chars);
+  char c;
+  while (buffer->Peek(&c)) {
+    // Check all characters in the pattern.
+    bool skip = false;
+    for (int i = 0; i < num_skip_chars; ++i) {
+      if (c == skip_chars[i]) {
+        skip = true;
+        break;
+      }
+    }
+    if (!skip)
+      return;
+    buffer->Advance(1);
+  }
+}
+
 void SkipWhitespace(DecoderBuffer *buffer) {
   bool end_reached = false;
   while (PeekWhitespace(buffer, &end_reached) && !end_reached) {

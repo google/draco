@@ -322,66 +322,65 @@ bool ObjDecoder::ParseFace(bool *error) {
   // Face definition found!
   buffer()->Advance(1);
   if (!counting_mode_) {
-    // Parse face indices.
-    for (int i = 0; i < 3; ++i) {
-      const PointIndex vert_id(3 * num_obj_faces_ + i);
-      parser::SkipWhitespace(buffer());
-      std::array<int32_t, 3> indices;
-      if (!ParseVertexIndices(&indices)) {
+    std::array<int32_t, 3> indices[4];
+    // Parse face indices (we try to look for up to four to support quads).
+    int num_valid_indices = 0;
+    for (int i = 0; i < 4; ++i) {
+      if (!ParseVertexIndices(&indices[i])) {
+        if (i == 3) {
+          break;  // It's ok if there is no fourth vertex index.
+        }
         *error = true;
         return true;
       }
-      // Use face entries to store mapping between vertex and attribute indices.
-      if (indices[0] > 0) {
-        out_point_cloud_->attribute(pos_att_id_)
-            ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[0] - 1));
-      } else if (indices[0] < 0) {
-        out_point_cloud_->attribute(pos_att_id_)
-            ->SetPointMapEntry(
-                vert_id, AttributeValueIndex(num_positions_ + indices[0]));
-      }
-
-      if (indices[1] > 0) {
-        out_point_cloud_->attribute(tex_att_id_)
-            ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[1] - 1));
-      } else if (indices[1] < 0) {
-        out_point_cloud_->attribute(tex_att_id_)
-            ->SetPointMapEntry(
-                vert_id, AttributeValueIndex(num_tex_coords_ + indices[1]));
-      } else if (tex_att_id_ >= 0) {
-        // Texture index not provided but expected. Insert 0 entry as the
-        // default value.
-        out_point_cloud_->attribute(tex_att_id_)
-            ->SetPointMapEntry(vert_id, AttributeValueIndex(0));
-      }
-
-      if (indices[2] > 0) {
-        out_point_cloud_->attribute(norm_att_id_)
-            ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[2] - 1));
-      } else if (indices[2] < 0) {
-        out_point_cloud_->attribute(norm_att_id_)
-            ->SetPointMapEntry(vert_id,
-                               AttributeValueIndex(num_normals_ + indices[2]));
-      } else if (norm_att_id_ >= 0) {
-        // Normal index not provided but expected. Insert 0 entry as the default
-        // value.
-        out_point_cloud_->attribute(norm_att_id_)
-            ->SetPointMapEntry(vert_id, AttributeValueIndex(0));
-      }
-
-      if (material_att_id_ >= 0) {
-        out_point_cloud_->attribute(material_att_id_)
-            ->SetPointMapEntry(vert_id, AttributeValueIndex(last_material_id_));
-      }
-
-      if (sub_obj_att_id_ >= 0) {
-        const int sub_obj_id = num_sub_objects_ > 0 ? num_sub_objects_ - 1 : 0;
-        out_point_cloud_->attribute(sub_obj_att_id_)
-            ->SetPointMapEntry(vert_id, AttributeValueIndex(sub_obj_id));
+      ++num_valid_indices;
+    }
+    // Process the first face.
+    for (int i = 0; i < 3; ++i) {
+      const PointIndex vert_id(3 * num_obj_faces_ + i);
+      MapPointToVertexIndices(vert_id, indices[i]);
+    }
+    ++num_obj_faces_;
+    if (num_valid_indices == 4) {
+      // Add an additional triangle for the quad.
+      //
+      //   3----2
+      //   |  / |
+      //   | /  |
+      //   0----1
+      //
+      const PointIndex vert_id(3 * num_obj_faces_);
+      MapPointToVertexIndices(vert_id, indices[0]);
+      MapPointToVertexIndices(vert_id + 1, indices[2]);
+      MapPointToVertexIndices(vert_id + 2, indices[3]);
+      ++num_obj_faces_;
+    }
+  } else {
+    // We are in the couting mode.
+    // We need to determine how many triangles are in the obj face.
+    // Go over the line and check how many gaps there are between non-empty
+    // sub-strings.
+    parser::SkipWhitespace(buffer());
+    int num_indices = 0;
+    bool is_end = false;
+    while (buffer()->Peek(&c) && c != '\n') {
+      if (parser::PeekWhitespace(buffer(), &is_end)) {
+        buffer()->Advance(1);
+      } else {
+        // Non-whitespace reached.. assume it's index declaration, skip it.
+        num_indices++;
+        while (!parser::PeekWhitespace(buffer(), &is_end)) {
+          buffer()->Advance(1);
+        }
       }
     }
+    if (is_end || num_indices < 3 || num_indices > 4) {
+      *error = true;
+      return false;
+    }
+    // Either one or two new triangles.
+    num_obj_faces_ += num_indices - 2;
   }
-  ++num_obj_faces_;
   parser::SkipLine(buffer());
   return true;
 }
@@ -464,7 +463,7 @@ bool ObjDecoder::ParseVertexIndices(std::array<int32_t, 3> *out_indices) {
   // 2. POS_INDEX/TEX_COORD_INDEX
   // 3. POS_INDEX/TEX_COORD_INDEX/NORMAL_INDEX
   // 4. POS_INDEX//NORMAL_INDEX
-  parser::SkipWhitespace(buffer());
+  parser::SkipCharacters(buffer(), " \t");
   if (!parser::ParseSignedInt(buffer(), &(*out_indices)[0]) ||
       (*out_indices)[0] == 0)
     return false;  // Position index must be present and valid.
@@ -494,6 +493,65 @@ bool ObjDecoder::ParseVertexIndices(std::array<int32_t, 3> *out_indices) {
       return false;  // Normal index must be present and valid.
   }
   return true;
+}
+
+void ObjDecoder::MapPointToVertexIndices(
+    PointIndex vert_id, const std::array<int32_t, 3> &indices) {
+  // Use face entries to store mapping between vertex and attribute indices
+  // (positions, texture coordinates and normal indices).
+  // Any given index is used when indices[x] != 0. For positive values, the
+  // point is mapped directly to the specified attribute index. Negative input
+  // indices indicate addressing from the last element (e.g. -1 is the last
+  // attribute value of a given type, -2 the second last, etc.).
+  if (indices[0] > 0) {
+    out_point_cloud_->attribute(pos_att_id_)
+        ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[0] - 1));
+  } else if (indices[0] < 0) {
+    out_point_cloud_->attribute(pos_att_id_)
+        ->SetPointMapEntry(vert_id,
+                           AttributeValueIndex(num_positions_ + indices[0]));
+  }
+
+  if (indices[1] > 0) {
+    out_point_cloud_->attribute(tex_att_id_)
+        ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[1] - 1));
+  } else if (indices[1] < 0) {
+    out_point_cloud_->attribute(tex_att_id_)
+        ->SetPointMapEntry(vert_id,
+                           AttributeValueIndex(num_tex_coords_ + indices[1]));
+  } else if (tex_att_id_ >= 0) {
+    // Texture index not provided but expected. Insert 0 entry as the
+    // default value.
+    out_point_cloud_->attribute(tex_att_id_)
+        ->SetPointMapEntry(vert_id, AttributeValueIndex(0));
+  }
+
+  if (indices[2] > 0) {
+    out_point_cloud_->attribute(norm_att_id_)
+        ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[2] - 1));
+  } else if (indices[2] < 0) {
+    out_point_cloud_->attribute(norm_att_id_)
+        ->SetPointMapEntry(vert_id,
+                           AttributeValueIndex(num_normals_ + indices[2]));
+  } else if (norm_att_id_ >= 0) {
+    // Normal index not provided but expected. Insert 0 entry as the default
+    // value.
+    out_point_cloud_->attribute(norm_att_id_)
+        ->SetPointMapEntry(vert_id, AttributeValueIndex(0));
+  }
+
+  // Assign material index to the point if it is available.
+  if (material_att_id_ >= 0) {
+    out_point_cloud_->attribute(material_att_id_)
+        ->SetPointMapEntry(vert_id, AttributeValueIndex(last_material_id_));
+  }
+
+  // Assign sub-object index to the point if it is available.
+  if (sub_obj_att_id_ >= 0) {
+    const int sub_obj_id = num_sub_objects_ > 0 ? num_sub_objects_ - 1 : 0;
+    out_point_cloud_->attribute(sub_obj_att_id_)
+        ->SetPointMapEntry(vert_id, AttributeValueIndex(sub_obj_id));
+  }
 }
 
 bool ObjDecoder::ParseMaterialFile(const std::string &file_name, bool *error) {

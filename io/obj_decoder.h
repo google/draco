@@ -74,6 +74,11 @@ class ObjDecoder {
   // Returns false on error.
   bool ParseVertexIndices(std::array<int32_t, 3> *out_indices);
 
+  // Maps specified point index to the parsed vertex indices (triplet of
+  // position, texture coordinate, and normal indices) .
+  void MapPointToVertexIndices(PointIndex pi,
+                               const std::array<int32_t, 3> &indices);
+
   // Parses material file definitions from a separate file.
   bool ParseMaterialFile(const std::string &file_name, bool *error);
   bool ParseMaterialFileDefinition(bool *error);

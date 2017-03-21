@@ -71,4 +71,22 @@ TEST_F(ObjDecoderTest, SubObjects) {
   ASSERT_EQ(mesh->attribute(3)->custom_id(), 1);
 }
 
+TEST_F(ObjDecoderTest, QuadOBJ) {
+  // Tests loading an Obj with quad faces.
+  const std::string file_name = "cube_quads.obj";
+  const std::unique_ptr<Mesh> mesh(DecodeObj<Mesh>(file_name));
+  ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
+  ASSERT_EQ(mesh->num_faces(), 12);
+
+  ASSERT_EQ(mesh->num_attributes(), 3);
+  ASSERT_EQ(mesh->num_points(), 4 * 6);  // Four points per quad face.
+}
+
+TEST_F(ObjDecoderTest, ComplexPolyOBJ) {
+  // Tests that we fail to load an obj with complex polygon (expected failure).
+  const std::string file_name = "complex_poly.obj";
+  const std::unique_ptr<Mesh> mesh(DecodeObj<Mesh>(file_name));
+  ASSERT_EQ(mesh, nullptr);
+}
+
 }  // namespace draco
