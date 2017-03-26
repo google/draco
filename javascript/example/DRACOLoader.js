@@ -265,7 +265,7 @@ THREE.DRACOLoader.prototype = {
     },
 
     isVersionSupported: function(version) {
-      return this.decoder.isVersionSupported(version);
+        return this.decoder.isVersionSupported(version);
     }
 };
 
@@ -275,16 +275,16 @@ THREE.DRACOLoader.prototype = {
  */
 THREE.DRACOLoader.getDecoder = (function() {
 
-  let decoder;
+    let decoder;
 
-  if (typeof DracoModule === 'function') {
-    decoder = DracoModule();
-  } else {
-    console.error('THREE.DRACOLoader: DracoModule not found.');
-  }
+    if (typeof DracoModule === 'function') {
+      decoder = DracoModule();
+    } else {
+      console.error('THREE.DRACOLoader: DracoModule not found.');
+    }
 
-  return function() {
-    return decoder;
-  };
+    return function() {
+        return decoder;
+    };
 
 })();
