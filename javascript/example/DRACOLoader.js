@@ -15,7 +15,6 @@
 'use strict';
 
 THREE.DRACOLoader = function(manager) {
-    this.decoder = THREE.DRACOLoader.getDecoder();
     this.manager = (manager !== undefined) ? manager :
         THREE.DefaultLoadingManager;
     this.materials = null;
@@ -46,7 +45,7 @@ THREE.DRACOLoader.prototype = {
     },
 
     decodeDracoFile: function(rawBuffer) {
-      const dracoDecoder = this.decoder;
+      const dracoDecoder = THREE.DRACOLoader.getDecoder();
       /*
        * Here is how to use Draco Javascript decoder and get the geometry.
        */
@@ -75,7 +74,7 @@ THREE.DRACOLoader.prototype = {
     },
 
     convertDracoGeometryTo3JS: function(wrapper, geometryType, buffer) {
-        const dracoDecoder = this.decoder;
+        const dracoDecoder = THREE.DRACOLoader.getDecoder();
         let dracoGeometry;
         const start_time = performance.now();
         if (geometryType == dracoDecoder.TRIANGULAR_MESH) {
@@ -265,7 +264,7 @@ THREE.DRACOLoader.prototype = {
     },
 
     isVersionSupported: function(version) {
-        return this.decoder.isVersionSupported(version);
+        return THREE.DRACOLoader.getDecoder().isVersionSupported(version);
     }
 };
 
@@ -274,16 +273,15 @@ THREE.DRACOLoader.prototype = {
  * copies of the decoder is expensive.
  */
 THREE.DRACOLoader.getDecoder = (function() {
-
     let decoder;
 
-    if (typeof DracoModule === 'function') {
-      decoder = DracoModule();
-    } else {
-      console.error('THREE.DRACOLoader: DracoModule not found.');
-    }
-
     return function() {
+        if (typeof DracoModule === 'undefined') {
+          throw new Error('THREE.DRACOLoader: DracoModule not found.');
+        }
+
+        decoder = decoder || DracoModule();
+
         return decoder;
     };
 
