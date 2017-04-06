@@ -369,12 +369,12 @@ bool ObjDecoder::ParseFace(bool *error) {
       } else {
         // Non-whitespace reached.. assume it's index declaration, skip it.
         num_indices++;
-        while (!parser::PeekWhitespace(buffer(), &is_end)) {
+        while (!parser::PeekWhitespace(buffer(), &is_end) && !is_end) {
           buffer()->Advance(1);
         }
       }
     }
-    if (is_end || num_indices < 3 || num_indices > 4) {
+    if (num_indices < 3 || num_indices > 4) {
       *error = true;
       return false;
     }

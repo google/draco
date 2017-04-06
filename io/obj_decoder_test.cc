@@ -89,4 +89,12 @@ TEST_F(ObjDecoderTest, ComplexPolyOBJ) {
   ASSERT_EQ(mesh, nullptr);
 }
 
+TEST_F(ObjDecoderTest, EOFTestOBJ) {
+  // Tests loading of .obj models with no new line at the end of the file.
+  const std::string file_name = "eof_test.obj";
+  const std::unique_ptr<Mesh> mesh(DecodeObj<Mesh>(file_name));
+  ASSERT_NE(mesh, nullptr);
+  ASSERT_EQ(mesh->num_faces(), 1);
+}
+
 }  // namespace draco
