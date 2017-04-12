@@ -13,8 +13,8 @@ This release brings improved mesh compression and faster decoding in browser:
   decoder.
   * Supported in most modern browsers including Chrome, Firefox, and Edge.
   * Decoder size is about 50% smaller compared to the javascript version.
-* New version is backward compatibile with 0.9.x encoders.
-  * Note that 0.10.0 is not forward compatibile. I.e., files encoded with 0.10.0
+* New version is backward compatible with 0.9.x encoders.
+  * Note that 0.10.0 is not forward compatible, i.e., files encoded with 0.10.0
     cannot be decoded with 0.9.x decoders.
 
 
