@@ -23,6 +23,14 @@ namespace draco {
 class SymbolCodingTest : public ::testing::Test {
  protected:
   SymbolCodingTest() {}
+
+  template <class SignedIntTypeT>
+  void TestConvertToSymbolAndBack(SignedIntTypeT x) {
+    typedef typename std::make_unsigned<SignedIntTypeT>::type Symbol;
+    Symbol symbol = ConvertSignedIntToSymbol(x);
+    SignedIntTypeT y = ConvertSymbolToSignedInt(symbol);
+    ASSERT_EQ(x, y);
+  }
 };
 
 TEST_F(SymbolCodingTest, TestLargeNumbers) {
@@ -131,6 +139,15 @@ TEST_F(SymbolCodingTest, TestLargeNumberCondition) {
   for (uint32_t i = 0; i < in.size(); ++i) {
     ASSERT_EQ(in[i], out[i]);
   }
+}
+
+TEST_F(SymbolCodingTest, TestConversionFullRange) {
+  TestConvertToSymbolAndBack(static_cast<int8_t>(-128));
+  TestConvertToSymbolAndBack(static_cast<int8_t>(-127));
+  TestConvertToSymbolAndBack(static_cast<int8_t>(-1));
+  TestConvertToSymbolAndBack(static_cast<int8_t>(0));
+  TestConvertToSymbolAndBack(static_cast<int8_t>(1));
+  TestConvertToSymbolAndBack(static_cast<int8_t>(127));
 }
 
 }  // namespace draco

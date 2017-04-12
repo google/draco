@@ -22,13 +22,13 @@
 
 #include "compression/point_cloud/algorithms/point_cloud_types.h"
 #include "compression/point_cloud/algorithms/queuing_policy.h"
-#include "core/adaptive_rans_coding.h"
+#include "core/adaptive_rans_bit_encoder.h"
 #include "core/bit_utils.h"
-#include "core/direct_bit_coding.h"
+#include "core/direct_bit_encoder.h"
 #include "core/encoder_buffer.h"
-#include "core/folded_bit32_coding.h"
+#include "core/folded_integer_bit_encoder.h"
 #include "core/math_utils.h"
-#include "core/rans_coding.h"
+#include "core/rans_bit_encoder.h"
 
 namespace draco {
 

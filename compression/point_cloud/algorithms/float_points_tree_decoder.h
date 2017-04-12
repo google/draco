@@ -49,7 +49,13 @@ class FloatPointsTreeDecoder {
   float range() const { return qinfo_.range; }
   uint32_t num_points() const { return num_points_; }
   uint32_t version() const { return version_; }
-  std::string identification_string() const { return "FloatPointsTreeDecoder"; }
+  std::string identification_string() const {
+    if (method_ == KDTREE) {
+      return "FloatPointsTreeDecoder: IntegerPointsKDTreeDecoder";
+    } else {
+      return "FloatPointsTreeDecoder: Unsupported Method";
+    }
+  }
 
  private:
   bool DecodePointCloudKdTreeInternal(DecoderBuffer *buffer,
@@ -57,6 +63,7 @@ class FloatPointsTreeDecoder {
 
   static const uint32_t version_ = 3;
   QuantizationInfo qinfo_;
+  PointCloudCompressionMethod method_;
   uint32_t num_points_;
   uint32_t compression_level_;
 };
@@ -75,10 +82,9 @@ bool FloatPointsTreeDecoder::DecodePointCloud(DecoderBuffer *buffer,
     if (!buffer->Decode(&method_number))
       return false;
 
-    const PointCloudCompressionMethod method =
-        static_cast<PointCloudCompressionMethod>(method_number);
+    method_ = static_cast<PointCloudCompressionMethod>(method_number);
 
-    if (method == KDTREE) {
+    if (method_ == KDTREE) {
       if (!DecodePointCloudKdTreeInternal(buffer, &qpoints))
         return false;
     } else {  // Unsupported method.

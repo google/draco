@@ -45,6 +45,10 @@ class MeshEdgeBreakerEncoderImplInterface {
 
   // Returns corner table of the encoded mesh.
   virtual const CornerTable *GetCornerTable() const = 0;
+
+  // Returns true if a given face has been already encoded.
+  virtual bool IsFaceEncoded(FaceIndex fi) const = 0;
+
   virtual MeshEdgeBreakerEncoder *GetEncoder() const = 0;
 };
 

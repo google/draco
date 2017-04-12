@@ -13,23 +13,26 @@ option(ENABLE_POINT_CLOUD_COMPRESSION "" ON)
 option(ENABLE_MESH_COMPRESSION "" ON)
 option(ENABLE_STANDARD_EDGEBREAKER "" ON)
 option(ENABLE_PREDICTIVE_EDGEBREAKER "" ON)
+option(ENABLE_EXTRA_SPEED "" OFF)
 option(ENABLE_EXTRA_WARNINGS "" OFF)
 option(ENABLE_TESTS "Enables tests." OFF)
 option(ENABLE_WERROR "" OFF)
 option(ENABLE_WEXTRA "" OFF)
 option(IGNORE_EMPTY_BUILD_TYPE "" OFF)
+option(ENABLE_WASM "" OFF)
 
 if (ENABLE_POINT_CLOUD_COMPRESSION)
   add_cxx_preproc_definition("DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED")
 endif ()
 if (ENABLE_MESH_COMPRESSION)
   add_cxx_preproc_definition("DRACO_MESH_COMPRESSION_SUPPORTED")
-endif ()
-if (ENABLE_STANDARD_EDGEBREAKER)
-  add_cxx_preproc_definition("DRACO_STANDARD_EDGEBREAKER_SUPPORTED")
-endif ()
-if (ENABLE_PREDICTIVE_EDGEBREAKER)
-  add_cxx_preproc_definition("DRACO_PREDICTIVE_EDGEBREAKER_SUPPORTED")
+
+  if (ENABLE_STANDARD_EDGEBREAKER)
+    add_cxx_preproc_definition("DRACO_STANDARD_EDGEBREAKER_SUPPORTED")
+  endif ()
+  if (ENABLE_PREDICTIVE_EDGEBREAKER)
+    add_cxx_preproc_definition("DRACO_PREDICTIVE_EDGEBREAKER_SUPPORTED")
+  endif ()
 endif ()
 
 # Turn on more compiler warnings.
@@ -187,6 +190,7 @@ set(draco_compression_attributes_pred_schemes_sources
     "${draco_root}/compression/attributes/prediction_schemes/prediction_scheme_interface.h"
     "${draco_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme.h"
     "${draco_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_data.h"
+    "${draco_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_constrained_multi_parallelogram.h"
     "${draco_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_multi_parallelogram.h"
     "${draco_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram.h"
     "${draco_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram_shared.h"
@@ -197,6 +201,7 @@ set(draco_compression_attributes_pred_schemes_sources
     "${draco_root}/compression/attributes/prediction_schemes/prediction_scheme_encoder_factory.cc"
     "${draco_root}/compression/attributes/prediction_schemes/prediction_scheme_encoder_factory.h"
     "${draco_root}/compression/attributes/prediction_schemes/prediction_scheme_factory.h"
+    "${draco_root}/compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_canonicalized_transform.h"
     "${draco_root}/compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_transform.h"
     "${draco_root}/compression/attributes/prediction_schemes/prediction_scheme_transform.h"
     "${draco_root}/compression/attributes/prediction_schemes/prediction_scheme_wrap_transform.h")
@@ -227,6 +232,7 @@ set(draco_compression_mesh_decoder_sources
     "${draco_root}/compression/mesh/mesh_edgebreaker_shared.h"
     "${draco_root}/compression/mesh/mesh_edgebreaker_traversal_decoder.h"
     "${draco_root}/compression/mesh/mesh_edgebreaker_traversal_predictive_decoder.h"
+    "${draco_root}/compression/mesh/mesh_edgebreaker_traversal_valence_decoder.h"
     "${draco_root}/compression/mesh/mesh_sequential_decoder.cc"
     "${draco_root}/compression/mesh/mesh_sequential_decoder.h")
 
@@ -239,6 +245,7 @@ set(draco_compression_mesh_encoder_sources
     "${draco_root}/compression/mesh/mesh_edgebreaker_shared.h"
     "${draco_root}/compression/mesh/mesh_edgebreaker_traversal_encoder.h"
     "${draco_root}/compression/mesh/mesh_edgebreaker_traversal_predictive_encoder.h"
+    "${draco_root}/compression/mesh/mesh_edgebreaker_traversal_valence_encoder.h"
     "${draco_root}/compression/mesh/mesh_encoder.cc"
     "${draco_root}/compression/mesh/mesh_encoder.h"
     "${draco_root}/compression/mesh/mesh_encoder_helpers.h"
@@ -262,8 +269,11 @@ set(draco_compression_point_cloud_encoder_sources
     "${draco_root}/compression/point_cloud/point_cloud_sequential_encoder.h")
 
 set(draco_core_sources
-    "${draco_root}/core/adaptive_rans_coding.cc"
-    "${draco_root}/core/adaptive_rans_coding.h"
+    "${draco_root}/core/adaptive_rans_bit_coding_shared.h"
+    "${draco_root}/core/adaptive_rans_bit_decoder.h"
+    "${draco_root}/core/adaptive_rans_bit_decoder.cc"
+    "${draco_root}/core/adaptive_rans_bit_encoder.h"
+    "${draco_root}/core/adaptive_rans_bit_encoder.cc"
     "${draco_root}/core/ans.h"
     "${draco_root}/core/bit_coder.cc"
     "${draco_root}/core/bit_coder.h"
@@ -274,8 +284,10 @@ set(draco_core_sources
     "${draco_root}/core/data_buffer.h"
     "${draco_root}/core/decoder_buffer.cc"
     "${draco_root}/core/decoder_buffer.h"
-    "${draco_root}/core/direct_bit_coding.cc"
-    "${draco_root}/core/direct_bit_coding.h"
+    "${draco_root}/core/direct_bit_decoder.h"
+    "${draco_root}/core/direct_bit_decoder.cc"
+    "${draco_root}/core/direct_bit_encoder.h"
+    "${draco_root}/core/direct_bit_encoder.cc"
     "${draco_root}/core/divide.cc"
     "${draco_root}/core/divide.h"
     "${draco_root}/core/draco_index_type.h"
@@ -284,7 +296,8 @@ set(draco_core_sources
     "${draco_root}/core/draco_types.h"
     "${draco_root}/core/encoder_buffer.cc"
     "${draco_root}/core/encoder_buffer.h"
-    "${draco_root}/core/folded_bit32_coding.h"
+    "${draco_root}/core/folded_integer_bit_decoder.h"
+    "${draco_root}/core/folded_integer_bit_encoder.h"
     "${draco_root}/core/hash_utils.cc"
     "${draco_root}/core/hash_utils.h"
     "${draco_root}/core/macros.h"
@@ -293,15 +306,25 @@ set(draco_core_sources
     "${draco_root}/core/options.h"
     "${draco_root}/core/quantization_utils.cc"
     "${draco_root}/core/quantization_utils.h"
-    "${draco_root}/core/rans_coding.cc"
-    "${draco_root}/core/rans_coding.h"
+    "${draco_root}/core/rans_bit_decoder.h"
+    "${draco_root}/core/rans_bit_decoder.cc"
+    "${draco_root}/core/rans_bit_encoder.h"
+    "${draco_root}/core/rans_bit_encoder.cc"
     "${draco_root}/core/rans_symbol_coding.h"
     "${draco_root}/core/rans_symbol_decoder.h"
     "${draco_root}/core/rans_symbol_encoder.h"
+    "${draco_root}/core/shannon_entropy.h"
+    "${draco_root}/core/shannon_entropy.cc"
+    "${draco_root}/core/symbol_bit_decoder.h"
+    "${draco_root}/core/symbol_bit_decoder.cc"
+    "${draco_root}/core/symbol_bit_encoder.h"
+    "${draco_root}/core/symbol_bit_encoder.cc"
     "${draco_root}/core/symbol_decoding.cc"
     "${draco_root}/core/symbol_decoding.h"
     "${draco_root}/core/symbol_encoding.cc"
     "${draco_root}/core/symbol_encoding.h"
+    "${draco_root}/core/varint_decoding.h"
+    "${draco_root}/core/varint_encoding.h"
     "${draco_root}/core/vector_d.h")
 
 set(draco_io_sources
@@ -384,6 +407,7 @@ set(draco_test_sources
     "${draco_root}/core/draco_test_base.h"
     "${draco_root}/core/draco_test_utils.cc"
     "${draco_root}/core/draco_test_utils.h"
+    "${draco_root}/compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_canonicalized_transform_test.cc"
     "${draco_root}/compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_transform_test.cc"
     "${draco_root}/compression/attributes/sequential_integer_attribute_encoding_test.cc"
     "${draco_root}/compression/mesh/mesh_encoder_test.cc"
@@ -402,7 +426,6 @@ set(draco_test_sources
     "${draco_root}/io/point_cloud_io_test.cc"
     "${draco_root}/mesh/mesh_are_equivalent_test.cc"
     "${draco_root}/mesh/mesh_cleanup_test.cc"
-    "${draco_root}/mesh/mesh_test.cc"
     "${draco_root}/mesh/triangle_soup_mesh_builder_test.cc"
     "${draco_root}/point_cloud/point_cloud_builder_test.cc")
 
@@ -420,11 +443,19 @@ if (EMSCRIPTEN)
   add_compiler_flag_if_supported("-s ALLOW_MEMORY_GROWTH=1")
   add_compiler_flag_if_supported("--memory-init-file 0")
   add_compiler_flag_if_supported("-fno-omit-frame-pointer")
-  add_compiler_flag_if_supported(-s MODULARIZE=1)
-  add_compiler_flag_if_supported(-s EXPORT_NAME="'DracoModule'")
-  add_compiler_flag_if_supported(--llvm-lto 1)
-  add_compiler_flag_if_supported(-s NO_FILESYSTEM=1)
-  add_compiler_flag_if_supported(-s ELIMINATE_DUPLICATE_FUNCTIONS=1)
+  add_compiler_flag_if_supported("-s MODULARIZE=1")
+  add_compiler_flag_if_supported("-s EXPORT_NAME=\"'DracoModule'\"")
+  if (ENABLE_EXTRA_SPEED)
+    add_compiler_flag_if_supported("--llvm-lto 1")
+  endif ()
+  add_compiler_flag_if_supported("-s NO_FILESYSTEM=1")
+  add_compiler_flag_if_supported("-s ELIMINATE_DUPLICATE_FUNCTIONS=1")
+  add_compiler_flag_if_supported("-s EXPORTED_RUNTIME_METHODS=[]")
+  add_compiler_flag_if_supported("-s PRECISE_F32=1")
+  if (ENABLE_WASM)
+    add_compiler_flag_if_supported("-s WASM=1")
+    add_compiler_flag_if_supported("-s BINARYEN_IMPRECISE=1")
+  endif ()
 
   if (CMAKE_BUILD_TYPE STREQUAL "")
     # Force -O3 when no build type is specified.
@@ -470,7 +501,12 @@ if (EMSCRIPTEN)
   # Make $draco_js_sources source files depend on glue.cpp.
   set_property(SOURCE ${draco_js_sources} APPEND PROPERTY OBJECT_DEPENDS
                ${draco_build_dir}/glue.cpp)
-  em_link_post_js(draco_decoder "${draco_build_dir}/glue.js")
+  em_link_pre_js(draco_decoder
+                 "${draco_root}/javascript/emscripten/prepareCallbacks.js"
+                 "${draco_root}/javascript/emscripten/version.js")
+  em_link_post_js(draco_decoder
+                  "${draco_build_dir}/glue.js"
+                  "${draco_root}/javascript/emscripten/finalize.js")
 else ()
   # Standard Draco libs, encoder and decoder.
   # Object collections that mirror the Draco directory structure.

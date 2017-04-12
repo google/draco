@@ -15,7 +15,22 @@
 #ifndef DRACO_COMPRESSION_CONFIG_COMPRESSION_SHARED_H_
 #define DRACO_COMPRESSION_CONFIG_COMPRESSION_SHARED_H_
 
+#include <stdint.h>
+
 namespace draco {
+
+// Latest Draco bit-stream version.
+static constexpr uint8_t kDracoBitstreamVersionMajor = 1;
+static constexpr uint8_t kDracoBitstreamVersionMinor = 2;
+
+// Macro that converts the Draco bit-stream into one uint16_t number. Useful
+// mostly when checking version numbers.
+#define DRACO_BITSTREAM_VERSION(MAJOR, MINOR) \
+  ((static_cast<uint16_t>(MAJOR) << 8) | MINOR)
+
+// Concatenated latest bit-stream version.
+static constexpr uint16_t kDracoBitstreamVersion = DRACO_BITSTREAM_VERSION(
+    kDracoBitstreamVersionMajor, kDracoBitstreamVersionMinor);
 
 // Currently, we support point cloud and triangular mesh encoding.
 enum EncodedGeometryType {
@@ -62,9 +77,10 @@ enum PredictionSchemeMethod {
   // Used when no specific prediction scheme is required.
   PREDICTION_UNDEFINED = -1,
   PREDICTION_DIFFERENCE = 0,
-  MESH_PREDICTION_PARALLELOGRAM,
-  MESH_PREDICTION_MULTI_PARALLELOGRAM,
-  MESH_PREDICTION_TEX_COORDS,
+  MESH_PREDICTION_PARALLELOGRAM = 1,
+  MESH_PREDICTION_MULTI_PARALLELOGRAM = 2,
+  MESH_PREDICTION_TEX_COORDS = 3,
+  MESH_PREDICTION_CONSTRAINED_MULTI_PARALLELOGRAM = 4,
   NUM_PREDICTION_SCHEMES
 };
 
@@ -79,8 +95,27 @@ enum PredictionSchemeTransformType {
   PREDICTION_TRANSFORM_WRAP = 1,
   // Specialized transform for normal coordinates using inverted tiles.
   PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON = 2,
-  // Reserved for internal use.
-  PREDICTION_TRANSFORM_RESERVED_0 = 3,
+  // Specialized transform for normal coordinates using canonicalized inverted
+  // tiles.
+  PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON_CANONICALIZED = 3,
+};
+
+// List of all mesh traversal methods supported by Draco framework.
+enum MeshTraversalMethod {
+  MESH_TRAVERSAL_DEPTH_FIRST = 0,
+  MESH_TRAVERSAL_PREDICTION_DEGREE = 1,
+  MESH_TRAVERSAL_RESERVED_1 = 2,
+  MESH_TRAVERSAL_RESERVED_2 = 3,
+};
+
+// Draco header V1
+struct DracoHeader {
+  int8_t draco_string[5];
+  uint8_t version_major;
+  uint8_t version_minor;
+  uint8_t encoder_type;
+  uint8_t encoder_method;
+  uint16_t flags;
 };
 
 }  // namespace draco

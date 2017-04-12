@@ -23,6 +23,7 @@
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_PREDICTION_SCHEME_FACTORY_H_
 
 #include "compression/attributes/mesh_attribute_indices_encoding_data.h"
+#include "compression/attributes/prediction_schemes/mesh_prediction_scheme_constrained_multi_parallelogram.h"
 #include "compression/attributes/prediction_schemes/mesh_prediction_scheme_multi_parallelogram.h"
 #include "compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram.h"
 #include "compression/attributes/prediction_schemes/mesh_prediction_scheme_tex_coords.h"
@@ -50,7 +51,8 @@ std::unique_ptr<PredictionScheme<DataTypeT, TransformT>>
 CreateMeshPredictionSchemeInternal(PredictionSchemeMethod method,
                                    const PointAttribute *attribute,
                                    const TransformT &transform,
-                                   const MeshDataT &mesh_data) {
+                                   const MeshDataT &mesh_data,
+                                   uint16_t bitstream_version) {
   if (method == MESH_PREDICTION_PARALLELOGRAM) {
     return std::unique_ptr<PredictionScheme<DataTypeT, TransformT>>(
         new MeshPredictionSchemeParallelogram<DataTypeT, TransformT, MeshDataT>(
@@ -60,10 +62,14 @@ CreateMeshPredictionSchemeInternal(PredictionSchemeMethod method,
         new MeshPredictionSchemeMultiParallelogram<DataTypeT, TransformT,
                                                    MeshDataT>(
             attribute, transform, mesh_data));
+  } else if (method == MESH_PREDICTION_CONSTRAINED_MULTI_PARALLELOGRAM) {
+    return std::unique_ptr<PredictionScheme<DataTypeT, TransformT>>(
+        new MeshPredictionSchemeConstrainedMultiParallelogram<
+            DataTypeT, TransformT, MeshDataT>(attribute, transform, mesh_data));
   } else if (method == MESH_PREDICTION_TEX_COORDS) {
     return std::unique_ptr<PredictionScheme<DataTypeT, TransformT>>(
         new MeshPredictionSchemeTexCoords<DataTypeT, TransformT, MeshDataT>(
-            attribute, transform, mesh_data));
+            attribute, transform, mesh_data, bitstream_version));
   }
   return nullptr;
 }
@@ -72,11 +78,13 @@ template <class EncodingDataSourceT, typename DataTypeT, class TransformT>
 std::unique_ptr<PredictionScheme<DataTypeT, TransformT>>
 CreateMeshPredictionScheme(const EncodingDataSourceT *source,
                            PredictionSchemeMethod method, int att_id,
-                           const TransformT &transform) {
+                           const TransformT &transform,
+                           uint16_t bitstream_version) {
   const PointAttribute *const att = source->point_cloud()->attribute(att_id);
   if (source->GetGeometryType() == TRIANGULAR_MESH &&
       (method == MESH_PREDICTION_PARALLELOGRAM ||
        method == MESH_PREDICTION_MULTI_PARALLELOGRAM ||
+       method == MESH_PREDICTION_CONSTRAINED_MULTI_PARALLELOGRAM ||
        method == MESH_PREDICTION_TEX_COORDS)) {
     const CornerTable *const ct = source->GetCornerTable();
     const MeshAttributeIndicesEncodingData *const encoding_data =
@@ -96,7 +104,7 @@ CreateMeshPredictionScheme(const EncodingDataSourceT *source,
              &encoding_data->vertex_to_encoded_attribute_value_index_map);
       auto ret =
           CreateMeshPredictionSchemeInternal<DataTypeT, TransformT, MeshData>(
-              method, att, transform, md);
+              method, att, transform, md, bitstream_version);
       if (ret)
         return ret;
     } else {
@@ -107,7 +115,7 @@ CreateMeshPredictionScheme(const EncodingDataSourceT *source,
              &encoding_data->vertex_to_encoded_attribute_value_index_map);
       auto ret =
           CreateMeshPredictionSchemeInternal<DataTypeT, TransformT, MeshData>(
-              method, att, transform, md);
+              method, att, transform, md, bitstream_version);
       if (ret)
         return ret;
     }

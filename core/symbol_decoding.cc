@@ -29,15 +29,6 @@ void ConvertSymbolsToSignedInts(const uint32_t *in, int in_values,
   }
 }
 
-int32_t ConvertSymbolToSignedInt(uint32_t val) {
-  const bool is_negative = (val & 1);
-  val >>= 1;
-  int32_t ret = static_cast<int32_t>(val);
-  if (is_negative)
-    ret = -ret - 1;
-  return ret;
-}
-
 template <template <int> class SymbolDecoderT>
 bool DecodeTaggedSymbols(int num_values, int num_components,
                          DecoderBuffer *src_buffer, uint32_t *out_values);

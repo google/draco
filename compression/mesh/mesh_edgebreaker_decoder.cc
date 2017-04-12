@@ -15,6 +15,7 @@
 #include "compression/mesh/mesh_edgebreaker_decoder.h"
 #include "compression/mesh/mesh_edgebreaker_decoder_impl.h"
 #include "compression/mesh/mesh_edgebreaker_traversal_predictive_decoder.h"
+#include "compression/mesh/mesh_edgebreaker_traversal_valence_decoder.h"
 
 namespace draco {
 
@@ -40,6 +41,10 @@ bool MeshEdgeBreakerDecoder::InitializeDecoder() {
         new MeshEdgeBreakerDecoderImpl<
             MeshEdgeBreakerTraversalPredictiveDecoder>());
 #endif
+  } else if (traversal_decoder_type == 2) {
+    impl_ = std::unique_ptr<MeshEdgeBreakerDecoderImplInterface>(
+        new MeshEdgeBreakerDecoderImpl<
+            MeshEdgeBreakerTraversalValenceDecoder>());
   }
   if (!impl_) {
     return false;

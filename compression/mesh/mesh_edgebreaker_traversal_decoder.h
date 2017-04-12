@@ -18,7 +18,7 @@
 #include "compression/mesh/mesh_edgebreaker_decoder.h"
 #include "compression/mesh/mesh_edgebreaker_decoder_impl_interface.h"
 #include "compression/mesh/mesh_edgebreaker_shared.h"
-#include "core/rans_coding.h"
+#include "core/rans_bit_decoder.h"
 
 namespace draco {
 

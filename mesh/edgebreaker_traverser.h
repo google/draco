@@ -81,6 +81,7 @@ template <class TraversalProcessorT, class TraversalObserverT,
 class EdgeBreakerTraverser {
  public:
   typedef TraversalProcessorT TraversalProcessor;
+  typedef TraversalObserverT TraversalObserver;
   typedef typename TraversalProcessorT::CornerTable CornerTable;
 
   EdgeBreakerTraverser() {}

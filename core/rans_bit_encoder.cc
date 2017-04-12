@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "core/rans_coding.h"
+#include "core/rans_bit_encoder.h"
 
+#include "core/ans.h"
 #include "core/bit_utils.h"
 
 namespace draco {
@@ -117,50 +118,5 @@ void RAnsBitEncoder::Clear() {
   local_bits_ = 0;
   num_local_bits_ = 0;
 }
-
-RAnsBitDecoder::RAnsBitDecoder() : prob_zero_(0) {}
-
-RAnsBitDecoder::~RAnsBitDecoder() { Clear(); }
-
-bool RAnsBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
-  Clear();
-
-  if (!source_buffer->Decode(&prob_zero_))
-    return false;
-
-  uint32_t size_in_bytes;
-  if (!source_buffer->Decode(&size_in_bytes))
-    return false;
-
-  if (size_in_bytes > source_buffer->remaining_size())
-    return false;
-
-  if (ans_read_init(&ans_decoder_,
-                    reinterpret_cast<uint8_t *>(
-                        const_cast<char *>(source_buffer->data_head())),
-                    size_in_bytes) != 0)
-    return false;
-  source_buffer->Advance(size_in_bytes);
-  return true;
-}
-
-bool RAnsBitDecoder::DecodeNextBit() {
-  const uint8_t bit = rabs_read(&ans_decoder_, prob_zero_);
-  return bit > 0;
-}
-
-void RAnsBitDecoder::DecodeLeastSignificantBits32(int nbits, uint32_t *value) {
-  DCHECK_EQ(true, nbits <= 32);
-  DCHECK_EQ(true, nbits > 0);
-
-  uint32_t result = 0;
-  while (nbits) {
-    result = (result << 1) + DecodeNextBit();
-    --nbits;
-  }
-  *value = result;
-}
-
-void RAnsBitDecoder::Clear() { ans_read_end(&ans_decoder_); }
 
 }  // namespace draco

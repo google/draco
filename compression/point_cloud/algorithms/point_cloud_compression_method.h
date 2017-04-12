@@ -24,8 +24,9 @@ enum PointCloudCompressionMethod {
   // Devillers to d dimensions.
   // "Progressive lossless compression of arbitrary simplicial complexes"
   // http://dx.doi.org/10.1145/566570.566591
-  KDTREE,
-  RESERVED_POINT_CLOUD_METHOD_1,  // Reserved for internal use.
+  KDTREE = 1,
+  RESERVED_POINT_CLOUD_METHOD_2 = 2,  // Reserved for internal use.
+  RESERVED_POINT_CLOUD_METHOD_3 = 0,  // Reserved for internal use.
 };
 
 }  // namespace draco

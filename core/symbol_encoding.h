@@ -15,6 +15,8 @@
 #ifndef DRACO_CORE_SYMBOL_ENCODING_H_
 #define DRACO_CORE_SYMBOL_ENCODING_H_
 
+#include <type_traits>
+
 #include "core/encoder_buffer.h"
 
 namespace draco {
@@ -26,7 +28,21 @@ void ConvertSignedIntsToSymbols(const int32_t *in, int in_values,
 
 // Helper function that converts a single signed integer value into an unsigned
 // integer symbol that can be encoded using an entropy encoder.
-uint32_t ConvertSignedIntToSymbol(int32_t val);
+template <class IntTypeT>
+typename std::make_unsigned<IntTypeT>::type ConvertSignedIntToSymbol(
+    IntTypeT val) {
+  typedef typename std::make_unsigned<IntTypeT>::type UnsignedType;
+  static_assert(std::is_integral<IntTypeT>::value, "IntTypeT is not integral.");
+  // Early exit if val is positive.
+  if (val >= 0) {
+    return static_cast<UnsignedType>(val) << 1;
+  }
+  val = -(val + 1);  // Map -1 to 0, -2 to -1, etc..
+  UnsignedType ret = static_cast<UnsignedType>(val);
+  ret <<= 1;
+  ret |= 1;
+  return ret;
+}
 
 // Encodes an array of symbols using an entropy coding. This function
 // automatically decides whether to encode the symbol values using using bit

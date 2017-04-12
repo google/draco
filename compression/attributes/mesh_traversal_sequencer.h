@@ -70,6 +70,7 @@ class MeshTraversalSequencer : public PointsSequencer {
 
  protected:
   bool GenerateSequenceInternal() override {
+    traverser_.OnTraversalStart();
     if (corner_order_) {
       for (uint32_t i = 0; i < corner_order_->size(); ++i) {
         ProcessCorner(corner_order_->at(i));
@@ -80,6 +81,7 @@ class MeshTraversalSequencer : public PointsSequencer {
         ProcessCorner(CornerIndex(3 * i));
       }
     }
+    traverser_.OnTraversalEnd();
     return true;
   }
 

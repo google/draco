@@ -18,14 +18,13 @@
 // See http://arxiv.org/abs/1311.2540v2 for more informaiton on rANS.
 // This file is based off libvpx's ans.h.
 
-#include <assert.h>
-
 #include <vector>
 
 #define ANS_DIVIDE_BY_MULTIPLY 1
 #if ANS_DIVIDE_BY_MULTIPLY
 #include "core/divide.h"
 #endif
+#include "core/macros.h"
 
 namespace draco {
 
@@ -98,14 +97,14 @@ static inline uint32_t mem_get_le32(const void *vmem) {
 }
 
 static inline void mem_put_le16(void *vmem, uint32_t val) {
-  uint8_t *mem = (uint8_t *)vmem;
+  uint8_t *mem = reinterpret_cast<uint8_t *>(vmem);
 
   mem[0] = (val >> 0) & 0xff;
   mem[1] = (val >> 8) & 0xff;
 }
 
 static inline void mem_put_le24(void *vmem, uint32_t val) {
-  uint8_t *mem = (uint8_t *)vmem;
+  uint8_t *mem = reinterpret_cast<uint8_t *>(vmem);
 
   mem[0] = (val >> 0) & 0xff;
   mem[1] = (val >> 8) & 0xff;
@@ -113,7 +112,7 @@ static inline void mem_put_le24(void *vmem, uint32_t val) {
 }
 
 static inline void mem_put_le32(void *vmem, uint32_t val) {
-  uint8_t *mem = (uint8_t *)vmem;
+  uint8_t *mem = reinterpret_cast<uint8_t *>(vmem);
 
   mem[0] = (val >> 0) & 0xff;
   mem[1] = (val >> 8) & 0xff;
@@ -130,8 +129,8 @@ static inline void ans_write_init(struct AnsCoder *const ans,
 
 static inline int ans_write_end(struct AnsCoder *const ans) {
   uint32_t state;
-  assert(ans->state >= l_base);
-  assert(ans->state < l_base * io_base);
+  DCHECK_GE(ans->state, l_base);
+  DCHECK_LT(ans->state, l_base * io_base);
   state = ans->state - l_base;
   if (state < (1 << 6)) {
     ans->buf[ans->buf_offset] = (0x00 << 6) + state;
@@ -143,7 +142,7 @@ static inline int ans_write_end(struct AnsCoder *const ans) {
     mem_put_le24(ans->buf + ans->buf_offset, (0x02 << 22) + state);
     return ans->buf_offset + 3;
   } else {
-    assert(0 && "State is too large to be serialized");
+    DCHECK(0 && "State is too large to be serialized");
     return ans->buf_offset;
   }
 }
@@ -288,7 +287,7 @@ static inline int uabs_read_bit(struct AnsDecoder *ans) {
   while (state < l_base && ans->buf_offset > 0) {
     state = state * io_base + ans->buf[--ans->buf_offset];
   }
-  s = (int)(state & 1);
+  s = static_cast<int>(state & 1);
   ans->state = state >> 1;
   return s;
 }
@@ -355,8 +354,8 @@ class RAnsEncoder {
   // Needs to be called after all symbols are encoded.
   inline int write_end() {
     uint32_t state;
-    assert(ans_.state >= l_rans_base);
-    assert(ans_.state < l_rans_base * io_base);
+    DCHECK_GE(ans_.state, l_rans_base);
+    DCHECK_LT(ans_.state, l_rans_base * io_base);
     state = ans_.state - l_rans_base;
     if (state < (1 << 6)) {
       ans_.buf[ans_.buf_offset] = (0x00 << 6) + state;
@@ -371,7 +370,7 @@ class RAnsEncoder {
       mem_put_le32(ans_.buf + ans_.buf_offset, (0x03 << 30) + state);
       return ans_.buf_offset + 4;
     } else {
-      assert(0 && "State is too large to be serialized");
+      DCHECK(0 && "State is too large to be serialized");
       return ans_.buf_offset;
     }
   }

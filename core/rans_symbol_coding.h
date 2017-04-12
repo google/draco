@@ -37,6 +37,17 @@ constexpr int ComputeRAnsPrecisionFromMaxSymbolBitLength(int max_bit_length) {
                    : ComputeRAnsUnclampedPrecision(max_bit_length);
 }
 
+// Compute approximate frequency table size needed for storing the provided
+// symbols.
+static int64_t ApproximateRAnsFrequencyTableBits(int32_t max_value,
+                                                 int num_unique_symbols) {
+  // Approximate number of bits for storing zero frequency entries using the
+  // run length encoding (with max length of 64).
+  const int64_t table_zero_frequency_bits =
+      8 * (num_unique_symbols + (max_value - num_unique_symbols) / 64);
+  return 8 * num_unique_symbols + table_zero_frequency_bits;
+}
+
 }  // namespace draco
 
 #endif  // DRACO_CORE_RANS_SYMBOL_CODING_H_

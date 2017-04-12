@@ -15,6 +15,7 @@
 #include "compression/mesh/mesh_encoder.h"
 
 #include "compression/encode.h"
+#include "core/decoder_buffer.h"
 #include "core/draco_test_base.h"
 #include "core/draco_test_utils.h"
 #include "io/obj_decoder.h"
@@ -62,16 +63,23 @@ TEST_P(MeshEncoderTest, EncodeGoldenMesh) {
   std::string golden_file_name = file_name;
   golden_file_name += '.';
   golden_file_name += GetParam();
-  golden_file_name += ".out";
+  golden_file_name += ".0.10.0.drc";
   const std::unique_ptr<Mesh> mesh(DecodeObj(file_name));
   ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
 
   EncoderOptions options = CreateDefaultEncoderOptions();
+  SetEncodingMethod(&options, method);
   EncoderBuffer buffer;
   ASSERT_TRUE(EncodeMeshToBuffer(*mesh.get(), options, &buffer))
       << "Failed encoding test mesh " << file_name << " with method "
       << GetParam();
-
+  // Check that the encoded mesh was really encoded with the selected method.
+  DecoderBuffer decoder_buffer;
+  decoder_buffer.Init(buffer.data(), buffer.size());
+  decoder_buffer.Advance(8);  // Skip the header to the encoding method id.
+  uint8_t encoded_method;
+  decoder_buffer.Decode(&encoded_method);
+  ASSERT_EQ(encoded_method, method);
   if (!FLAGS_update_golden_files) {
     EXPECT_TRUE(
         CompareGoldenFile(golden_file_name, buffer.data(), buffer.size()))

@@ -42,7 +42,6 @@
         <pre id="fileDisplayArea"><pre>
     </div>
     <script src="https://cdn.rawgit.com/mrdoob/three.js/r84/build/three.min.js"></script>
-    <script src="../draco_decoder.js"></script>
     <script src="DRACOLoader.js"></script>
     <script>
       'use strict';
@@ -54,8 +53,62 @@
       let windowHalfX = window.innerWidth / 2;
       let windowHalfY = window.innerHeight / 2;
 
-      init();
-      animate();
+      // Global Draco decoder type.
+      let dracoDecoderType = {};
+      let dracoLoader;
+
+      loadDracoDecoder();
+
+      // This function loads a JavaScript file and adds it to the page. "path"
+      // is the path to the JavaScript file. "onLoadFunc" is the function to be
+      // called when the JavaScript file has been loaded.
+      function loadJavaScriptFile(path, onLoadFunc) {
+        const head = document.getElementsByTagName('head')[0];
+        const element = document.createElement('script');
+        element.type = 'text/javascript';
+        element.src = path;
+        if (onLoadFunc !== null)
+          element.onload = onLoadFunc;
+
+        head.appendChild(element);
+      }
+
+      function loadWebAssemblyDecoder() {
+        dracoDecoderType['wasmBinaryFile'] = '../draco_decoder.wasm';
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', '../draco_decoder.wasm', true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = function() {
+          // draco_wasm_wrapper.js must be loaded before DracoModule is
+          // created. The object passed into DracoModule() must contain a
+          // property with the name of wasmBinary and the value must be an
+          // ArrayBuffer containing the contents of the .wasm file.
+          dracoDecoderType['wasmBinary'] = xhr.response;
+          createDracoDecoder();
+        };
+        xhr.send(null)
+      }
+
+      // This function will test if the browser has support for WebAssembly. If
+      // it does it will download the WebAssembly Draco decoder, if not it will
+      // download the asmjs Draco decoder.
+      // TODO: Investigate moving the Draco decoder loading code
+      // over to DRACOLoader.js.
+      function loadDracoDecoder() {
+        if (typeof WebAssembly !== 'object') {
+          // No WebAssembly support
+          loadJavaScriptFile('../draco_decoder.js', createDracoDecoder);
+        } else {
+          loadJavaScriptFile('../draco_wasm_wrapper.js', loadWebAssemblyDecoder);
+        }
+      }
+
+      function createDracoDecoder() {
+        dracoLoader = new THREE.DRACOLoader();
+        dracoLoader.setDracoDecoderType(dracoDecoderType);
+        init();
+        animate();
+      }
 
       function init() {
         container = document.createElement('div');
@@ -140,46 +193,49 @@
 
           const reader = new FileReader();
           reader.onload = function(e) {
-            const dracoLoader = new THREE.DRACOLoader();
             // Enable logging to console output.
             dracoLoader.setVerbosity(1);
-            const bufferGeometry = dracoLoader.decodeDracoFile(reader.result);
-            if (dracoLoader.decode_time !== undefined) {
-              fileDisplayArea.innerText = 'Decode time = ' + dracoLoader.decode_time + '\n' +
-                                          'Import time = ' + dracoLoader.import_time;
-            }
-            const material = new THREE.MeshStandardMaterial({vertexColors: THREE.VertexColors});
+            dracoLoader.decodeDracoFile(reader.result, function(bufferGeometry) {
+              if (dracoLoader.decode_time !== undefined) {
+                fileDisplayArea.innerText = 'Decode time = ' + dracoLoader.decode_time + '\n' +
+                                            'Import time = ' + dracoLoader.import_time;
+              }
+              const material = new THREE.MeshStandardMaterial({vertexColors: THREE.VertexColors});
 
-            let geometry;
-            // Point cloud does not have face indices.
-            if (bufferGeometry.index == null) {
-              geometry = new THREE.Points(bufferGeometry, material);
-            } else {
-              bufferGeometry.computeVertexNormals();
-              geometry = new THREE.Mesh(bufferGeometry, material);
-            }
-            // Compute range of the geometry coordinates for proper rendering.
-            bufferGeometry.computeBoundingBox();
-            const sizeX = bufferGeometry.boundingBox.max.x - bufferGeometry.boundingBox.min.x;
-            const sizeY = bufferGeometry.boundingBox.max.y - bufferGeometry.boundingBox.min.y;
-            const sizeZ = bufferGeometry.boundingBox.max.z - bufferGeometry.boundingBox.min.z;
-            const diagonalSize = Math.sqrt(sizeX * sizeX + sizeY * sizeY + sizeZ * sizeZ);
-            const scale = 1.0 / diagonalSize;
-            const midX = (bufferGeometry.boundingBox.min.x + bufferGeometry.boundingBox.max.x) / 2;
-            const midY = (bufferGeometry.boundingBox.min.y + bufferGeometry.boundingBox.max.y) / 2;
-            const midZ = (bufferGeometry.boundingBox.min.z + bufferGeometry.boundingBox.max.z) / 2;
+              let geometry;
+              // Point cloud does not have face indices.
+              if (bufferGeometry.index == null) {
+                geometry = new THREE.Points(bufferGeometry, material);
+              } else {
+                bufferGeometry.computeVertexNormals();
+                geometry = new THREE.Mesh(bufferGeometry, material);
+              }
+              // Compute range of the geometry coordinates for proper rendering.
+              bufferGeometry.computeBoundingBox();
+              const sizeX = bufferGeometry.boundingBox.max.x - bufferGeometry.boundingBox.min.x;
+              const sizeY = bufferGeometry.boundingBox.max.y - bufferGeometry.boundingBox.min.y;
+              const sizeZ = bufferGeometry.boundingBox.max.z - bufferGeometry.boundingBox.min.z;
+              const diagonalSize = Math.sqrt(sizeX * sizeX + sizeY * sizeY + sizeZ * sizeZ);
+              const scale = 1.0 / diagonalSize;
+              const midX =
+                (bufferGeometry.boundingBox.min.x + bufferGeometry.boundingBox.max.x) / 2;
+              const midY =
+                (bufferGeometry.boundingBox.min.y + bufferGeometry.boundingBox.max.y) / 2;
+              const midZ =
+                (bufferGeometry.boundingBox.min.z + bufferGeometry.boundingBox.max.z) / 2;
 
-            geometry.scale.multiplyScalar(scale);
-            geometry.position.x = -midX * scale;
-            geometry.position.y = -midY * scale;
-            geometry.position.z = -midZ * scale;
-            geometry.castShadow = true;
-            geometry.receiveShadow = true;
+              geometry.scale.multiplyScalar(scale);
+              geometry.position.x = -midX * scale;
+              geometry.position.y = -midY * scale;
+              geometry.position.z = -midZ * scale;
+              geometry.castShadow = true;
+              geometry.receiveShadow = true;
 
-            const selectedObject = scene.getObjectByName("my_mesh");
-            scene.remove(selectedObject);
-            geometry.name = "my_mesh";
-            scene.add(geometry);
+              const selectedObject = scene.getObjectByName("my_mesh");
+              scene.remove(selectedObject);
+              geometry.name = "my_mesh";
+              scene.add(geometry);
+            });
           }
           reader.readAsArrayBuffer(file);
         });

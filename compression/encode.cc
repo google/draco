@@ -21,32 +21,10 @@
 
 namespace draco {
 
-// Encodes header common to all methods.
-bool EncodeHeader(const PointCloudEncoder &encoder, EncoderBuffer *out_buffer) {
-  // Encode the header according to our v1 specification.
-  // Five bytes for Draco format.
-  out_buffer->Encode("DRACO", 5);
-  // Version (major, minor).
-  const uint8_t major_version = 1;
-  const uint8_t minor_version = 1;
-  out_buffer->Encode(major_version);
-  out_buffer->Encode(minor_version);
-  // Type of the encoder (point cloud, mesh, ...).
-  const uint8_t encoder_type = encoder.GetGeometryType();
-  out_buffer->Encode(encoder_type);
-  // Unique identifier for the selected encoding method (edgebreaker, etc...).
-  out_buffer->Encode(encoder.GetEncodingMethod());
-  // Reserved for flags.
-  out_buffer->Encode(static_cast<uint16_t>(0));
-  return true;
-}
-
 bool EncodeGeometryToBuffer(PointCloudEncoder *encoder,
                             const EncoderOptions &options,
                             EncoderBuffer *out_buffer) {
   if (!encoder)
-    return false;
-  if (!EncodeHeader(*encoder, out_buffer))
     return false;
   if (!encoder->Encode(options, out_buffer))
     return false;

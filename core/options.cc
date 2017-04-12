@@ -23,7 +23,7 @@ std::string ValToString(int val) {
   sprintf(temp, "%d", val);
   return temp;
 }
-}  // namespace anonymous
+}  // namespace
 
 namespace draco {
 

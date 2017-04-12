@@ -18,7 +18,7 @@
 #include "compression/mesh/mesh_edgebreaker_encoder.h"
 #include "compression/mesh/mesh_edgebreaker_encoder_impl_interface.h"
 #include "core/macros.h"
-#include "core/rans_coding.h"
+#include "core/rans_bit_encoder.h"
 
 namespace draco {
 
@@ -32,8 +32,9 @@ class MeshEdgeBreakerTraversalEncoder {
  public:
   MeshEdgeBreakerTraversalEncoder()
       : encoder_impl_(nullptr), attribute_connectivity_encoders_(nullptr) {}
-  void Init(MeshEdgeBreakerEncoderImplInterface *encoder) {
+  bool Init(MeshEdgeBreakerEncoderImplInterface *encoder) {
     encoder_impl_ = encoder;
+    return true;
   }
 
   // Called before the traversal encoding is started.
@@ -105,6 +106,9 @@ class MeshEdgeBreakerTraversalEncoder {
 
  protected:
   EncoderBuffer *GetOutputBuffer() { return &traversal_buffer_; }
+  const MeshEdgeBreakerEncoderImplInterface *encoder_impl() const {
+    return encoder_impl_;
+  }
 
  private:
   // Buffers for storing encoded data.

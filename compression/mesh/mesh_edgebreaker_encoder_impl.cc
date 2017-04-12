@@ -17,14 +17,15 @@
 #include <algorithm>
 
 #include "compression/attributes/mesh_attribute_indices_encoding_observer.h"
-#include "compression/attributes/mesh_traversal_sequencer.h"
 #include "compression/attributes/sequential_attribute_encoders_controller.h"
 #include "compression/mesh/mesh_edgebreaker_encoder.h"
 #include "compression/mesh/mesh_edgebreaker_traversal_predictive_encoder.h"
+#include "compression/mesh/mesh_edgebreaker_traversal_valence_encoder.h"
 #include "mesh/corner_table_iterators.h"
 #include "mesh/corner_table_traversal_processor.h"
 #include "mesh/edgebreaker_traverser.h"
 #include "mesh/mesh_misc_functions.h"
+#include "mesh/prediction_degree_traverser.h"
 
 namespace draco {
 
@@ -74,6 +75,30 @@ MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GetAttributeEncodingData(
 }
 
 template <class TraversalEncoder>
+template <class TraverserT>
+std::unique_ptr<PointsSequencer>
+MeshEdgeBreakerEncoderImpl<TraversalEncoder>::CreateVertexTraversalSequencer(
+    MeshAttributeIndicesEncodingData *encoding_data) {
+  typedef typename TraverserT::TraversalObserver AttObserver;
+  typedef typename TraverserT::TraversalProcessor AttProcessor;
+
+  std::unique_ptr<MeshTraversalSequencer<TraverserT>> traversal_sequencer(
+      new MeshTraversalSequencer<TraverserT>(mesh_, encoding_data));
+
+  AttProcessor att_processor;
+  AttObserver att_observer(corner_table_.get(), mesh_,
+                           traversal_sequencer.get(), encoding_data);
+  TraverserT att_traverser;
+
+  att_processor.ResetProcessor(corner_table_.get());
+  att_traverser.Init(std::move(att_processor), att_observer);
+
+  traversal_sequencer->SetCornerOrder(processed_connectivity_corners_);
+  traversal_sequencer->SetTraverser(att_traverser);
+  return std::move(traversal_sequencer);
+}
+
+template <class TraversalEncoder>
 bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
     int32_t att_id) {
   // For now, create one encoder for each attribute. Ideally we can share
@@ -90,6 +115,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
       break;
     }
   }
+  MeshTraversalMethod traversal_method = MESH_TRAVERSAL_DEPTH_FIRST;
   std::unique_ptr<PointsSequencer> sequencer;
   if (att->attribute_type() == GeometryAttribute::POSITION ||
       element_type == MESH_VERTEX_ATTRIBUTE ||
@@ -99,8 +125,6 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
     // mesh.
     typedef CornerTableTraversalProcessor<CornerTable> AttProcessor;
     typedef MeshAttributeIndicesEncodingObserver<CornerTable> AttObserver;
-    // Traverser that is used to generate the encoding order of each attribute.
-    typedef EdgeBreakerTraverser<AttProcessor, AttObserver> AttTraverser;
 
     MeshAttributeIndicesEncodingData *encoding_data;
     if (att->attribute_type() == GeometryAttribute::POSITION) {
@@ -110,20 +134,19 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
       attribute_data_[att_data_id].is_connectivity_used = false;
     }
 
-    std::unique_ptr<MeshTraversalSequencer<AttTraverser>> traversal_sequencer(
-        new MeshTraversalSequencer<AttTraverser>(mesh_, encoding_data));
-
-    AttProcessor att_processor;
-    AttObserver att_observer(corner_table_.get(), mesh_,
-                             traversal_sequencer.get(), encoding_data);
-    AttTraverser att_traverser;
-
-    att_processor.ResetProcessor(corner_table_.get());
-    att_traverser.Init(att_processor, att_observer);
-
-    traversal_sequencer->SetCornerOrder(processed_connectivity_corners_);
-    traversal_sequencer->SetTraverser(att_traverser);
-    sequencer = std::move(traversal_sequencer);
+    if (att->attribute_type() == GeometryAttribute::POSITION &&
+        GetEncoder()->options()->GetSpeed() == 0) {
+      // Traverser that is used to generate the encoding order of each
+      // attribute.
+      typedef PredictionDegreeTraverser<AttProcessor, AttObserver> AttTraverser;
+      sequencer = CreateVertexTraversalSequencer<AttTraverser>(encoding_data);
+      traversal_method = MESH_TRAVERSAL_PREDICTION_DEGREE;
+    } else {
+      // Traverser that is used to generate the encoding order of each
+      // attribute.
+      typedef EdgeBreakerTraverser<AttProcessor, AttObserver> AttTraverser;
+      sequencer = CreateVertexTraversalSequencer<AttTraverser>(encoding_data);
+    }
   } else {
     // Else use a general per-corner encoder.
     typedef CornerTableTraversalProcessor<MeshAttributeCornerTable>
@@ -155,6 +178,12 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
   if (!sequencer)
     return false;
 
+  if (att_data_id == -1) {
+    pos_traversal_method_ = traversal_method;
+  } else {
+    attribute_data_[att_data_id].traversal_method = traversal_method;
+  }
+
   std::unique_ptr<SequentialAttributeEncodersController> att_controller(
       new SequentialAttributeEncodersController(std::move(sequencer), att_id));
 
@@ -174,9 +203,13 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::
 
   // Also encode the type of the encoder that we used.
   int32_t element_type = MESH_VERTEX_ATTRIBUTE;
+  MeshTraversalMethod traversal_method;
   if (att_data_id >= 0) {
     const int32_t att_id = attribute_data_[att_data_id].attribute_index;
     element_type = GetEncoder()->mesh()->GetAttributeElementType(att_id);
+    traversal_method = attribute_data_[att_data_id].traversal_method;
+  } else {
+    traversal_method = pos_traversal_method_;
   }
   if (element_type == MESH_VERTEX_ATTRIBUTE ||
       (element_type == MESH_CORNER_ATTRIBUTE &&
@@ -187,6 +220,8 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::
     // Per-corner encoder.
     encoder_->buffer()->Encode(static_cast<uint8_t>(MESH_CORNER_ATTRIBUTE));
   }
+  // Encode the mesh traversal method.
+  encoder_->buffer()->Encode(static_cast<uint8_t>(traversal_method));
   return true;
 }
 
@@ -348,24 +383,46 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   // Encode topology split events.
   uint32_t num_events = topology_split_event_data_.size();
   encoder_->buffer()->Encode(num_events);
-  for (uint32_t i = 0; i < num_events; ++i) {
-    // TODO(ostava): We can do a better encoding of the event data but it's not
-    // really needed for now.
-    const TopologySplitEventData &event_data = topology_split_event_data_[i];
-    encoder_->buffer()->Encode(event_data.split_symbol_id);
-    encoder_->buffer()->Encode(event_data.source_symbol_id);
-    const uint8_t edge_data =
-        (event_data.source_edge | (event_data.split_edge << 1));
-    encoder_->buffer()->Encode(edge_data);
+  if (num_events > 0) {
+    // Encode split symbols using delta and varint coding. Split edges are
+    // encoded using direct bit coding.
+    int last_source_symbol_id = 0;  // Used for delta coding.
+    for (uint32_t i = 0; i < num_events; ++i) {
+      const TopologySplitEventData &event_data = topology_split_event_data_[i];
+      // Encode source symbol id as delta from the previous source symbol id.
+      // Source symbol ids are always stored in increasing order so the delta is
+      // going to be positive.
+      EncodeVarint<uint32_t>(
+          event_data.source_symbol_id - last_source_symbol_id,
+          encoder_->buffer());
+      // Encode split symbol id as delta from the current source symbol id.
+      // Split symbol id is always smaller than source symbol id so the below
+      // delta is going to be positive.
+      EncodeVarint<uint32_t>(
+          event_data.source_symbol_id - event_data.split_symbol_id,
+          encoder_->buffer());
+      last_source_symbol_id = event_data.source_symbol_id;
+    }
+    encoder_->buffer()->StartBitEncoding(num_events * 2, false);
+    for (uint32_t i = 0; i < num_events; ++i) {
+      const TopologySplitEventData &event_data = topology_split_event_data_[i];
+      encoder_->buffer()->EncodeLeastSignificantBits32(
+          2, event_data.source_edge | (event_data.split_edge << 1));
+    }
+    encoder_->buffer()->EndBitEncoding();
   }
   // Encode hole events data.
   num_events = hole_event_data_.size();
   encoder_->buffer()->Encode(num_events);
-  for (uint32_t i = 0; i < num_events; ++i) {
-    // TODO(ostava): We can do a better encoding of the event data but it's not
-    // really needed for now.
-    // This should be also made platform independent.
-    encoder_->buffer()->Encode((hole_event_data_[i]));
+  if (num_events > 0) {
+    // Encode hole symbol ids using delta and varint coding. The symbol ids are
+    // always stored in increasing order so the deltas are going to be positive.
+    int last_symbol_id = 0;
+    for (uint32_t i = 0; i < num_events; ++i) {
+      EncodeVarint<uint32_t>(hole_event_data_[i].symbol_id - last_symbol_id,
+                             encoder_->buffer());
+      last_symbol_id = hole_event_data_[i].symbol_id;
+    }
   }
   return true;
 }
@@ -734,5 +791,7 @@ bool MeshEdgeBreakerEncoderImpl<
 template class MeshEdgeBreakerEncoderImpl<MeshEdgeBreakerTraversalEncoder>;
 template class MeshEdgeBreakerEncoderImpl<
     MeshEdgeBreakerTraversalPredictiveEncoder>;
+template class MeshEdgeBreakerEncoderImpl<
+    MeshEdgeBreakerTraversalValenceEncoder>;
 
 }  // namespace draco

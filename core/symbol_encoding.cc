@@ -19,6 +19,7 @@
 
 #include "core/bit_utils.h"
 #include "core/rans_symbol_encoder.h"
+#include "core/shannon_entropy.h"
 
 namespace draco {
 
@@ -37,22 +38,12 @@ void ConvertSignedIntsToSymbols(const int32_t *in, int in_values,
   }
 }
 
-uint32_t ConvertSignedIntToSymbol(int32_t val) {
-  const bool is_negative = (val < 0);
-  if (is_negative)
-    val = -val - 1;  // Map -1 to 0, -2 to -1, etc..
-  val <<= 1;
-  if (is_negative)
-    val |= 1;
-  return static_cast<uint32_t>(val);
-}
-
 // Computes bit lengths of the input values. If num_components > 1, the values
 // are processed in "num_components" sized chunks and the bit length is always
 // computed for the largest value from the chunk.
 static void ComputeBitLengths(const uint32_t *symbols, int num_values,
                               int num_components,
-                              std::vector<int> *out_bit_lengths,
+                              std::vector<uint32_t> *out_bit_lengths,
                               uint32_t *out_max_value) {
   out_bit_lengths->reserve(num_values);
   *out_max_value = 0;
@@ -75,10 +66,37 @@ static void ComputeBitLengths(const uint32_t *symbols, int num_values,
   }
 }
 
+static int64_t ApproximateTaggedSchemeBits(
+    const std::vector<uint32_t> bit_lengths, int num_components) {
+  // Compute the total bit length used by all values (the length of data encode
+  // after tags).
+  uint64_t total_bit_length = 0;
+  for (size_t i = 0; i < bit_lengths.size(); ++i) {
+    total_bit_length += bit_lengths[i];
+  }
+  // Compute the number of entropy bits for tags.
+  int num_unique_symbols;
+  const int64_t tag_bits = ComputeShannonEntropy(
+      bit_lengths.data(), bit_lengths.size(), 32, &num_unique_symbols);
+  const int64_t tag_table_bits =
+      ApproximateRAnsFrequencyTableBits(num_unique_symbols, num_unique_symbols);
+  return tag_bits + tag_table_bits + total_bit_length * num_components;
+}
+
+static int64_t ApproximateRawSchemeBits(const uint32_t *symbols,
+                                        int num_symbols, uint32_t max_value) {
+  int num_unique_symbols;
+  const int64_t data_bits = ComputeShannonEntropy(
+      symbols, num_symbols, max_value, &num_unique_symbols);
+  const int64_t table_bits =
+      ApproximateRAnsFrequencyTableBits(max_value, num_unique_symbols);
+  return table_bits + data_bits;
+}
+
 template <template <int> class SymbolEncoderT>
 bool EncodeTaggedSymbols(const uint32_t *symbols, int num_values,
                          int num_components,
-                         const std::vector<int> &bit_lengths,
+                         const std::vector<uint32_t> &bit_lengths,
                          EncoderBuffer *target_buffer);
 
 template <template <int> class SymbolEncoderT>
@@ -93,43 +111,20 @@ bool EncodeSymbols(const uint32_t *symbols, int num_values, int num_components,
     return true;
   if (num_components <= 0)
     num_components = 1;
-  std::vector<int> bit_lengths;
+  std::vector<uint32_t> bit_lengths;
   uint32_t max_value;
   ComputeBitLengths(symbols, num_values, num_components, &bit_lengths,
                     &max_value);
 
-  // Compute the total bit length used by all values. This will be used for
-  // computing a heuristic that chooses the optimal entropy encoding scheme.
-  uint64_t total_bit_length = 0;
-  for (size_t i = 0; i < bit_lengths.size(); ++i) {
-    total_bit_length += bit_lengths[i];
-  }
-
-  const int64_t num_component_values = num_values / num_components;
-
-  // The average number of bits necessary for encoding a single entry value.
-  const int64_t average_bit_length =
-      static_cast<int64_t>(ceil(static_cast<double>(total_bit_length) /
-                                static_cast<double>(num_component_values)));
-  // The estimated average number of bits necessary for encoding a single
-  // bit-length tag.
-  int64_t average_bits_per_tag = static_cast<int64_t>(
-      ceil(static_cast<float>(bits::MostSignificantBit(average_bit_length)) /
-           static_cast<float>(num_components)));
-  if (average_bits_per_tag <= 0)
-    average_bits_per_tag = 1;
-
-  // Estimate the number of bits needed for encoding the values using the tagged
-  // scheme. 32 * 8 is the overhead for encoding the entropy encoding table.
+  // Approximate number of bits needed for storing the symbols using the tagged
+  // scheme.
   const int64_t tagged_scheme_total_bits =
-      num_component_values *
-          (num_components * average_bit_length + average_bits_per_tag) +
-      32 * 8;
+      ApproximateTaggedSchemeBits(bit_lengths, num_components);
 
-  // Estimate the number of bits needed by the "raw" scheme. In this case,
-  // max_value * 8 is the overhead of the entropy table.
+  // Approximate number of bits needed for storing the symbols using the raw
+  // scheme.
   const int64_t raw_scheme_total_bits =
-      num_values * average_bit_length + max_value * 8;
+      ApproximateRawSchemeBits(symbols, num_values, max_value);
 
   // The maximum bit length of a single entry value that we can encode using
   // the raw scheme.
@@ -151,7 +146,7 @@ bool EncodeSymbols(const uint32_t *symbols, int num_values, int num_components,
 template <template <int> class SymbolEncoderT>
 bool EncodeTaggedSymbols(const uint32_t *symbols, int num_values,
                          int num_components,
-                         const std::vector<int> &bit_lengths,
+                         const std::vector<uint32_t> &bit_lengths,
                          EncoderBuffer *target_buffer) {
   // Create entries for entropy coding. Each entry corresponds to a different
   // number of bits that are necessary to encode a given value. Every value

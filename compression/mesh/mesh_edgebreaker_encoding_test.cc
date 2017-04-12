@@ -147,4 +147,5 @@ TEST_F(MeshEdgebreakerEncodingTest, TestDecoderReuse) {
       << "Decoded meshes are not the same";
 }
 
+
 }  // namespace draco

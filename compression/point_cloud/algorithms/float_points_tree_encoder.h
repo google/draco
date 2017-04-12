@@ -63,7 +63,13 @@ class FloatPointsTreeEncoder {
   uint32_t &compression_level() { return compression_level_; }
   float range() const { return qinfo_.range; }
   uint32_t num_points() const { return num_points_; }
-  std::string identification_string() const { return "FloatPointsTreeEncoder"; }
+  std::string identification_string() const {
+    if (method_ == KDTREE) {
+      return "FloatPointsTreeEncoder: IntegerPointsKDTreeEncoder";
+    } else {
+      return "FloatPointsTreeEncoder: Unsupported Method";
+    }
+  }
 
  private:
   void Clear() { buffer_.Clear(); }

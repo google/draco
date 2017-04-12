@@ -58,7 +58,7 @@ class CornerTable {
   bool Initialize(const IndexTypeVector<FaceIndex, FaceType> &faces);
 
   // Resets the corner table to the given number of invalid faces.
-  void Reset(int num_faces);
+  bool Reset(int num_faces);
 
   inline int num_vertices() const { return vertex_corners_.size(); }
   inline int num_corners() const { return faces_.size() * 3; }

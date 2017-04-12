@@ -1,6 +1,6 @@
 The code shows a simple example of integration of threejs and draco javascript
-decoder. From the example, you should be able to loading an encoded draco mesh
-file and visualize it through threejs's fancy 3D tools.
+or WebAssembly decoder. From the example, you should be able to load an
+encoded draco mesh file and visualize it through threejs's fancy 3D tools.
 
 How to run the example code:
 

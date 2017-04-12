@@ -32,17 +32,21 @@ namespace draco {
 
 #define CHECK(x) (assert(x));
 #define CHECK_EQ(a, b) assert((a) == (b));
+#define CHECK_NE(a, b) assert((a) != (b));
 #define CHECK_GE(a, b) assert((a) >= (b));
 #define CHECK_GT(a, b) assert((a) > (b));
-#define CHECK_NE(a, b) assert((a) != (b));
+#define CHECK_LE(a, b) assert((a) <= (b));
+#define CHECK_LT(a, b) assert((a) < (b));
 #define CHECK_NOTNULL(x) assert((x) != NULL);
 
 #define DCHECK(x) (assert(x));
 #define DCHECK_EQ(a, b) assert((a) == (b));
+#define DCHECK_NE(a, b) assert((a) != (b));
 #define DCHECK_GE(a, b) assert((a) >= (b));
 #define DCHECK_GT(a, b) assert((a) > (b));
 #define DCHECK_LE(a, b) assert((a) <= (b));
 #define DCHECK_LT(a, b) assert((a) < (b));
+#define DCHECK_NOTNULL(x) assert((x) != NULL);
 
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName &) = delete;     \

@@ -24,7 +24,7 @@ MeshSequentialDecoder::MeshSequentialDecoder() {}
 
 bool MeshSequentialDecoder::DecodeConnectivity() {
   int32_t num_faces;
-  if (!buffer()->Decode(&num_faces))
+  if (!buffer()->Decode(&num_faces) || num_faces < 0)
     return false;
   int32_t num_points;
   if (!buffer()->Decode(&num_points))

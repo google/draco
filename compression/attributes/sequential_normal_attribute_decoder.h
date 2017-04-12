@@ -16,6 +16,7 @@
 #define DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_NORMAL_ATTRIBUTE_DECODER_H_
 
 #include "compression/attributes/prediction_schemes/prediction_scheme_decoder_factory.h"
+#include "compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_canonicalized_transform.h"
 #include "compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_transform.h"
 #include "compression/attributes/sequential_integer_attribute_decoder.h"
 
@@ -46,6 +47,15 @@ class SequentialNormalAttributeDecoder
     switch (transform_type) {
       case PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON: {
         typedef PredictionSchemeNormalOctahedronTransform<int32_t> Transform;
+        // At this point the decoder has not read the quantization bits,
+        // which is why we must construct the transform by default.
+        // See Transform.DecodeTransformData for more details.
+        return CreatePredictionSchemeForDecoder<int32_t, Transform>(
+            method, attribute_id(), decoder());
+      }
+      case PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON_CANONICALIZED: {
+        typedef PredictionSchemeNormalOctahedronCanonicalizedTransform<int32_t>
+            Transform;
         // At this point the decoder has not read the quantization bits,
         // which is why we must construct the transform by default.
         // See Transform.DecodeTransformData for more details.

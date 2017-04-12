@@ -35,12 +35,14 @@ PredictionSchemeMethod SelectPredictionMethod(
     if (encoder->options()->GetSpeed() >= 8) {
       return PREDICTION_DIFFERENCE;
     }
-    if (encoder->options()->GetSpeed() >= 2) {
-      // Parallelogram prediction is used for speeds 2 - 7.
+    if (encoder->options()->GetSpeed() >= 2 ||
+        encoder->point_cloud()->num_points() < 40) {
+      // Parallelogram prediction is used for speeds 2 - 7 or when the overhead
+      // of using constrained multi parallelogram would be too high.
       return MESH_PREDICTION_PARALLELOGRAM;
     }
     // Multi-parallelogram is used for speeds 0, 1.
-    return MESH_PREDICTION_MULTI_PARALLELOGRAM;
+    return MESH_PREDICTION_CONSTRAINED_MULTI_PARALLELOGRAM;
   }
   // Default option is delta coding.
   return PREDICTION_DIFFERENCE;

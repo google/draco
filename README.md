@@ -3,6 +3,21 @@
 <img src="docs/DracoLogo.jpeg" />
 </p>
 
+News
+=======
+### Version 0.10.0 released
+This release brings improved mesh compression and faster decoding in browser:
+* On average 10% better compression of triangular meshes (up to 20% for purely
+  spatial meshes without any extra attributes).
+* Up to 2X faster decoding in browsers with our newly provided WebAssembly
+  decoder.
+  * Supported in most modern browsers including Chrome, Firefox, and Edge.
+  * Decoder size is about 50% smaller compared to the javascript version.
+* New version is backward compatibile with 0.9.x encoders.
+  * Note that 0.10.0 is not forward compatibile. I.e., files encoded with 0.10.0
+    cannot be decoded with 0.9.x decoders.
+
+
 Description
 ===========
 
@@ -174,6 +189,57 @@ $ export EMSCRIPTEN=/path/to/emscripten/tools/parent
 # Emscripten.cmake can be found within your Emscripten installation directory,
 # it should be the subdir: cmake/Modules/Platform/Emscripten.cmake
 $ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake
+
+# Build the Javascript decoder.
+$ make
+~~~~~
+
+WebAssembly Decoder
+-------------------
+
+The WebAssembly decoder can be built using the existing cmake build file by
+passing the path the Emscripten's cmake toolchain file at cmake generation time
+in the CMAKE_TOOLCHAIN_FILE variable and enabling the WASM build option.
+In addition, the EMSCRIPTEN environment variable must be set to the local path
+of the parent directory of the Emscripten tools directory.
+
+Make sure to have the correct version of Emscripten installed for WebAssembly
+builds. See https://developer.mozilla.org/en-US/docs/WebAssembly.
+
+~~~~~ bash
+# Make the path to emscripten available to cmake.
+$ export EMSCRIPTEN=/path/to/emscripten/tools/parent
+
+# Emscripten.cmake can be found within your Emscripten installation directory,
+# it should be the subdir: cmake/Modules/Platform/Emscripten.cmake
+$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake -DENABLE_WASM=ON
+
+# Build the WebAssembly decoder.
+$ make
+
+# Run the Javascript wrapper through Closure.
+$ java -jar closure.jar --compilation_level SIMPLE --js draco_decoder.js --js_output_file draco_wasm_wrapper.js
+
+~~~~~
+
+WebAssembly Mesh Only Decoder
+-----------------------------
+
+~~~~~ bash
+
+# cmake command line for mesh only WebAssembly decoder.
+$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake -DENABLE_WASM=ON -DENABLE_POINT_CLOUD_COMPRESSION=OFF
+
+~~~~~
+
+WebAssembly Point Cloud Only Decoder
+-----------------------------
+
+~~~~~ bash
+
+# cmake command line for point cloud only WebAssembly decoder.
+$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake -DENABLE_WASM=ON -DENABLE_MESH_COMPRESSION=OFF
+
 ~~~~~
 
 

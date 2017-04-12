@@ -59,8 +59,15 @@ ALL_C_OPTS := -std=c++11
 
 # Options for speed.
 ALL_C_OPTS += -O3
-ALL_C_OPTS += --llvm-lto 1 -s NO_FILESYSTEM=1 -s ELIMINATE_DUPLICATE_FUNCTIONS=1
+ALL_C_OPTS += -s NO_FILESYSTEM=1 -s ELIMINATE_DUPLICATE_FUNCTIONS=1
 ALL_C_OPTS += -s EXPORTED_RUNTIME_METHODS=[]
+ALL_C_OPTS += -s PRECISE_F32=1
+
+# Option to get about a 10% speed increase at the cost of about 10% in size.
+# Use "make target DRACO_PERFORMANCE_TYPE=extra_speed"
+ifeq ($(DRACO_PERFORMANCE_TYPE), extra_speed)
+  ALL_C_OPTS += --llvm-lto 1
+endif
 
 # Options for debug
 #ALL_C_OPTS += -g -s DEMANGLE_SUPPORT=1
@@ -78,6 +85,12 @@ ALL_C_OPTS += --memory-init-file 0
 
 # Options to separate asm.js and mem file.
 #ALL_C_OPTS += --separate-asm --memory-init-file 1
+
+# Options to output WebAssembly code.
+# Use "make target DRACO_BUILD_TYPE=wasm"
+ifeq ($(DRACO_BUILD_TYPE), wasm)
+  ALL_C_OPTS += -s WASM=1 -s BINARYEN_IMPRECISE=1
+endif
 
 CFLAGS     := $(ALL_C_OPTS)
 CXXFLAGS   := $(ALL_C_OPTS)
@@ -100,20 +113,32 @@ ENCODER_BUFFER_OBJS := core/encoder_buffer.o
 DECODER_BUFFER_A    := libdecoder_buffer.a
 DECODER_BUFFER_OBJS := core/bit_coder.o core/decoder_buffer.o
 
-RANS_CODING_A    := librans_coding.a
-RANS_CODING_OBJS := core/divide.o core/rans_coding.o
+RANS_BIT_DECODER_A    := librans_bit_decoder.a
+RANS_BIT_DECODER_OBJS := core/divide.o core/rans_bit_decoder.o
 
-ADAPTIVE_RANS_CODING_A    := libadaptive_rans_coding.a
-ADAPTIVE_RANS_CODING_OBJS := core/adaptive_rans_coding.o
+RANS_BIT_ENCODER_A    := librans_bit_encoder.a
+RANS_BIT_ENCODER_OBJS := core/divide.o core/rans_bit_encoder.o
+
+ADAPTIVE_RANS_BIT_DECODER_A    := libadaptive_rans_bit_decoder.a
+ADAPTIVE_RANS_BIT_DECODER_OBJS := core/adaptive_rans_bit_decoder.o
+
+ADAPTIVE_RANS_BIT_ENCODER_A    := libadaptive_rans_bit_encoder.a
+ADAPTIVE_RANS_BIT_ENCODER_OBJS := core/adaptive_rans_bit_encoder.o
 
 CORNER_TABLE_A    := libcorner_table.a
-CORNER_TABLE_OBJS := mesh/corner_table.o mesh/corner_table.o
+CORNER_TABLE_OBJS := mesh/corner_table.o
+
+SHANNON_ENTROPY_A    := libshannon_entropy.a
+SHANNON_ENTROPY_OBJS := core/shannon_entropy.o
 
 SYMBOL_CODING_A    := libsymbol_coding.a
 SYMBOL_CODING_OBJS := core/symbol_decoding.o core/symbol_encoding.o
 
-DIRECT_BIT_CODING_A    := libdirect_bit_coding.a
-DIRECT_BIT_CODING_OBJS := core/direct_bit_coding.o
+DIRECT_BIT_DECODER_A    := libdirect_bit_decoder.a
+DIRECT_BIT_DECODER_OBJS := core/direct_bit_decoder.o
+
+DIRECT_BIT_ENCODER_A    := libdirect_bit_encoder.a
+DIRECT_BIT_ENCODER_OBJS := core/direct_bit_encoder.o
 
 DRACO_TYPES_A    := libdraco_types.a
 DRACO_TYPES_OBJS := core/draco_types.o
@@ -256,9 +281,12 @@ INTEGER_POINTS_KD_TREE_ENCODER_OBJS := \
     compression/point_cloud/algorithms/integer_points_kd_tree_encoder.o
 
 CORNER_TABLE_OBJSA := $(addprefix $(OBJDIR)/,$(CORNER_TABLE_OBJS:.o=_a.o))
+SHANNON_ENTROPY_OBJSA := $(addprefix $(OBJDIR)/,$(SHANNON_ENTROPY_OBJS:.o=_a.o))
 SYMBOL_CODING_OBJSA := $(addprefix $(OBJDIR)/,$(SYMBOL_CODING_OBJS:.o=_a.o))
-DIRECT_BIT_CODING_OBJSA := \
-    $(addprefix $(OBJDIR)/,$(DIRECT_BIT_CODING_OBJS:.o=_a.o))
+DIRECT_BIT_DECODER_OBJSA := \
+    $(addprefix $(OBJDIR)/,$(DIRECT_BIT_DECODER_OBJS:.o=_a.o))
+DIRECT_BIT_ENCODER_OBJSA := \
+    $(addprefix $(OBJDIR)/,$(DIRECT_BIT_ENCODER_OBJS:.o=_a.o))
 DECODER_BUFFER_OBJSA := $(addprefix $(OBJDIR)/,$(DECODER_BUFFER_OBJS:.o=_a.o))
 DATA_BUFFER_OBJSA := $(addprefix $(OBJDIR)/,$(DATA_BUFFER_OBJS:.o=_a.o))
 DRACO_TYPES_OBJSA := $(addprefix $(OBJDIR)/,$(DRACO_TYPES_OBJS:.o=_a.o))
@@ -339,9 +367,14 @@ QUANTIZATION_UTILS_OBJSA := \
 CYCLE_TIMER_OBJSA := $(addprefix $(OBJDIR)/,$(CYCLE_TIMER_OBJS:.o=_a.o))
 
 ENCODER_BUFFER_OBJSA := $(addprefix $(OBJDIR)/,$(ENCODER_BUFFER_OBJS:.o=_a.o))
-RANS_CODING_OBJSA := $(addprefix $(OBJDIR)/,$(RANS_CODING_OBJS:.o=_a.o))
-ADAPTIVE_RANS_CODING_OBJSA := \
-    $(addprefix $(OBJDIR)/,$(ADAPTIVE_RANS_CODING_OBJS:.o=_a.o))
+RANS_BIT_DECODER_OBJSA := \
+    $(addprefix $(OBJDIR)/,$(RANS_BIT_DECODER_OBJS:.o=_a.o))
+RANS_BIT_ENCODER_OBJSA := \
+    $(addprefix $(OBJDIR)/,$(RANS_BIT_ENCODER_OBJS:.o=_a.o))
+ADAPTIVE_RANS_BIT_DECODER_OBJSA := \
+    $(addprefix $(OBJDIR)/,$(ADAPTIVE_RANS_BIT_DECODER_OBJS:.o=_a.o))
+ADAPTIVE_RANS_BIT_ENCODER_OBJSA := \
+    $(addprefix $(OBJDIR)/,$(ADAPTIVE_RANS_BIT_ENCODER_OBJS:.o=_a.o))
 OBJ_DECODER_OBJSA := $(addprefix $(OBJDIR)/,$(OBJ_DECODER_OBJS:.o=_a.o))
 MESH_IO_OBJSA := $(addprefix $(OBJDIR)/,$(MESH_IO_OBJS:.o=_a.o))
 PLY_ENCODER_OBJSA := $(addprefix $(OBJDIR)/,$(PLY_ENCODER_OBJS:.o=_a.o))
@@ -358,12 +391,16 @@ INTEGER_POINTS_KD_TREE_ENCODER_OBJSA := \
 
 # Core objs
 DRACO_CORE_OBJSA := $(DRACO_TYPES_OBJSA)
-DRACO_CORE_OBJSA += $(DIRECT_BIT_CODING_OBJSA)
-DRACO_CORE_OBJSA += $(RANS_CODING_OBJSA)
-DRACO_CORE_OBJSA += $(ADAPTIVE_RANS_CODING_OBJSA)
+DRACO_CORE_OBJSA += $(DIRECT_BIT_DECODER_OBJSA)
+DRACO_CORE_OBJSA += $(DIRECT_BIT_ENCODER_OBJSA)
+DRACO_CORE_OBJSA += $(RANS_BIT_DECODER_OBJSA)
+DRACO_CORE_OBJSA += $(RANS_BIT_ENCODER_OBJSA)
+DRACO_CORE_OBJSA += $(ADAPTIVE_RANS_BIT_DECODER_OBJSA)
+DRACO_CORE_OBJSA += $(ADAPTIVE_RANS_BIT_ENCODER_OBJSA)
 
 # Shared objs needed for both encoder and decoder
 DRACO_SHARED_OBJSA := $(CORNER_TABLE_OBJSA) $(SYMBOL_CODING_OBJSA)
+DRACO_SHARED_OBJSA += $(SHANNON_ENTROPY_OBJSA)
 DRACO_SHARED_OBJSA += $(DATA_BUFFER_OBJSA) $(DRACO_CORE_OBJSA)
 DRACO_SHARED_OBJSA += $(GEOMETRY_ATTRIBUTE_OBJSA)
 DRACO_SHARED_OBJSA += $(POINT_ATTRIBUTE_OBJSA)
@@ -371,7 +408,8 @@ DRACO_SHARED_OBJSA += $(POINT_CLOUD_OBJSA)
 DRACO_SHARED_OBJSA += $(MESH_OBJSA)
 DRACO_SHARED_OBJSA += $(MESH_MISC_OBJSA) $(MESH_ATTRIBUTE_CORNER_TABLE_OBJSA)
 DRACO_SHARED_OBJSA += $(CYCLE_TIMER_OBJSA)
-DRACO_SHARED_OBJSA += $(RANS_CODING_OBJSA)
+DRACO_SHARED_OBJSA += $(RANS_BIT_DECODER_OBJSA)
+DRACO_SHARED_OBJSA += $(RANS_BIT_ENCODER_OBJSA)
 DRACO_SHARED_OBJSA += $(QUANTIZATION_UTILS_OBJSA)
 
 # Encoder specific objs
@@ -464,8 +502,10 @@ LIBS += $(LIBDIR)/libsequential_normal_attribute_encoder.a
 LIBS += $(LIBDIR)/libcorner_table.a
 LIBS += $(LIBDIR)/libmesh_attribute_corner_table.a
 LIBS += $(LIBDIR)/libmesh_misc.a
+LIBS += $(LIBDIR)/libshannon_entropy.a
 LIBS += $(LIBDIR)/libsymbol_coding.a
-LIBS += $(LIBDIR)/librans_coding.a
+LIBS += $(LIBDIR)/librans_bit_decoder.a
+LIBS += $(LIBDIR)/librans_bit_encoder.a
 LIBS += $(LIBDIR)/libdata_buffer.a
 LIBS += $(LIBDIR)/libdraco_types.a
 LIBS += $(LIBDIR)/libdecoder_buffer.a
@@ -476,8 +516,10 @@ POINTS_LIBS := $(LIBDIR)/libfloat_points_tree_decoder.a
 POINTS_LIBS += $(LIBDIR)/libfloat_points_tree_encoder.a
 POINTS_LIBS += $(LIBDIR)/libinteger_points_kd_tree_decoder.a
 POINTS_LIBS += $(LIBDIR)/libinteger_points_kd_tree_encoder.a
-POINTS_LIBS += $(LIBDIR)/libdirect_bit_coding.a
-POINTS_LIBS += $(LIBDIR)/libadaptive_rans_coding.a
+POINTS_LIBS += $(LIBDIR)/libdirect_bit_decoder.a
+POINTS_LIBS += $(LIBDIR)/libdirect_bit_encoder.a
+POINTS_LIBS += $(LIBDIR)/libadaptive_rans_bit_decoder.a
+POINTS_LIBS += $(LIBDIR)/libadaptive_rans_bit_encoder.a
 
 DEPS  := $(DRACO_OBJSA:_a.o=.d)
 CLEAN := $(DEPS) $(OBJSA) $(LIBS) $(POINTS_LIBS)
@@ -493,15 +535,21 @@ build_glue:
 	python $(BINDER) $(IDL) glue
 
 draco_decoder: $(OBJDIR)/javascript/emscripten/draco_glue_wrapper.o $(OBJDIR)/javascript/emscripten/webidl_wrapper.o $(DRACO_CORE_OBJSA) $(DRACO_SHARED_OBJSA) $(DRACO_DECODER_OBJSA)
-	$(CXX) $(ALL_C_OPTS) $^ --post-js glue.js -o $@.js
+	$(CXX) $(ALL_C_OPTS) $^ --pre-js javascript/emscripten/prepareCallbacks.js --pre-js javascript/emscripten/version.js --post-js glue.js --post-js javascript/emscripten/finalize.js -o $@.js
 
 $(LIBDIR)/libcorner_table.a: $(CORNER_TABLE_OBJSA)
+	$(AR) rcs $@ $^
+
+$(LIBDIR)/libshannon_entropy.a: $(SHANNON_ENTROPY_OBJSA)
 	$(AR) rcs $@ $^
 
 $(LIBDIR)/libsymbol_coding.a: $(SYMBOL_CODING_OBJSA)
 	$(AR) rcs $@ $^
 
-$(LIBDIR)/libdirect_bit_coding.a: $(DIRECT_BIT_CODING_OBJSA)
+$(LIBDIR)/libdirect_bit_decoder.a: $(DIRECT_BIT_DECODER_OBJSA)
+	$(AR) rcs $@ $^
+
+$(LIBDIR)/libdirect_bit_encoder.a: $(DIRECT_BIT_ENCODER_OBJSA)
 	$(AR) rcs $@ $^
 
 $(LIBDIR)/libdecoder_buffer.a: $(DECODER_BUFFER_OBJSA)
@@ -608,10 +656,16 @@ $(LIBDIR)/libquantization_utils.a: $(QUANTIZATION_UTILS_OBJSA)
 $(LIBDIR)/libcycle_timer.a: $(CYCLE_TIMER_OBJSA)
 	$(AR) rcs $@ $^
 
-$(LIBDIR)/librans_coding.a: $(RANS_CODING_OBJSA)
+$(LIBDIR)/librans_bit_decoder.a: $(RANS_BIT_DECODER_OBJSA)
 	$(AR) rcs $@ $^
 
-$(LIBDIR)/libadaptive_rans_coding.a: $(ADAPTIVE_RANS_CODING_OBJSA)
+$(LIBDIR)/librans_bit_encoder.a: $(RANS_BIT_ENCODER_OBJSA)
+	$(AR) rcs $@ $^
+
+$(LIBDIR)/libadaptive_rans_bit_decoder.a: $(ADAPTIVE_RANS_BIT_DECODER_OBJSA)
+	$(AR) rcs $@ $^
+
+$(LIBDIR)/libadaptive_rans_bit_encoder.a: $(ADAPTIVE_RANS_BIT_ENCODER_OBJSA)
 	$(AR) rcs $@ $^
 
 $(LIBDIR)/libobj_decoder.a: $(OBJ_DECODER_OBJSA)

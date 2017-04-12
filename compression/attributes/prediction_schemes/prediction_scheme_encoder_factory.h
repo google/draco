@@ -52,7 +52,7 @@ CreatePredictionSchemeForEncoder(PredictionSchemeMethod method, int att_id,
     const MeshEncoder *const mesh_encoder =
         static_cast<const MeshEncoder *>(encoder);
     auto ret = CreateMeshPredictionScheme<MeshEncoder, DataTypeT, TransformT>(
-        mesh_encoder, method, att_id, transform);
+        mesh_encoder, method, att_id, transform, kDracoBitstreamVersion);
     if (ret)
       return ret;
     // Otherwise try to create another prediction scheme.

@@ -77,32 +77,18 @@ bool MeshPredictionSchemeParallelogram<DataTypeT, TransformT, MeshDataT>::
       this->mesh_data().vertex_to_data_map();
   for (int p = this->mesh_data().data_to_corner_map()->size() - 1; p > 0; --p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
-    // Initialize the vertex ids to "p" which ensures that if the opposite
-    // corner does not exist we will not use the vertices to predict the
-    // encoded value.
-    int vert_opp = p, vert_next = p, vert_prev = p;
-    const CornerIndex opp_corner = table->Opposite(corner_id);
-    if (opp_corner >= 0) {
-      // Get vertices on the opposite face.
-      GetParallelogramEntries(opp_corner, table, *vertex_to_data_map, &vert_opp,
-                              &vert_next, &vert_prev);
-    }
     const int dst_offset = p * num_components;
-    if (vert_opp >= p || vert_next >= p || vert_prev >= p) {
-      // Some of the vertices are not valid (not encoded yet).
-      // We use the last encoded point as a reference.
+    if (!ComputeParallelogramPrediction(p, corner_id, table,
+                                        *vertex_to_data_map, in_data,
+                                        num_components, pred_vals.get())) {
+      // Parallelogram could not be computed, Possible because some of the
+      // vertices are not valid (not encoded yet).
+      // We use the last encoded point as a reference (delta coding).
       const int src_offset = (p - 1) * num_components;
       this->transform().ComputeCorrection(
           in_data + dst_offset, in_data + src_offset, out_corr, dst_offset);
     } else {
       // Apply the parallelogram prediction.
-      const int v_opp_off = vert_opp * num_components;
-      const int v_next_off = vert_next * num_components;
-      const int v_prev_off = vert_prev * num_components;
-      for (int c = 0; c < num_components; ++c) {
-        pred_vals[c] = (in_data[v_next_off + c] + in_data[v_prev_off + c]) -
-                       in_data[v_opp_off + c];
-      }
       this->transform().ComputeCorrection(in_data + dst_offset, pred_vals.get(),
                                           out_corr, dst_offset);
     }
@@ -133,29 +119,18 @@ bool MeshPredictionSchemeParallelogram<DataTypeT, TransformT, MeshDataT>::
   const int corner_map_size = this->mesh_data().data_to_corner_map()->size();
   for (int p = 1; p < corner_map_size; ++p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
-    int vert_opp = p, vert_next = p, vert_prev = p;
-    const CornerIndex opp_corner = table->Opposite(corner_id);
-    if (opp_corner >= 0) {
-      // Get vertices on the opposite face.
-      GetParallelogramEntries(opp_corner, table, *vertex_to_data_map, &vert_opp,
-                              &vert_next, &vert_prev);
-    }
     const int dst_offset = p * num_components;
-    if (vert_opp >= p || vert_next >= p || vert_prev >= p) {
-      // Some of the vertices are not valid (not decoded yet).
-      // We use the last decoded point as a reference.
+    if (!ComputeParallelogramPrediction(p, corner_id, table,
+                                        *vertex_to_data_map, out_data,
+                                        num_components, pred_vals.get())) {
+      // Parallelogram could not be computed, Possible because some of the
+      // vertices are not valid (not encoded yet).
+      // We use the last encoded point as a reference (delta coding).
       const int src_offset = (p - 1) * num_components;
       this->transform().ComputeOriginalValue(out_data + src_offset, in_corr,
                                              out_data + dst_offset, dst_offset);
     } else {
       // Apply the parallelogram prediction.
-      const int v_opp_off = vert_opp * num_components;
-      const int v_next_off = vert_next * num_components;
-      const int v_prev_off = vert_prev * num_components;
-      for (int c = 0; c < num_components; ++c) {
-        pred_vals[c] = (out_data[v_next_off + c] + out_data[v_prev_off + c]) -
-                       out_data[v_opp_off + c];
-      }
       this->transform().ComputeOriginalValue(pred_vals.get(), in_corr,
                                              out_data + dst_offset, dst_offset);
     }

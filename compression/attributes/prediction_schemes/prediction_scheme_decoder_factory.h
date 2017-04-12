@@ -42,7 +42,7 @@ CreatePredictionSchemeForDecoder(PredictionSchemeMethod method, int att_id,
     const MeshDecoder *const mesh_decoder =
         static_cast<const MeshDecoder *>(decoder);
     auto ret = CreateMeshPredictionScheme<MeshDecoder, DataTypeT, TransformT>(
-        mesh_decoder, method, att_id, transform);
+        mesh_decoder, method, att_id, transform, decoder->bitstream_version());
     if (ret)
       return ret;
     // Otherwise try to create another prediction scheme.

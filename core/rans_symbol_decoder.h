@@ -61,22 +61,38 @@ bool RAnsSymbolDecoder<max_symbol_bit_length_t>::Create(DecoderBuffer *buffer) {
     return true;
   // Decode the table.
   for (uint32_t i = 0; i < num_symbols_; ++i) {
-    uint32_t prob = 0;
-    uint8_t byte_prob = 0;
+    uint8_t prob_data = 0;
     // Decode the first byte and extract the number of extra bytes we need to
-    // get.
-    if (!buffer->Decode(&byte_prob))
+    // get, or the offset to the next symbol with non-zero probability.
+    if (!buffer->Decode(&prob_data))
       return false;
-    const int extra_bytes = byte_prob & 3;
-    prob = byte_prob >> 2;
-    for (int b = 0; b < extra_bytes; ++b) {
-      uint8_t eb;
-      if (!buffer->Decode(&eb))
+    // Token is stored in the first two bits of the first byte. Values 0-2 are
+    // used to indicate the number of extra bytes, and value 3 is a special
+    // symbol used to denote run-length coding of zero probability entries.
+    // See rans_symbol_encoder.h for more details.
+    const int token = prob_data & 3;
+    if (token == 3) {
+      const uint32_t offset = prob_data >> 2;
+      if (i + offset >= num_symbols_)
         return false;
-      // Shift 8 bits for each extra byte and subtract 2 for the two first bits.
-      prob |= static_cast<uint32_t>(eb) << (8 * (b + 1) - 2);
+      // Set zero probability for all symbols in the specified range.
+      for (uint32_t j = 0; j < offset + 1; ++j) {
+        probability_table_[i + j] = 0;
+      }
+      i += offset;
+    } else {
+      const int extra_bytes = token;
+      uint32_t prob = prob_data >> 2;
+      for (int b = 0; b < extra_bytes; ++b) {
+        uint8_t eb;
+        if (!buffer->Decode(&eb))
+          return false;
+        // Shift 8 bits for each extra byte and subtract 2 for the two first
+        // bits.
+        prob |= static_cast<uint32_t>(eb) << (8 * (b + 1) - 2);
+      }
+      probability_table_[i] = prob;
     }
-    probability_table_[i] = prob;
   }
   if (!ans_.rans_build_look_up_table(&probability_table_[0], num_symbols_))
     return false;

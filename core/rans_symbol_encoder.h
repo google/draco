@@ -64,7 +64,7 @@ class RAnsSymbolEncoder {
   };
 
   // Encodes the probability table into the output buffer.
-  void EncodeTable(EncoderBuffer *buffer);
+  bool EncodeTable(EncoderBuffer *buffer);
 
   static constexpr int max_symbols_ = 1 << max_symbol_bit_length_t;
   static constexpr int rans_precision_bits_ =
@@ -188,12 +188,13 @@ bool RAnsSymbolEncoder<max_symbol_bit_length_t>::Create(
     num_bits += static_cast<double>(frequencies[i]) * log2(norm_prob);
   }
   num_expected_bits_ = static_cast<uint64_t>(ceil(-num_bits));
-  EncodeTable(buffer);
+  if (!EncodeTable(buffer))
+    return false;
   return true;
 }
 
 template <int max_symbol_bit_length_t>
-void RAnsSymbolEncoder<max_symbol_bit_length_t>::EncodeTable(
+bool RAnsSymbolEncoder<max_symbol_bit_length_t>::EncodeTable(
     EncoderBuffer *buffer) {
   buffer->Encode(num_symbols_);
   // Use varint encoding for the probabilities (first two bits represent the
@@ -206,17 +207,38 @@ void RAnsSymbolEncoder<max_symbol_bit_length_t>::EncodeTable(
       if (prob >= (1 << 14)) {
         num_extra_bytes++;
         if (prob >= (1 << 22)) {
-          num_extra_bytes++;
+          // The maximum number of precision bits is 20 so we should not really
+          // get to this point.
+          return false;
         }
       }
     }
-    // Encode the first byte (including the number of extra bytes).
-    buffer->Encode(static_cast<uint8_t>((prob << 2) | (num_extra_bytes & 3)));
-    // Encode the extra bytes.
-    for (int b = 0; b < num_extra_bytes; ++b) {
-      buffer->Encode(static_cast<uint8_t>(prob >> (8 * (b + 1) - 2)));
+    if (prob == 0) {
+      // When the probability of the symbol is 0, set the first two bits to 1
+      // (unique identifier) and use the remaining 6 bits to store the offset
+      // to the next symbol with non-zero probability.
+      uint32_t offset = 0;
+      for (; offset < (1 << 6) - 1; ++offset) {
+        // Note: we don't have to check whether the next symbol id is larger
+        // than num_symbols_ because we know that the last symbol always has
+        // non-zero probability.
+        const uint32_t next_prob = probability_table_[i + offset + 1].prob;
+        if (next_prob > 0) {
+          break;
+        }
+      }
+      buffer->Encode(static_cast<uint8_t>((offset << 2) | 3));
+      i += offset;
+    } else {
+      // Encode the first byte (including the number of extra bytes).
+      buffer->Encode(static_cast<uint8_t>((prob << 2) | (num_extra_bytes & 3)));
+      // Encode the extra bytes.
+      for (int b = 0; b < num_extra_bytes; ++b) {
+        buffer->Encode(static_cast<uint8_t>(prob >> (8 * (b + 1) - 2)));
+      }
     }
   }
+  return true;
 }
 
 template <int max_symbol_bit_length_t>

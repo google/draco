@@ -13,12 +13,11 @@
 // limitations under the License.
 //
 // File provides direct encoding of bits with arthmetic encoder interface.
-#ifndef DRACO_CORE_DIRECT_BIT_CODING_H_
-#define DRACO_CORE_DIRECT_BIT_CODING_H_
+#ifndef DRACO_CORE_DIRECT_BIT_ENCODER_H_
+#define DRACO_CORE_DIRECT_BIT_ENCODER_H_
 
 #include <vector>
 
-#include "core/decoder_buffer.h"
 #include "core/encoder_buffer.h"
 
 namespace draco {
@@ -85,58 +84,6 @@ class DirectBitEncoder {
   uint32_t num_local_bits_;
 };
 
-class DirectBitDecoder {
- public:
-  DirectBitDecoder();
-  ~DirectBitDecoder();
-
-  // Sets |source_buffer| as the buffer to decode bits from.
-  bool StartDecoding(DecoderBuffer *source_buffer);
-
-  // Decode one bit. Returns true if the bit is a 1, otherwsie false.
-  bool DecodeNextBit() {
-    const uint32_t selector = 1 << (31 - num_used_bits_);
-    const bool bit = *pos_ & selector;
-    ++num_used_bits_;
-    if (num_used_bits_ == 32) {
-      ++pos_;
-      num_used_bits_ = 0;
-    }
-    return bit;
-  }
-
-  // Decode the next |nbits| and return the sequence in |value|. |nbits| must be
-  // > 0 and <= 32.
-  void DecodeLeastSignificantBits32(int nbits, uint32_t *value) {
-    DCHECK_EQ(true, nbits <= 32);
-    DCHECK_EQ(true, nbits > 0);
-    const int remaining = 32 - num_used_bits_;
-    if (nbits <= remaining) {
-      *value = (*pos_ << num_used_bits_) >> (32 - nbits);
-      num_used_bits_ += nbits;
-      if (num_used_bits_ == 32) {
-        ++pos_;
-        num_used_bits_ = 0;
-      }
-    } else {
-      const uint32_t value_l = ((*pos_) << num_used_bits_);
-      num_used_bits_ = nbits - remaining;
-      ++pos_;
-      const uint32_t value_r = (*pos_) >> (32 - num_used_bits_);
-      *value = (value_l >> (32 - num_used_bits_ - remaining)) | value_r;
-    }
-  }
-
-  void EndDecoding() {}
-
- private:
-  void Clear();
-
-  std::vector<uint32_t> bits_;
-  std::vector<uint32_t>::const_iterator pos_;
-  uint32_t num_used_bits_;
-};
-
 }  // namespace draco
 
-#endif  // DRACO_CORE_DIRECT_BIT_CODING_H_
+#endif  // DRACO_CORE_DIRECT_BIT_ENCODER_H_

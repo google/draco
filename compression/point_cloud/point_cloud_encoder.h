@@ -109,6 +109,9 @@ class PointCloudEncoder {
   virtual bool EncodeAllAttributes();
 
  private:
+  // Encodes Draco header that is the same for all encoders.
+  bool EncodeHeader();
+
   // Rearranges attribute encoders and their attributes to reflect the
   // underlying attribute dependencies. This ensures that the attributes are
   // encoded in the correct order (parent attributes before their children).

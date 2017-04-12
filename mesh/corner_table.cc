@@ -41,10 +41,13 @@ bool CornerTable::Initialize(
   return true;
 }
 
-void CornerTable::Reset(int num_faces) {
+bool CornerTable::Reset(int num_faces) {
+  if (num_faces < 0)
+    return false;
   faces_.assign(num_faces, kInvalidFace);
   opposite_corners_.assign(num_faces * 3, kInvalidCornerIndex);
   vertex_corners_.reserve(num_faces * 3);
+  return true;
 }
 
 bool CornerTable::ComputeOppositeCorners(int *num_vertices) {

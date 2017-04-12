@@ -30,6 +30,10 @@ class PointCloudDecoder {
 
   virtual EncodedGeometryType GetGeometryType() const { return POINT_CLOUD; }
 
+  // Decodes a Draco header int othe provided |out_header|.
+  // Returns false on error.
+  static bool DecodeHeader(DecoderBuffer *buffer, DracoHeader *out_header);
+
   // The main entry point for point cloud decoding.
   bool Decode(DecoderBuffer *in_buffer, PointCloud *out_point_cloud);
 
@@ -39,6 +43,11 @@ class PointCloudDecoder {
       attributes_decoders_.resize(att_decoder_id + 1);
     attributes_decoders_[att_decoder_id] = std::move(decoder);
   }
+
+  uint16_t bitstream_version() const {
+    return DRACO_BITSTREAM_VERSION(version_major_, version_minor_);
+  }
+
   const AttributesDecoder *attributes_decoder(int dec_id) {
     return attributes_decoders_[dec_id].get();
   }
@@ -74,6 +83,10 @@ class PointCloudDecoder {
 
   // Input buffer holding the encoded data.
   DecoderBuffer *buffer_;
+
+  // Bit-stream version of the encoder that encoded the input data.
+  uint8_t version_major_;
+  uint8_t version_minor_;
 };
 
 }  // namespace draco

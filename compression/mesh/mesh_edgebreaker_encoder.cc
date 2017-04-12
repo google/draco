@@ -16,6 +16,7 @@
 
 #include "compression/mesh/mesh_edgebreaker_encoder_impl.h"
 #include "compression/mesh/mesh_edgebreaker_traversal_predictive_encoder.h"
+#include "compression/mesh/mesh_edgebreaker_traversal_valence_encoder.h"
 
 namespace draco {
 
@@ -28,16 +29,24 @@ bool MeshEdgeBreakerEncoder::InitializeEncoder() {
       options()->IsFeatureSupported(features::kPredictiveEdgebreaker);
 
   impl_ = nullptr;
+  // For tiny meshes it's usually better to use the basic edgebreaker as the
+  // overhead of the predictive one may turn out to be too big.
+  // TODO(ostava): For now we have a set limit for forcing the basic edgebreaker
+  // based on the number of faces, but a more complex heuristic may be used if
+  // needed.
+  const bool is_tiny_mesh = mesh()->num_faces() < 1000;
+
   if (is_standard_edgebreaker_avaialable &&
-      (options()->GetSpeed() >= 5 || !is_predictive_edgebreaker_avaialable)) {
+      (options()->GetSpeed() >= 5 || !is_predictive_edgebreaker_avaialable ||
+       is_tiny_mesh)) {
     buffer()->Encode(static_cast<uint8_t>(0));
     impl_ = std::unique_ptr<MeshEdgeBreakerEncoderImplInterface>(
         new MeshEdgeBreakerEncoderImpl<MeshEdgeBreakerTraversalEncoder>());
   } else if (is_predictive_edgebreaker_avaialable) {
-    buffer()->Encode(static_cast<uint8_t>(1));
+    buffer()->Encode(static_cast<uint8_t>(2));
     impl_ = std::unique_ptr<MeshEdgeBreakerEncoderImplInterface>(
         new MeshEdgeBreakerEncoderImpl<
-            MeshEdgeBreakerTraversalPredictiveEncoder>());
+            MeshEdgeBreakerTraversalValenceEncoder>());
   }
   if (!impl_)
     return false;

@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "core/direct_bit_coding.h"
-#include <iostream>
+#include "core/direct_bit_encoder.h"
 
 namespace draco {
 
@@ -35,31 +34,6 @@ void DirectBitEncoder::Clear() {
   bits_.clear();
   local_bits_ = 0;
   num_local_bits_ = 0;
-}
-
-DirectBitDecoder::DirectBitDecoder() : pos_(bits_.end()), num_used_bits_(0) {}
-
-DirectBitDecoder::~DirectBitDecoder() { Clear(); }
-
-bool DirectBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
-  Clear();
-  uint32_t size_in_bytes;
-  if (!source_buffer->Decode(&size_in_bytes))
-    return false;
-  if (size_in_bytes > source_buffer->remaining_size())
-    return false;
-  bits_.resize(size_in_bytes / 4);
-  if (!source_buffer->Decode(bits_.data(), size_in_bytes))
-    return false;
-  pos_ = bits_.begin();
-  num_used_bits_ = 0;
-  return true;
-}
-
-void DirectBitDecoder::Clear() {
-  bits_.clear();
-  num_used_bits_ = 0;
-  pos_ = bits_.end();
 }
 
 }  // namespace draco

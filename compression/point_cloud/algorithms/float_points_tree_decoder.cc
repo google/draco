@@ -111,7 +111,8 @@ bool FloatPointsTreeDecoder::DecodePointCloudKdTreeInternal(
     }
   }
 
-  DCHECK_EQ(true, qpoints->size() == num_points_);
+  if (qpoints->size() != num_points_)
+    return false;
   return true;
 }
 

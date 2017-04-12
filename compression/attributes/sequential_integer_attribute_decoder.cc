@@ -70,6 +70,8 @@ SequentialIntegerAttributeDecoder::CreateIntPredictionScheme(
 bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
     const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
   const int num_components = GetNumValueComponents();
+  if (num_components <= 0)
+    return false;
   const int32_t num_values = point_ids.size();
   values_.resize(num_values * num_components);
   uint8_t compressed;
@@ -96,8 +98,8 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
     }
   }
 
-  if (prediction_scheme_ == nullptr ||
-      !prediction_scheme_->AreCorrectionsPositive()) {
+  if (!values_.empty() && (prediction_scheme_ == nullptr ||
+                           !prediction_scheme_->AreCorrectionsPositive())) {
     // Convert the values back to the original signed format.
     ConvertSymbolsToSignedInts(
         reinterpret_cast<const uint32_t *>(values_.data()), values_.size(),
@@ -109,9 +111,12 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
     if (!prediction_scheme_->DecodePredictionData(in_buffer))
       return false;
 
-    if (!prediction_scheme_->Decode(values_.data(), &values_[0], values_.size(),
-                                    num_components, point_ids.data())) {
-      return false;
+    if (!values_.empty()) {
+      if (!prediction_scheme_->Decode(values_.data(), &values_[0],
+                                      values_.size(), num_components,
+                                      point_ids.data())) {
+        return false;
+      }
     }
   }
   return true;

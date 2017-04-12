@@ -38,7 +38,7 @@ void Usage() {
   printf("  -h | -?               show help.\n");
   printf("  -o <output>           output file name.\n");
 }
-}
+}  // namespace
 
 int main(int argc, char **argv) {
   Options options;

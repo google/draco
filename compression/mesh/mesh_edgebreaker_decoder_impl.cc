@@ -17,12 +17,13 @@
 #include <algorithm>
 
 #include "compression/attributes/mesh_attribute_indices_encoding_observer.h"
-#include "compression/attributes/mesh_traversal_sequencer.h"
 #include "compression/attributes/sequential_attribute_decoders_controller.h"
 #include "compression/mesh/mesh_edgebreaker_decoder.h"
 #include "compression/mesh/mesh_edgebreaker_traversal_predictive_decoder.h"
+#include "compression/mesh/mesh_edgebreaker_traversal_valence_decoder.h"
 #include "mesh/corner_table_traversal_processor.h"
 #include "mesh/edgebreaker_traverser.h"
+#include "mesh/prediction_degree_traverser.h"
 
 namespace draco {
 
@@ -61,8 +62,11 @@ const MeshAttributeCornerTable *
 MeshEdgeBreakerDecoderImpl<TraversalDecoder>::GetAttributeCornerTable(
     int att_id) const {
   for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
+    const int decoder_id = attribute_data_[i].decoder_id;
+    if (decoder_id < 0 || decoder_id >= decoder_->num_attributes_decoders())
+      continue;
     const AttributesDecoder *const dec =
-        decoder_->attributes_decoder(attribute_data_[i].decoder_id);
+        decoder_->attributes_decoder(decoder_id);
     for (int j = 0; j < dec->num_attributes(); ++j) {
       if (dec->GetAttributeId(j) == att_id) {
         if (attribute_data_[i].is_connectivity_used)
@@ -79,14 +83,41 @@ const MeshAttributeIndicesEncodingData *
 MeshEdgeBreakerDecoderImpl<TraversalDecoder>::GetAttributeEncodingData(
     int att_id) const {
   for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
+    const int decoder_id = attribute_data_[i].decoder_id;
+    if (decoder_id < 0 || decoder_id >= decoder_->num_attributes_decoders())
+      continue;
     const AttributesDecoder *const dec =
-        decoder_->attributes_decoder(attribute_data_[i].decoder_id);
+        decoder_->attributes_decoder(decoder_id);
     for (int j = 0; j < dec->num_attributes(); ++j) {
       if (dec->GetAttributeId(j) == att_id)
         return &attribute_data_[i].encoding_data;
     }
   }
   return &pos_encoding_data_;
+}
+
+template <class TraversalDecoder>
+template <class TraverserT>
+std::unique_ptr<PointsSequencer>
+MeshEdgeBreakerDecoderImpl<TraversalDecoder>::CreateVertexTraversalSequencer(
+    MeshAttributeIndicesEncodingData *encoding_data) {
+  typedef typename TraverserT::TraversalObserver AttObserver;
+  typedef typename TraverserT::TraversalProcessor AttProcessor;
+
+  const Mesh *mesh = decoder_->mesh();
+  std::unique_ptr<MeshTraversalSequencer<TraverserT>> traversal_sequencer(
+      new MeshTraversalSequencer<TraverserT>(mesh, encoding_data));
+
+  TraverserT att_traverser;
+  AttObserver att_observer(corner_table_.get(), mesh, traversal_sequencer.get(),
+                           encoding_data);
+  AttProcessor att_processor;
+
+  att_processor.ResetProcessor(corner_table_.get());
+  att_traverser.Init(std::move(att_processor), att_observer);
+
+  traversal_sequencer->SetTraverser(att_traverser);
+  return std::move(traversal_sequencer);
 }
 
 template <class TraversalDecoder>
@@ -106,6 +137,15 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::CreateAttributesDecoder(
     attribute_data_[att_data_id].decoder_id = att_decoder_id;
   }
 
+  MeshTraversalMethod traversal_method = MESH_TRAVERSAL_DEPTH_FIRST;
+  if (decoder_->bitstream_version() >= DRACO_BITSTREAM_VERSION(1, 2)) {
+    uint8_t traversal_method_encoded;
+    if (!decoder_->buffer()->Decode(&traversal_method_encoded))
+      return false;
+    traversal_method =
+        static_cast<MeshTraversalMethod>(traversal_method_encoded);
+  }
+
   const Mesh *mesh = decoder_->mesh();
   std::unique_ptr<PointsSequencer> sequencer;
 
@@ -113,9 +153,6 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::CreateAttributesDecoder(
     // Per-vertex attribute decoder.
     typedef CornerTableTraversalProcessor<CornerTable> AttProcessor;
     typedef MeshAttributeIndicesEncodingObserver<CornerTable> AttObserver;
-    // Traverser that is used to generate the encoding order of each attribute.
-    typedef EdgeBreakerTraverser<AttProcessor, AttObserver> AttTraverser;
-
     MeshAttributeIndicesEncodingData *encoding_data = nullptr;
     if (att_data_id < 0) {
       encoding_data = &pos_encoding_data_;
@@ -125,22 +162,20 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::CreateAttributesDecoder(
       // later on.
       attribute_data_[att_data_id].is_connectivity_used = false;
     }
-
-    std::unique_ptr<MeshTraversalSequencer<AttTraverser>> traversal_sequencer(
-        new MeshTraversalSequencer<AttTraverser>(mesh, encoding_data));
-
-    AttTraverser att_traverser;
-    AttObserver att_observer(corner_table_.get(), mesh,
-                             traversal_sequencer.get(), encoding_data);
-    AttProcessor att_processor;
-
-    att_processor.ResetProcessor(corner_table_.get());
-    att_traverser.Init(att_processor, att_observer);
-
-    traversal_sequencer->SetTraverser(att_traverser);
-    sequencer = std::move(traversal_sequencer);
-
+    if (traversal_method == MESH_TRAVERSAL_DEPTH_FIRST) {
+      // Traverser that is used to generate the encoding order of each
+      // attribute.
+      typedef EdgeBreakerTraverser<AttProcessor, AttObserver> AttTraverser;
+      sequencer = CreateVertexTraversalSequencer<AttTraverser>(encoding_data);
+    } else if (traversal_method == MESH_TRAVERSAL_PREDICTION_DEGREE) {
+      typedef PredictionDegreeTraverser<AttProcessor, AttObserver> AttTraverser;
+      sequencer = CreateVertexTraversalSequencer<AttTraverser>(encoding_data);
+    } else {
+      return false;  // Unsupported method
+    }
   } else {
+    if (traversal_method != MESH_TRAVERSAL_DEPTH_FIRST)
+      return false;  // Unsupported method.
     if (att_data_id < 0)
       return false;  // Attribute data must be specified.
 
@@ -203,7 +238,8 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   corner_table_ = std::unique_ptr<CornerTable>(new CornerTable());
   if (corner_table_ == nullptr)
     return false;
-  corner_table_->Reset(num_faces);
+  if (!corner_table_->Reset(num_faces))
+    return false;
   processed_corner_ids_.clear();
   processed_corner_ids_.reserve(num_faces);
   processed_connectivity_corners_.clear();
@@ -637,27 +673,71 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
   uint32_t num_topology_splits;
   if (!decoder_buffer->Decode(&num_topology_splits))
     return -1;
-  for (uint32_t i = 0; i < num_topology_splits; ++i) {
-    TopologySplitEventData event_data;
-    if (!decoder_buffer->Decode(&event_data.split_symbol_id))
-      return -1;
-    if (!decoder_buffer->Decode(&event_data.source_symbol_id))
-      return -1;
-    uint8_t edge_data;
-    if (!decoder_buffer->Decode(&edge_data))
-      return -1;
-    event_data.source_edge = edge_data & 1;
-    event_data.split_edge = (edge_data >> 1) & 1;
-    topology_split_data_.push_back(event_data);
+  if (num_topology_splits > 0) {
+    if (decoder_->bitstream_version() >= DRACO_BITSTREAM_VERSION(1, 2)) {
+      // Decode source and split symbol ids using delta and varint coding. See
+      // description in mesh_edgebreaker_encoder_impl.cc for more details.
+      int last_source_symbol_id = 0;
+      for (uint32_t i = 0; i < num_topology_splits; ++i) {
+        TopologySplitEventData event_data;
+        uint32_t delta;
+        DecodeVarint<uint32_t>(&delta, decoder_buffer);
+        event_data.source_symbol_id = delta + last_source_symbol_id;
+        DecodeVarint<uint32_t>(&delta, decoder_buffer);
+        event_data.split_symbol_id =
+            event_data.source_symbol_id - static_cast<int32_t>(delta);
+        last_source_symbol_id = event_data.source_symbol_id;
+        topology_split_data_.push_back(event_data);
+      }
+      // Split edges are decoded from a direct bit decoder.
+      decoder_buffer->StartBitDecoding(false, nullptr);
+      for (uint32_t i = 0; i < num_topology_splits; ++i) {
+        uint32_t edge_data;
+        decoder_buffer->DecodeLeastSignificantBits32(2, &edge_data);
+        TopologySplitEventData &event_data = topology_split_data_[i];
+        event_data.source_edge = edge_data & 1;
+        event_data.split_edge = (edge_data >> 1) & 1;
+      }
+      decoder_buffer->EndBitDecoding();
+    } else {
+      for (uint32_t i = 0; i < num_topology_splits; ++i) {
+        TopologySplitEventData event_data;
+        if (!decoder_buffer->Decode(&event_data.split_symbol_id))
+          return -1;
+        if (!decoder_buffer->Decode(&event_data.source_symbol_id))
+          return -1;
+        uint8_t edge_data;
+        if (!decoder_buffer->Decode(&edge_data))
+          return -1;
+        event_data.source_edge = edge_data & 1;
+        event_data.split_edge = (edge_data >> 1) & 1;
+        topology_split_data_.push_back(event_data);
+      }
+    }
   }
   uint32_t num_hole_events;
   if (!decoder_buffer->Decode(&num_hole_events))
     return -1;
-  for (uint32_t i = 0; i < num_hole_events; ++i) {
-    HoleEventData event_data;
-    if (!decoder_buffer->Decode(&event_data))
-      return -1;
-    hole_event_data_.push_back(event_data);
+  if (num_hole_events > 0) {
+    if (decoder_->bitstream_version() >= DRACO_BITSTREAM_VERSION(1, 2)) {
+      // Decode hole symbol ids using delta and varint coding.
+      int last_symbol_id = 0;
+      for (uint32_t i = 0; i < num_hole_events; ++i) {
+        HoleEventData event_data;
+        uint32_t delta;
+        DecodeVarint<uint32_t>(&delta, decoder_buffer);
+        event_data.symbol_id = delta + last_symbol_id;
+        last_symbol_id = event_data.symbol_id;
+        hole_event_data_.push_back(event_data);
+      }
+    } else {
+      for (uint32_t i = 0; i < num_hole_events; ++i) {
+        HoleEventData event_data;
+        if (!decoder_buffer->Decode(&event_data))
+          return -1;
+        hole_event_data_.push_back(event_data);
+      }
+    }
   }
   return decoder_buffer->decoded_size();
 }
@@ -813,5 +893,6 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners() {
 template class MeshEdgeBreakerDecoderImpl<MeshEdgeBreakerTraversalDecoder>;
 template class MeshEdgeBreakerDecoderImpl<
     MeshEdgeBreakerTraversalPredictiveDecoder>;
-
+template class MeshEdgeBreakerDecoderImpl<
+    MeshEdgeBreakerTraversalValenceDecoder>;
 }  // namespace draco

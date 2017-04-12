@@ -40,9 +40,6 @@ namespace draco {
 // axis.
 // DataTypeT is expected to be some integral type.
 //
-// This relates
-// * IDF# 44535
-// * Patent Application: GP-200957-00-US
 template <typename DataTypeT>
 class PredictionSchemeNormalOctahedronTransform
     : public PredictionSchemeTransform<DataTypeT, DataTypeT> {

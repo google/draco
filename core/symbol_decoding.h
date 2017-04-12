@@ -26,7 +26,20 @@ void ConvertSymbolsToSignedInts(const uint32_t *in, int in_values,
 
 // Converts a single unsigned integer symbol encoded with an entropy encoder
 // back to a signed value.
-int32_t ConvertSymbolToSignedInt(uint32_t val);
+template <class IntTypeT>
+typename std::make_signed<IntTypeT>::type ConvertSymbolToSignedInt(
+    IntTypeT val) {
+  static_assert(std::is_integral<IntTypeT>::value, "IntTypeT is not integral.");
+  typedef typename std::make_signed<IntTypeT>::type SignedType;
+  const bool is_positive = !static_cast<bool>(val & 1);
+  val >>= 1;
+  if (is_positive) {
+    return static_cast<SignedType>(val);
+  }
+  SignedType ret = static_cast<SignedType>(val);
+  ret = -ret - 1;
+  return ret;
+}
 
 // Decodes an array of symbols that was previously encoded with an entropy code.
 // Returns false on error.

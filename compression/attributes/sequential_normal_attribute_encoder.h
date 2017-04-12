@@ -16,7 +16,7 @@
 #define DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_NORMAL_ATTRIBUTE_ENCODER_H_
 
 #include "compression/attributes/prediction_schemes/prediction_scheme_encoder_factory.h"
-#include "compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_transform.h"
+#include "compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_canonicalized_transform.h"
 #include "compression/attributes/sequential_integer_attribute_encoder.h"
 
 namespace draco {
@@ -41,7 +41,8 @@ class SequentialNormalAttributeEncoder
 
   std::unique_ptr<PredictionSchemeTypedInterface<int32_t>>
   CreateIntPredictionScheme(PredictionSchemeMethod /* method */) override {
-    typedef PredictionSchemeNormalOctahedronTransform<int32_t> Transform;
+    typedef PredictionSchemeNormalOctahedronCanonicalizedTransform<int32_t>
+        Transform;
     const int32_t quantization_bits = encoder()->options()->GetAttributeInt(
         attribute_id(), "quantization_bits", -1);
     const int32_t max_value = (1 << quantization_bits) - 1;

@@ -61,17 +61,6 @@ class MeshEncoder : public PointCloudEncoder {
   // Needs to be implemented by the derived classes.
   virtual bool EncodeConnectivity() = 0;
 
-  // TODO(ostava): Prediction schemes need refactoring.
-  /*
-  // This method should be overriden by derived class to perform custom
-  // initialization of various prediction schemes.
-  virtual bool InitPredictionSchemeInternal(
-      const MeshAttributeEncoder *att_encoder,
-      PredictionSchemeInterface *scheme) {
-    return true;
-  }
-  */
-
   void set_mesh(const Mesh *mesh) { mesh_ = mesh; }
 
  private:

@@ -13,46 +13,15 @@
 // limitations under the License.
 //
 // File provides basic classes and functions for rANS coding.
-#ifndef DRACO_CORE_RANS_CODING_H_
-#define DRACO_CORE_RANS_CODING_H_
+#ifndef DRACO_CORE_RANS_BIT_DECODER_H_
+#define DRACO_CORE_RANS_BIT_DECODER_H_
 
 #include <vector>
 
 #include "core/ans.h"
 #include "core/decoder_buffer.h"
-#include "core/encoder_buffer.h"
 
 namespace draco {
-
-// Class for encoding a sequence of bits using rANS. The probability table used
-// to encode the bits is based off the total counts of bits.
-// TODO(fgalligan): Investigate using an adaptive table for more compression.
-class RAnsBitEncoder {
- public:
-  RAnsBitEncoder();
-  ~RAnsBitEncoder();
-
-  // Must be called before any Encode* function is called.
-  void StartEncoding();
-
-  // Encode one bit. If |bit| is true encode a 1, otherwise encode a 0.
-  void EncodeBit(bool bit);
-
-  // Encode |nibts| of |value|, starting from the least significant bit.
-  // |nbits| must be > 0 and <= 32.
-  void EncodeLeastSignificantBits32(int nbits, uint32_t value);
-
-  // Ends the bit encoding and stores the result into the target_buffer.
-  void EndEncoding(EncoderBuffer *target_buffer);
-
- private:
-  void Clear();
-
-  std::vector<uint64_t> bit_counts_;
-  std::vector<uint32_t> bits_;
-  uint32_t local_bits_;
-  uint32_t num_local_bits_;
-};
 
 // Class for decoding a sequence of bits that were encoded with RAnsBitEncoder.
 class RAnsBitDecoder {
@@ -82,4 +51,4 @@ class RAnsBitDecoder {
 
 }  // namespace draco
 
-#endif  // DRACO_CORE_RANS_CODING_H_
+#endif  // DRACO_CORE_RANS_BIT_DECODER_H_

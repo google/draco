@@ -35,14 +35,16 @@ class MeshEdgeBreakerTraversalPredictiveEncoder
         last_corner_(kInvalidCornerIndex),
         num_symbols_(0) {}
 
-  void Init(MeshEdgeBreakerEncoderImplInterface *encoder) {
-    MeshEdgeBreakerTraversalEncoder::Init(encoder);
+  bool Init(MeshEdgeBreakerEncoderImplInterface *encoder) {
+    if (!MeshEdgeBreakerTraversalEncoder::Init(encoder))
+      return false;
     corner_table_ = encoder->GetCornerTable();
     // Initialize valences of all vertices.
     vertex_valences_.resize(corner_table_->num_vertices());
     for (uint32_t i = 0; i < vertex_valences_.size(); ++i) {
       vertex_valences_[i] = corner_table_->Valence(VertexIndex(i));
     }
+    return true;
   }
 
   inline void NewCornerReached(CornerIndex corner) { last_corner_ = corner; }

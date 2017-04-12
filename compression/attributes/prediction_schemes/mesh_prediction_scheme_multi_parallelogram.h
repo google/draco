@@ -70,6 +70,8 @@ bool MeshPredictionSchemeMultiParallelogram<DataTypeT, TransformT, MeshDataT>::
       this->mesh_data().vertex_to_data_map();
 
   std::unique_ptr<DataTypeT[]> pred_vals(new DataTypeT[num_components]());
+  std::unique_ptr<DataTypeT[]> parallelogram_pred_vals(
+      new DataTypeT[num_components]());
 
   // We start processing from the end because this prediction uses data from
   // previous entries that could be overwritten when an entry is processed.
@@ -85,30 +87,16 @@ bool MeshPredictionSchemeMultiParallelogram<DataTypeT, TransformT, MeshDataT>::
       pred_vals[i] = static_cast<DataTypeT>(0);
     }
     while (corner_id >= 0) {
-      // TODO(ostava): Move code shared between multiple predictors into a new
-      // file.
-      int vert_opp = p, vert_next = p, vert_prev = p;
-      const CornerIndex opp_corner = table->Opposite(corner_id);
-      if (opp_corner >= 0) {
-        GetParallelogramEntries(opp_corner, table, *vertex_to_data_map,
-                                &vert_opp, &vert_next, &vert_prev);
-      }
-      if (vert_opp < p && vert_next < p && vert_prev < p) {
-        // Apply the parallelogram prediction.
-        const int v_opp_off = vert_opp * num_components;
-        const int v_next_off = vert_next * num_components;
-        const int v_prev_off = vert_prev * num_components;
+      if (ComputeParallelogramPrediction(
+              p, corner_id, table, *vertex_to_data_map, in_data, num_components,
+              parallelogram_pred_vals.get())) {
         for (int c = 0; c < num_components; ++c) {
-          pred_vals[c] += (in_data[v_next_off + c] + in_data[v_prev_off + c]) -
-                          in_data[v_opp_off + c];
+          pred_vals[c] += parallelogram_pred_vals[c];
         }
         ++num_parallelograms;
       }
 
       // Proceed to the next corner attached to the vertex.
-      // TODO(ostava): This will not go around the whole neighborhood on
-      // vertices on a mesh boundary. We need to SwingLeft from the start vertex
-      // again to get the full coverage.
       corner_id = table->SwingRight(corner_id);
       if (corner_id == start_corner_id) {
         corner_id = kInvalidCornerIndex;
@@ -145,6 +133,8 @@ bool MeshPredictionSchemeMultiParallelogram<DataTypeT, TransformT, MeshDataT>::
   this->transform().InitializeDecoding(num_components);
 
   std::unique_ptr<DataTypeT[]> pred_vals(new DataTypeT[num_components]());
+  std::unique_ptr<DataTypeT[]> parallelogram_pred_vals(
+      new DataTypeT[num_components]());
 
   this->transform().ComputeOriginalValue(pred_vals.get(), in_corr, out_data, 0);
 
@@ -163,21 +153,11 @@ bool MeshPredictionSchemeMultiParallelogram<DataTypeT, TransformT, MeshDataT>::
       pred_vals[i] = static_cast<DataTypeT>(0);
     }
     while (corner_id >= 0) {
-      int vert_opp = p, vert_next = p, vert_prev = p;
-      const CornerIndex opp_corner = table->Opposite(corner_id);
-      if (opp_corner >= 0) {
-        GetParallelogramEntries(opp_corner, table, *vertex_to_data_map,
-                                &vert_opp, &vert_next, &vert_prev);
-      }
-      if (vert_opp < p && vert_next < p && vert_prev < p) {
-        // Apply the parallelogram prediction.
-        const int v_opp_off = vert_opp * num_components;
-        const int v_next_off = vert_next * num_components;
-        const int v_prev_off = vert_prev * num_components;
+      if (ComputeParallelogramPrediction(
+              p, corner_id, table, *vertex_to_data_map, out_data,
+              num_components, parallelogram_pred_vals.get())) {
         for (int c = 0; c < num_components; ++c) {
-          pred_vals[c] +=
-              (out_data[v_next_off + c] + out_data[v_prev_off + c]) -
-              out_data[v_opp_off + c];
+          pred_vals[c] += parallelogram_pred_vals[c];
         }
         ++num_parallelograms;
       }

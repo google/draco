@@ -19,6 +19,7 @@
 #include <unordered_set>
 
 #include "compression/attributes/mesh_attribute_indices_encoding_data.h"
+#include "compression/attributes/mesh_traversal_sequencer.h"
 #include "compression/mesh/mesh_edgebreaker_decoder_impl_interface.h"
 #include "compression/mesh/mesh_edgebreaker_shared.h"
 #include "core/decoder_buffer.h"
@@ -66,6 +67,11 @@ class MeshEdgeBreakerDecoderImpl : public MeshEdgeBreakerDecoderImplInterface {
   }
 
  private:
+  // Creates a vertex traversal sequencer for the specified |TraverserT| type.
+  template <class TraverserT>
+  std::unique_ptr<PointsSequencer> CreateVertexTraversalSequencer(
+      MeshAttributeIndicesEncodingData *encoding_data);
+
   // Decodes connectivty between vertices (vertex indices).
   // Returns the number of vertices created by the decoder or -1 on error.
   int DecodeConnectivity(int num_symbols);

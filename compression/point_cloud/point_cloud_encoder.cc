@@ -35,6 +35,8 @@ bool PointCloudEncoder::Encode(const EncoderOptions &options,
 
   if (!point_cloud_)
     return false;
+  if (!EncodeHeader())
+    return false;
   if (!InitializeEncoder())
     return false;
   if (!EncodeEncoderData())
@@ -43,6 +45,25 @@ bool PointCloudEncoder::Encode(const EncoderOptions &options,
     return false;
   if (!EncodePointAttributes())
     return false;
+  return true;
+}
+
+bool PointCloudEncoder::EncodeHeader() {
+  // Encode the header according to our v1 specification.
+  // Five bytes for Draco format.
+  buffer_->Encode("DRACO", 5);
+  // Version (major, minor).
+  const uint8_t version_major = kDracoBitstreamVersionMajor;
+  const uint8_t version_minor = kDracoBitstreamVersionMinor;
+  buffer_->Encode(version_major);
+  buffer_->Encode(version_minor);
+  // Type of the encoder (point cloud, mesh, ...).
+  const uint8_t encoder_type = GetGeometryType();
+  buffer_->Encode(encoder_type);
+  // Unique identifier for the selected encoding method (edgebreaker, etc...).
+  buffer_->Encode(GetEncodingMethod());
+  // Reserved for flags.
+  buffer_->Encode(static_cast<uint16_t>(0));
   return true;
 }
 

@@ -12,50 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// File provides basic classes and functions for rANS coding.
-#ifndef DRACO_CORE_ADAPTIVE_RANS_CODING_H_
-#define DRACO_CORE_ADAPTIVE_RANS_CODING_H_
+// File provides basic classes and functions for rANS bit decoding.
+#ifndef DRACO_CORE_ADAPTIVE_RANS_BIT_DECODER_H_
+#define DRACO_CORE_ADAPTIVE_RANS_BIT_DECODER_H_
 
 #include <vector>
 
 #include "core/ans.h"
 #include "core/decoder_buffer.h"
-#include "core/encoder_buffer.h"
 
 namespace draco {
-
-// Class for adaptive encoding a sequence of bits using rANS.
-class AdaptiveRAnsBitEncoder {
- public:
-  AdaptiveRAnsBitEncoder();
-  ~AdaptiveRAnsBitEncoder();
-
-  // Must be called before any Encode* function is called.
-  void StartEncoding();
-
-  // Encode one bit. If |bit| is true encode a 1, otherwise encode a 0.
-  void EncodeBit(bool bit) { bits_.push_back(bit); }
-
-  // Encode |nibts| of |value|, starting from the least significant bit.
-  // |nbits| must be > 0 and <= 32.
-  void EncodeLeastSignificantBits32(int nbits, uint32_t value) {
-    DCHECK_EQ(true, nbits <= 32);
-    DCHECK_EQ(true, nbits > 0);
-    uint32_t selector = (1 << (nbits - 1));
-    while (selector) {
-      EncodeBit(value & selector);
-      selector = selector >> 1;
-    }
-  }
-
-  // Ends the bit encoding and stores the result into the target_buffer.
-  void EndEncoding(EncoderBuffer *target_buffer);
-
- private:
-  void Clear();
-
-  std::vector<bool> bits_;
-};
 
 // Class for decoding a sequence of bits that were encoded with
 // AdaptiveRAnsBitEncoder.
@@ -85,4 +51,4 @@ class AdaptiveRAnsBitDecoder {
 
 }  // namespace draco
 
-#endif  // DRACO_CORE_ADAPTIVE_RANS_CODING_H_
+#endif  // DRACO_CORE_ADAPTIVE_RANS_BIT_DECODER_H_

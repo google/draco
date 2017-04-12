@@ -18,6 +18,8 @@
 #include <unordered_map>
 
 #include "compression/attributes/mesh_attribute_indices_encoding_data.h"
+#include "compression/attributes/mesh_traversal_sequencer.h"
+#include "compression/config/compression_shared.h"
 #include "compression/mesh/mesh_edgebreaker_encoder_impl_interface.h"
 #include "compression/mesh/mesh_edgebreaker_shared.h"
 #include "core/encoder_buffer.h"
@@ -32,6 +34,7 @@ template <class TraversalEncoderT>
 class MeshEdgeBreakerEncoderImpl : public MeshEdgeBreakerEncoderImplInterface {
  public:
   MeshEdgeBreakerEncoderImpl();
+  MeshEdgeBreakerEncoderImpl(const TraversalEncoderT &traversal_encoder);
   bool Init(MeshEdgeBreakerEncoder *encoder) override;
 
   const MeshAttributeCornerTable *GetAttributeCornerTable(
@@ -46,12 +49,18 @@ class MeshEdgeBreakerEncoderImpl : public MeshEdgeBreakerEncoderImplInterface {
   const CornerTable *GetCornerTable() const override {
     return corner_table_.get();
   }
+  bool IsFaceEncoded(FaceIndex fi) const { return visited_faces_[fi.value()]; }
   MeshEdgeBreakerEncoder *GetEncoder() const override { return encoder_; }
 
  private:
   // Initializes data needed for encoding non-position attributes.
   // Returns false on error.
   bool InitAttributeData();
+
+  // Creates a vertex traversal sequencer for the specified |TraverserT| type.
+  template <class TraverserT>
+  std::unique_ptr<PointsSequencer> CreateVertexTraversalSequencer(
+      MeshAttributeIndicesEncodingData *encoding_data);
 
   // Finds the configuration of the initial face that starts the traversal.
   // Configurations are determined by location of holes around the init face
@@ -128,6 +137,9 @@ class MeshEdgeBreakerEncoderImpl : public MeshEdgeBreakerEncoderImplInterface {
   // Attribute data for position encoding.
   MeshAttributeIndicesEncodingData pos_encoding_data_;
 
+  // Traversal method used for the position attribute.
+  MeshTraversalMethod pos_traversal_method_;
+
   // Array storing corners in the order they were visited during the
   // connectivity encoding (always storing the tip corner of each newly visited
   // face).
@@ -171,6 +183,8 @@ class MeshEdgeBreakerEncoderImpl : public MeshEdgeBreakerEncoderImplInterface {
     bool is_connectivity_used;
     // Data about attribute encoding order.
     MeshAttributeIndicesEncodingData encoding_data;
+    // Traversal method used to generate the encoding data for this attribute.
+    MeshTraversalMethod traversal_method;
   };
   std::vector<AttributeData> attribute_data_;
 

@@ -18,7 +18,8 @@
 #include <math.h>
 
 #include "compression/attributes/prediction_schemes/mesh_prediction_scheme.h"
-#include "core/rans_coding.h"
+#include "core/rans_bit_decoder.h"
+#include "core/rans_bit_encoder.h"
 #include "core/vector_d.h"
 #include "mesh/corner_table.h"
 
@@ -40,12 +41,13 @@ class MeshPredictionSchemeTexCoords
       typename MeshPredictionScheme<DataTypeT, TransformT, MeshDataT>::CorrType;
   MeshPredictionSchemeTexCoords(const PointAttribute *attribute,
                                 const TransformT &transform,
-                                const MeshDataT &mesh_data)
+                                const MeshDataT &mesh_data, int version)
       : MeshPredictionScheme<DataTypeT, TransformT, MeshDataT>(
             attribute, transform, mesh_data),
         pos_attribute_(nullptr),
         entry_to_point_id_map_(nullptr),
-        num_components_(0) {}
+        num_components_(0),
+        version_(version) {}
 
   bool Encode(const DataTypeT *in_data, CorrType *out_corr, int size,
               int num_components,
@@ -111,6 +113,7 @@ class MeshPredictionSchemeTexCoords
   int num_components_;
   // Encoded / decoded array of UV flips.
   std::vector<bool> orientations_;
+  int version_;
 };
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
@@ -181,7 +184,7 @@ bool MeshPredictionSchemeTexCoords<DataTypeT, TransformT, MeshDataT>::
     DecodePredictionData(DecoderBuffer *buffer) {
   // Decode the delta coded orientations.
   int32_t num_orientations = 0;
-  if (!buffer->Decode(&num_orientations))
+  if (!buffer->Decode(&num_orientations) || num_orientations < 0)
     return false;
   orientations_.resize(num_orientations);
   bool last_orientation = true;
@@ -270,10 +273,19 @@ void MeshPredictionSchemeTexCoords<DataTypeT, TransformT, MeshDataT>::
     // normalization explicitly and instead we can just use the squared norm
     // of |pn| as a denominator of the resulting dot product of non normalized
     // vectors.
-    const float s = pn.Dot(cn) / pn_norm2_squared;
-    // To get the coordinate t, we can use formula:
-    //      t = |C-N - (P-N) * s| / |P-N|
-    const float t = sqrt((cn - pn * s).SquaredNorm() / pn_norm2_squared);
+    float s, t;
+    // |pn_norm2_squared| can be exactly 0 when the next_pos and prev_pos are
+    // the same positions (e.g. because they were quantized to the same
+    // location).
+    if (version_ < DRACO_BITSTREAM_VERSION(1, 2) || pn_norm2_squared > 0) {
+      s = pn.Dot(cn) / pn_norm2_squared;
+      // To get the coordinate t, we can use formula:
+      //      t = |C-N - (P-N) * s| / |P-N|
+      t = sqrt((cn - pn * s).SquaredNorm() / pn_norm2_squared);
+    } else {
+      s = 0;
+      t = 0;
+    }
 
     // Now we need to transform the point (s, t) to the texture coordinate space
     // UV. We know the UV coordinates on points N and P (N_UV and P_UV). Lets

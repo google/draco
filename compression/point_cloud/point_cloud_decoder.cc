@@ -17,12 +17,54 @@
 namespace draco {
 
 PointCloudDecoder::PointCloudDecoder()
-    : point_cloud_(nullptr), buffer_(nullptr) {}
+    : point_cloud_(nullptr),
+      buffer_(nullptr),
+      version_major_(0),
+      version_minor_(0) {}
+
+bool PointCloudDecoder::DecodeHeader(DecoderBuffer *buffer,
+                                     DracoHeader *out_header) {
+  // TODO(ostava): Add error codes for better error reporting.
+  if (!buffer->Decode(out_header->draco_string, 5))
+    return false;
+  if (memcmp(out_header->draco_string, "DRACO", 5) != 0)
+    return false;  // Wrong file format?
+  if (!buffer->Decode(&(out_header->version_major)))
+    return false;
+  if (!buffer->Decode(&(out_header->version_minor)))
+    return false;
+  if (!buffer->Decode(&(out_header->encoder_type)))
+    return false;
+  if (!buffer->Decode(&(out_header->encoder_method)))
+    return false;
+  if (!buffer->Decode(&(out_header->flags)))
+    return false;
+  return true;
+}
 
 bool PointCloudDecoder::Decode(DecoderBuffer *in_buffer,
                                PointCloud *out_point_cloud) {
   buffer_ = in_buffer;
   point_cloud_ = out_point_cloud;
+  DracoHeader header;
+  if (!DecodeHeader(buffer_, &header))
+    return false;
+  // Sanity check that we are really using the right decoder (mostly for cases
+  // where the Decode method was called manually outside of our main API.
+  if (header.encoder_type != GetGeometryType())
+    return false;
+  // TODO(ostava): We should check the method as well, but currently decoders
+  // don't expose the decoding method id.
+  version_major_ = header.version_major;
+  version_minor_ = header.version_minor;
+
+  // Check for version compatibility.
+  if (version_major_ < 1 || version_major_ > kDracoBitstreamVersionMajor)
+    return false;
+  if (version_major_ == kDracoBitstreamVersionMajor &&
+      version_minor_ > kDracoBitstreamVersionMinor)
+    return false;
+
   if (!InitializeDecoder())
     return false;
   if (!DecodeGeometryData())
