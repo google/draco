@@ -76,7 +76,7 @@ class MeshEdgeBreakerDecoderImpl : public MeshEdgeBreakerDecoderImplInterface {
   // Returns the number of vertices created by the decoder or -1 on error.
   int DecodeConnectivity(int num_symbols);
 
-  // Returns true if the current symbol was part of a topolgy split event. This
+  // Returns true if the current symbol was part of a topology split event. This
   // means that the current face was connected to the left edge of a face
   // encoded with the TOPOLOGY_S symbol. |out_symbol_edge| can be used to
   // identify which edge of the source symbol was connected to the TOPOLOGY_S

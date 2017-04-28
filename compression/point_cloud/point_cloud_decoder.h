@@ -22,7 +22,7 @@
 namespace draco {
 
 // Abstract base class for all point cloud and mesh decoders. It provides a
-// basic funcionality that is shared between different decoders.
+// basic functionality that is shared between different decoders.
 class PointCloudDecoder {
  public:
   PointCloudDecoder();
@@ -30,7 +30,7 @@ class PointCloudDecoder {
 
   virtual EncodedGeometryType GetGeometryType() const { return POINT_CLOUD; }
 
-  // Decodes a Draco header int othe provided |out_header|.
+  // Decodes a Draco header int other provided |out_header|.
   // Returns false on error.
   static bool DecodeHeader(DecoderBuffer *buffer, DracoHeader *out_header);
 

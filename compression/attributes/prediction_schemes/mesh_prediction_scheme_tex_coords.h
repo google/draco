@@ -29,7 +29,7 @@ typedef RAnsBitDecoder BinaryDecoder;
 typedef RAnsBitEncoder BinaryEncoder;
 
 // Prediction scheme designed for predicting texture coordinates from known
-// spatial position of vertices. For good parameterizations, the ratios between
+// spatial position of vertices. For good parametrization, the ratios between
 // triangle edge lengths should be about the same in both the spatial and UV
 // coordinate spaces, which makes the positions a good predictor for the UV
 // coordinates.
@@ -243,7 +243,7 @@ void MeshPredictionSchemeTexCoords<DataTypeT, TransformT, MeshDataT>::
     const Vector3f prev_pos = GetPositionForEntryId(prev_data_id);
     // Use the positions of the above triangle to predict the texture coordinate
     // on the tip corner C.
-    // Convert the triangle into a new coordinate system defined by orthoganal
+    // Convert the triangle into a new coordinate system defined by orthogonal
     // bases vectors S, T, where S is vector prev_pos - next_pos and T is an
     // perpendicular vector to S in the same plane as vector the
     // tip_pos - next_pos.

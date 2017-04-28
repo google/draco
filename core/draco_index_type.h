@@ -45,7 +45,7 @@
 //
 //      Strongly typed indices support most of the common binary and unary
 //      operators and support for additional operators can be added if
-//      necesssary.
+//      necessary.
 
 #ifndef DRACO_CORE_DRACO_INDEX_TYPE_H_
 #define DRACO_CORE_DRACO_INDEX_TYPE_H_
@@ -166,7 +166,7 @@ std::ostream &operator<<(std::ostream &os, IndexType<ValueTypeT, TagT> index) {
 
 }  // namespace draco
 
-// Specialize std::hash for the stongly indexed types.
+// Specialize std::hash for the strongly indexed types.
 namespace std {
 
 template <class ValueTypeT, class TagT>

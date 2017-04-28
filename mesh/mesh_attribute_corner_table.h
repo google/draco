@@ -22,7 +22,7 @@ namespace draco {
 
 // Class for storing connectivity of mesh attributes. The connectivity is stored
 // as a difference from the base mesh's corner table, where the differences are
-// represnted by attribute seam edges. This class provides a basic funcionality
+// represented by attribute seam edges. This class provides a basic functionality
 // for detecting the seam edges for a given attribute and for traversing the
 // constrained corner table with the seam edges.
 class MeshAttributeCornerTable {
@@ -122,7 +122,7 @@ class MeshAttributeCornerTable {
   std::vector<VertexIndex> corner_to_vertex_map_;
 
   // Map between vertices and their associated left most corners. A left most
-  // corner is a corner that is adjecent to a boundary or an attribute seam from
+  // corner is a corner that is adjacent to a boundary or an attribute seam from
   // right (i.e., SwingLeft from that corner will return an invalid corner). If
   // no such corner exists for a given vertex, then any corner attached to the
   // vertex can be used.

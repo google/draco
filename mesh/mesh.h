@@ -55,7 +55,7 @@ class Mesh : public PointCloud {
   }
 
   // Sets the total number of faces. Creates new empty faces or deletes
-  // existings ones if necessary.
+  // existing ones if necessary.
   void SetNumFaces(size_t num_faces) { faces_.resize(num_faces, Face()); }
 
   FaceIndex::ValueType num_faces() const { return faces_.size(); }

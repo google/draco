@@ -23,7 +23,7 @@ namespace draco {
 // Parallelogram prediction predicts an attribute value V from three vertices
 // on the opposite face to the predicted vertex. The values on the three
 // vertices are used to construct a parallelogram V' = O - A - B, where O is the
-// value on the oppoiste vertex, and A, B are values on the shared vertices:
+// value on the opposite vertex, and A, B are values on the shared vertices:
 //     V
 //    / \
 //   /   \

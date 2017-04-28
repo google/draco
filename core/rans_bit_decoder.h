@@ -33,7 +33,7 @@ class RAnsBitDecoder {
   // Returns false when the data is invalid.
   bool StartDecoding(DecoderBuffer *source_buffer);
 
-  // Decode one bit. Returns true if the bit is a 1, otherwsie false.
+  // Decode one bit. Returns true if the bit is a 1, otherwise false.
   bool DecodeNextBit();
 
   // Decode the next |nbits| and return the sequence in |value|. |nbits| must be

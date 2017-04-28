@@ -22,7 +22,7 @@ namespace draco {
 // Encoder that tries to predict the edgebreaker traversal symbols based on the
 // vertex valences of the unencoded portion of the mesh. The current prediction
 // scheme assumes that each vertex has valence 6 which can be used to predict
-// the symbol preceeding the one that is currently encoded. Predictions are
+// the symbol preceding the one that is currently encoded. Predictions are
 // encoded using an arithmetic coding which can lead to less than 1 bit per
 // triangle encoding for highly regular meshes.
 class MeshEdgeBreakerTraversalPredictiveEncoder
@@ -84,10 +84,10 @@ class MeshEdgeBreakerTraversalPredictiveEncoder
           // Whenever we reach a split symbol, mark its tip vertex as invalid by
           // setting the valence to a negative value. Any prediction that will
           // use this vertex will then cause a misprediction. This is currently
-          // necessary because the decodding works in the reverse direction and
+          // necessary because the decoding works in the reverse direction and
           // the decoder doesn't know about these vertices until the split
           // symbol is decoded at which point two vertices are merged into one.
-          // This can be most likely solved on the encoder side by spliting the
+          // This can be most likely solved on the encoder side by splitting the
           // tip vertex into two, but since split symbols are relatively rare,
           // it's probably not worth doing it.
           vertex_valences_[corner_table_->Vertex(last_corner_).value()] = -1;

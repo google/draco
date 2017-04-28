@@ -188,7 +188,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
       new SequentialAttributeEncodersController(std::move(sequencer), att_id));
 
   // Update the mapping between the encoder id and the attribute data id.
-  // This will be used by the decoder to select the approperiate attribute
+  // This will be used by the decoder to select the appropriate attribute
   // decoder and the correct connectivity.
   attribute_encoder_to_data_id_map_.push_back(att_data_id);
   GetEncoder()->AddAttributesEncoder(std::move(att_controller));

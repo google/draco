@@ -26,9 +26,9 @@ namespace draco {
 
 // The transform works on octahedral coordinates for normals. The square is
 // subdivided into four inner triangles (diamond) and four outer triangles. The
-// inner trianlges are associated with the upper part of the octahedron and the
+// inner triangles are associated with the upper part of the octahedron and the
 // outer triangles are associated with the lower part.
-// Given a preditiction value P and the actual value Q that should be encoded,
+// Given a prediction value P and the actual value Q that should be encoded,
 // this transform first checks if P is outside the diamond. If so, the outer
 // triangles are flipped towards the inside and vice versa. The actual
 // correction value is then based on the mapped P and Q values. This tends to

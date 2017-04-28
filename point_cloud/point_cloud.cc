@@ -169,7 +169,7 @@ void PointCloud::ApplyPointIdDeduplication(
 bool PointCloud::DeduplicateAttributeValues() {
   // Go over all attributes and create mapping between duplicate entries.
   if (num_points() == 0)
-    return false;  // Unexcpected attribute size.
+    return false;  // Unexpected attribute size.
   // Deduplicate all attributes.
   for (int32_t att_id = 0; att_id < num_attributes(); ++att_id) {
     if (!attribute(att_id)->DeduplicateValues(*attribute(att_id)))

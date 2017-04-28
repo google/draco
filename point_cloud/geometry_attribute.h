@@ -157,14 +157,14 @@ class GeometryAttribute {
   // Returns the type of the attribute indicating the nature of the attribute.
   Type attribute_type() const { return attribute_type_; }
   void set_attribute_type(Type type) { attribute_type_ = type; }
-  // Retruns the data type that is stored in the attrbute.
+  // Returns the data type that is stored in the attribute.
   DataType data_type() const { return data_type_; }
   // Returns the number of components that are stored for each entry.
-  // For position attrinute this is usually three (x,y,z),
-  // while texture coordinates have two compontents (u,v).
+  // For position attribute this is usually three (x,y,z),
+  // while texture coordinates have two components (u,v).
   int8_t components_count() const { return components_count_; }
   // Indicates whether the data type should be normalized before interpretation,
-  // that is, it should be devided by the max value of the data type.
+  // that is, it should be divided by the max value of the data type.
   bool normalized() const { return normalized_; }
   // The buffer storing the entire data of the attribute.
   const DataBuffer *buffer() const { return buffer_; }
@@ -219,7 +219,7 @@ class GeometryAttribute {
   // The same as above but without a component specifier for input attribute.
   template <typename T, typename OutT, int OUT_CMPS>
   bool ConvertTypedValue(AttributeValueIndex att_index, OutT *out_value) const {
-    // Selecte the right method to call based on the number of attribute
+    // Select the right method to call based on the number of attribute
     // components.
     switch (components_count_) {
       case 1:

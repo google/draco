@@ -356,7 +356,7 @@ bool ObjDecoder::ParseFace(bool *error) {
       ++num_obj_faces_;
     }
   } else {
-    // We are in the couting mode.
+    // We are in the counting mode.
     // We need to determine how many triangles are in the obj face.
     // Go over the line and check how many gaps there are between non-empty
     // sub-strings.

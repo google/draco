@@ -37,7 +37,7 @@ CreatePredictionSchemeForDecoder(PredictionSchemeMethod method, int att_id,
     // Cast the decoder to mesh decoder. This is not necessarily safe if there
     // is some other decoder decides to use TRIANGULAR_MESH as the return type,
     // but unfortunately there is not nice work around for this without using
-    // RTTI (double dispatch and similar conecepts will not work because of the
+    // RTTI (double dispatch and similar concepts will not work because of the
     // template nature of the prediction schemes).
     const MeshDecoder *const mesh_decoder =
         static_cast<const MeshDecoder *>(decoder);

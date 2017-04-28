@@ -27,7 +27,7 @@ namespace draco {
 // arguments TraversalProcessorT, TraversalObserverT and EdgeBreakerObserverT.
 // TraversalProcessorT is used to provide infrastructure for handling of visited
 // vertices and faces, TraversalObserverT can be used to implement custom
-// callbacks for varous traversal events, and EdgeBreakerObserverT can be used
+// callbacks for various traversal events, and EdgeBreakerObserverT can be used
 // to provide handling of edgebreaker symbols.
 // TraversalProcessorT needs to define the type of the corner table as:
 //

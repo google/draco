@@ -53,7 +53,7 @@ class CornerTable {
       const IndexTypeVector<FaceIndex, FaceType> &faces);
 
   // Initializes the CornerTable from provides set of indexed faces.
-  // The input faces can represent a non-manifold topolgy, in which case the
+  // The input faces can represent a non-manifold topology, in which case the
   // non-manifold edges and vertices are going to be split.
   bool Initialize(const IndexTypeVector<FaceIndex, FaceType> &faces);
 
@@ -157,7 +157,7 @@ class CornerTable {
     return Next(Opposite(Next(corner)));
   }
 
-  // Get opposite corners on the left and right faces respecitively (see image
+  // Get opposite corners on the left and right faces respectively (see image
   // below, where L and R are the left and right corners of a corner X.
   //
   // *-------*-------*
@@ -177,7 +177,7 @@ class CornerTable {
   }
 
   // Returns the number of new vertices that were created as a result of
-  // spliting of non-manifold vertices of the input geometry.
+  // splitting of non-manifold vertices of the input geometry.
   int NumNewVertices() const { return num_vertices() - num_original_vertices_; }
   int NumOriginalVertices() const { return num_original_vertices_; }
 
@@ -206,7 +206,7 @@ class CornerTable {
       SetOppositeCorner(corner_1, corner_0);
   }
 
-  // Updates mapping betweeh a corner and a vertex.
+  // Updates mapping between a corner and a vertex.
   inline void MapCornerToVertex(CornerIndex corner_id, VertexIndex vert_id) {
     const FaceIndex face = Face(corner_id);
     faces_[face][LocalIndex(corner_id)] = vert_id;
@@ -284,7 +284,7 @@ class CornerTable {
   bool ComputeOppositeCorners(int *num_vertices);
 
   // Computes the lookup map for going from a vertex to a corner. This method
-  // can handle non-manifold vertices by spliting them into multiple manifold
+  // can handle non-manifold vertices by splitting them into multiple manifold
   // vertices.
   bool ComputeVertexCorners(int num_vertices);
 
@@ -412,7 +412,7 @@ class FaceAdjacencyIterator
   // Returns true when all adjacent faces have been visited.
   bool End() const { return corner_ < 0; }
 
-  // Proceeds to the next adjacen face if possible.
+  // Proceeds to the next adjacent face if possible.
   void Next() { FindNextFaceNeighbor(); }
 
   // std::iterator interface.

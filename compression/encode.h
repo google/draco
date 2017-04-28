@@ -34,7 +34,7 @@ bool EncodeMeshToBuffer(const Mesh &m, const EncoderOptions &options,
                         EncoderBuffer *out_buffer);
 
 // Creates default encoding options that contain a valid set of features that
-// the encoder can use. Otherwise all options are left unitialized which results
+// the encoder can use. Otherwise all options are left uninitialized which results
 // in a lossless compression.
 EncoderOptions CreateDefaultEncoderOptions();
 
@@ -93,7 +93,7 @@ void SetEncodingMethod(EncoderOptions *options, int encoding_method);
 // Sets the desired prediction method for a given attribute. By default,
 // prediction scheme is selected automatically by the encoder using other
 // provided options (such as speed) and input geometry type (mesh, point cloud).
-// This function should be called only when a specific prediction is prefered
+// This function should be called only when a specific prediction is preferred
 // (e.g., when it is known that the encoder would select a less optimal
 // prediction for the given input data).
 //

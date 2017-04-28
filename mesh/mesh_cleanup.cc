@@ -162,7 +162,7 @@ bool MeshCleanup::operator()(Mesh *mesh, const MeshCleanupOptions &options) {
             const PointIndex new_point_id = point_map[i];
             if (new_point_id < 0)
               continue;
-            // Index of the currenlty processed attribut entry in the original
+            // Index of the currently processed attribute entry in the original
             // mesh.
             const AttributeValueIndex original_entry_index =
                 att->mapped_index(i);

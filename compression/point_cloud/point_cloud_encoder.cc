@@ -153,7 +153,7 @@ bool PointCloudEncoder::RearrangeAttributesEncoders() {
   // Find the encoding order of the attribute encoders that is determined by
   // the parent dependencies between individual encoders. Instead of traversing
   // a graph we encode the attributes in multiple iterations where encoding of
-  // attributes that depend on other attributes may get posponed until the
+  // attributes that depend on other attributes may get postponed until the
   // parent attributes are processed.
   // This is simpler to implement than graph traversal and it automatically
   // detects any cycles in the dependency graph.

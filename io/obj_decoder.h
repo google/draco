@@ -41,7 +41,7 @@ class ObjDecoder {
   bool DecodeFromBuffer(DecoderBuffer *buffer, PointCloud *out_point_cloud);
 
   // Flag that can be used to turn on/off deduplication of input values.
-  // This should be disabled only when we are sure that the input data doesn not
+  // This should be disabled only when we are sure that the input data does not
   // contain any duplicate entries.
   // Default: true
   void set_deduplicate_input_values(bool v) { deduplicate_input_values_ = v; }
