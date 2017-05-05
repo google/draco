@@ -37,7 +37,7 @@ class PredictionSchemeTransform {
     return PREDICTION_TRANSFORM_DELTA;
   }
 
-  // Performs any custom initialization of the trasnform for the encoder.
+  // Performs any custom initialization of the transform for the encoder.
   // |size| = total number of values in |orig_data| (i.e., number of entries *
   // number of components).
   void InitializeEncoding(const DataTypeT * /* orig_data */, int /* size */,

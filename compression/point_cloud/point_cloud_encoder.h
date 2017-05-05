@@ -24,7 +24,7 @@
 namespace draco {
 
 // Abstract base class for all point cloud and mesh encoders. It provides a
-// basic funcionality that's shared between different encoders.
+// basic functionality that's shared between different encoders.
 class PointCloudEncoder {
  public:
   PointCloudEncoder();

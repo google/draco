@@ -140,7 +140,7 @@ TEST_F(PointCloudBuilderTest, MultiUse) {
   }
 
   {
-    // Use only a sub-set of data (offseted to avoid possible reuse of old
+    // Use only a sub-set of data (offsetted to avoid possible reuse of old
     // data).
     builder.Start(4);
     const int pos_att_id =

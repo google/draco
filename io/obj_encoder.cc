@@ -30,7 +30,7 @@ bool ObjEncoder::EncodeToFile(const PointCloud &pc,
                               const std::string &file_name) {
   std::ofstream file(file_name);
   if (!file)
-    return false;  // File coulnd't be opened.
+    return false;  // File could not be opened.
   // Encode the mesh into a buffer.
   EncoderBuffer buffer;
   if (!EncodeToBuffer(pc, &buffer))

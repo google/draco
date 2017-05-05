@@ -63,7 +63,7 @@ class MeshEdgeBreakerTraversalValenceEncoder
 
     // Replicate the corner to vertex map from the corner table. We need to do
     // this because the map may get updated during encoding because we add new
-    // vertices when we encouter split symbols.
+    // vertices when we encounter split symbols.
     corner_to_vertex_map_.resize(corner_table_->num_corners());
     for (CornerIndex i(0); i < corner_table_->num_corners(); ++i) {
       corner_to_vertex_map_[i] = corner_table_->Vertex(i);

@@ -21,7 +21,7 @@
 
 namespace draco {
 
-// Class encapsuling options used by PointCloudEncoder and its derived classes.
+// Class encapsulating options used by PointCloudEncoder and its derived classes.
 // The encoder can be controller through three different options:
 //   1. Global options
 //   2. Per attribute options - i.e., options specific to a given attribute.
@@ -34,7 +34,7 @@ class EncoderOptions {
  public:
   static EncoderOptions CreateDefaultOptions();
 
-  // Sets the global options that serve to control the overal behavior of an
+  // Sets the global options that serve to control the overall behavior of an
   // encoder as well as a fallback for attribute options if they are not set.
   void SetGlobalOptions(const Options &o);
   Options *GetGlobalOptions() { return &global_options_; }

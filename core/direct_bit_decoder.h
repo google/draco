@@ -30,7 +30,7 @@ class DirectBitDecoder {
   // Sets |source_buffer| as the buffer to decode bits from.
   bool StartDecoding(DecoderBuffer *source_buffer);
 
-  // Decode one bit. Returns true if the bit is a 1, otherwsie false.
+  // Decode one bit. Returns true if the bit is a 1, otherwise false.
   bool DecodeNextBit() {
     const uint32_t selector = 1 << (31 - num_used_bits_);
     const bool bit = *pos_ & selector;

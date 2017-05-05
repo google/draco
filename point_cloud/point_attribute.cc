@@ -81,7 +81,7 @@ AttributeValueIndex::ValueType PointAttribute::DeduplicateValues(
       return -1;  // Unsupported data type.
   }
   if (unique_vals == 0)
-    return -1;  // Unexcpected error.
+    return -1;  // Unexpected error.
   return unique_vals;
 }
 

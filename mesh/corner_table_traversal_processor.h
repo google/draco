@@ -19,7 +19,7 @@
 
 namespace draco {
 
-// Class providing the basic traversal funcionality needed by traversers (such
+// Class providing the basic traversal functionality needed by traverses (such
 // as the EdgeBreakerTraverser, see edgebreaker_traverser.h). It is used to
 // return the corner table that is used for the traversal, plus it provides a
 // basic book-keeping of visited faces and vertices during the traversal.

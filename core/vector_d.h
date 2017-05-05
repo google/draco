@@ -179,7 +179,7 @@ CoeffT SquaredDistance(const VectorD<CoeffT, dimension_t> v1,
                        const VectorD<CoeffT, dimension_t> v2) {
   CoeffT difference;
   CoeffT squared_distance = 0;
-  // Check each index seperately so difference is never negative and underflow
+  // Check each index separately so difference is never negative and underflow
   // is avoided for unsigned types.
   for (int i = 0; i < dimension_t; ++i) {
     if (v1[i] >= v2[i]) {

@@ -50,7 +50,7 @@ inline void CopyBits32(uint32_t *dst, int dst_offset, uint32_t src,
 
 // Returns the most location of the most significant bit in the input integer
 // |n|.
-// The funcionality is not defined for |n == 0|.
+// The functionality is not defined for |n == 0|.
 inline int MostSignificantBit(uint32_t n) {
 #if defined(__GNUC__)
   return 31 ^ __builtin_clz(n);

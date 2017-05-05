@@ -26,9 +26,9 @@ namespace draco {
 
 // The transform works on octahedral coordinates for normals. The square is
 // subdivided into four inner triangles (diamond) and four outer triangles. The
-// inner trianlges are associated with the upper part of the octahedron and the
+// inner triangles are associated with the upper part of the octahedron and the
 // outer triangles are associated with the lower part.
-// Given a preditiction value P and the actual value Q that should be encoded,
+// Given a prediction value P and the actual value Q that should be encoded,
 // this transform first checks if P is outside the diamond. If so, the outer
 // triangles are flipped towards the inside and vice versa. Then it checks if p
 // is in the bottom left quadrant. If it is not, it rotates p and q accordingly.
@@ -36,7 +36,7 @@ namespace draco {
 // values. The inversion tends to result in shorter correction vectors and the
 // rotation makes it so that all long correction values are positive, reducing
 // the possible value range of the correction values and increasing the
-// occurence of positive large correction values, which helps the entropy
+// occurrences of positive large correction values, which helps the entropy
 // encoder. This is possible since P is also known by the decoder, see also
 // ComputeCorrection and ComputeOriginalValue functions.
 // Note that the tile is not periodic, which implies that the outer edges can

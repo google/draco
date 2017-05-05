@@ -30,7 +30,7 @@ void AdaptiveRAnsBitEncoder::EndEncoding(EncoderBuffer *target_buffer) {
   AnsCoder ans_coder;
   ans_write_init(&ans_coder, buffer.data());
 
-  // Unfortunaetly we have to encode the bits in reversed order, while the
+  // Unfortunately we have to encode the bits in reversed order, while the
   // probabilities that should be given are those of the forward sequence.
   double p0_f = 0.5;
   std::vector<uint8_t> p0s;

@@ -23,7 +23,7 @@
 namespace draco {
 
 // Class representing a buffer that can be used for either for byte-aligned
-// encoding of arbitrary data structures or for encoding of varialble-length
+// encoding of arbitrary data structures or for encoding of variable-length
 // bit data.
 class EncoderBuffer {
  public:

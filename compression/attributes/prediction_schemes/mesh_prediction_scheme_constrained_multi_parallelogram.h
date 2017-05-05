@@ -123,7 +123,7 @@ bool MeshPredictionSchemeConstrainedMultiParallelogram<
     std::vector<DataTypeT> predicted_value;
   };
 
-  // Bit-field used for computing permutations of exlcluded edges
+  // Bit-field used for computing permutations of excluded edges
   // (parallelograms).
   bool exluded_parallelograms[kMaxNumParallelograms];
 

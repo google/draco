@@ -30,7 +30,7 @@ inline uint8_t clamp_probability(double p) {
   return static_cast<uint8_t>(p_int);
 }
 
-// Update the probablity according to new incoming bit.
+// Update the probability according to new incoming bit.
 inline double update_probability(double old_p, bool bit) {
   static constexpr double w = 128.0;
   static constexpr double w0 = (w - 1.0) / w;

@@ -33,7 +33,7 @@ class DecoderBuffer {
   DecoderBuffer &operator=(const DecoderBuffer &buf) = default;
 
   // Sets the buffer's internal data. Note that no copy of the input data is
-  // made so the data owner needs to keep the data valid and unchaged for
+  // made so the data owner needs to keep the data valid and unchanged for
   // runtime of the decoder.
   void Init(const char *data, size_t data_size);
 
@@ -48,7 +48,7 @@ class DecoderBuffer {
   void EndBitDecoding();
 
   // Decodes up to 32 bits into out_val. Can be called only in between
-  // StartBitDecoding and EndBitDeoding. Otherwise returns false.
+  // StartBitDecoding and EndBitDecoding. Otherwise returns false.
   bool DecodeLeastSignificantBits32(int nbits, uint32_t *out_value) {
     if (!bit_decoder_active())
       return false;
@@ -95,7 +95,7 @@ class DecoderBuffer {
   // Discards #bytes from the input buffer.
   void Advance(int64_t bytes) { pos_ += bytes; }
 
-  // Moves the parsing position to a specific offset from the beggining of the
+  // Moves the parsing position to a specific offset from the beginning of the
   // input data.
   void StartDecodingFrom(int64_t offset) { pos_ = offset; }
 

@@ -619,7 +619,7 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       //      \ /     \b/     \ /
       //       *-------*-------*
       //
-      // TODO(ostava): The ciruclation below should be replaced by functions
+      // TODO(ostava): The circulation below should be replaced by functions
       // that can be reused elsewhere.
       CornerIndex corner_b = corner_table_->Previous(corner);
       while (corner_table_->Opposite(corner_b) >= 0) {
@@ -660,7 +660,7 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
     }
   }
   if (num_faces != corner_table_->num_faces())
-    return -1;  // Unexcpected number of decoded faces.
+    return -1;  // Unexpected number of decoded faces.
   vertex_id_map_.resize(num_vertices);
   return num_vertices;
 }
@@ -847,7 +847,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners() {
     // Do a deduplication pass over the corners on the processed vertex.
     // At this point each corner corresponds to one point id and our goal is to
     // merge similar points into a single point id.
-    // We do one one pass in a clocwise direction over the corners and we add
+    // We do one one pass in a clockwise direction over the corners and we add
     // a new point id whenever one of the attributes change.
     c = deduplication_first_corner;
     // Create a new point.
