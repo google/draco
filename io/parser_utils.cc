@@ -51,7 +51,7 @@ void SkipWhitespace(DecoderBuffer *buffer) {
 }
 
 bool PeekWhitespace(DecoderBuffer *buffer, bool *end_reached) {
-  char c;
+  unsigned char c;
   if (!buffer->Peek(&c)) {
     *end_reached = true;
     return false;  // eof reached.
