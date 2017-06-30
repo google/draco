@@ -101,7 +101,9 @@ THREE.DRACOLoader.prototype = {
          * Example on how to retrieve mesh and attributes.
          */
         let numFaces, numPoints;
-        let numVertexCoordinates, numTextureCoordinates, numAttributes;
+        let numVertexCoordinates, numTextureCoordinates, numColorCoordinates;
+        let numAttributes;
+        let numColorCoordinateComponents = 3;
         // For output basic geometry information.
         let geometryInfoStr;
         if (geometryType == dracoDecoder.TRIANGULAR_MESH) {
@@ -115,6 +117,7 @@ THREE.DRACOLoader.prototype = {
         numPoints = dracoGeometry.num_points();
         numVertexCoordinates = numPoints * 3;
         numTextureCoordinates = numPoints * 2;
+        numColorCoordinates = numPoints * 3;
         numAttributes = dracoGeometry.num_attributes();
         if (this.verbosity > 0) {
           console.log('Number of points loaded: ' + numPoints.toString());
@@ -145,6 +148,10 @@ THREE.DRACOLoader.prototype = {
             console.log('Loaded color attribute.');
           }
           const colAttribute = wrapper.GetAttribute(dracoGeometry, colorAttId);
+          if (colAttribute.components_count() === 4) {
+            numColorCoordinates = numPoints * 4;
+            numColorCoordinateComponents = 4;
+          }
           colAttributeData = new dracoDecoder.DracoFloat32Array();
           wrapper.GetAttributeFloatForAllPoints(dracoGeometry, colAttribute,
                                                 colAttributeData);
@@ -187,33 +194,30 @@ THREE.DRACOLoader.prototype = {
             vertices: new Float32Array(numVertexCoordinates),
             normals: new Float32Array(numVertexCoordinates),
             uvs: new Float32Array(numTextureCoordinates),
-            colors: new Float32Array(numVertexCoordinates)
+            colors: new Float32Array(numColorCoordinates)
         };
 
         for (let i = 0; i < numVertexCoordinates; i += 3) {
             geometryBuffer.vertices[i] = posAttributeData.GetValue(i);
             geometryBuffer.vertices[i + 1] = posAttributeData.GetValue(i + 1);
             geometryBuffer.vertices[i + 2] = posAttributeData.GetValue(i + 2);
-            // Add color.
-            // ThreeJS vertex colors need to be normalized to properly display
-            if (colorAttId != -1) {
-              geometryBuffer.colors[i] = colAttributeData.GetValue(i) / 255;
-              geometryBuffer.colors[i + 1] =
-                  colAttributeData.GetValue(i + 1) / 255;
-              geometryBuffer.colors[i + 2] =
-                  colAttributeData.GetValue(i + 2) / 255;
-            } else {
-              // Default is white. This is faster than TypedArray.fill().
-              geometryBuffer.colors[i] = 1.0;
-              geometryBuffer.colors[i + 1] = 1.0;
-              geometryBuffer.colors[i + 2] = 1.0;
-            }
             // Add normal.
             if (normalAttId != -1) {
               geometryBuffer.normals[i] = norAttributeData.GetValue(i);
               geometryBuffer.normals[i + 1] = norAttributeData.GetValue(i + 1);
               geometryBuffer.normals[i + 2] = norAttributeData.GetValue(i + 2);
             }
+        }
+
+        // Add color.
+        for (let i = 0; i < numColorCoordinates; i += 1) {
+          if (colorAttId != -1) {
+            // Draco colors are already normalized.
+            geometryBuffer.colors[i] = colAttributeData.GetValue(i);
+          } else {
+            // Default is white. This is faster than TypedArray.fill().
+            geometryBuffer.colors[i] = 1.0;
+          }
         }
 
         // Add texture coordinates.
@@ -257,7 +261,8 @@ THREE.DRACOLoader.prototype = {
         geometry.addAttribute('position',
             new THREE.Float32BufferAttribute(geometryBuffer.vertices, 3));
         geometry.addAttribute('color',
-            new THREE.Float32BufferAttribute(geometryBuffer.colors, 3));
+            new THREE.Float32BufferAttribute(geometryBuffer.colors,
+                                             numColorCoordinateComponents));
         if (normalAttId != -1) {
           geometry.addAttribute('normal',
               new THREE.Float32BufferAttribute(geometryBuffer.normals, 3));
