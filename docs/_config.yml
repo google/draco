@@ -30,5 +30,6 @@ gems:
 exclude:
   - Gemfile
   - Gemfile.lock
+  - docs/_site
 sass:
     style: compressed
