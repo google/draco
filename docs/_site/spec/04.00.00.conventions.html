@@ -1,0 +1,42 @@
+<h2 id="conventions">Conventions</h2>
+
+<ul>
+  <li>
+    <p>When bit reading is finished it will always pad the read to the current
+byte.</p>
+  </li>
+  <li>
+    <p>Draco encoded mesh files are comprised of three main sections. This first
+section is the header. The second section contains the connectivity data.
+The third section contains the attribute data. The header must be decoded
+first, then the connectivity section, and then the attribute section.</p>
+  </li>
+  <li>
+    <p>The Connectivity section is composed of the following sections in order:</p>
+
+    <ul>
+      <li>
+        <p>Connectivity header</p>
+      </li>
+      <li>
+        <p>EdgeBreaker symbol buffer</p>
+      </li>
+      <li>
+        <p>Start face buffer</p>
+      </li>
+      <li>
+        <p>EdgeBreaker valence header</p>
+      </li>
+      <li>
+        <p>Context data for the valence prediction</p>
+      </li>
+      <li>
+        <p>Hole and Split data</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>The hole and split data must be decoded before the EdgeBreaker symbols are
+decoded.</p>
+  </li>
+</ul>

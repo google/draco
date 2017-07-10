@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Draco Bitstream Specification (Draft)</title>
+  <link rel="stylesheet" href="/docs/assets/css/spec-style.css">
+  <style>
+    body {counter-reset: h2}
+    h2 {counter-reset: h3}
+    h3 {counter-reset: h4}
+    h4 {counter-reset: h5}
+    h5 {counter-reset: h6}
+
+    h2:before {counter-increment: h2; content: counter(h2) ". "}
+    h3:before {counter-increment: h3; content: counter(h2) "." counter(h3) ". "}
+    h4:before {counter-increment: h4; content: counter(h2) "." counter(h3) "." counter(h4) ". "}
+    h5:before {counter-increment: h5; content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) ". "}
+    h6:before {counter-increment: h6; content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) "." counter(h6) ". "}
+
+    h2.nocount:before, h3.nocount:before, h4.nocount:before, h5.nocount:before, h6.nocount:before { content: ""; counter-increment: none }
+  </style>
+</head>
+<body>
+
+
+<h1 class="no_toc" id="draco-bitstream-specification-draft">Draco Bitstream Specification (Draft)</h1>
+
+<p><em>Version 1,2</em><br />
+<em>Released 2017-xx-xx</em></p>
+
+<p><em>Frank Galligan, Google<br />
+[author]<br />
+[author]</em></p>
+
+<p><em>Last modified: 2017-07-09 18:30:06 -0700</em></p>
+
+<h2 class="no_toc nocount" id="abstract">Abstract</h2>
+
+<p>This document defines the bitstream format and decoding process for the
+Draco 3D Data Compression scheme.</p>
+
+<p><strong>Contents</strong></p>
+
+<ul id="markdown-toc">
+  <li><a href="#scope" id="markdown-toc-scope">Scope</a></li>
+  <li><a href="#terms-and-definitions" id="markdown-toc-terms-and-definitions">Terms and Definitions</a></li>
+  <li><a href="#symbols-and-abbreviated-terms" id="markdown-toc-symbols-and-abbreviated-terms">Symbols (and abbreviated terms)</a></li>
+  <li><a href="#conventions" id="markdown-toc-conventions">Conventions</a></li>
+  <li><a href="#draco-decoder" id="markdown-toc-draco-decoder">Draco Decoder</a>    <ul>
+      <li><a href="#decode" id="markdown-toc-decode">Decode()</a></li>
+      <li><a href="#decodeheader" id="markdown-toc-decodeheader">DecodeHeader()</a></li>
+      <li><a href="#decodeattributedata" id="markdown-toc-decodeattributedata">DecodeAttributeData()</a></li>
+    </ul>
+  </li>
+  <li><a href="#mesh-decoder" id="markdown-toc-mesh-decoder">Mesh Decoder</a>    <ul>
+      <li><a href="#decodeconnectivitydata" id="markdown-toc-decodeconnectivitydata">DecodeConnectivityData()</a></li>
+    </ul>
+  </li>
+  <li><a href="#edgebreaker-decoder" id="markdown-toc-edgebreaker-decoder">EdgeBreaker Decoder</a>    <ul>
+      <li><a href="#initializedecoder" id="markdown-toc-initializedecoder">InitializeDecoder()</a></li>
+      <li><a href="#decodeconnectivity" id="markdown-toc-decodeconnectivity">DecodeConnectivity()</a></li>
+      <li><a href="#assignpointstocorners" id="markdown-toc-assignpointstocorners">AssignPointsToCorners()</a></li>
+      <li><a href="#decodeconnectivity-1" id="markdown-toc-decodeconnectivity-1">DecodeConnectivity()</a></li>
+      <li><a href="#updatecornertableforsymbolc" id="markdown-toc-updatecornertableforsymbolc">UpdateCornerTableForSymbolC()</a></li>
+      <li><a href="#updatecornertableforsymbollr" id="markdown-toc-updatecornertableforsymbollr">UpdateCornerTableForSymbolLR()</a></li>
+      <li><a href="#handlesymbols" id="markdown-toc-handlesymbols">HandleSymbolS()</a></li>
+      <li><a href="#updatecornertableforsymbole" id="markdown-toc-updatecornertableforsymbole">UpdateCornerTableForSymbolE()</a></li>
+      <li><a href="#updatecornertableforinteriorface" id="markdown-toc-updatecornertableforinteriorface">UpdateCornerTableForInteriorFace()</a></li>
+      <li><a href="#istopologysplit" id="markdown-toc-istopologysplit">IsTopologySplit()</a></li>
+      <li><a href="#decodeattributeconnectivitiesonface" id="markdown-toc-decodeattributeconnectivitiesonface">DecodeAttributeConnectivitiesOnFace()</a></li>
+      <li><a href="#setoppositecorners" id="markdown-toc-setoppositecorners">SetOppositeCorners()</a></li>
+    </ul>
+  </li>
+  <li><a href="#edgebreaker-hole-and-topology-split-events" id="markdown-toc-edgebreaker-hole-and-topology-split-events">EdgeBreaker Hole and Topology Split Events</a>    <ul>
+      <li><a href="#decodeholeandtopologysplitevents" id="markdown-toc-decodeholeandtopologysplitevents">DecodeHoleAndTopologySplitEvents()</a></li>
+      <li><a href="#createattributesdecoder" id="markdown-toc-createattributesdecoder">CreateAttributesDecoder</a></li>
+    </ul>
+  </li>
+  <li><a href="#edgebreaker-traversal-decoder" id="markdown-toc-edgebreaker-traversal-decoder">Edgebreaker Traversal Decoder</a>    <ul>
+      <li><a href="#edgebreakertraversal_start" id="markdown-toc-edgebreakertraversal_start">EdgebreakerTraversal_Start()</a></li>
+      <li><a href="#traversal_decodesymbol" id="markdown-toc-traversal_decodesymbol">Traversal_DecodeSymbol()</a></li>
+      <li><a href="#decodeattributeseam" id="markdown-toc-decodeattributeseam">DecodeAttributeSeam()</a></li>
+    </ul>
+  </li>
+  <li><a href="#edgebreaker-traversal-valence-decoder" id="markdown-toc-edgebreaker-traversal-valence-decoder">EdgeBreaker Traversal Valence Decoder</a>    <ul>
+      <li><a href="#edgebreakertraversalvalence_start" id="markdown-toc-edgebreakertraversalvalence_start">EdgeBreakerTraversalValence_Start()</a></li>
+      <li><a href="#traversalvalence_decodesymbol" id="markdown-toc-traversalvalence_decodesymbol">TraversalValence_DecodeSymbol()</a></li>
+      <li><a href="#traversalvalence_newactivecornerreached" id="markdown-toc-traversalvalence_newactivecornerreached">TraversalValence_NewActiveCornerReached()</a></li>
+      <li><a href="#traversalvalence_mergevertices" id="markdown-toc-traversalvalence_mergevertices">TraversalValence_MergeVertices()</a></li>
+    </ul>
+  </li>
+  <li><a href="#attributes-decoder" id="markdown-toc-attributes-decoder">Attributes Decoder</a>    <ul>
+      <li><a href="#decodeattributesdecoderdata" id="markdown-toc-decodeattributesdecoderdata">DecodeAttributesDecoderData()</a></li>
+    </ul>
+  </li>
+  <li><a href="#sequential-attributes-decoders-controller" id="markdown-toc-sequential-attributes-decoders-controller">Sequential Attributes Decoders Controller</a>    <ul>
+      <li><a href="#decodeattributesdecoderdata-1" id="markdown-toc-decodeattributesdecoderdata-1">DecodeAttributesDecoderData()</a></li>
+      <li><a href="#decodeattributes" id="markdown-toc-decodeattributes">DecodeAttributes()</a></li>
+      <li><a href="#createsequentialdecoder" id="markdown-toc-createsequentialdecoder">CreateSequentialDecoder()</a></li>
+    </ul>
+  </li>
+  <li><a href="#sequential-attribute-decoder" id="markdown-toc-sequential-attribute-decoder">Sequential Attribute Decoder</a>    <ul>
+      <li><a href="#decodevalues" id="markdown-toc-decodevalues">DecodeValues()</a></li>
+    </ul>
+  </li>
+  <li><a href="#sequential-integer-attribute-decoder" id="markdown-toc-sequential-integer-attribute-decoder">Sequential Integer Attribute Decoder</a>    <ul>
+      <li><a href="#decodevalues-1" id="markdown-toc-decodevalues-1">DecodeValues()</a></li>
+      <li><a href="#decodeintegervalues" id="markdown-toc-decodeintegervalues">DecodeIntegerValues()</a></li>
+    </ul>
+  </li>
+  <li><a href="#sequential-quantization-attribute-decoder" id="markdown-toc-sequential-quantization-attribute-decoder">Sequential Quantization Attribute Decoder</a>    <ul>
+      <li><a href="#decodeintegervalues-1" id="markdown-toc-decodeintegervalues-1">DecodeIntegerValues()</a></li>
+      <li><a href="#dequantizevalues" id="markdown-toc-dequantizevalues">DequantizeValues()</a></li>
+    </ul>
+  </li>
+  <li><a href="#prediction-scheme-transform" id="markdown-toc-prediction-scheme-transform">Prediction Scheme Transform</a>    <ul>
+      <li><a href="#computeoriginalvalue" id="markdown-toc-computeoriginalvalue">ComputeOriginalValue()</a></li>
+    </ul>
+  </li>
+  <li><a href="#prediction-scheme-wrap-transform" id="markdown-toc-prediction-scheme-wrap-transform">Prediction Scheme Wrap Transform</a>    <ul>
+      <li><a href="#decodetransformdata" id="markdown-toc-decodetransformdata">DecodeTransformData()</a></li>
+      <li><a href="#computeoriginalvalue-1" id="markdown-toc-computeoriginalvalue-1">ComputeOriginalValue()</a></li>
+      <li><a href="#clamppredictedvalue" id="markdown-toc-clamppredictedvalue">ClampPredictedValue()</a></li>
+    </ul>
+  </li>
+  <li><a href="#mesh-prediction-scheme-parallelogram" id="markdown-toc-mesh-prediction-scheme-parallelogram">Mesh Prediction Scheme Parallelogram</a>    <ul>
+      <li><a href="#decode-1" id="markdown-toc-decode-1">Decode()</a></li>
+      <li><a href="#computeparallelogramprediction" id="markdown-toc-computeparallelogramprediction">ComputeParallelogramPrediction()</a></li>
+    </ul>
+  </li>
+  <li><a href="#cornertable-traversal-processor" id="markdown-toc-cornertable-traversal-processor">CornerTable Traversal Processor</a>    <ul>
+      <li><a href="#isfacevisited" id="markdown-toc-isfacevisited">IsFaceVisited()</a></li>
+      <li><a href="#markfacevisited" id="markdown-toc-markfacevisited">MarkFaceVisited()</a></li>
+      <li><a href="#isvertexvisited" id="markdown-toc-isvertexvisited">IsVertexVisited()</a></li>
+      <li><a href="#markvertexvisited" id="markdown-toc-markvertexvisited">MarkVertexVisited()</a></li>
+    </ul>
+  </li>
+  <li><a href="#mesh-attribute-indices-encoding-observer" id="markdown-toc-mesh-attribute-indices-encoding-observer">Mesh Attribute Indices Encoding Observer</a>    <ul>
+      <li><a href="#onnewvertexvisited" id="markdown-toc-onnewvertexvisited">OnNewVertexVisited()</a></li>
+    </ul>
+  </li>
+  <li><a href="#edgebreaker-traverser" id="markdown-toc-edgebreaker-traverser">EdgeBreaker Traverser</a>    <ul>
+      <li><a href="#traversefromcorner" id="markdown-toc-traversefromcorner">TraverseFromCorner()</a></li>
+    </ul>
+  </li>
+  <li><a href="#mesh-traversal-sequencer" id="markdown-toc-mesh-traversal-sequencer">Mesh Traversal Sequencer</a>    <ul>
+      <li><a href="#generatesequenceinternal" id="markdown-toc-generatesequenceinternal">GenerateSequenceInternal()</a></li>
+      <li><a href="#processcorner" id="markdown-toc-processcorner">ProcessCorner()</a></li>
+      <li><a href="#updatepointtoattributeindexmapping" id="markdown-toc-updatepointtoattributeindexmapping">UpdatePointToAttributeIndexMapping()</a></li>
+      <li><a href="#addpointid" id="markdown-toc-addpointid">AddPointId()</a></li>
+    </ul>
+  </li>
+  <li><a href="#corner-table" id="markdown-toc-corner-table">Corner Table</a>    <ul>
+      <li><a href="#opposite" id="markdown-toc-opposite">Opposite()</a></li>
+      <li><a href="#next" id="markdown-toc-next">Next()</a></li>
+      <li><a href="#previous" id="markdown-toc-previous">Previous()</a></li>
+      <li><a href="#vertex" id="markdown-toc-vertex">Vertex()</a></li>
+      <li><a href="#face" id="markdown-toc-face">Face()</a></li>
+      <li><a href="#localindex" id="markdown-toc-localindex">LocalIndex()</a></li>
+      <li><a href="#num_vertices" id="markdown-toc-num_vertices">num_vertices()</a></li>
+      <li><a href="#num_corners" id="markdown-toc-num_corners">num_corners()</a></li>
+      <li><a href="#num_faces" id="markdown-toc-num_faces">num_faces()</a></li>
+      <li><a href="#bool-isonboundary" id="markdown-toc-bool-isonboundary">bool IsOnBoundary()</a></li>
+      <li><a href="#swingright" id="markdown-toc-swingright">SwingRight()</a></li>
+      <li><a href="#swingleft" id="markdown-toc-swingleft">SwingLeft()</a></li>
+      <li><a href="#getleftcorner" id="markdown-toc-getleftcorner">GetLeftCorner()</a></li>
+      <li><a href="#getrightcorner" id="markdown-toc-getrightcorner">GetRightCorner()</a></li>
+      <li><a href="#setoppositecorner" id="markdown-toc-setoppositecorner">SetOppositeCorner()</a></li>
+      <li><a href="#mapcornertovertex" id="markdown-toc-mapcornertovertex">MapCornerToVertex()</a></li>
+      <li><a href="#updatevertextocornermap" id="markdown-toc-updatevertextocornermap">UpdateVertexToCornerMap()</a></li>
+      <li><a href="#leftmostcorner" id="markdown-toc-leftmostcorner">LeftMostCorner()</a></li>
+      <li><a href="#makevertexisolated" id="markdown-toc-makevertexisolated">MakeVertexIsolated()</a></li>
+    </ul>
+  </li>
+  <li><a href="#mesh-attribute-corner-table" id="markdown-toc-mesh-attribute-corner-table">Mesh Attribute Corner Table</a>    <ul>
+      <li><a href="#bool-iscorneronseam" id="markdown-toc-bool-iscorneronseam">bool IsCornerOnSeam()</a></li>
+      <li><a href="#addseamedge" id="markdown-toc-addseamedge">AddSeamEdge()</a></li>
+      <li><a href="#markseam" id="markdown-toc-markseam">MarkSeam()</a></li>
+      <li><a href="#recomputevertices" id="markdown-toc-recomputevertices">RecomputeVertices()</a></li>
+    </ul>
+  </li>
+  <li><a href="#symbol-decoding" id="markdown-toc-symbol-decoding">Symbol Decoding</a>    <ul>
+      <li><a href="#decodesymbols" id="markdown-toc-decodesymbols">DecodeSymbols()</a></li>
+      <li><a href="#decodetaggedsymbols" id="markdown-toc-decodetaggedsymbols">DecodeTaggedSymbols()</a></li>
+      <li><a href="#decoderawsymbols" id="markdown-toc-decoderawsymbols">DecodeRawSymbols()</a></li>
+      <li><a href="#decoderawsymbolsinternal" id="markdown-toc-decoderawsymbolsinternal">DecodeRawSymbolsInternal()</a></li>
+      <li><a href="#createranssymboldecoder" id="markdown-toc-createranssymboldecoder">CreateRansSymbolDecoder()</a></li>
+      <li><a href="#ranssymboldecoder_startdecoding" id="markdown-toc-ranssymboldecoder_startdecoding">RansSymbolDecoder_StartDecoding()</a></li>
+      <li><a href="#ranssymboldecoder_decodesymbol" id="markdown-toc-ranssymboldecoder_decodesymbol">RansSymbolDecoder_DecodeSymbol()</a></li>
+    </ul>
+  </li>
+  <li><a href="#rans-decoding" id="markdown-toc-rans-decoding">Rans Decoding</a>    <ul>
+      <li><a href="#ans_read_init" id="markdown-toc-ans_read_init">ans_read_init()</a></li>
+      <li><a href="#int-rabs_desc_read" id="markdown-toc-int-rabs_desc_read">int rabs_desc_read()</a></li>
+      <li><a href="#rans_read_init" id="markdown-toc-rans_read_init">rans_read_init()</a></li>
+      <li><a href="#rans_build_look_up_table" id="markdown-toc-rans_build_look_up_table">rans_build_look_up_table()</a></li>
+      <li><a href="#rans_read" id="markdown-toc-rans_read">rans_read()</a></li>
+      <li><a href="#fetch_sym" id="markdown-toc-fetch_sym">fetch_sym()</a></li>
+    </ul>
+  </li>
+  <li><a href="#rans-bit-decoder" id="markdown-toc-rans-bit-decoder">Rans Bit Decoder</a>    <ul>
+      <li><a href="#ransbitdecoder_startdecoding" id="markdown-toc-ransbitdecoder_startdecoding">RansBitDecoder_StartDecoding()</a></li>
+      <li><a href="#decodenextbit" id="markdown-toc-decodenextbit">DecodeNextBit()</a></li>
+    </ul>
+  </li>
+  <li><a href="#core-functions" id="markdown-toc-core-functions">Core Functions</a>    <ul>
+      <li><a href="#decodevarint" id="markdown-toc-decodevarint">DecodeVarint<IT></IT></a></li>
+      <li><a href="#convertsymboltosignedint" id="markdown-toc-convertsymboltosignedint">ConvertSymbolToSignedInt()</a></li>
+      <li><a href="#decode_connectivity" id="markdown-toc-decode_connectivity">decode_connectivity()</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="scope">Scope</h2>
+
+<p>This document specifies the open-source Draco #D Data Compression bitstream
+format and decoding process.</p>
+
+<h2 id="terms-and-definitions">Terms and Definitions</h2>
+
+<p>For the purposes of this document, the following terms and definitions apply:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Term</th>
+      <th>Definition</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="symbols-and-abbreviated-terms">Symbols (and abbreviated terms)</h2>
+
+<p><strong>DCT:</strong> Discrete Cosine Transform</p>
+
+<p>FIXME</p>
+
+<p>The specification makes use of a number of constant integers.  Constants that
+relate to the semantics of a particular syntax element are defined in section
+7.</p>
+
+<p>Additional constants are defined below:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Symbol name</th>
+      <th style="text-align: center">Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="highlighter-rouge">SYMBOL</code></td>
+      <td style="text-align: center"> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="conventions">Conventions</h2>
+
+<ul>
+  <li>
+    <p>When bit reading is finished it will always pad the read to the current
+byte.</p>
+  </li>
+  <li>
+    <p>Draco encoded mesh files are comprised of three main sections. This first
+section is the header. The second section contains the connectivity data.
+The third section contains the attribute data. The header must be decoded
+first, then the connectivity section, and then the attribute section.</p>
+  </li>
+  <li>
+    <p>The Connectivity section is composed of the following sections in order:</p>
+
+    <ul>
+      <li>
+        <p>Connectivity header</p>
+      </li>
+      <li>
+        <p>EdgeBreaker symbol buffer</p>
+      </li>
+      <li>
+        <p>Start face buffer</p>
+      </li>
+      <li>
+        <p>EdgeBreaker valence header</p>
+      </li>
+      <li>
+        <p>Context data for the valence prediction</p>
+      </li>
+      <li>
+        <p>Hole and Split data</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>The hole and split data must be decoded before the EdgeBreaker symbols are
+decoded.</p>
+  </li>
+</ul>
+
+<h2 id="draco-decoder">Draco Decoder</h2>
+
+<h3 id="decode">Decode()</h3>
+
+<div class="syntax">
+Decode() {                                                            <b>Type</b>
+  DecodeHeader()
+  DecodeConnectivityData()
+  DecodeAttributeData()}
+
+</div>
+
+<h3 id="decodeheader">DecodeHeader()</h3>
+
+<div class="syntax">
+DecodeHeader() {                                                      <b>Type</b>
+  <b>draco_string</b>                                                        UI8[5]
+  <b>major_version</b>                                                       UI8
+  <b>minor_version</b>                                                       UI8
+  <b>encoder_type</b>                                                        UI8
+  <b>encoder_method</b>                                                      UI8
+  flags
+}
+
+</div>
+
+<h3 id="decodeattributedata">DecodeAttributeData()</h3>
+
+<div class="syntax">
+DecodeAttributeData() {                                               <b>Type</b>
+  <b>num_attributes_decoders</b>                                             UI8
+  for (i = 0; i &lt; num_attributes_decoders; ++i) {
+    CreateAttributesDecoder(i);
+  }
+  for (auto &amp;att_dec : attributes_decoders_) {
+    att_dec-&gt;Initialize(this, point_cloud_)
+  }
+  for (i = 0; i &lt; num_attributes_decoders; ++i) {
+    attributes_decoders_[i]-&gt;DecodeAttributesDecoderData(buffer_)
+  }
+  DecodeAllAttributes()
+  OnAttributesDecoded()
+</div>
+
+<h2 id="mesh-decoder">Mesh Decoder</h2>
+
+<h3 id="decodeconnectivitydata">DecodeConnectivityData()</h3>
+
+<div class="syntax">
+DecodeConnectivityData()                                              <b>Type</b>
+  InitializeDecoder()
+  DecodeConnectivity()
+}
+
+</div>
+
+<h2 id="edgebreaker-decoder">EdgeBreaker Decoder</h2>
+
+<h3 id="initializedecoder">InitializeDecoder()</h3>
+
+<div class="syntax">
+InitializeDecoder() {                                                 <b>Type</b>
+  <b>edgebreaker_decoder_type</b>                                            UI8
+}
+
+</div>
+
+<h3 id="decodeconnectivity">DecodeConnectivity()</h3>
+
+<div class="syntax">
+DecodeConnectivity() {                                                <b>Type</b>
+  <b>num_new_verts</b>                                                       UI32
+  <b>num_encoded_vertices</b>                                                UI32
+  <b>num_faces</b>                                                           UI32
+  <b>num_attribute_data</b>                                                  I8
+  <b>num_encoded_symbols</b>                                                 UI32
+  <b>num_encoded_split_symbols</b>                                           UI32
+  <b>encoded_connectivity_size</b>                                           UI32
+  // file pointer must be set to current position + encoded_connectivity_size
+  hole_and_split_bytes = DecodeHoleAndTopologySplitEvents()
+  // file pointer must be set to old current position
+  EdgeBreakerTraversalValence_Start()
+  DecodeConnectivity(num_symbols)
+  if (attribute_data_.size() &gt; 0) {
+    for (ci = 0; ci &lt; corner_table_-&gt;num_corners(); ci += 3) {
+      DecodeAttributeConnectivitiesOnFace(ci)
+    }
+  }
+  for (i = 0; i &lt; corner_table_-&gt;num_vertices(); ++i) {
+    if (is_vert_hole_[i]) {
+      corner_table_-&gt;UpdateVertexToCornerMap(i);
+    }
+  }
+  // Decode attribute connectivity.
+  for (uint32_t i = 0; i &lt; attribute_data_.size(); ++i) {
+    attribute_data_[i].connectivity_data.InitEmpty(corner_table_.get());
+    for (int32_t c : attribute_data_[i].attribute_seam_corners) {
+      attribute_data_[i].connectivity_data.AddSeamEdge(c);
+    }
+    attribute_data_[i].connectivity_data.RecomputeVertices(nullptr, nullptr);
+  }
+  // Preallocate vertex to value mapping
+  AssignPointsToCorners()
+}
+
+</div>
+
+<h3 id="assignpointstocorners">AssignPointsToCorners()</h3>
+
+<div class="syntax">
+AssignPointsToCorners() {                                             <b>Type</b>
+  decoder_-&gt;mesh()-&gt;SetNumFaces(corner_table_-&gt;num_faces());
+  if (attribute_data_.size() == 0) {
+    for (f = 0; f &lt; decoder_-&gt;mesh()-&gt;num_faces(); ++f) {
+      for (c = 0; c &lt; 3; ++c) {
+        vert_id = corner_table_-&gt;Vertex(3 * f + c);
+        if (point_id == -1)
+          point_id = num_points++;
+        face[c] = point_id;
+      }
+      decoder_-&gt;mesh()-&gt;SetFace(f, face);
+    }
+    decoder_-&gt;point_cloud()-&gt;set_num_points(num_points);
+    Return true;
+  }
+  for (v = 0; v &lt; corner_table_-&gt;num_vertices(); ++v) {
+    c = corner_table_-&gt;LeftMostCorner(v);
+    if (c &lt; 0)
+      continue;
+    deduplication_first_corner = c;
+    if (!is_vert_hole_[v]) {
+      for (uint32_t i = 0; i &lt; attribute_data_.size(); ++i) {
+        if (!attribute_data_[i].connectivity_data.IsCornerOnSeam(c))
+          continue;
+        vert_id = attribute_data_[i].connectivity_data.Vertex(c);
+        act_c = corner_table_-&gt;SwingRight(c);
+        seam_found = false;
+        while (act_c != c) {
+          if (attribute_data_[i].connectivity_data.Vertex(act_c) != vert_id) {
+            deduplication_first_corner = act_c;
+            seam_found = true;
+            break;
+          }
+          act_c = corner_table_-&gt;SwingRight(act_c);
+        }
+        if (seam_found)
+          break;
+      }
+    }
+    c = deduplication_first_corner;
+    corner_to_point_map[c] = point_to_corner_map.size();
+    point_to_corner_map.push_back(c);
+    prev_c = c;
+    c = corner_table_-&gt;SwingRight(c);
+    while (c &gt;= 0 &amp;&amp; c != deduplication_first_corner) {
+      attribute_seam = false;
+      for (uint32_t i = 0; i &lt; attribute_data_.size(); ++i) {
+        if (attribute_data_[i].connectivity_data.Vertex(c) !=
+            attribute_data_[i].connectivity_data.Vertex(prev_c)) {
+          attribute_seam = true;
+          break;
+        }
+      }
+      if (attribute_seam) {
+        corner_to_point_map[c] = point_to_corner_map.size();
+        point_to_corner_map.push_back(c);
+      } else {
+        corner_to_point_map[c] = corner_to_point_map[prev_c];
+      }
+      prev_c = c;
+      c = corner_table_-&gt;SwingRight(c);
+    }
+  }
+  for (f = 0; f &lt; decoder_-&gt;mesh()-&gt;num_faces(); ++f) {
+    for (c = 0; c &lt; 3; ++c) {
+      face[c] = corner_to_point_map[3 * f + c];
+    }
+    decoder_-&gt;mesh()-&gt;SetFace(f, face);
+  }
+  decoder_-&gt;point_cloud()-&gt;set_num_points(point_to_corner_map.size());
+}
+
+</div>
+
+<h3 id="decodeconnectivity-1">DecodeConnectivity()</h3>
+
+<div class="syntax">
+DecodeConnectivity(num_symbols) {                                     <b>Type</b>
+  for (i = 0; i &lt; num_symbols; ++i) {
+    symbol = TraversalValence_DecodeSymbol()
+    corner = 3 * num_faces++
+    if (symbol == TOPOLOGY_C) {
+      vertex_x = UpdateCornerTableForSymbolC()
+      is_vert_hole_[vertex_x] = false;
+    } else if  (symbol == TOPOLOGY_R || symbol == TOPOLOGY_L) {
+      UpdateCornerTableForSymbolLR()
+      check_topology_split = true;
+    } else if  (symbol == TOPOLOGY_S) {
+      HandleSymbolS()
+    } else if  (symbol == TOPOLOGY_E) {
+      UpdateCornerTableForSymbolE()
+      check_topology_split = true;
+    }
+    active_corner_stack.back() = corner;
+  traversal_decoder_.NewActiveCornerReached(corner);
+    if (check_topology_split) {
+      encoder_symbol_id = num_symbols - symbol_id - 1;
+      while (true) {
+        split = IsTopologySplit(encoder_symbol_id, &amp;split_edge,
+                             &amp;encoder_split_symbol_id);
+        if (!split) {
+          break;
+        }
+        act_top_corner = corner;
+        if (split_edge == RIGHT_FACE_EDGE) {
+          new_active_corner = corner_table_-&gt;Next(act_top_corner);
+        } else {
+          new_active_corner = corner_table_-&gt;Previous(act_top_corner);
+        }
+        decoder_split_symbol_id = num_symbols - encoder_split_symbol_id - 1;
+        topology_split_active_corners[decoder_split_symbol_id] =
+            new_active_corner;
+      }
+    }
+  }
+  while (active_corner_stack.size() &gt; 0) {
+    corner = active_corner_stack.pop_back();
+    interior_face = traversal_decoder_.DecodeStartFaceConfiguration();
+    if (interior_face == true) {
+      UpdateCornerTableForInteriorFace()
+      for (ci = 0; ci &lt; 3; ++ci) {
+        is_vert_hole_[corner_table_-&gt;Vertex(new_corner + ci)] = false;
+      }
+      init_face_configurations_.push_back(true);
+      init_corners_.push_back(new_corner);
+    } else {
+      init_face_configurations_.push_back(false);
+      init_corners_.push_back(corner);
+    }
+  }
+  Return num_vertices;
+}
+
+</div>
+
+<h3 id="updatecornertableforsymbolc">UpdateCornerTableForSymbolC()</h3>
+
+<div class="syntax">
+UpdateCornerTableForSymbolC(corner) {                                 <b>Type</b>
+  corner_a = active_corner_stack.back();
+  corner_b = corner_table_-&gt;Previous(corner_a);
+  while (corner_table_-&gt;Opposite(corner_b) &gt;= 0) {
+    corner_b = corner_table_-&gt;Previous(corner_table_-&gt;Opposite(corner_b));
+  }
+  SetOppositeCorners(corner_a, corner + 1);
+  SetOppositeCorners(corner_b, corner + 2);
+  vertex_x = corner_table_-&gt;Vertex(corner_table_-&gt;Next(corner_a));
+  corner_table_-&gt;MapCornerToVertex(corner, vertex_x);
+  corner_table_-&gt;MapCornerToVertex(
+          corner + 1, corner_table_-&gt;Vertex(corner_table_-&gt;Next(corner_b)));
+  corner_table_-&gt;MapCornerToVertex(
+          corner + 2, corner_table_-&gt;Vertex(corner_table_-&gt;Previous(corner_a)));
+  return vertex_x;
+}
+
+</div>
+
+<h3 id="updatecornertableforsymbollr">UpdateCornerTableForSymbolLR()</h3>
+
+<div class="syntax">
+UpdateCornerTableForSymbolLR(corner, symbol) {                        <b>Type</b>
+  if (symbol == TOPOLOGY_R) {
+    opp_corner = corner + 2;
+  } else {
+    opp_corner = corner + 1;
+  }
+  SetOppositeCorners(opp_corner, corner_a);
+  corner_table_-&gt;MapCornerToVertex(opp_corner,num_vertices++);
+  corner_table_-&gt;MapCornerToVertex(
+          corner_table_-&gt;Next(opp_corner),
+          corner_table_-&gt;Vertex(corner_table_-&gt;Previous(corner_a)));
+  corner_table_-&gt;MapCornerToVertex(
+          corner_table_-&gt;Previous(opp_corner),
+          corner_table_-&gt;Vertex(corner_table_-&gt;Next(corner_a)));
+}
+
+</div>
+
+<h3 id="handlesymbols">HandleSymbolS()</h3>
+
+<div class="syntax">
+HandleSymbolS(corner) {                                               <b>Type</b>
+  corner_b = active_corner_stack.pop_back();
+  it = topology_split_active_corners.find(symbol_id);
+  if (it != topology_split_active_corners.end()) {
+    active_corner_stack.push_back(it-&gt;second);
+  }
+  corner_a = active_corner_stack.back();
+  SetOppositeCorners(corner_a, corner + 2);
+  SetOppositeCorners(corner_b, corner + 1);
+  vertex_p = corner_table_-&gt;Vertex(corner_table_-&gt;Previous(corner_a));
+  corner_table_-&gt;MapCornerToVertex(corner, vertex_p);
+  corner_table_-&gt;MapCornerToVertex(
+          corner + 1, corner_table_-&gt;Vertex(corner_table_-&gt;Next(corner_a)));
+  corner_table_-&gt;MapCornerToVertex(corner + 2,
+           corner_table_-&gt;Vertex(corner_table_-&gt;Previous(corner_b)));
+  corner_n = corner_table_-&gt;Next(corner_b);
+  vertex_n = corner_table_-&gt;Vertex(corner_n);
+  traversal_decoder_.MergeVertices(vertex_p, vertex_n);
+  // TraversalValence_MergeVertices
+  while (corner_n &gt;= 0) {
+    corner_table_-&gt;MapCornerToVertex(corner_n, vertex_p);
+    corner_n = corner_table_-&gt;SwingLeft(corner_n);
+  }
+  corner_table_-&gt;MakeVertexIsolated(vertex_n);
+}
+
+</div>
+
+<h3 id="updatecornertableforsymbole">UpdateCornerTableForSymbolE()</h3>
+
+<div class="syntax">
+UpdateCornerTableForSymbolE() {                                        <b>Type</b>
+  corner_table_-&gt;MapCornerToVertex(corner, num_vertices++);
+  corner_table_-&gt;MapCornerToVertex(corner + 1, num_vertices++);
+  corner_table_-&gt;MapCornerToVertex(corner + 2, num_vertices++);
+}
+
+</div>
+
+<h3 id="updatecornertableforinteriorface">UpdateCornerTableForInteriorFace()</h3>
+
+<div class="syntax">
+UpdateCornerTableForInteriorFace() {                                  <b>Type</b>
+  corner_b = corner_table_-&gt;Previous(corner);
+  while (corner_table_-&gt;Opposite(corner_b) &gt;= 0) {
+    corner_b = corner_table_-&gt;Previous(corner_table_-&gt;Opposite(corner_b));
+  }
+  corner_c = corner_table_-&gt;Next(corner);
+  while (corner_table_-&gt;Opposite(corner_c) &gt;= 0) {
+    corner_c = corner_table_-&gt;Next(corner_table_-&gt;Opposite(corner_c));
+  }
+  face(num_faces++);
+  corner_table_-&gt;MapCornerToVertex(
+          new_corner, corner_table_-&gt;Vertex(corner_table_-&gt;Next(corner_b)));
+  corner_table_-&gt;MapCornerToVertex(
+          new_corner + 1, corner_table_-&gt;Vertex(corner_table_-&gt;Next(corner_c)));
+  corner_table_-&gt;MapCornerToVertex(
+          new_corner + 2, corner_table_-&gt;Vertex(corner_table_-&gt;Next(corner)));
+}
+
+</div>
+
+<h3 id="istopologysplit">IsTopologySplit()</h3>
+
+<div class="syntax">
+IsTopologySplit(encoder_symbol_id, *out_face_edge,                    <b>Type</b>
+
+                         *out_encoder_split_symbol_id) {
+  if (topology_split_data_.size() == 0)
+    return false;
+  if (topology_split_data_.back().source_symbol_id != encoder_symbol_id)
+    return false;
+  *out_face_edge = topology_split_data_.back().source_edge;
+  *out_encoder_split_symbol_id =
+          topology_split_data_.back().split_symbol_id;
+  topology_split_data_.pop_back();
+  return true;
+}
+
+</div>
+
+<h3 id="decodeattributeconnectivitiesonface">DecodeAttributeConnectivitiesOnFace()</h3>
+
+<div class="syntax">
+DecodeAttributeConnectivitiesOnFace(corner) {                         <b>Type</b>
+  corners[3] = {corner, corner_table_-&gt;Next(corner),
+                       corner_table_-&gt;Previous(corner)}
+  for (c = 0; c &lt; 3; ++c) {
+    opp_corner = corner_table_-&gt;Opposite(corners[c]);
+    if (opp_corner &lt; 0) {
+      for (uint32_t i = 0; i &lt; attribute_data_.size(); ++i) {
+        attribute_data_[i].attribute_seam_corners.push_back(corners[c]);
+      }
+      continue
+    }
+    for (uint32_t i = 0; i &lt; attribute_data_.size(); ++i) {
+      bool is_seam = traversal_decoder_.DecodeAttributeSeam(i);
+      if (is_seam) {
+        attribute_data_[i].attribute_seam_corners.push_back(corners[c]);
+      }
+    }
+  }
+}
+
+</div>
+
+<h3 id="setoppositecorners">SetOppositeCorners()</h3>
+
+<div class="syntax">
+SetOppositeCorners(corner_0, corner_1) {                              <b>Type</b>
+  corner_table_-&gt;SetOppositeCorner(corner_0, corner_1);
+  corner_table_-&gt;SetOppositeCorner(corner_1, corner_0);
+}
+
+</div>
+
+<h2 id="edgebreaker-hole-and-topology-split-events">EdgeBreaker Hole and Topology Split Events</h2>
+
+<h3 id="decodeholeandtopologysplitevents">DecodeHoleAndTopologySplitEvents()</h3>
+
+<p>FIXME: Escaping angle brackets</p>
+
+<div class="syntax">
+DecodeHoleAndTopologySplitEvents() {                                  <b>Type</b>
+  <b>num_topologoy_splits</b>                                                UI32
+  source_symbol_id = 0
+  for (i = 0; i &lt; num_topologoy_splits; ++i) {
+    DecodeVarint\&lt;UI32\&gt;(&amp;delta)
+    split_data[i].source_symbol_id = delta + source_symbol_id
+    DecodeVarint\&lt;UI32\&gt;(&amp;delta)
+    split_data[i].split_symbol_id = source_symbol_id - delta
+  }
+  for (i = 0; i &lt; num_topologoy_splits; ++i) {
+    <b>split_data[i].split_edge</b>                                          bits1
+    <b>split_data[i].source_edge</b>                                         bits1
+  }
+  <b>num_hole_events</b>                                                     UI32
+  symbol_id = 0
+  for (i = 0; i &lt; num_hole_events; ++i) {
+    DecodeVarint\&lt;UI32\&gt;(&amp;delta)
+    hole_data[i].symbol_id = delta + symbol_id
+  }
+    return bytes_decoded;
+}
+
+</div>
+
+<h3 id="createattributesdecoder">CreateAttributesDecoder</h3>
+
+<p>FIXME: Escaping angle brackets</p>
+
+<div class="syntax">
+CreateAttributesDecoder() {                                           <b>Type</b>
+  <b>att_data_id</b>                                                         I8
+  <b>decoder_type</b>                                                        UI8
+  if (att_data_id &gt;= 0) {
+    attribute_data_[att_data_id].decoder_id = att_decoder_id;
+  }
+  <b>traversal_method_encoded</b>                                            UI8
+  if (decoder_type == MESH_VERTEX_ATTRIBUTE) {
+    if (att_data_id &lt; 0) {
+      encoding_data = &pos_encoding_data_;
+    } else {
+      encoding_data = &amp;attribute_data_[att_data_id].encoding_data;
+      attribute_data_[att_data_id].is_connectivity_used = false;
+    }
+    if (traversal_method == MESH_TRAVERSAL_DEPTH_FIRST) {
+      typedef EdgeBreakerTraverser\&lt;AttProcessor, AttObserver\&gt; AttTraverser;
+      sequencer = CreateVertexTraversalSequencer\&lt;AttTraverser\&gt;(encoding_data);
+    } else if (traversal_method == MESH_TRAVERSAL_PREDICTION_DEGREE) {
+      typedef PredictionDegreeTraverser\&lt;AttProcessor, AttObserver\&gt; AttTraverser;
+      sequencer = CreateVertexTraversalSequencer\&lt;AttTraverser\&gt;(encoding_data);
+    }
+  } else {
+    // TODO
+  }
+  att_controller(new SequentialAttributeDecodersController(std::move(sequencer)))
+  decoder_-&gt;SetAttributesDecoder(att_decoder_id, std::move(att_controller));
+}
+
+</div>
+
+<h2 id="edgebreaker-traversal-decoder">Edgebreaker Traversal Decoder</h2>
+
+<h3 id="edgebreakertraversal_start">EdgebreakerTraversal_Start()</h3>
+
+<div class="syntax">
+EdgebreakerTraversal_Start() {                                        <b>Type</b>
+  <b>size</b>                                                                UI64
+  <b>symbol_buffer_</b>                                                      size * UI8
+  <b>size</b>                                                                UI64
+  <b>start_face_buffer_</b>                                                  size * UI8
+  if (num_attribute_data_ &gt; 0) {
+    attribute_connectivity_decoders_ = std::unique_ptr&lt;BinaryDecoder[]&gt;(
+          new BinaryDecoder[num_attribute_data_]);
+    for (i = 0; i &lt; num_attribute_data_; ++i) {
+      attribute_connectivity_decoders_[i].StartDecoding()
+      // RansBitDecoder_StartDecoding
+  }
+}
+
+</div>
+
+<h3 id="traversal_decodesymbol">Traversal_DecodeSymbol()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Traversal_DecodeSymbol() {
+  symbol_buffer_.DecodeLeastSignificantBits32(1, &amp;symbol);                   bits1
+  if (symbol != TOPOLOGY_C) {
+    symbol_buffer_.DecodeLeastSignificantBits32(2, &amp;symbol_suffix);          bits2
+    symbol |= (symbol_suffix &lt;&lt; 1);
+  }
+  return symbol
+}
+</code></pre>
+</div>
+
+<h3 id="decodeattributeseam">DecodeAttributeSeam()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeAttributeSeam(int attribute) {
+  return attribute_connectivity_decoders_[attribute].DecodeNextBit();
+}
+</code></pre>
+</div>
+
+<h2 id="edgebreaker-traversal-valence-decoder">EdgeBreaker Traversal Valence Decoder</h2>
+
+<h3 id="edgebreakertraversalvalence_start">EdgeBreakerTraversalValence_Start()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>EdgeBreakerTraversalValence_Start(num_vertices, num_attribute_data) {
+  out_buffer = EdgebreakerTraversal_Start()
+  num_split_symbols                                                          I32
+  mode == 0                                                                  I8
+  num_vertices_ += num_split_symbols
+  vertex_valences_ init to 0
+  vertex_valences_.resize(num_vertices_, 0);
+  min_valence_ = 2;
+  max_valence_ = 7;
+  num_unique_valences = 6 (max_valence_ - min_valence_ + 1)
+  for (i = 0; i &lt; num_unique_valences; ++i) {
+    DecodeVarint&lt;UI32&gt;(&amp;num_symbols, out_buffer)
+    If (num_symbols &gt; 0) {
+      DecodeSymbols(num_symbols, out_buffer, &amp;context_symbols_[i])
+    }
+    context_counters_[i] = num_symbols
+  }
+  return out_buffer;
+}
+</code></pre>
+</div>
+
+<h3 id="traversalvalence_decodesymbol">TraversalValence_DecodeSymbol()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>TraversalValence_DecodeSymbol() {
+  if (active_context_ != -1) {
+    symbol_id  = context_symbols_[active_context_]
+                                                      [--context_counters_[active_context_]]
+    last_symbol_ = edge_breaker_symbol_to_topology_id[symbol_id]
+  } else {
+    last_symbol_ = Traversal_DecodeSymbol()
+  }
+  return last_symbol_
+}
+</code></pre>
+</div>
+
+<h3 id="traversalvalence_newactivecornerreached">TraversalValence_NewActiveCornerReached()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>TraversalValence_NewActiveCornerReached(corner) {
+  switch (last_symbol_) {
+    case TOPOLOGY_C:
+    case TOPOLOGY_S:
+      vertex_valences_[ct(next)] += 1;
+      vertex_valences_[ct(prev)] += 1;
+      break;
+    case TOPOLOGY_R:
+      vertex_valences_[corner] += 1;
+      vertex_valences_[ct(next)] += 1;
+      vertex_valences_[ct(prev)] += 2;
+      break;
+    case TOPOLOGY_L:
+      vertex_valences_[corner] += 1;
+      vertex_valences_[ct(next)] += 2;
+      vertex_valences_[ct(prev)] += 1;
+      break;
+    case TOPOLOGY_E:
+      vertex_valences_[corner] += 2;
+      vertex_valences_[ct(next)] += 2;
+      vertex_valences_[ct(prev)] += 2;
+      break;
+  }
+  valence = vertex_valences_[ct(next)]
+  valence = max(valence, min_valence_)
+  valence = min(valence, max_valence_)
+  active_context_ = (valence - min_valence_);
+}
+</code></pre>
+</div>
+
+<h3 id="traversalvalence_mergevertices">TraversalValence_MergeVertices()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>TraversalValence_MergeVertices(dest, source) {
+  vertex_valences_[dest] += vertex_valences_[source];
+}
+</code></pre>
+</div>
+
+<h2 id="attributes-decoder">Attributes Decoder</h2>
+
+<h3 id="decodeattributesdecoderdata">DecodeAttributesDecoderData()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeAttributesDecoderData(buffer) {
+  num_attributes                                                             I32
+  point_attribute_ids_.resize(num_attributes);
+  for (i = 0; i &lt; num_attributes; ++i) {
+    att_type                                                                 UI8
+    data_type                                                                UI8
+    components_count                                                         UI8
+    normalized                                                               UI8
+    custom_id                                                                UI16
+    Initialize GeometryAttribute ga
+    att_id = pc-&gt;AddAttribute(new PointAttribute(ga));
+    point_attribute_ids_[i] = att_id;
+}
+</code></pre>
+</div>
+
+<h2 id="sequential-attributes-decoders-controller">Sequential Attributes Decoders Controller</h2>
+
+<h3 id="decodeattributesdecoderdata-1">DecodeAttributesDecoderData()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeAttributesDecoderData(buffer) {
+  AttributesDecoder_DecodeAttributesDecoderData(buffer)
+  sequential_decoders_.resize(num_attributes());
+  for (i = 0; i &lt; num_attributes(); ++i) {
+    decoder_type                                                             UI8
+    sequential_decoders_[i] = CreateSequentialDecoder(decoder_type);
+    sequential_decoders_[i]-&gt;Initialize(decoder(), GetAttributeId(i))
+}
+</code></pre>
+</div>
+
+<h3 id="decodeattributes">DecodeAttributes()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeAttributes(buffer) {
+  sequencer_-&gt;GenerateSequence(&amp;point_ids_)
+  for (i = 0; i &lt; num_attributes(); ++i) {
+    pa = decoder()-&gt;point_cloud()-&gt;attribute(GetAttributeId(i));
+    sequencer_-&gt;UpdatePointToAttributeIndexMapping(pa)
+  }
+  for (i = 0; i &lt; num_attributes(); ++i) {
+    sequential_decoders_[i]-&gt;Decode(point_ids_, buffer)
+    //SequentialAttributeDecoder_Decode()
+  }
+}
+</code></pre>
+</div>
+
+<h3 id="createsequentialdecoder">CreateSequentialDecoder()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>CreateSequentialDecoder(type) {
+  switch (type) {
+    case SEQUENTIAL_ATTRIBUTE_ENCODER_GENERIC:
+      return new SequentialAttributeDecoder()
+    case SEQUENTIAL_ATTRIBUTE_ENCODER_INTEGER:
+      return new SequentialIntegerAttributeDecoder()
+    case SEQUENTIAL_ATTRIBUTE_ENCODER_QUANTIZATION:
+      return new SequentialQuantizationAttributeDecoder()
+    case SEQUENTIAL_ATTRIBUTE_ENCODER_NORMALS:
+      return new SequentialNormalAttributeDecoder()
+  }
+}
+</code></pre>
+</div>
+
+<h2 id="sequential-attribute-decoder">Sequential Attribute Decoder</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Initialize(...) {
+  // Init some members
+}
+</code></pre>
+</div>
+
+<h3 id="decodevalues">DecodeValues()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeValues(const std::vector&lt;PointIndex&gt; &amp;point_ids) {
+  num_values = point_ids.size();
+  entry_size = attribute_-&gt;byte_stride();
+  std::unique_ptr&lt;uint8_t[]&gt; value_data_ptr(new uint8_t[entry_size]);
+  out_byte_pos = 0;
+  for (i = 0; i &lt; num_values; ++i) {
+   value_data                                                         UI8 * entry_size
+    attribute_-&gt;buffer()-&gt;Write(out_byte_pos, value_data, entry_size);
+    out_byte_pos += entry_size;
+  }
+}
+</code></pre>
+</div>
+
+<h2 id="sequential-integer-attribute-decoder">Sequential Integer Attribute Decoder</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Initialize(...) {
+  SequentialAttributeDecoder_Initialize()
+}
+</code></pre>
+</div>
+
+<h3 id="decodevalues-1">DecodeValues()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeValues(point_ids) {
+  prediction_scheme_method                                                   I8
+  if (prediction_scheme_method != PREDICTION_NONE) {
+    prediction_transform_type                                                I8
+    prediction_scheme_ = CreateIntPredictionScheme(...)
+  }
+  if (prediction_scheme_) {
+  }
+  DecodeIntegerValues(point_ids)
+  //SequentialQuantizationAttributeDecoder_DecodeIntegerValues()
+  //StoreValues()
+  DequantizeValues(num_values)
+}
+</code></pre>
+</div>
+
+<h3 id="decodeintegervalues">DecodeIntegerValues()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeIntegerValues(point_ids) {
+  compressed                                                                 UI8
+  if (compressed) {
+    DecodeSymbols(..., values_.data())
+  } else {
+  // TODO
+  }
+  if (!prediction_scheme_-&gt;AreCorrectionsPositive()) {
+    ConvertSymbolsToSignedInts(...)
+  }
+  if (prediction_scheme_) {
+    prediction_scheme_-&gt;DecodePredictionData(buffer)
+    // DecodeTransformData(buffer)
+    if (!values_.empty()) {
+      prediction_scheme_-&gt;Decode(values_.data(), &amp;values_[0],
+                                      values_.size(), num_components, point_ids.data())
+      // MeshPredictionSchemeParallelogram_Decode()
+}
+</code></pre>
+</div>
+
+<h2 id="sequential-quantization-attribute-decoder">Sequential Quantization Attribute Decoder</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Initialize(...) {
+  SequentialIntegerAttributeDecoder_Initialize()
+}
+</code></pre>
+</div>
+
+<h3 id="decodeintegervalues-1">DecodeIntegerValues()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeIntegerValues(point_ids) {
+  // DecodeQuantizedDataInfo()
+  num_components = attribute()-&gt;components_count();
+  for (i = 0; i &lt; num_components; ++i) {
+    min_value_[i]                                                            F32
+  }
+  max_value_dif_                                                             F32
+  quantization_bits_                                                         UI8
+  SequentialIntegerAttributeDecoder::DecodeIntegerValues()
+}
+</code></pre>
+</div>
+
+<h3 id="dequantizevalues">DequantizeValues()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DequantizeValues(num_values) {
+  max_quantized_value = (1 &lt;&lt; (quantization_bits_)) - 1;
+  num_components = attribute()-&gt;components_count();
+  entry_size = sizeof(float) * num_components;
+  quant_val_id = 0;
+  out_byte_pos = 0;
+  for (i = 0; i &lt; num_values; ++i) {
+    for (c = 0; c &lt; num_components; ++c) {
+      value = dequantizer.DequantizeFloat(values()-&gt;at(quant_val_id++));
+      value = value + min_value_[c];
+      att_val[c] = value;
+    }
+    attribute()-&gt;buffer()-&gt;Write(out_byte_pos, att_val.get(), entry_size);
+    out_byte_pos += entry_size;
+  }
+}
+</code></pre>
+</div>
+
+<h2 id="prediction-scheme-transform">Prediction Scheme Transform</h2>
+
+<h3 id="computeoriginalvalue">ComputeOriginalValue()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>ComputeOriginalValue(const DataTypeT *predicted_vals,
+                                   const CorrTypeT *corr_vals,
+                                   DataTypeT *out_original_vals, int val_id) {
+  for (i = 0; i &lt; num_components_; ++i) {
+    out_original_vals[i] = predicted_vals[i] + corr_vals[val_id + i];
+  }
+}
+</code></pre>
+</div>
+
+<h2 id="prediction-scheme-wrap-transform">Prediction Scheme Wrap Transform</h2>
+
+<h3 id="decodetransformdata">DecodeTransformData()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeTransformData(buffer) {
+  min_value_                                                                 DT
+  max_value_                                                                 DT
+}
+</code></pre>
+</div>
+
+<h3 id="computeoriginalvalue-1">ComputeOriginalValue()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>ComputeOriginalValue(const DataTypeT *predicted_vals,
+                                   const CorrTypeT *corr_vals,
+                                   DataTypeT *out_original_vals, int val_id) {
+  clamped_vals = ClampPredictedValue(predicted_vals);
+  ComputeOriginalValue(clamped_vals, corr_vals, out_original_vals, val_id)
+  // PredictionSchemeTransform_ComputeOriginalValue()
+  for (i = 0; i &lt; this-&gt;num_components(); ++i) {
+    if (out_original_vals[i] &gt; max_value_) {
+      out_original_vals[i] -= max_dif_;
+    } else if (out_original_vals[i] &lt; min_value_) {
+      out_original_vals[i] += max_dif_;
+    }
+}
+</code></pre>
+</div>
+
+<h3 id="clamppredictedvalue">ClampPredictedValue()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>ClampPredictedValue(const DataTypeT *predicted_val) {
+  for (i = 0; i &lt; this-&gt;num_components(); ++i) {
+    clamped_value_[i] = min(predicted_val[i], max_value_)
+    clamped_value_[i] = max(predicted_val[i], min_value_)
+  }
+  return &amp;clamped_value_[0];
+}
+</code></pre>
+</div>
+
+<h2 id="mesh-prediction-scheme-parallelogram">Mesh Prediction Scheme Parallelogram</h2>
+
+<h3 id="decode-1">Decode()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Decode(...) {
+  this-&gt;transform().InitializeDecoding(num_components);
+  // restore the first value
+  this-&gt;transform().ComputeOriginalValue(pred_vals.get(),
+                                       in_corr, out_data, 0);
+  // PredictionSchemeWrapTransform_ComputeOriginalValue()
+  corner_map_size = this-&gt;mesh_data().data_to_corner_map()-&gt;size();
+  for (p = 1; p &lt; corner_map_size; ++p) {
+    corner_id = this-&gt;mesh_data().data_to_corner_map()-&gt;at(p);
+    dst_offset = p * num_components;
+    b= ComputeParallelogramPrediction(p, corner_id, table,
+                                        *vertex_to_data_map, out_data,
+                                        num_components, pred_vals.get())
+    if (!b) {
+      src_offset = (p - 1) * num_components;
+      this-&gt;transform().ComputeOriginalValue(out_data + src_offset, in_corr,
+                                             out_data + dst_offset, dst_offset);
+      // PredictionSchemeWrapTransform_ComputeOriginalValue()
+    } else {
+      this-&gt;transform().ComputeOriginalValue(pred_vals.get(), in_corr,
+                                             out_data + dst_offset, dst_offset);
+      // PredictionSchemeWrapTransform_ComputeOriginalValue()
+    }
+  }
+}
+</code></pre>
+</div>
+
+<p>MeshPredictionSchemeParallelogramShared</p>
+
+<h3 id="computeparallelogramprediction">ComputeParallelogramPrediction()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>ComputeParallelogramPrediction(...) {
+  oci = table-&gt;Opposite(ci);
+  vert_opp = vertex_to_data_map[table-&gt;Vertex(ci)];
+  vert_next = vertex_to_data_map[table-&gt;Vertex(table-&gt;Next(ci))];
+  vert_prev = vertex_to_data_map[table-&gt;Vertex(table-&gt;Previous(ci))];
+  if (vert_opp &lt; data_entry_id &amp;&amp; vert_next &lt; data_entry_id &amp;&amp;
+      vert_prev &lt; data_entry_id) {
+    v_opp_off = vert_opp * num_components;
+    v_next_off = vert_next * num_components;
+    v_prev_off = vert_prev * num_components;
+    for (c = 0; c &lt; num_components; ++c) {
+      out_prediction[c] = (in_data[v_next_off + c] + in_data[v_prev_off + c]) -
+                          in_data[v_opp_off + c];
+    }
+    Return true;
+  }
+  return false;
+}
+</code></pre>
+</div>
+
+<h2 id="cornertable-traversal-processor">CornerTable Traversal Processor</h2>
+
+<h3 id="isfacevisited">IsFaceVisited()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>IsFaceVisited(corner_id) {
+  if (corner_id &lt; 0)
+    return true
+  return is_face_visited_[corner_id / 3];
+}
+</code></pre>
+</div>
+
+<h3 id="markfacevisited">MarkFaceVisited()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>MarkFaceVisited(face_id) {
+  is_face_visited_[face_id] = true;
+}
+</code></pre>
+</div>
+
+<h3 id="isvertexvisited">IsVertexVisited()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>IsVertexVisited(vert_id) {
+  return is_vertex_visited_[vert_id];
+}
+</code></pre>
+</div>
+
+<h3 id="markvertexvisited">MarkVertexVisited()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>MarkVertexVisited(vert_id) {
+  is_vertex_visited_[vert_id] = true;
+}
+</code></pre>
+</div>
+
+<h2 id="mesh-attribute-indices-encoding-observer">Mesh Attribute Indices Encoding Observer</h2>
+
+<h3 id="onnewvertexvisited">OnNewVertexVisited()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>OnNewVertexVisited(vertex, corner) {
+  point_id = mesh_-&gt;face(corner / 3)[corner % 3];
+  sequencer_-&gt;AddPointId(point_id);
+  // Keep track of visited corners.
+  encoding_data_-&gt;encoded_attribute_value_index_to_corner_map.push_back(corner);
+  encoding_data_
+        -&gt;vertex_to_encoded_attribute_value_index_map[vertex] =
+        encoding_data_-&gt;num_values;
+  encoding_data_-&gt;num_values++;
+}
+</code></pre>
+</div>
+
+<h2 id="edgebreaker-traverser">EdgeBreaker Traverser</h2>
+
+<h3 id="traversefromcorner">TraverseFromCorner()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>TraverseFromCorner(corner_id) {
+  if (processor_.IsFaceVisited(corner_id))
+    return
+  corner_traversal_stack_.clear();
+  corner_traversal_stack_.push_back(corner_id);
+  next_vert = corner_table_-&gt;Vertex(corner_table_-&gt;Next(corner_id));
+  prev_vert = corner_table_-&gt;Vertex(corner_table_-&gt;Previous(corner_id));
+  if (!processor_.IsVertexVisited(next_vert)) {
+    processor_.MarkVertexVisited(next_vert);
+    traversal_observer_.OnNewVertexVisited(next_vert,
+                                        corner_table_-&gt;Next(corner_id));
+  }
+  if (!processor_.IsVertexVisited(prev_vert)) {
+    processor_.MarkVertexVisited(prev_vert);
+    traversal_observer_.OnNewVertexVisited(prev_vert,
+                                        corner_table_-&gt;Previous(corner_id));
+  }
+  while (!corner_traversal_stack_.empty()) {
+    corner_id = corner_traversal_stack_.back();
+    face_id =corner_id / 3;
+    if (processor_.IsFaceVisited(face_id)) {
+      corner_traversal_stack_.pop_back();
+      continue
+    }
+    while(true) {
+      face_id = corner_id / 3;
+      processor_.MarkFaceVisited(face_id);
+      traversal_observer_.OnNewFaceVisited(face_id);
+      vert_id = corner_table_-&gt;Vertex(corner_id);
+      on_boundary = corner_table_-&gt;IsOnBoundary(vert_id);
+      if (!processor_.IsVertexVisited(vert_id)) {
+        processor_.MarkVertexVisited(vert_id);
+        traversal_observer_.OnNewVertexVisited(vert_id, corner_id);
+        if (!on_boundary) {
+          corner_id = corner_table_-&gt;GetRightCorner(corner_id);
+          continue;
+        }
+      }
+      // The current vertex has been already visited or it was on a boundary.
+      right_corner_id = corner_table_-&gt;GetRightCorner(corner_id);
+      left_corner_id = corner_table_-&gt;GetLeftCorner(corner_id);
+      right_face_id((right_corner_id &lt; 0 ? -1 : right_corner_id / 3));
+      left_face_id((left_corner_id &lt; 0 ? -1 : left_corner_id / 3));
+      if (processor_.IsFaceVisited(right_face_id)) {
+        if (processor_.IsFaceVisited(left_face_id)) {
+          corner_traversal_stack_.pop_back();
+          break; // Break from while(true) loop
+        } else {
+          corner_id = left_corner_id;
+        }
+      } else {
+        if (processor_.IsFaceVisited(left_face_id)) {
+          corner_id = right_corner_id;
+       } else {
+          // Split the traversal.
+          corner_traversal_stack_.back() = left_corner_id;
+          corner_traversal_stack_.push_back(right_corner_id);
+          break; // Break from while(true) loop
+        }
+      }
+    }
+  }
+}
+</code></pre>
+</div>
+
+<h2 id="mesh-traversal-sequencer">Mesh Traversal Sequencer</h2>
+
+<h3 id="generatesequenceinternal">GenerateSequenceInternal()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>GenerateSequenceInternal() {
+  traverser_.OnTraversalStart();
+   If (corner_order_) {
+    // TODO
+  } else {
+    int32_t num_faces = traverser_.corner_table()-&gt;num_faces();
+    for (i = 0; i &lt; num_faces; ++i) {
+      ProcessCorner(3 * i)
+    }
+  }
+  traverser_.OnTraversalEnd();
+}
+</code></pre>
+</div>
+
+<h3 id="processcorner">ProcessCorner()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>ProcessCorner(corner_id) {
+  traverser_.TraverseFromCorner(corner_id);
+}
+</code></pre>
+</div>
+
+<h3 id="updatepointtoattributeindexmapping">UpdatePointToAttributeIndexMapping()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>UpdatePointToAttributeIndexMapping(PointAttribute *attribute) {
+  corner_table = traverser_.corner_table();
+  attribute-&gt;SetExplicitMapping(mesh_-&gt;num_points());
+  num_faces = mesh_-&gt;num_faces();
+  num_points = mesh_-&gt;num_points();
+  for (f = 0; f &lt; num_faces; ++f) {
+    face = mesh_-&gt;face(f);
+    for (p = 0; p &lt; 3; ++p) {
+      point_id = face[p];
+      vert_id = corner_table-&gt;Vertex(3 * f + p);
+      att_entry_id(
+            encoding_data_
+                -&gt;vertex_to_encoded_attribute_value_index_map[vert_id]);
+      attribute-&gt;SetPointMapEntry(point_id, att_entry_id);
+    }
+  }
+}
+</code></pre>
+</div>
+
+<p>PointsSequencer</p>
+
+<h3 id="addpointid">AddPointId()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>AddPointId(point_id) {
+  out_point_ids_-&gt;push_back(point_id);
+}
+</code></pre>
+</div>
+
+<h2 id="corner-table">Corner Table</h2>
+
+<h3 id="opposite">Opposite()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Opposite(corner) {
+  return opposite_corners_[corner];
+}
+</code></pre>
+</div>
+
+<h3 id="next">Next()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Next(corner) {
+  return LocalIndex(++corner) ? corner : corner - 3;
+}
+</code></pre>
+</div>
+
+<h3 id="previous">Previous()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Previous(corner) {
+  return LocalIndex(corner) ? corner - 1 : corner + 2;
+}
+</code></pre>
+</div>
+
+<h3 id="vertex">Vertex()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Vertex(corner) {
+  faces_[Face(corner)][LocalIndex(corner)];
+}
+</code></pre>
+</div>
+
+<h3 id="face">Face()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Face(corner) {
+  return corner / 3;
+}
+</code></pre>
+</div>
+
+<h3 id="localindex">LocalIndex()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>LocalIndex(corner) {
+  return corner % 3;
+}
+</code></pre>
+</div>
+
+<h3 id="num_vertices">num_vertices()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>num_vertices() {
+  return vertex_corners_.size();
+}
+</code></pre>
+</div>
+
+<h3 id="num_corners">num_corners()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>num_corners() {
+  return faces_.size() * 3;
+}
+</code></pre>
+</div>
+
+<h3 id="num_faces">num_faces()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>num_faces() {
+  return faces_.size();
+}
+</code></pre>
+</div>
+
+<h3 id="bool-isonboundary">bool IsOnBoundary()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>bool IsOnBoundary(vert) {
+  corner = LeftMostCorner(vert);
+  if (SwingLeft(corner) &lt; 0)
+    return true;
+  return false;
+}
+</code></pre>
+</div>
+
+<h3 id="swingright">SwingRight()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>SwingRight(corner) {
+  return Previous(Opposite(Previous(corner)));
+}
+</code></pre>
+</div>
+
+<h3 id="swingleft">SwingLeft()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>SwingLeft(corner) {
+  return Next(Opposite(Next(corner)));
+}
+</code></pre>
+</div>
+
+<h3 id="getleftcorner">GetLeftCorner()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>GetLeftCorner(corner_id) {
+  if (corner_id &lt; 0)
+     return kInvalidCornerIndex;
+  return Opposite(Previous(corner_id));
+}
+</code></pre>
+</div>
+
+<h3 id="getrightcorner">GetRightCorner()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>GetRightCorner(corner_id) {
+  if (corner_id &lt; 0)
+     return kInvalidCornerIndex;
+  return Opposite(Next(corner_id));
+}
+</code></pre>
+</div>
+
+<h3 id="setoppositecorner">SetOppositeCorner()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>SetOppositeCorner(corner_id, pp_corner_id) {
+  opposite_corners_[corner_id] = opp_corner_id;
+}
+</code></pre>
+</div>
+
+<h3 id="mapcornertovertex">MapCornerToVertex()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>MapCornerToVertex(corner_id, vert_id) {
+  face = Face(corner_id);
+  faces_[face][LocalIndex(corner_id)] = vert_id;
+  if (vert_id &gt;= 0) {
+    vertex_corners_[vert_id] = corner_id;
+  }
+}
+</code></pre>
+</div>
+
+<h3 id="updatevertextocornermap">UpdateVertexToCornerMap()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>UpdateVertexToCornerMap(vert) {
+  first_c = vertex_corners_[vert];
+  if (first_c &lt; 0)
+    return;
+  act_c = SwingLeft(first_c);
+  c = first_c;
+  while (act_c &gt;= 0 &amp;&amp; act_c != first_c) {
+    c = act_c;
+    act_c = SwingLeft(act_c);
+  }
+  if (act_c != first_c) {
+    vertex_corners_[vert] = c;
+  }
+}
+</code></pre>
+</div>
+
+<h3 id="leftmostcorner">LeftMostCorner()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>LeftMostCorner(v) {
+  return vertex_corners_[v];
+}
+</code></pre>
+</div>
+
+<h3 id="makevertexisolated">MakeVertexIsolated()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>MakeVertexIsolated(vert) {
+  vertex_corners_[vert] = kInvalidCornerIndex;
+}
+</code></pre>
+</div>
+
+<h2 id="mesh-attribute-corner-table">Mesh Attribute Corner Table</h2>
+
+<h3 id="bool-iscorneronseam">bool IsCornerOnSeam()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>bool IsCornerOnSeam(corner) {
+  return is_vertex_on_seam_[corner_table_-&gt;Vertex(corner)];
+}
+</code></pre>
+</div>
+
+<h3 id="addseamedge">AddSeamEdge()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>AddSeamEdge(c) {
+  MarkSeam(c)
+  opp_corner = corner_table_-&gt;Opposite(c);
+  if (opp_corner &gt;= 0) {
+    no_interior_seams_ = false;
+    MarkSeam(opp_corner)
+  }
+}
+</code></pre>
+</div>
+
+<h3 id="markseam">MarkSeam()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>MarkSeam(c) {
+  is_edge_on_seam_[c] = true;
+  is_vertex_on_seam_[corner_table_-&gt;Vertex(corner_table_-&gt;Next(c))] = true;
+  is_vertex_on_seam_[corner_table_-&gt;Vertex(corner_table_-&gt;Previous(c))
+                         ] = true;
+}
+</code></pre>
+</div>
+
+<h3 id="recomputevertices">RecomputeVertices()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>RecomputeVertices() {
+  // in code RecomputeVerticesInternal&lt;false&gt;(nullptr, nullptr)
+  num_new_vertices = 0;
+  for (v = 0; v &lt; corner_table_-&gt;num_vertices(); ++v) {
+    c = corner_table_-&gt;LeftMostCorner(v);
+    if (c &lt; 0)
+      continue;
+    first_vert_id(num_new_vertices++);
+    vertex_to_attribute_entry_id_map_.push_back(first_vert_id);
+    first_c = c;
+    if (is_vertex_on_seam_[v]) {
+      act_c = SwingLeft(first_c);
+      while (act_c &gt;= 0) {
+        first_c = act_c;
+        act_c = SwingLeft(act_c);
+      }
+    }
+    corner_to_vertex_map_[first_c] =first_vert_id;
+    vertex_to_left_most_corner_map_.push_back(first_c);
+    act_c = corner_table_-&gt;SwingRight(first_c);
+    while (act_c &gt;= 0 &amp;&amp; act_c != first_c) {
+      if (is_edge_on_seam_[corner_table_-&gt;Next(act_c)]) {
+        // in code IsCornerOppositeToSeamEdge()
+        first_vert_id = AttributeValueIndex(num_new_vertices++);
+        vertex_to_attribute_entry_id_map_.push_back(first_vert_id);
+        vertex_to_left_most_corner_map_.push_back(act_c);
+      }
+      corner_to_vertex_map_[act_c] = first_vert_id;
+      act_c = corner_table_-&gt;SwingRight(act_c);
+    }
+  }
+}
+</code></pre>
+</div>
+
+<h2 id="symbol-decoding">Symbol Decoding</h2>
+
+<h3 id="decodesymbols">DecodeSymbols()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeSymbols(num_symbols, out_buffer, out_values) {
+  scheme                                                                     UI8
+  If (scheme == 0) {
+    DecodeTaggedSymbols&lt;&gt;(num_symbols, src_buffer, out_values)
+  } else if (scheme == 1) {
+    DecodeRawSymbols&lt;&gt;(num_symbols, src_buffer, out_values)
+  }
+}
+</code></pre>
+</div>
+
+<h3 id="decodetaggedsymbols">DecodeTaggedSymbols()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeTaggedSymbols() {
+  FIXME
+}
+</code></pre>
+</div>
+
+<h3 id="decoderawsymbols">DecodeRawSymbols()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeRawSymbols() {
+  max_bit_length                                                             UI8
+  DecodeRawSymbolsInternal(max_bit_length, out_values)
+  return symbols
+}
+</code></pre>
+</div>
+
+<h3 id="decoderawsymbolsinternal">DecodeRawSymbolsInternal()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeRawSymbolsInternal(max_bit_length, out_values) {
+  decoder = CreateRansSymbolDecoder(max_bit_length)
+  decoder.StartDecoding()
+  // RansSymbolDecoder_StartDecoding
+  for (i = 0; i &lt; num_values; ++i) {
+    out_values[i] = decoder.DecodeSymbol()
+    // RansSymbolDecoder_DecodeSymbol
+  }
+}
+</code></pre>
+</div>
+
+<h3 id="createranssymboldecoder">CreateRansSymbolDecoder()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>CreateRansSymbolDecoder(max_bit_length) {
+  rans_precision_bits  = (3 * max_bit_length) / 2;
+  rans_precision_bits = min(rans_precision_bits, 20)
+  rans_precision_bits = max(rans_precision_bits, 12)
+  rans_precision = 1 &lt;&lt; rans_precision_bits_;
+  l_rans_base = rans_precision * 4;
+  num_symbols_                                                               UI32
+  for (i = 0; i &lt; num_symbols_; ++i) {
+    prob_data                                                                UI8
+    if ((prob_data &amp; 3) == 3) {
+      offset = prob_data &gt;&gt; 2
+      for (j = 0; j &lt; offset + 1; ++j) {
+        probability_table_[i + j] = 0;
+      }
+      i += offset;
+    } else {
+      prob = prob_data &gt;&gt; 2
+      for (j = 0; j &lt; token; ++j) {
+        eb                                                                   UI8
+        prob = prob | (eb &lt;&lt; (8 * (j + 1) - 2)
+      }
+      probability_table_[i] = prob;
+    }
+  }
+  rans_build_look_up_table()
+}
+</code></pre>
+</div>
+
+<h3 id="ranssymboldecoder_startdecoding">RansSymbolDecoder_StartDecoding()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>RansSymbolDecoder_StartDecoding() {
+  bytes_encoded                                                              UI64
+  buffer                                                                     bytes_encoded * UI8
+  rans_read_init(buffer, bytes_encoded)
+}
+</code></pre>
+</div>
+
+<h3 id="ranssymboldecoder_decodesymbol">RansSymbolDecoder_DecodeSymbol()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>RansSymbolDecoder_DecodeSymbol() {
+  ans_.rans_read()
+}
+</code></pre>
+</div>
+
+<h2 id="rans-decoding">Rans Decoding</h2>
+
+<h3 id="ans_read_init">ans_read_init()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>ans_read_init(struct AnsDecoder *const ans, const uint8_t *const buf,
+                       int offset) {
+  x = buf[offset - 1] &gt;&gt; 6
+  If (x == 0) {
+    ans-&gt;buf_offset = offset - 1;
+    ans-&gt;state = buf[offset - 1] &amp; 0x3F;
+  } else if (x == 1) {
+    ans-&gt;buf_offset = offset - 2;
+    ans-&gt;state = mem_get_le16(buf + offset - 2) &amp; 0x3FFF;
+  } else if (x == 2) {
+    ans-&gt;buf_offset = offset - 3;
+    ans-&gt;state = mem_get_le24(buf + offset - 3) &amp; 0x3FFFFF;
+  } else if (x == 3) {
+   // x == 3 implies this byte is a superframe marker
+    return 1;
+  }
+  ans-&gt;state += l_base;
+}
+</code></pre>
+</div>
+
+<h3 id="int-rabs_desc_read">int rabs_desc_read()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>int rabs_desc_read(struct AnsDecoder *ans, AnsP8 p0) {
+  AnsP8 p = ans_p8_precision - p0;
+  if (ans-&gt;state &lt; l_base) {
+    ans-&gt;state = ans-&gt;state * io_base + ans-&gt;buf[--ans-&gt;buf_offset];
+  }
+  x = ans-&gt;state;
+  quot = x / ans_p8_precision;
+  rem = x % ans_p8_precision;
+  xn = quot * p;
+  val = rem &lt; p;
+  if (val) {
+    ans-&gt;state = xn + rem;
+  } else {
+    ans-&gt;state = x - xn - p;
+  }
+  return val;
+}
+</code></pre>
+</div>
+
+<h3 id="rans_read_init">rans_read_init()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>rans_read_init(UI8 *buf, int offset) {
+  ans_.buf = buf;
+  x = buf[offset - 1] &gt;&gt; 6
+  If (x == 0) {
+    ans_.buf_offset = offset - 1;
+    ans_.state = buf[offset - 1] &amp; 0x3F;
+  } else if (x == 1) {
+    ans_.buf_offset = offset - 2;
+    ans_.state = mem_get_le16(buf + offset - 2) &amp; 0x3FFF;
+  } else if (x == 2) {
+    ans_.buf_offset = offset - 3;
+    ans_.state = mem_get_le24(buf + offset - 3) &amp; 0x3FFFFF;
+  } else if (x == 3) {
+    ans_.buf_offset = offset - 4;
+    ans_.state = mem_get_le32(buf + offset - 4) &amp; 0x3FFFFFFF;
+  }
+  ans_.state += l_rans_base;
+}
+</code></pre>
+</div>
+
+<h3 id="rans_build_look_up_table">rans_build_look_up_table()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>rans_build_look_up_table() {
+  cum_prob = 0
+  act_prob = 0
+  for (i = 0; i &lt; num_symbols; ++i) {
+    probability_table_[i].prob = token_probs[i];
+    probability_table_[i].cum_prob = cum_prob;
+    cum_prob += token_probs[i];
+    for (j = act_prob; j &lt; cum_prob; ++j) {
+      Lut_table_[j] = i
+    }
+    act_prob = cum_prob
+}
+</code></pre>
+</div>
+
+<h3 id="rans_read">rans_read()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>rans_read() {
+  while (ans_.state &lt; l_rans_base) {
+    ans_.state = ans_.state * io_base + ans_.buf[--ans_.buf_offset];
+  }
+  quo = ans_.state / rans_precision;
+  rem = ans_.state % rans_precision;
+  sym = fetch_sym()
+  ans_.state = quo * sym.prob + rem - sym.cum_prob;
+  return sym.val;
+}
+</code></pre>
+</div>
+
+<h3 id="fetch_sym">fetch_sym()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>fetch_sym() {
+  symbol = lut_table[rem]
+  out-&gt;val = symbol
+  out-&gt;prob = probability_table_[symbol].prob;
+  out-&gt;cum_prob = probability_table_[symbol].cum_prob;
+}
+</code></pre>
+</div>
+
+<h2 id="rans-bit-decoder">Rans Bit Decoder</h2>
+
+<h3 id="ransbitdecoder_startdecoding">RansBitDecoder_StartDecoding()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>RansBitDecoder_StartDecoding(DecoderBuffer *source_buffer) {
+  prob_zero_                                                                 UI8
+  size                                                                       UI32
+  buffer_                                                                    size * UI8
+  ans_read_init(&amp;ans_decoder_, buffer_, size)
+}
+</code></pre>
+</div>
+
+<h3 id="decodenextbit">DecodeNextBit()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeNextBit() {
+  uint8_t bit = rabs_desc_read(&amp;ans_decoder_, prob_zero_);
+  return bit &gt; 0;
+}
+</code></pre>
+</div>
+
+<h2 id="core-functions">Core Functions</h2>
+
+<h3 id="decodevarint">DecodeVarint<IT></IT></h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>DecodeVarint&lt;IT&gt;() {
+  If (std::is_unsigned&lt;IT&gt;::value) {
+    in                                                                       UI8
+    If (in &amp; (1 &lt;&lt; 7)) {
+      out = DecodeVarint&lt;IT&gt;()
+      out = (out &lt;&lt; 7) | (in &amp; ((1 &lt;&lt; 7) - 1))
+    } else {
+      typename std::make_unsigned&lt;IT&gt;::type UIT;
+      out = DecodeVarint&lt;UIT&gt;()
+      out = ConvertSymbolToSignedInt(out)
+    }
+    return out;
+}
+</code></pre>
+</div>
+
+<h3 id="convertsymboltosignedint">ConvertSymbolToSignedInt()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>ConvertSymbolToSignedInt() {
+  abs_val = val &gt;&gt; 1
+  If (val &amp; 1 == 0) {
+    return abs_val
+  } else {
+    signed_val = -abs_val - 1
+  }
+  return signed_val
+}
+</code></pre>
+</div>
+
+<p>Sequential Decoder</p>
+
+<h3 id="decode_connectivity">decode_connectivity()</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>decode_connectivity() {
+  num_faces                                                       I32
+  num_points                                                      I32
+  connectivity _method                                            UI8
+  If (connectivity _method == 0) {
+    // TODO
+  } else {
+    loop num_faces {
+      If (num_points &lt; 256) {
+        face[]                                                    UI8
+      } else if (num_points &lt; (1 &lt;&lt; 16)) {
+        face[]                                                    UI16
+      } else {
+        face[]                                                    UI32
+      }
+    }
+  }
+}
+</code></pre>
+</div>
+
+
+
+</body>
+</html>
+

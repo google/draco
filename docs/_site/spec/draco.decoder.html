@@ -1,0 +1,43 @@
+<h2 id="draco-decoder">Draco Decoder</h2>
+
+<h3 id="decode">Decode()</h3>
+
+<div class="syntax">
+Decode() {                                                            <b>Type</b>
+  DecodeHeader()
+  DecodeConnectivityData()
+  DecodeAttributeData()}
+
+</div>
+
+<h3 id="decodeheader">DecodeHeader()</h3>
+
+<div class="syntax">
+DecodeHeader() {                                                      <b>Type</b>
+  <b>draco_string</b>                                                        UI8[5]
+  <b>major_version</b>                                                       UI8
+  <b>minor_version</b>                                                       UI8
+  <b>encoder_type</b>                                                        UI8
+  <b>encoder_method</b>                                                      UI8
+  flags
+}
+
+</div>
+
+<h3 id="decodeattributedata">DecodeAttributeData()</h3>
+
+<div class="syntax">
+DecodeAttributeData() {                                               <b>Type</b>
+  <b>num_attributes_decoders</b>                                             UI8
+  for (i = 0; i &lt; num_attributes_decoders; ++i) {
+    CreateAttributesDecoder(i);
+  }
+  for (auto &amp;att_dec : attributes_decoders_) {
+    att_dec-&gt;Initialize(this, point_cloud_)
+  }
+  for (i = 0; i &lt; num_attributes_decoders; ++i) {
+    attributes_decoders_[i]-&gt;DecodeAttributesDecoderData(buffer_)
+  }
+  DecodeAllAttributes()
+  OnAttributesDecoded()
+</div>
