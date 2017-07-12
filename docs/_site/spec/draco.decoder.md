@@ -2,35 +2,35 @@
 
 ### Decode()
 
-<div class="syntax">
-Decode() {                                                            <b>Type</b>
+~~~~~
+Decode() {
   DecodeHeader()
   DecodeConnectivityData()
   DecodeAttributeData()}
-
-</div>
+~~~~~
+{:.draco-syntax}
 
 
 ### DecodeHeader()
 
-<div class="syntax">
-DecodeHeader() {                                                      <b>Type</b>
-  <b>draco_string</b>                                                        UI8[5]
-  <b>major_version</b>                                                       UI8
-  <b>minor_version</b>                                                       UI8
-  <b>encoder_type</b>                                                        UI8
-  <b>encoder_method</b>                                                      UI8
+~~~~~
+DecodeHeader() {
+  draco_string                                                          UI8[5]
+  major_version                                                         UI8
+  minor_version                                                         UI8
+  encoder_type                                                          UI8
+  encoder_method                                                        UI8
   flags
 }
-
-</div>
+~~~~~
+{:.draco-syntax}
 
 
 ### DecodeAttributeData()
 
-<div class="syntax">
-DecodeAttributeData() {                                               <b>Type</b>
-  <b>num_attributes_decoders</b>                                             UI8
+~~~~~
+DecodeAttributeData() {
+  num_attributes_decoders                                               UI8
   for (i = 0; i < num_attributes_decoders; ++i) {
     CreateAttributesDecoder(i);
   }
@@ -42,4 +42,5 @@ DecodeAttributeData() {                                               <b>Type</b
   }
   DecodeAllAttributes()
   OnAttributesDecoded()
-</div>
+~~~~~
+{:.draco-syntax}

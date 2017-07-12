@@ -1,5 +1,7 @@
 <h2 id="conventions">Conventions</h2>
 
+<h3 id="general-conventions">General Conventions</h3>
+
 <ul>
   <li>
     <p>When bit reading is finished it will always pad the read to the current
@@ -40,3 +42,51 @@ first, then the connectivity section, and then the attribute section.</p>
 decoded.</p>
   </li>
 </ul>
+
+<h3 id="method-of-describing-bitstream-syntax">Method of describing bitstream syntax</h3>
+
+<p><strong>FIXME: This section is borrowed from AV1, and should be modified for the Draco
+spec.</strong></p>
+
+<p>The description style of the syntax is similar to the C++ programming language.
+Syntax elements in the bitstream are represented in bold type. Each syntax
+element is described by its name (using only lower case letters with
+underscore characters) and a descriptor for its method of coded
+representation. The decoding process behaves according to the value of the
+syntax element and to the values of previously decoded syntax elements. When a
+value of a syntax element is used in the syntax tables or the text, it appears
+in regular (i.e. not bold) type. If the value of a syntax element is being
+computed (e.g. being written with a default value instead of being coded in
+the bitstream), it also appears in regular type.</p>
+
+<p>In some cases the syntax tables may use the values of other variables derived
+from syntax elements values. Such variables appear in the syntax tables, or
+text, named by a mixture of lower case and upper case letter and without any
+underscore characters. Variables starting with an upper case letter are
+derived for the decoding of the current syntax structure and all depending
+syntax structures. These variables may be used in the decoding process for
+later syntax structures. Variables starting with a lower case letter are only
+used within the process from which they are derived.</p>
+
+<p>Constant values appear in all upper case letters with underscore characters.</p>
+
+<p>Constant lookup tables appear in all lower case letters with underscore
+characters.</p>
+
+<p>Hexadecimal notation, indicated by prefixing the hexadecimal number by <code class="highlighter-rouge">0x</code>,
+may be used when the number of bits is an integer multiple of 4. For example,
+<code class="highlighter-rouge">0x1a</code> represents a bit string <code class="highlighter-rouge">0001 1010</code>.</p>
+
+<p>Binary notation is indicated by prefixing the binary number by <code class="highlighter-rouge">0b</code>. For
+example, <code class="highlighter-rouge">0b00011010</code> represents a bit string <code class="highlighter-rouge">0001 1010</code>. Binary numbers may
+include underscore characters to enhance readability. If present, the
+underscore characters appear every 4 binary digits starting from the LSB. For
+example, <code class="highlighter-rouge">0b11010</code> may also be written as <code class="highlighter-rouge">0b1_1010</code>.</p>
+
+<p>A value equal to 0 represents a FALSE condition in a test statement. The
+value TRUE is represented by any value not equal to 0.</p>
+
+<p>The following table lists examples of the syntax specification format. When
+<code class="highlighter-rouge">syntax_element</code> appears (with bold face font), it specifies that this syntax
+element is parsed from the bitstream.</p>
+

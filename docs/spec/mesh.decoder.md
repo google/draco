@@ -2,10 +2,10 @@
 
 ### DecodeConnectivityData()
 
-<div class="syntax">
-DecodeConnectivityData()                                              <b>Type</b>
+~~~~~
+DecodeConnectivityData()
   InitializeDecoder()
   DecodeConnectivity()
 }
-
-</div>
+~~~~~
+{:.draco-syntax }

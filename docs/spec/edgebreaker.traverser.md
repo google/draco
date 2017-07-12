@@ -68,3 +68,4 @@ TraverseFromCorner(corner_id) {
   }
 }
 ~~~~~
+{:.draco-syntax }

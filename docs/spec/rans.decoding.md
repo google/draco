@@ -23,6 +23,7 @@ ans_read_init(struct AnsDecoder *const ans, const uint8_t *const buf,
   ans->state += l_base;
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### int rabs_desc_read()
@@ -46,7 +47,7 @@ int rabs_desc_read(struct AnsDecoder *ans, AnsP8 p0) {
   return val;
 }
 ~~~~~
-
+{:.draco-syntax }
 
 
 ### rans_read_init()
@@ -71,6 +72,7 @@ rans_read_init(UI8 *buf, int offset) {
   ans_.state += l_rans_base;
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### rans_build_look_up_table()
@@ -89,7 +91,7 @@ rans_build_look_up_table() {
     act_prob = cum_prob
 }
 ~~~~~
-
+{:.draco-syntax }
 
 
 ### rans_read()
@@ -106,6 +108,7 @@ rans_read() {
   return sym.val;
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### fetch_sym()
@@ -118,3 +121,4 @@ fetch_sym() {
   out->cum_prob = probability_table_[symbol].cum_prob;
 }
 ~~~~~
+{:.draco-syntax }

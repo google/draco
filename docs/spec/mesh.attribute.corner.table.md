@@ -8,6 +8,7 @@ bool IsCornerOnSeam(corner) {
   return is_vertex_on_seam_[corner_table_->Vertex(corner)];
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### AddSeamEdge()
@@ -22,6 +23,7 @@ AddSeamEdge(c) {
   }
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### MarkSeam()
@@ -34,6 +36,7 @@ MarkSeam(c) {
                          ] = true;
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### RecomputeVertices()
@@ -72,3 +75,4 @@ RecomputeVertices() {
   }
 }
 ~~~~~
+{:.draco-syntax }

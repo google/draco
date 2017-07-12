@@ -8,7 +8,7 @@ Decode(...) {
   this->transform().InitializeDecoding(num_components);
   // restore the first value
   this->transform().ComputeOriginalValue(pred_vals.get(),
-                                       in_corr, out_data, 0);
+                                         in_corr, out_data, 0);
   // PredictionSchemeWrapTransform_ComputeOriginalValue()
   corner_map_size = this->mesh_data().data_to_corner_map()->size();
   for (p = 1; p < corner_map_size; ++p) {
@@ -30,9 +30,13 @@ Decode(...) {
   }
 }
 ~~~~~
+{:.draco-syntax }
 
 
 MeshPredictionSchemeParallelogramShared
+
+FIXME: ^^^ Heading level?
+
 
 ### ComputeParallelogramPrediction()
 
@@ -56,3 +60,4 @@ ComputeParallelogramPrediction(...) {
   return false;
 }
 ~~~~~
+{:.draco-syntax }

@@ -2,26 +2,27 @@
 
 ### InitializeDecoder()
 
-<div class="syntax">
-InitializeDecoder() {                                                 <b>Type</b>
-  <b>edgebreaker_decoder_type</b>                                            UI8
+~~~~~
+InitializeDecoder() {
+  edgebreaker_decoder_type                                              UI8
 }
-
-</div>
+~~~~~
+{:.draco-syntax }
 
 
 ### DecodeConnectivity()
 
-<div class="syntax">
-DecodeConnectivity() {                                                <b>Type</b>
-  <b>num_new_verts</b>                                                       UI32
-  <b>num_encoded_vertices</b>                                                UI32
-  <b>num_faces</b>                                                           UI32
-  <b>num_attribute_data</b>                                                  I8
-  <b>num_encoded_symbols</b>                                                 UI32
-  <b>num_encoded_split_symbols</b>                                           UI32
-  <b>encoded_connectivity_size</b>                                           UI32
-  // file pointer must be set to current position + encoded_connectivity_size
+~~~~~
+DecodeConnectivity() {
+  num_new_verts                                                         UI32
+  num_encoded_vertices                                                  UI32
+  num_faces                                                             UI32
+  num_attribute_data                                                    I8
+  num_encoded_symbols                                                   UI32
+  num_encoded_split_symbols                                             UI32
+  encoded_connectivity_size                                             UI32
+  // file pointer must be set to current position
+  // + encoded_connectivity_size
   hole_and_split_bytes = DecodeHoleAndTopologySplitEvents()
   // file pointer must be set to old current position
   EdgeBreakerTraversalValence_Start()
@@ -47,14 +48,14 @@ DecodeConnectivity() {                                                <b>Type</b
   // Preallocate vertex to value mapping
   AssignPointsToCorners()
 }
-
-</div>
+~~~~~
+{:.draco-syntax }
 
 
 ### AssignPointsToCorners()
 
-<div class="syntax">
-AssignPointsToCorners() {                                             <b>Type</b>
+~~~~~
+AssignPointsToCorners() {
   decoder_->mesh()->SetNumFaces(corner_table_->num_faces());
   if (attribute_data_.size() == 0) {
     for (f = 0; f < decoder_->mesh()->num_faces(); ++f) {
@@ -125,14 +126,14 @@ AssignPointsToCorners() {                                             <b>Type</b
   }
   decoder_->point_cloud()->set_num_points(point_to_corner_map.size());
 }
-
-</div>
+~~~~~
+{:.draco-syntax }
 
 
 ### DecodeConnectivity()
 
-<div class="syntax">
-DecodeConnectivity(num_symbols) {                                     <b>Type</b>
+~~~~~
+DecodeConnectivity(num_symbols) {
   for (i = 0; i < num_symbols; ++i) {
     symbol = TraversalValence_DecodeSymbol()
     corner = 3 * num_faces++
@@ -187,14 +188,14 @@ DecodeConnectivity(num_symbols) {                                     <b>Type</b
   }
   Return num_vertices;
 }
-
-</div>
+~~~~~
+{:.draco-syntax }
 
 
 ### UpdateCornerTableForSymbolC()
 
-<div class="syntax">
-UpdateCornerTableForSymbolC(corner) {                                 <b>Type</b>
+~~~~~
+UpdateCornerTableForSymbolC(corner) {
   corner_a = active_corner_stack.back();
   corner_b = corner_table_->Previous(corner_a);
   while (corner_table_->Opposite(corner_b) >= 0) {
@@ -210,15 +211,15 @@ UpdateCornerTableForSymbolC(corner) {                                 <b>Type</b
           corner + 2, corner_table_->Vertex(corner_table_->Previous(corner_a)));
   return vertex_x;
 }
-
-</div>
+~~~~~
+{:.draco-syntax }
 
 
 
 ### UpdateCornerTableForSymbolLR()
 
-<div class="syntax">
-UpdateCornerTableForSymbolLR(corner, symbol) {                        <b>Type</b>
+~~~~~
+UpdateCornerTableForSymbolLR(corner, symbol) {
   if (symbol == TOPOLOGY_R) {
     opp_corner = corner + 2;
   } else {
@@ -233,14 +234,14 @@ UpdateCornerTableForSymbolLR(corner, symbol) {                        <b>Type</b
           corner_table_->Previous(opp_corner),
           corner_table_->Vertex(corner_table_->Next(corner_a)));
 }
-
-</div>
+~~~~~
+{:.draco-syntax }
 
 
 ### HandleSymbolS()
 
-<div class="syntax">
-HandleSymbolS(corner) {                                               <b>Type</b>
+~~~~~
+HandleSymbolS(corner) {
   corner_b = active_corner_stack.pop_back();
   it = topology_split_active_corners.find(symbol_id);
   if (it != topology_split_active_corners.end()) {
@@ -265,26 +266,26 @@ HandleSymbolS(corner) {                                               <b>Type</b
   }
   corner_table_->MakeVertexIsolated(vertex_n);
 }
-
-</div>
+~~~~~
+{:.draco-syntax }
 
 
 ### UpdateCornerTableForSymbolE()
 
-<div class="syntax">
-UpdateCornerTableForSymbolE() {                                        <b>Type</b>
+~~~~~
+UpdateCornerTableForSymbolE() {
   corner_table_->MapCornerToVertex(corner, num_vertices++);
   corner_table_->MapCornerToVertex(corner + 1, num_vertices++);
   corner_table_->MapCornerToVertex(corner + 2, num_vertices++);
 }
-
-</div>
+~~~~~
+{:.draco-syntax }
 
 
 ### UpdateCornerTableForInteriorFace()
 
-<div class="syntax">
-UpdateCornerTableForInteriorFace() {                                  <b>Type</b>
+~~~~~
+UpdateCornerTableForInteriorFace() {
   corner_b = corner_table_->Previous(corner);
   while (corner_table_->Opposite(corner_b) >= 0) {
     corner_b = corner_table_->Previous(corner_table_->Opposite(corner_b));
@@ -301,15 +302,14 @@ UpdateCornerTableForInteriorFace() {                                  <b>Type</b
   corner_table_->MapCornerToVertex(
           new_corner + 2, corner_table_->Vertex(corner_table_->Next(corner)));
 }
-
-</div>
+~~~~~
+{:.draco-syntax }
 
 
 ### IsTopologySplit()
 
-<div class="syntax">
-IsTopologySplit(encoder_symbol_id, *out_face_edge,                    <b>Type</b>
-
+~~~~~
+IsTopologySplit(encoder_symbol_id, *out_face_edge,
                          *out_encoder_split_symbol_id) {
   if (topology_split_data_.size() == 0)
     return false;
@@ -321,14 +321,14 @@ IsTopologySplit(encoder_symbol_id, *out_face_edge,                    <b>Type</b
   topology_split_data_.pop_back();
   return true;
 }
-
-</div>
+~~~~~
+{:.draco-syntax }
 
 
 ### DecodeAttributeConnectivitiesOnFace()
 
-<div class="syntax">
-DecodeAttributeConnectivitiesOnFace(corner) {                         <b>Type</b>
+~~~~~
+DecodeAttributeConnectivitiesOnFace(corner) {
   corners[3] = {corner, corner_table_->Next(corner),
                        corner_table_->Previous(corner)}
   for (c = 0; c < 3; ++c) {
@@ -347,16 +347,16 @@ DecodeAttributeConnectivitiesOnFace(corner) {                         <b>Type</b
     }
   }
 }
-
-</div>
+~~~~~
+{:.draco-syntax }
 
 
 ### SetOppositeCorners()
 
-<div class="syntax">
-SetOppositeCorners(corner_0, corner_1) {                              <b>Type</b>
+~~~~~
+SetOppositeCorners(corner_0, corner_1) {
   corner_table_->SetOppositeCorner(corner_0, corner_1);
   corner_table_->SetOppositeCorner(corner_1, corner_0);
 }
-
-</div>
+~~~~~
+{:.draco-syntax }

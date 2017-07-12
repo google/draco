@@ -5,18 +5,19 @@
 
 ~~~~~
 DecodeTransformData(buffer) {
-  min_value_                                                                 DT
-  max_value_                                                                 DT
+  min_value_                                                            DT
+  max_value_                                                            DT
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### ComputeOriginalValue()
 
 ~~~~~
 ComputeOriginalValue(const DataTypeT *predicted_vals,
-                                   const CorrTypeT *corr_vals,
-                                   DataTypeT *out_original_vals, int val_id) {
+                     const CorrTypeT *corr_vals,
+                     DataTypeT *out_original_vals, int val_id) {
   clamped_vals = ClampPredictedValue(predicted_vals);
   ComputeOriginalValue(clamped_vals, corr_vals, out_original_vals, val_id)
   // PredictionSchemeTransform_ComputeOriginalValue()
@@ -28,6 +29,7 @@ ComputeOriginalValue(const DataTypeT *predicted_vals,
     }
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### ClampPredictedValue()
@@ -41,3 +43,4 @@ ClampPredictedValue(const DataTypeT *predicted_val) {
   return &clamped_value_[0];
 }
 ~~~~~
+{:.draco-syntax }

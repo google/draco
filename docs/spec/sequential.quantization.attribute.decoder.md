@@ -6,6 +6,7 @@ Initialize(...) {
   SequentialIntegerAttributeDecoder_Initialize()
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### DecodeIntegerValues()
@@ -15,13 +16,14 @@ DecodeIntegerValues(point_ids) {
   // DecodeQuantizedDataInfo()
   num_components = attribute()->components_count();
   for (i = 0; i < num_components; ++i) {
-    min_value_[i]                                                            F32
+    min_value_[i]                                                       F32
   }
-  max_value_dif_                                                             F32
-  quantization_bits_                                                         UI8
+  max_value_dif_                                                        F32
+  quantization_bits_                                                    UI8
   SequentialIntegerAttributeDecoder::DecodeIntegerValues()
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### DequantizeValues()
@@ -44,3 +46,4 @@ DequantizeValues(num_values) {
   }
 }
 ~~~~~
+{:.draco-syntax }

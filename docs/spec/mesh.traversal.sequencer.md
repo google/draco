@@ -17,6 +17,7 @@ GenerateSequenceInternal() {
   traverser_.OnTraversalEnd();
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### ProcessCorner()
@@ -26,6 +27,7 @@ ProcessCorner(corner_id) {
   traverser_.TraverseFromCorner(corner_id);
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### UpdatePointToAttributeIndexMapping()
@@ -49,9 +51,12 @@ UpdatePointToAttributeIndexMapping(PointAttribute *attribute) {
   }
 }
 ~~~~~
+{:.draco-syntax }
 
 
 PointsSequencer
+
+FIXME: ^^^ Heading level?
 
 ### AddPointId()
 
@@ -60,3 +65,4 @@ AddPointId(point_id) {
   out_point_ids_->push_back(point_id);
 }
 ~~~~~
+{:.draco-syntax }

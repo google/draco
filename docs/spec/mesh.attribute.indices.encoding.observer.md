@@ -15,3 +15,4 @@ OnNewVertexVisited(vertex, corner) {
   encoding_data_->num_values++;
 }
 ~~~~~
+{:.draco-syntax }

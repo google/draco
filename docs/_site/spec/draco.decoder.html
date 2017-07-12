@@ -2,33 +2,30 @@
 
 <h3 id="decode">Decode()</h3>
 
-<div class="syntax">
-Decode() {                                                            <b>Type</b>
+<div class="draco-syntax highlighter-rouge"><pre class="highlight"><code>Decode() {
   DecodeHeader()
   DecodeConnectivityData()
   DecodeAttributeData()}
-
+</code></pre>
 </div>
 
 <h3 id="decodeheader">DecodeHeader()</h3>
 
-<div class="syntax">
-DecodeHeader() {                                                      <b>Type</b>
-  <b>draco_string</b>                                                        UI8[5]
-  <b>major_version</b>                                                       UI8
-  <b>minor_version</b>                                                       UI8
-  <b>encoder_type</b>                                                        UI8
-  <b>encoder_method</b>                                                      UI8
+<div class="draco-syntax highlighter-rouge"><pre class="highlight"><code>DecodeHeader() {
+  draco_string                                                          UI8[5]
+  major_version                                                         UI8
+  minor_version                                                         UI8
+  encoder_type                                                          UI8
+  encoder_method                                                        UI8
   flags
 }
-
+</code></pre>
 </div>
 
 <h3 id="decodeattributedata">DecodeAttributeData()</h3>
 
-<div class="syntax">
-DecodeAttributeData() {                                               <b>Type</b>
-  <b>num_attributes_decoders</b>                                             UI8
+<div class="draco-syntax highlighter-rouge"><pre class="highlight"><code>DecodeAttributeData() {
+  num_attributes_decoders                                               UI8
   for (i = 0; i &lt; num_attributes_decoders; ++i) {
     CreateAttributesDecoder(i);
   }
@@ -40,4 +37,5 @@ DecodeAttributeData() {                                               <b>Type</b
   }
   DecodeAllAttributes()
   OnAttributesDecoded()
+</code></pre>
 </div>

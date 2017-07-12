@@ -6,15 +6,16 @@ Initialize(...) {
   SequentialAttributeDecoder_Initialize()
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### DecodeValues()
 
 ~~~~~
 DecodeValues(point_ids) {
-  prediction_scheme_method                                                   I8
+  prediction_scheme_method                                              I8
   if (prediction_scheme_method != PREDICTION_NONE) {
-    prediction_transform_type                                                I8
+    prediction_transform_type                                           I8
     prediction_scheme_ = CreateIntPredictionScheme(...)
   }
   if (prediction_scheme_) {
@@ -25,13 +26,14 @@ DecodeValues(point_ids) {
   DequantizeValues(num_values)
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### DecodeIntegerValues()
 
 ~~~~~
 DecodeIntegerValues(point_ids) {
-  compressed                                                                 UI8
+  compressed                                                            UI8
   if (compressed) {
     DecodeSymbols(..., values_.data())
   } else {
@@ -45,8 +47,9 @@ DecodeIntegerValues(point_ids) {
     // DecodeTransformData(buffer)
     if (!values_.empty()) {
       prediction_scheme_->Decode(values_.data(), &values_[0],
-                                      values_.size(), num_components, point_ids.data())
+                                 values_.size(), num_components, point_ids.data())
       // MeshPredictionSchemeParallelogram_Decode()
 }
 ~~~~~
+{:.draco-syntax }
 

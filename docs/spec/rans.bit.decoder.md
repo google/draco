@@ -5,12 +5,13 @@
 
 ~~~~~
 RansBitDecoder_StartDecoding(DecoderBuffer *source_buffer) {
-  prob_zero_                                                                 UI8
-  size                                                                       UI32
-  buffer_                                                                    size * UI8
+  prob_zero_                                                            UI8
+  size                                                                  UI32
+  buffer_                                                               size * UI8
   ans_read_init(&ans_decoder_, buffer_, size)
 }
 ~~~~~
+{:.draco-syntax }
 
 
 ### DecodeNextBit()
@@ -21,3 +22,4 @@ DecodeNextBit() {
   return bit > 0;
 }
 ~~~~~
+{:.draco-syntax }
