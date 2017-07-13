@@ -1,0 +1,96 @@
+---
+---
+/*
+ * style.sass
+ */
+@import url('https://fonts.googleapis.com/css?family=Inconsolata')
+
+$monofont: 'Inconsolata', monospace
+$gridcolor: #ddd
+$gridweight: 2px
+
+body
+  font-family: Arial, sans-serif
+  margin: 10% 25% 10% 10%
+  line-height: 1.3
+
+a
+  color: navy
+  text-decoration: none
+  &:visited
+    color: navy
+    text-decoration: none
+  &:hover
+    text-decoration: underline
+
+pre
+  //font-family: $monofont
+  //border: $gridweight solid $gridcolor
+  //background-color: #f7f7f7
+  //padding: 1em
+  //margin-left: 1em
+  //overflow-x: auto
+
+code
+  //color: #060
+  //background-color: #f2f2f2
+  font-family: $monofont
+
+table
+  border-collapse: collapse
+  min-width: 50%
+  margin-left: 1em
+
+th, td
+  border: $gridweight solid #ccc
+  padding: .5em
+
+th
+  background-color: #333
+  color: #fff
+
+table.terms
+  th
+    display: none
+  td
+    vertical-align: top
+
+table.conventions
+  th
+    display: none
+  td
+    vertical-align: top
+  td:first-child
+    white-space: nowrap
+
+table.nohead
+  th
+    display: none
+
+table.xyhead
+  th, td:first-child
+    background-color: #9bbb59
+  th
+    color: #000
+    font-weight: normal
+
+figure.highlight
+  background-color: #f2f2f2
+  padding-left: 1em
+  padding-right: 1em
+  border: $gridweight solid #ccc
+
+div.draco-syntax pre
+  background-color: #fff
+  background-image: linear-gradient(90deg, transparent 580px, #abced4 580px, #abced4 582px, transparent 582px), linear-gradient($gridcolor .1em, transparent .1em)
+  background-size: 100% 1.3em
+  border-left: $gridweight solid $gridcolor
+  border-right: $gridweight solid $gridcolor
+  border-bottom: $gridweight solid $gridcolor
+  white-space: pre
+  font-family: $monofont
+  font-size: 1em
+  padding-left: 1em
+  margin-left: 1em
+  width: 720px
+  //overflow: auto
