@@ -4,24 +4,22 @@
 ### EdgeBreakerTraversalValence_Start()
 
 ~~~~~
-EdgeBreakerTraversalValence_Start(num_vertices, num_attribute_data) {
-  out_buffer = EdgebreakerTraversal_Start()
-  num_split_symbols                                                     I32
+EdgeBreakerTraversalValence_Start(traversal_num_vertices) {
+  EdgebreakerTraversal_Start()
+  num_split_symbols                                                     varUI32
   mode == 0                                                             I8
-  num_vertices_ += num_split_symbols
+  traversal_num_vertices += num_split_symbols
   vertex_valences_ init to 0
-  vertex_valences_.resize(num_vertices_, 0);
   min_valence_ = 2;
   max_valence_ = 7;
   num_unique_valences = 6 (max_valence_ - min_valence_ + 1)
   for (i = 0; i < num_unique_valences; ++i) {
-    DecodeVarint<UI32>(&num_symbols, out_buffer)
-    If (num_symbols > 0) {
-      DecodeSymbols(num_symbols, out_buffer, &context_symbols_[i])
+    num_symbols                                                         varUI32
+    if (num_symbols > 0) {
+      DecodeSymbols(num_symbols, context_symbols_[i])
     }
     context_counters_[i] = num_symbols
   }
-  return out_buffer;
 }
 ~~~~~
 {:.draco-syntax }

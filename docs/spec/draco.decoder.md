@@ -5,8 +5,11 @@
 ~~~~~
 Decode() {
   DecodeHeader()
+  if (flags & METADATA_FLAG_MASK)
+    DecodeGeometryMetadata(metadata)
   DecodeConnectivityData()
-  DecodeAttributeData()}
+  DecodeAttributeData()
+}
 ~~~~~
 {:.draco-syntax}
 

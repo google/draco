@@ -5,7 +5,7 @@
 
 ~~~~~
 DecodeAttributesDecoderData(buffer) {
-  num_attributes                                                        I32
+  num_attributes                                                        varUI32
   point_attribute_ids_.resize(num_attributes);
   for (i = 0; i < num_attributes; ++i) {
     att_type                                                            UI8

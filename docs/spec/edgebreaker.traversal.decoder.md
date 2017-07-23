@@ -9,10 +9,10 @@ EdgebreakerTraversal_Start() {
   symbol_buffer_                                                        size * UI8
   size                                                                  UI64
   start_face_buffer_                                                    size * UI8
-  if (num_attribute_data_ > 0) {
-    attribute_connectivity_decoders_ = std::unique_ptr<BinaryDecoder[]>(
-          new BinaryDecoder[num_attribute_data_]);
-    for (i = 0; i < num_attribute_data_; ++i) {
+  if (num_attribute_data > 0) {
+    attribute_connectivity_decoders_ =
+        new BinaryDecoder[num_attribute_data]
+    for (i = 0; i < num_attribute_data; ++i) {
       attribute_connectivity_decoders_[i].StartDecoding()
       // RansBitDecoder_StartDecoding
   }

@@ -1,31 +1,22 @@
 ## EdgeBreaker Decoder
 
-### InitializeDecoder()
+### DecodeConnectivityData()
 
 ~~~~~
-InitializeDecoder() {
-  edgebreaker_decoder_type                                              UI8
-}
-~~~~~
-{:.draco-syntax }
-
-
-### DecodeConnectivity()
-
-~~~~~
-DecodeConnectivity() {
-  num_new_verts                                                         UI32
-  num_encoded_vertices                                                  UI32
-  num_faces                                                             UI32
+DecodeConnectivityData() {
+  edgebreaker_traversal_type                                            UI8
+  num_new_verts                                                         varUI32
+  num_encoded_vertices                                                  varUI32
+  num_faces                                                             varUI32
   num_attribute_data                                                    I8
-  num_encoded_symbols                                                   UI32
-  num_encoded_split_symbols                                             UI32
-  encoded_connectivity_size                                             UI32
+  num_encoded_symbols                                                   varUI32
+  num_encoded_split_symbols                                             varUI32
+  encoded_connectivity_size                                             varUI32
   // file pointer must be set to current position
   // + encoded_connectivity_size
   hole_and_split_bytes = DecodeHoleAndTopologySplitEvents()
   // file pointer must be set to old current position
-  EdgeBreakerTraversalValence_Start()
+  EdgeBreakerTraversalValence_Start(num_encoded_vertices)
   DecodeConnectivity(num_symbols)
   if (attribute_data_.size() > 0) {
     for (ci = 0; ci < corner_table_->num_corners(); ci += 3) {
@@ -39,11 +30,12 @@ DecodeConnectivity() {
   }
   // Decode attribute connectivity.
   for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
-    attribute_data_[i].connectivity_data.InitEmpty(corner_table_.get());
+    attribute_data_[i].connectivity_data.InitEmpty(corner_table_);
     for (int32_t c : attribute_data_[i].attribute_seam_corners) {
       attribute_data_[i].connectivity_data.AddSeamEdge(c);
     }
-    attribute_data_[i].connectivity_data.RecomputeVertices(nullptr, nullptr);
+    attribute_data_[i].connectivity_data.RecomputeVertices(nullptr,
+                                                           nullptr);
   }
   // Preallocate vertex to value mapping
   AssignPointsToCorners()
@@ -83,7 +75,8 @@ AssignPointsToCorners() {
         act_c = corner_table_->SwingRight(c);
         seam_found = false;
         while (act_c != c) {
-          if (attribute_data_[i].connectivity_data.Vertex(act_c) != vert_id) {
+          if (attribute_data_[i].connectivity_data.Vertex(act_c) !=
+	      vert_id) {
             deduplication_first_corner = act_c;
             seam_found = true;
             break;
@@ -150,12 +143,12 @@ DecodeConnectivity(num_symbols) {
       check_topology_split = true;
     }
     active_corner_stack.back() = corner;
-  traversal_decoder_.NewActiveCornerReached(corner);
+    traversal_decoder_.NewActiveCornerReached(corner);
     if (check_topology_split) {
       encoder_symbol_id = num_symbols - symbol_id - 1;
       while (true) {
         split = IsTopologySplit(encoder_symbol_id, &split_edge,
-                             &encoder_split_symbol_id);
+                                &encoder_split_symbol_id);
         if (!split) {
           break;
         }
@@ -165,7 +158,8 @@ DecodeConnectivity(num_symbols) {
         } else {
           new_active_corner = corner_table_->Previous(act_top_corner);
         }
-        decoder_split_symbol_id = num_symbols - encoder_split_symbol_id - 1;
+        decoder_split_symbol_id = num_symbols -
+	                          encoder_split_symbol_id - 1;
         topology_split_active_corners[decoder_split_symbol_id] =
             new_active_corner;
       }
@@ -186,7 +180,6 @@ DecodeConnectivity(num_symbols) {
       init_corners_.push_back(corner);
     }
   }
-  Return num_vertices;
 }
 ~~~~~
 {:.draco-syntax }
