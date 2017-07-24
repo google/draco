@@ -133,7 +133,7 @@ directory.**
 
 ### Set Local Ruby Version (rbenv)
 
-In the `docs/` directory of your local clone, do:
+_**In the `docs/` directory**_ of your local clone, do:
 
 ~~~~~
 rbenv local 2.3.0
@@ -161,7 +161,7 @@ for some gems to compile successfully._
 ### Build and Preview Locally with Jekyll
 
 ~~~~~
-bundle exec jekyll serve --baseurl '/docs'
+bundle exec jekyll serve
 ~~~~~
 
 This will build the documentation tree and launch a local webserver at
