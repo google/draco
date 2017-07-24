@@ -4,12 +4,12 @@
 ### DecodeSymbols()
 
 ~~~~~
-DecodeSymbols(num_symbols, out_buffer, out_values) {
+DecodeSymbols(num_symbols, out_values) {
   scheme                                                                UI8
   If (scheme == 0) {
-    DecodeTaggedSymbols<>(num_symbols, src_buffer, out_values)
+    DecodeTaggedSymbols(num_symbols, out_values)
   } else if (scheme == 1) {
-    DecodeRawSymbols<>(num_symbols, src_buffer, out_values)
+    DecodeRawSymbols(num_symbols, out_values)
   }
 }
 ~~~~~
@@ -29,19 +29,8 @@ DecodeTaggedSymbols() {
 ### DecodeRawSymbols()
 
 ~~~~~
-DecodeRawSymbols() {
+DecodeRawSymbols(num_values, out_values) {
   max_bit_length                                                        UI8
-  DecodeRawSymbolsInternal(max_bit_length, out_values)
-  return symbols
-}
-~~~~~
-{:.draco-syntax }
-
-
-### DecodeRawSymbolsInternal()
-
-~~~~~
-DecodeRawSymbolsInternal(max_bit_length, out_values) {
   decoder = CreateRansSymbolDecoder(max_bit_length)
   decoder.StartDecoding()
   // RansSymbolDecoder_StartDecoding
@@ -103,7 +92,7 @@ RansSymbolDecoder_StartDecoding() {
 
 ~~~~~
 RansSymbolDecoder_DecodeSymbol() {
-  ans_.rans_read()
+  return ans_.rans_read()
 }
 ~~~~~
 {:.draco-syntax }

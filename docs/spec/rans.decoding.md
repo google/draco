@@ -4,8 +4,7 @@
 ### ans_read_init()
 
 ~~~~~
-ans_read_init(struct AnsDecoder *const ans, const uint8_t *const buf,
-                       int offset) {
+ans_read_init(AnsDecoder ans, buf, int offset) {
   x = buf[offset - 1] >> 6
   If (x == 0) {
     ans->buf_offset = offset - 1;
@@ -17,8 +16,7 @@ ans_read_init(struct AnsDecoder *const ans, const uint8_t *const buf,
     ans->buf_offset = offset - 3;
     ans->state = mem_get_le24(buf + offset - 3) & 0x3FFFFF;
   } else if (x == 3) {
-   // x == 3 implies this byte is a superframe marker
-    return 1;
+    // ERROR
   }
   ans->state += l_base;
 }

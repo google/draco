@@ -6,25 +6,25 @@
 
 ~~~~~
 DecodeHoleAndTopologySplitEvents() {
-  num_topologoy_splits                                                  UI32
+  num_topologoy_splits                                                  varUI32
   source_symbol_id = 0
   for (i = 0; i < num_topologoy_splits; ++i) {
-    DecodeVarint<UI32>(&delta)
+    delta                                                               varUI32
     split_data[i].source_symbol_id = delta + source_symbol_id
-    DecodeVarint<UI32>(&delta)
+    delta                                                               varUI32
     split_data[i].split_symbol_id = source_symbol_id - delta
   }
   for (i = 0; i < num_topologoy_splits; ++i) {
     split_data[i].split_edge                                            bits1
     split_data[i].source_edge                                           bits1
   }
-  num_hole_events                                                       UI32
+  num_hole_events                                                       varUI32
   symbol_id = 0
   for (i = 0; i < num_hole_events; ++i) {
-    DecodeVarint<UI32>(&delta)
+    delta                                                               varUI32
     hole_data[i].symbol_id = delta + symbol_id
   }
-    return bytes_decoded;
+  return bytes_decoded;
 }
 ~~~~~
 {:.draco-syntax }

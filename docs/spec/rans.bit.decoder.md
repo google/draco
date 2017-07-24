@@ -4,11 +4,11 @@
 ### RansBitDecoder_StartDecoding()
 
 ~~~~~
-RansBitDecoder_StartDecoding(DecoderBuffer *source_buffer) {
+RansBitDecoder_StartDecoding() {
   prob_zero_                                                            UI8
   size                                                                  UI32
   buffer_                                                               size * UI8
-  ans_read_init(&ans_decoder_, buffer_, size)
+  ans_read_init(ans_decoder_, buffer_, size)
 }
 ~~~~~
 {:.draco-syntax }

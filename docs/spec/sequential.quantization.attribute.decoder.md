@@ -13,6 +13,7 @@ Initialize(...) {
 
 ~~~~~
 DecodeIntegerValues(point_ids) {
+  // REMOVE < DRACO_BITSTREAM_VERSION(2, 0)
   // DecodeQuantizedDataInfo()
   num_components = attribute()->components_count();
   for (i = 0; i < num_components; ++i) {
@@ -20,6 +21,7 @@ DecodeIntegerValues(point_ids) {
   }
   max_value_dif_                                                        F32
   quantization_bits_                                                    UI8
+  // REMOVE < DRACO_BITSTREAM_VERSION(2, 0)
   SequentialIntegerAttributeDecoder::DecodeIntegerValues()
 }
 ~~~~~
@@ -41,7 +43,7 @@ DequantizeValues(num_values) {
       value = value + min_value_[c];
       att_val[c] = value;
     }
-    attribute()->buffer()->Write(out_byte_pos, att_val.get(), entry_size);
+    attribute()->buffer()->Write(out_byte_pos, att_val, entry_size);
     out_byte_pos += entry_size;
   }
 }

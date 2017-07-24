@@ -17,6 +17,7 @@ version_date: Released 2017-xx-xx
 {% include_relative 03.00.00.symbols.md %}
 {% include_relative 04.00.00.conventions.md %}
 {% include_relative draco.decoder.md %}
+{% include_relative metadata.decoder.md %}
 {% include_relative mesh.decoder.md %}
 {% include_relative edgebreaker.decoder.md %}
 {% include_relative edgebreaker.hole.and.topology.md %}
@@ -40,7 +41,7 @@ version_date: Released 2017-xx-xx
 {% include_relative rans.decoding.md %}
 {% include_relative rans.bit.decoder.md %}
 {% include_relative core.functions.md %}
-
+{% include_relative variable.descriptions.md %}
 
 {% comment %}
 {% include_relative 99.00.01.testing.md %}

@@ -7,7 +7,7 @@
 Decode(...) {
   this->transform().InitializeDecoding(num_components);
   // restore the first value
-  this->transform().ComputeOriginalValue(pred_vals.get(),
+  this->transform().ComputeOriginalValue(pred_vals,
                                          in_corr, out_data, 0);
   // PredictionSchemeWrapTransform_ComputeOriginalValue()
   corner_map_size = this->mesh_data().data_to_corner_map()->size();
@@ -16,14 +16,14 @@ Decode(...) {
     dst_offset = p * num_components;
     b= ComputeParallelogramPrediction(p, corner_id, table,
                                         *vertex_to_data_map, out_data,
-                                        num_components, pred_vals.get())
+                                        num_components, pred_vals)
     if (!b) {
       src_offset = (p - 1) * num_components;
       this->transform().ComputeOriginalValue(out_data + src_offset, in_corr,
                                              out_data + dst_offset, dst_offset);
       // PredictionSchemeWrapTransform_ComputeOriginalValue()
     } else {
-      this->transform().ComputeOriginalValue(pred_vals.get(), in_corr,
+      this->transform().ComputeOriginalValue(pred_vals, in_corr,
                                              out_data + dst_offset, dst_offset);
       // PredictionSchemeWrapTransform_ComputeOriginalValue()
     }
