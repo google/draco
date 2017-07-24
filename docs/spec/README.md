@@ -161,7 +161,7 @@ for some gems to compile successfully._
 ### Build and Preview Locally with Jekyll
 
 ~~~~~
-bundle exec jekyll serve
+bundle exec jekyll serve --baseurl '/docs'
 ~~~~~
 
 This will build the documentation tree and launch a local webserver at
