@@ -44,7 +44,8 @@ _**Important:** All commands are to be run as an ordinary, unprivileged user._
 
 This project currently depends on Ruby v2.3.0. Because your distro may lack this
 version -- or installing it may conflict with your system's installed version --
-first [install rbenv], then install Ruby v2.3.0 within it (again, in userland).
+first [**install rbenv**], then install Ruby v2.3.0 within it (again, in
+userland).
 
 ~~~~~
 # list all available versions:
