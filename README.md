@@ -464,3 +464,5 @@ References
 [CONTRIBUTING]: https://raw.githubusercontent.com/google/draco/master/CONTRIBUTING
 
 Bunny model from Stanford's graphic department <https://graphics.stanford.edu/data/3Dscanrep/>
+
+Awesome Draco 3D logo by [**ocupop**](http://ocupop.com/).
