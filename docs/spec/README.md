@@ -3,6 +3,12 @@ layout: spec
 title: "README: Draco Spec Authoring Information"
 ---
 
+<ol class="breadcrumb">
+  <li class=""><a href="/">Home</a></li>
+  <li class=""><a href=".">Draft Specification</a></li>
+  <li class="">README</li>
+</ol>
+
 
 ![Draco logo graphic](../artwork/draco3d-horiz-320x79.png)
 
