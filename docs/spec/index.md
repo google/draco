@@ -6,7 +6,7 @@ version_date: Released 2017-xx-xx
 ---
 
 <ol class="breadcrumb">
-  <li class=""><a href="/">Home</a></li>
+  <li class=""><a href="..">Home</a></li>
   <li class="">Draft Specification</li>
 </ol>
 
