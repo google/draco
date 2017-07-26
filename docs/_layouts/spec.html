@@ -18,6 +18,18 @@
     h6:before {counter-increment: h6; content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) "." counter(h6) ". "}
 
     h2.nocount:before, h3.nocount:before, h4.nocount:before, h5.nocount:before, h6.nocount:before { content: ""; counter-increment: none }
+
+    ol.breadcrumb {
+      padding-left: 0;
+      font-style: italic;
+      font-size: smaller;
+    }
+    .breadcrumb li {
+        display: inline;
+    }
+    .breadcrumb li+li:before {
+        content:"» ";
+    }
   </style>
 </head>
 <body>
