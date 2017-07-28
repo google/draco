@@ -6,7 +6,7 @@
 #ifndef DRACO_DRACO_VERSION_H_
 #define DRACO_DRACO_VERSION_H_
 
-#include "core/draco_version.h"
+#include "draco/core/draco_version.h"
 
 // Returns git hash of Draco git repository.
 const char *draco_git_hash();

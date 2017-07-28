@@ -149,15 +149,15 @@ function testMeshDecodingAsync(filenameList, index) {
       const buffer = new dracoDecoder.DecoderBuffer();
       buffer.Init(byteArray, byteArray.length);
 
-      const wrapper = new dracoDecoder.WebIDLWrapper();
+      const decoder = new dracoDecoder.Decoder();
 
       const decode_t0 = performance.now();
-      const geometryType = wrapper.GetEncodedGeometryType(buffer);
+      const geometryType = decoder.GetEncodedGeometryType(buffer);
       let outputGeometry;
       if (geometryType == dracoDecoder.TRIANGULAR_MESH) {
-        outputGeometry = wrapper.DecodeMeshFromBuffer(buffer);
+        outputGeometry = decoder.DecodeMeshFromBuffer(buffer);
       } else {
-        outputGeometry = wrapper.DecodePointCloudFromBuffer(buffer);
+        outputGeometry = decoder.DecodePointCloudFromBuffer(buffer);
       }
       const t1 = performance.now();
 
@@ -168,7 +168,7 @@ function testMeshDecodingAsync(filenameList, index) {
       addCell('' + outputGeometry.num_points(), false);
 
       dracoDecoder.destroy(outputGeometry);
-      dracoDecoder.destroy(wrapper);
+      dracoDecoder.destroy(decoder);
       dracoDecoder.destroy(buffer);
 
       if (index < filenameList.length - 1) {

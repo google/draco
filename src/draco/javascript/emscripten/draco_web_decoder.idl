@@ -1,0 +1,179 @@
+// Interface exposed to emscripten's WebIDL Binder.
+// http://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/WebIDL-Binder.html
+[Prefix="draco::"]
+interface DecoderBuffer {
+  void DecoderBuffer();
+  void Init([Const] byte[] data, unsigned long data_size);
+};
+
+enum draco_AttributeTransformType {
+  "draco::ATTRIBUTE_INVALID_TRANSFORM",
+  "draco::ATTRIBUTE_NO_TRANSFORM",
+  "draco::ATTRIBUTE_QUANTIZATION_TRANSFORM",
+  "draco::ATTRIBUTE_OCTAHEDRON_TRANSFORM"
+};
+
+[Prefix="draco::"]
+interface AttributeTransformData {
+  void AttributeTransformData();
+  long transform_type();
+};
+
+enum draco_GeometryAttribute_Type {
+  "draco_GeometryAttribute::INVALID",
+  "draco_GeometryAttribute::POSITION",
+  "draco_GeometryAttribute::NORMAL",
+  "draco_GeometryAttribute::COLOR",
+  "draco_GeometryAttribute::TEX_COORD",
+  "draco_GeometryAttribute::GENERIC"
+};
+
+[Prefix="draco::"]
+interface GeometryAttribute {
+  void GeometryAttribute();
+};
+
+enum draco_EncodedGeometryType {
+  "draco::INVALID_GEOMETRY_TYPE",
+  "draco::POINT_CLOUD",
+  "draco::TRIANGULAR_MESH"
+};
+
+[Prefix="draco::"]
+interface PointAttribute {
+  void PointAttribute();
+  long size();
+  [Const] AttributeTransformData GetAttributeTransformData();
+
+  // From GeometryAttribute
+  long attribute_type();
+  long data_type();
+  byte num_components();
+  boolean normalized();
+  long byte_stride();
+  long byte_offset();
+  long unique_id();
+};
+
+[Prefix="draco::"]
+interface AttributeQuantizationTransform {
+  void AttributeQuantizationTransform();
+  boolean InitFromAttribute([Ref, Const] PointAttribute att);
+  long quantization_bits();
+  float min_value(long axis);
+  float range();
+};
+
+[Prefix="draco::"]
+interface AttributeOctahedronTransform {
+  void AttributeOctahedronTransform();
+  boolean InitFromAttribute([Ref, Const] PointAttribute att);
+  long quantization_bits();
+};
+
+
+[Prefix="draco::"]
+interface PointCloud {
+  void PointCloud();
+
+  long num_attributes();
+  long num_points();
+};
+
+[Prefix="draco::"]
+interface Mesh : PointCloud {
+  void Mesh();
+  long num_faces();
+
+  // From PointCloud
+  long num_attributes();
+  long num_points();
+};
+
+[Prefix="draco::"]
+interface Metadata {
+  void Metadata();
+};
+
+enum draco_StatusCode {
+  "draco_Status::OK",
+  "draco_Status::ERROR",
+  "draco_Status::IO_ERROR",
+  "draco_Status::INVALID_PARAMETER",
+  "draco_Status::UNSUPPORTED_VERSION",
+  "draco_Status::UNKNOWN_VERSION",
+};
+
+[Prefix="draco::"]
+interface Status {
+  draco_StatusCode code();
+  boolean ok();
+  [Const] DOMString error_msg();
+};
+
+interface MetadataQuerier {
+  void MetadataQuerier();
+
+  boolean HasIntEntry([Ref, Const] Metadata metadata,
+                      [Const] DOMString entry_name);
+  long GetIntEntry([Ref, Const] Metadata metadata,
+                   [Const] DOMString entry_name);
+  boolean HasDoubleEntry([Ref, Const] Metadata metadata,
+                         [Const] DOMString entry_name);
+  double GetDoubleEntry([Ref, Const] Metadata metadata,
+                        [Const] DOMString entry_name);
+  boolean HasStringEntry([Ref, Const] Metadata metadata,
+                      [Const] DOMString entry_name);
+  [Const] DOMString GetStringEntry([Ref, Const] Metadata metadata,
+                                   [Const] DOMString entry_name);
+};
+
+// Draco version of typed arrays. The memory of these arrays is allocated on the
+// emscripten heap.
+interface DracoFloat32Array {
+  void DracoFloat32Array();
+  float GetValue(long index);
+  long size();
+};
+
+interface DracoInt32Array {
+  void DracoInt32Array();
+  long GetValue(long index);
+  long size();
+};
+
+interface Decoder {
+  void Decoder();
+  draco_EncodedGeometryType GetEncodedGeometryType(DecoderBuffer in_buffer);
+
+  [Const] Status DecodeBufferToPointCloud(DecoderBuffer in_buffer,
+                                          PointCloud out_point_cloud);
+  [Const] Status DecodeBufferToMesh(DecoderBuffer in_buffer, Mesh out_mesh);
+
+  long GetAttributeId([Ref, Const] PointCloud pc,
+                               draco_GeometryAttribute_Type type);
+  long GetAttributeIdByName([Ref, Const] PointCloud pc, [Const] DOMString name);
+  long GetAttributeIdByMetadataEntry([Ref, Const] PointCloud pc,
+                                     [Const] DOMString name,
+                                     [Const] DOMString value);
+
+  [Const] PointAttribute GetAttribute([Ref, Const] PointCloud pc, long att_id);
+
+  [Const] Metadata GetMetadata([Ref, Const] PointCloud pc);
+  [Const] Metadata GetAttributeMetadata([Ref, Const] PointCloud pc,
+                                        long att_id);
+
+  boolean GetFaceFromMesh([Ref, Const] Mesh m, long face_id,
+                          DracoInt32Array out_values);
+  long GetTriangleStripsFromMesh([Ref, Const] Mesh m,
+                                 DracoInt32Array strip_values);
+
+  boolean GetAttributeFloat([Ref, Const] PointAttribute pa,
+                            long att_index,
+                            DracoFloat32Array out_values);
+
+  boolean GetAttributeFloatForAllPoints([Ref, Const] PointCloud pc,
+                                        [Ref, Const] PointAttribute pa,
+                                        DracoFloat32Array out_values);
+  void SkipAttributeTransform(draco_GeometryAttribute_Type att_type);
+};
