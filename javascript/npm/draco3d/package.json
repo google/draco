@@ -13,5 +13,9 @@
     "point cloud"
   ],
   "author": "Google Draco Team",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/google/draco.git"
+  }
 }
