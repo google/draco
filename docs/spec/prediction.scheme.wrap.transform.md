@@ -5,8 +5,8 @@
 
 ~~~~~
 DecodeTransformData(buffer) {
-  min_value_                                                            DT
-  max_value_                                                            DT
+  min_value_                                                                         DT
+  max_value_                                                                         DT
 }
 ~~~~~
 {:.draco-syntax }

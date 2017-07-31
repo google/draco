@@ -5,7 +5,7 @@
 
 ~~~~~
 DecodeSymbols(num_symbols, out_values) {
-  scheme                                                                UI8
+  scheme                                                                             UI8
   If (scheme == 0) {
     DecodeTaggedSymbols(num_symbols, out_values)
   } else if (scheme == 1) {
@@ -30,7 +30,7 @@ DecodeTaggedSymbols() {
 
 ~~~~~
 DecodeRawSymbols(num_values, out_values) {
-  max_bit_length                                                        UI8
+  max_bit_length                                                                     UI8
   decoder = CreateRansSymbolDecoder(max_bit_length)
   decoder.StartDecoding()
   // RansSymbolDecoder_StartDecoding
@@ -52,9 +52,9 @@ CreateRansSymbolDecoder(max_bit_length) {
   rans_precision_bits = max(rans_precision_bits, 12)
   rans_precision = 1 << rans_precision_bits_;
   l_rans_base = rans_precision * 4;
-  num_symbols_                                                          UI32
+  num_symbols_                                                                       UI32
   for (i = 0; i < num_symbols_; ++i) {
-    prob_data                                                           UI8
+    prob_data                                                                        UI8
     if ((prob_data & 3) == 3) {
       offset = prob_data >> 2
       for (j = 0; j < offset + 1; ++j) {
@@ -64,7 +64,7 @@ CreateRansSymbolDecoder(max_bit_length) {
     } else {
       prob = prob_data >> 2
       for (j = 0; j < token; ++j) {
-        eb                                                              UI8
+        eb                                                                           UI8
         prob = prob | (eb << (8 * (j + 1) - 2)
       }
       probability_table_[i] = prob;
@@ -80,8 +80,8 @@ CreateRansSymbolDecoder(max_bit_length) {
 
 ~~~~~
 RansSymbolDecoder_StartDecoding() {
-  bytes_encoded                                                         UI64
-  buffer                                                                bytes_encoded * UI8
+  bytes_encoded                                                                      UI64
+  buffer                                                                             bytes_encoded * UI8
   rans_read_init(buffer, bytes_encoded)
 }
 ~~~~~

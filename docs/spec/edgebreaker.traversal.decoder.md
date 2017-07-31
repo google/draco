@@ -5,10 +5,10 @@
 
 ~~~~~
 EdgebreakerTraversal_Start() {
-  size                                                                  UI64
-  symbol_buffer_                                                        size * UI8
-  size                                                                  UI64
-  start_face_buffer_                                                    size * UI8
+  size                                                                               UI64
+  symbol_buffer_                                                                     size * UI8
+  size                                                                               UI64
+  start_face_buffer_                                                                 size * UI8
   if (num_attribute_data > 0) {
     attribute_connectivity_decoders_ =
         new BinaryDecoder[num_attribute_data]
@@ -25,9 +25,9 @@ EdgebreakerTraversal_Start() {
 
 ~~~~~
 Traversal_DecodeSymbol() {
-  symbol_buffer_.DecodeLeastSignificantBits32(1, &symbol);              bits1
+  symbol_buffer_.DecodeLeastSignificantBits32(1, &symbol);                           bits1
   if (symbol != TOPOLOGY_C) {
-    symbol_buffer_.DecodeLeastSignificantBits32(2, &symbol_suffix);     bits2
+    symbol_buffer_.DecodeLeastSignificantBits32(2, &symbol_suffix);                  bits2
     symbol |= (symbol_suffix << 1);
   }
   return symbol
