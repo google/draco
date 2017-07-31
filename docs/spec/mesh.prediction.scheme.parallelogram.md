@@ -33,10 +33,6 @@ Decode(...) {
 {:.draco-syntax }
 
 
-MeshPredictionSchemeParallelogramShared
-
-FIXME: ^^^ Heading level?
-
 
 ### ComputeParallelogramPrediction()
 
