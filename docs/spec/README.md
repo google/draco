@@ -1,5 +1,5 @@
 ---
-layout: spec
+layout: spec-page
 title: "README: Draco Spec Authoring Information"
 ---
 
@@ -189,17 +189,17 @@ them up as follows:
    immediately after the code-block closing delimiter.
 
   * Some syntax elements as annotated with their type and size in a right-hand
-    column. In your text editor, position these annotations at column 73.
+    column. In your text editor, position these annotations at column **86**.
 
 **Example:**
 
 <pre><code>~~~~~
 DecodeHeader() {
-  draco_string                                                          UI8[5]
-  major_version                                                         UI8
-  minor_version                                                         UI8
-  encoder_type                                                          UI8
-  encoder_method                                                        UI8
+  draco_string                                                                       UI8[5]
+  major_version                                                                      UI8
+  minor_version                                                                      UI8
+  encoder_type                                                                       UI8
+  encoder_method                                                                     UI8
   flags
 }
 ~~~~~
@@ -210,11 +210,11 @@ DecodeHeader() {
 
 ~~~~~
 DecodeHeader() {
-  draco_string                                                          UI8[5]
-  major_version                                                         UI8
-  minor_version                                                         UI8
-  encoder_type                                                          UI8
-  encoder_method                                                        UI8
+  draco_string                                                                       UI8[5]
+  major_version                                                                      UI8
+  minor_version                                                                      UI8
+  encoder_type                                                                       UI8
+  encoder_method                                                                     UI8
   flags
 }
 ~~~~~

@@ -1,5 +1,5 @@
 ---
-layout: spec
+layout: spec-page
 title: Draco Bitstream Specification (Draft)
 version: Version 1,2
 version_date: Released 2017-xx-xx

@@ -6,22 +6,22 @@
 
 ~~~~~
 DecodeHoleAndTopologySplitEvents() {
-  num_topologoy_splits                                                  varUI32
+  num_topologoy_splits                                                               varUI32
   source_symbol_id = 0
   for (i = 0; i < num_topologoy_splits; ++i) {
-    delta                                                               varUI32
+    delta                                                                            varUI32
     split_data[i].source_symbol_id = delta + source_symbol_id
-    delta                                                               varUI32
+    delta                                                                            varUI32
     split_data[i].split_symbol_id = source_symbol_id - delta
   }
   for (i = 0; i < num_topologoy_splits; ++i) {
-    split_data[i].split_edge                                            bits1
-    split_data[i].source_edge                                           bits1
+    split_data[i].split_edge                                                         bits1
+    split_data[i].source_edge                                                        bits1
   }
-  num_hole_events                                                       varUI32
+  num_hole_events                                                                    varUI32
   symbol_id = 0
   for (i = 0; i < num_hole_events; ++i) {
-    delta                                                               varUI32
+    delta                                                                            varUI32
     hole_data[i].symbol_id = delta + symbol_id
   }
   return bytes_decoded;
@@ -34,12 +34,12 @@ DecodeHoleAndTopologySplitEvents() {
 
 ~~~~~
 CreateAttributesDecoder() {
-  att_data_id                                                           I8
-  decoder_type                                                          UI8
+  att_data_id                                                                        I8
+  decoder_type                                                                       UI8
   if (att_data_id >= 0) {
     attribute_data_[att_data_id].decoder_id = att_decoder_id;
   }
-  traversal_method_encoded                                              UI8
+  traversal_method_encoded                                                           UI8
   if (decoder_type == MESH_VERTEX_ATTRIBUTE) {
     if (att_data_id < 0) {
       encoding_data = &pos_encoding_data_;

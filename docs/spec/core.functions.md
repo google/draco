@@ -6,7 +6,7 @@
 ~~~~~
 DecodeVarint<IT>() {
   If (std::is_unsigned<IT>::value) {
-    in                                                                  UI8
+    in                                                                               UI8
     If (in & (1 << 7)) {
       out = DecodeVarint<IT>()
       out = (out << 7) | (in & ((1 << 7) - 1))
@@ -45,19 +45,19 @@ FIXME: ^^^ Heading level?
 
 ~~~~~
 decode_connectivity() {
-  num_faces                                                             I32
-  num_points                                                            I32
-  connectivity _method                                                  UI8
+  num_faces                                                                          I32
+  num_points                                                                         I32
+  connectivity _method                                                               UI8
   If (connectivity _method == 0) {
     // TODO
   } else {
     loop num_faces {
       If (num_points < 256) {
-        face[]                                                          UI8
+        face[]                                                                       UI8
       } else if (num_points < (1 << 16)) {
-        face[]                                                          UI16
+        face[]                                                                       UI16
       } else {
-        face[]                                                          UI32
+        face[]                                                                       UI32
       }
     }
   }

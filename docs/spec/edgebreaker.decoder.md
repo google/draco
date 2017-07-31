@@ -4,14 +4,14 @@
 
 ~~~~~
 DecodeConnectivityData() {
-  edgebreaker_traversal_type                                            UI8
-  num_new_verts                                                         varUI32
-  num_encoded_vertices                                                  varUI32
-  num_faces                                                             varUI32
-  num_attribute_data                                                    I8
-  num_encoded_symbols                                                   varUI32
-  num_encoded_split_symbols                                             varUI32
-  encoded_connectivity_size                                             varUI32
+  edgebreaker_traversal_type                                                         UI8
+  num_new_verts                                                                      varUI32
+  num_encoded_vertices                                                               varUI32
+  num_faces                                                                          varUI32
+  num_attribute_data                                                                 I8
+  num_encoded_symbols                                                                varUI32
+  num_encoded_split_symbols                                                          varUI32
+  encoded_connectivity_size                                                          varUI32
   // file pointer must be set to current position
   // + encoded_connectivity_size
   hole_and_split_bytes = DecodeHoleAndTopologySplitEvents()

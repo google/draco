@@ -8,7 +8,7 @@ DecodeAttributesDecoderData(buffer) {
   AttributesDecoder_DecodeAttributesDecoderData(buffer)
   sequential_decoders_.resize(num_attributes());
   for (i = 0; i < num_attributes(); ++i) {
-    decoder_type                                                        UI8
+    decoder_type                                                                     UI8
     sequential_decoders_[i] = CreateSequentialDecoder(decoder_type);
     sequential_decoders_[i]->Initialize(decoder(), GetAttributeId(i))
 }

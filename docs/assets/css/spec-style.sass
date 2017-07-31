@@ -9,33 +9,6 @@ $monofont: 'Inconsolata', monospace
 $gridcolor: #ddd
 $gridweight: 2px
 
-body
-  font-family: Arial, sans-serif
-  margin: 5% 25% 10% 10%
-  line-height: 1.3
-
-a
-  color: navy
-  text-decoration: none
-  &:visited
-    color: navy
-    text-decoration: none
-  &:hover
-    text-decoration: underline
-
-pre
-  //font-family: $monofont
-  //border: $gridweight solid $gridcolor
-  //background-color: #f7f7f7
-  //padding: 1em
-  //margin-left: 1em
-  //overflow-x: auto
-
-code
-  //color: #060
-  //background-color: #f2f2f2
-  font-family: $monofont
-
 table
   border-collapse: collapse
   min-width: 50%
@@ -82,15 +55,62 @@ figure.highlight
 
 div.draco-syntax pre
   background-color: #fff
-  background-image: linear-gradient(90deg, transparent 580px, #abced4 580px, #abced4 582px, transparent 582px), linear-gradient($gridcolor .1em, transparent .1em)
+  background-image: linear-gradient(90deg, transparent 660px, #abced4 660px, #abced4 662px, transparent 582px), linear-gradient($gridcolor .1em, transparent .1em)
   background-size: 100% 1.3em
   border-left: $gridweight solid $gridcolor
   border-right: $gridweight solid $gridcolor
   border-bottom: $gridweight solid $gridcolor
   white-space: pre
   font-family: $monofont
-  font-size: 1em
-  padding-left: 1em
+  font-size: 14px
+  padding: 0 14px
+  line-height: 18px
   margin-left: 1em
-  width: 720px
+  width: 840px
   //overflow: auto
+
+ol.breadcrumb
+  background-color: #fff
+  padding-left: 0
+  font-size: 12px
+
+// Auto heading-number styles
+
+body
+  counter-reset: h2
+
+h2
+  counter-reset: h3
+
+h3
+  counter-reset: h4
+
+h4
+  counter-reset: h5
+
+h5
+  counter-reset: h6
+
+h2:before
+  counter-increment: h2
+  content: counter(h2) ". "
+
+h3:before
+  counter-increment: h3
+  content: counter(h2) "." counter(h3) ". "
+
+h4:before
+  counter-increment: h4
+  content: counter(h2) "." counter(h3) "." counter(h4) ". "
+
+h5:before
+  counter-increment: h5
+  content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) ". "
+
+h6:before
+  counter-increment: h6
+  content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) "." counter(h6) ". "
+
+h2.nocount:before, h3.nocount:before, h4.nocount:before, h5.nocount:before, h6.nocount:before
+  content: ""
+  counter-increment: none

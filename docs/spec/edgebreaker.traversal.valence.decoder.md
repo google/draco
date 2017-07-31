@@ -6,15 +6,15 @@
 ~~~~~
 EdgeBreakerTraversalValence_Start(traversal_num_vertices) {
   EdgebreakerTraversal_Start()
-  num_split_symbols                                                     varUI32
-  mode == 0                                                             I8
+  num_split_symbols                                                                  varUI32
+  mode == 0                                                                          I8
   traversal_num_vertices += num_split_symbols
   vertex_valences_ init to 0
   min_valence_ = 2;
   max_valence_ = 7;
   num_unique_valences = 6 (max_valence_ - min_valence_ + 1)
   for (i = 0; i < num_unique_valences; ++i) {
-    num_symbols                                                         varUI32
+    num_symbols                                                                      varUI32
     if (num_symbols > 0) {
       DecodeSymbols(num_symbols, context_symbols_[i])
     }

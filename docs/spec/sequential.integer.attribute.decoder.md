@@ -13,9 +13,9 @@ Initialize(...) {
 
 ~~~~~
 DecodeValues(point_ids) {
-  prediction_scheme_method                                              I8
+  prediction_scheme_method                                                           I8
   if (prediction_scheme_method != PREDICTION_NONE) {
-    prediction_transform_type                                           I8
+    prediction_transform_type                                                        I8
     prediction_scheme_ = CreateIntPredictionScheme(...)
   }
   if (prediction_scheme_) {
@@ -33,7 +33,7 @@ DecodeValues(point_ids) {
 
 ~~~~~
 DecodeIntegerValues(point_ids) {
-  compressed                                                            UI8
+  compressed                                                                         UI8
   if (compressed) {
     DecodeSymbols(..., values_.data())
   } else {

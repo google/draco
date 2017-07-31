@@ -38,10 +38,21 @@
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="{{ 'artwork/favicon/ms-icon-144x144.png' | relative_url }}">
     <meta name="theme-color" content="#ffffff">
+    <link rel="stylesheet" href="{{ 'assets/css/spec-style.css' | relative_url }}">
     <style>
-    footer {
-      margin-top: 4rem;
-    }
+      body {counter-reset: h2}
+      h2 {counter-reset: h3}
+      h3 {counter-reset: h4}
+      h4 {counter-reset: h5}
+      h5 {counter-reset: h6}
+
+      h2:before {counter-increment: h2; content: counter(h2) ". "}
+      h3:before {counter-increment: h3; content: counter(h2) "." counter(h3) ". "}
+      h4:before {counter-increment: h4; content: counter(h2) "." counter(h3) "." counter(h4) ". "}
+      h5:before {counter-increment: h5; content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) ". "}
+      h6:before {counter-increment: h6; content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) "." counter(h6) ". "}
+
+      h2.nocount:before, h3.nocount:before, h4.nocount:before, h5.nocount:before, h6.nocount:before { content: ""; counter-increment: none }
     </style>
   </head>
 
@@ -82,74 +93,11 @@
 
     <div class="container">
 
-      <!-- Main component for a primary marketing message or call to action -->
-      <div class="jumbotron">
         <div class="row">
-          <div class="col-xs-12 col-sm-4 col-md-3">
-            <img class="img-responsive center-block jumbo-logo" src="artwork/draco3d-vert-360x274.png">
-          </div>
-          <div class="col-xs-12 col-sm-8 col-md-9 text-center">
-            <p>Draco is an open-source library for compressing and decompressing 3D
-            geometric meshes and point clouds. It is intended to improve the storage
-            and transmission of 3D graphics.</p>
-            <p>
-              <a class="btn btn-md btn-primary pull-right" href="https://github.com/google/draco" role="button">View on GitHub &raquo;</a>
-           </p>
+          <div class="col-xs-12 col-sm-12 col-md-10 col-md-offset-1">
+          {{ content }}
           </div>
         </div>
-      </div>
-
-    </div>
-
-    <div class="container">
-
-      <div class="row">
-        <div class="col-md-10 col-md-offset-1">
-          <div class="col-md-4">
-            <h2>Take the Codelab</h2>
-            <p>Learn about compressing and viewing 3D models with Draco, and about different compression models and their effects. </p>
-            <p><a class="btn btn-default" href="https://codelabs.developers.google.com/codelabs/draco-3d/index.html" role="button">Codelab &raquo;</a></p>
-          </div>
-          <div class="col-md-4">
-            <h2>Draft Bitstream Spec</h2>
-            <p>View and contribute to the in-progress Draco <a href="spec">Bitstream Specification</a> and Decoding Guide. (Also see the <a href="spec/README.html">instructions</a> for authors.)</p>
-            <p><a class="btn btn-default" href="spec" role="button">Bitstream Spec &raquo;</a></p>
-          </div>
-          <div class="col-md-4">
-            <h2>Related Projects</h2>
-            <ul>
-              <li><a href="https://www.npmjs.com/package/draco3d"><b>NPM Package</b></a></li>
-              <li><a href="https://webvr.info/">WebVR</a></li>
-              <li><a href="https://www.khronos.org/gltf">Khronos glTF</a></li>
-              <li><a href="https://threejs.org/">three.js</a></li>
-            </ul>
-          </div>
-
-        </div>
-      </div>
-
-    </div>
-
-    <div class="container">
-      <div class="row">
-        <div class="col-md-10 col-md-offset-1 col-sm-10 col-sm-offset-1 col-xs-18">
-          <hr>
-          <h3>YouTube: Comparing Draco to gzip</h3>
-          <div class="embed-responsive embed-responsive-16by9">
-            <iframe width="560" height="315" src="https://www.youtube.com/embed/6sOgrBWjkcQ" frameborder="0" allowfullscreen></iframe>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-md-10 col-md-offset-1 col-sm-10 col-sm-offset-1 col-xs-18">
-          <hr>
-          <h3>YouTube: Draco Announced on Google Developer Show</h3>
-          <div class="embed-responsive embed-responsive-16by9">
-            <iframe width="560" height="315" src="https://www.youtube.com/embed/_l4UaUix8vA?start=33" frameborder="0" allowfullscreen></iframe>
-          </div>
-        </div>
-      </div>
 
     </div> <!-- /container -->
 
@@ -162,6 +110,6 @@
     <script src="{{ 'assets/js/bootstrap.min.js' | relative_url }}"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="{{ 'assets/js/ie10-viewport-bug-workaround.js' | relative_url }}"></script>
-    {% include analytics.html%}
+    {% include analytics.html %}
   </body>
 </html>

@@ -5,9 +5,9 @@
 
 ~~~~~
 RansBitDecoder_StartDecoding() {
-  prob_zero_                                                            UI8
-  size                                                                  UI32
-  buffer_                                                               size * UI8
+  prob_zero_                                                                         UI8
+  size                                                                               UI32
+  buffer_                                                                            size * UI8
   ans_read_init(ans_decoder_, buffer_, size)
 }
 ~~~~~
