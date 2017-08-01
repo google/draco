@@ -87,7 +87,7 @@ function encodeMeshToFile(mesh, decoder) {
 
   Object.keys(attrs).forEach((attr) => {
     const stride = attrs[attr];
-    const numItems = numPoints * stride;
+    const numValues = numPoints * stride;
     const decoderAttr = decoderModule[attr];
     const encoderAttr = encoderModule[attr];
     const attrId = decoder.GetAttributeId(mesh, decoderAttr);
@@ -102,13 +102,11 @@ function encodeMeshToFile(mesh, decoder) {
     const attributeData = new decoderModule.DracoFloat32Array();
     decoder.GetAttributeFloatForAllPoints(mesh, attribute, attributeData);
 
-    assert(numItems === attributeData.size(), 'Wrong attribute size.');
+    assert(numValues === attributeData.size(), 'Wrong attribute size.');
 
-    const attributeDataArray = new Float32Array(numItems);
-    for (let i = 0; i < numItems; i += stride) {
-      for (let j = 0; j < stride; ++j) {
-        attributeDataArray[i + j] = attributeData.GetValue(i + j);
-      }
+    const attributeDataArray = new Float32Array(numValues);
+    for (let i = 0; i < numValues; ++i) {
+      attributeDataArray[i] = attributeData.GetValue(i);
     }
 
     decoderModule.destroy(attributeData);
