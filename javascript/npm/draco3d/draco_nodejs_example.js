@@ -67,9 +67,10 @@ function encodeMeshToFile(mesh, decoder) {
   const numIndices = numFaces * 3;
   const numPoints = mesh.num_points();
   const numVertexCoord = numPoints * 3;
+  const indices = new Uint32Array(numIndices);
+
   console.log("Number of faces " + numFaces);
   console.log("Number of vertices " + numPoints);
-  const indices = new Uint32Array(numIndices);
 
   // Add Faces to mesh
   const ia = new decoderModule.DracoInt32Array();
@@ -83,9 +84,10 @@ function encodeMeshToFile(mesh, decoder) {
   decoderModule.destroy(ia);
   meshBuilder.AddFacesToMesh(newMesh, numFaces, indices);
 
-  const attrs = ["POSITION", "NORMAL", "TEX_COORD", "COLOR"];
+  const attrs = {POSITION: 3, NORMAL: 3, COLOR: 3, TEX_COORD: 2};
 
-  attrs.forEach((attr) => {
+  Object.keys(attrs).forEach((attr) => {
+    const stride = attrs[attr];
     const decoderAttr = decoderModule[attr];
     const encoderAttr = decoderModule[attr];
     const attrId = decoder.GetAttributeId(mesh, decoderAttr);
@@ -103,15 +105,15 @@ function encodeMeshToFile(mesh, decoder) {
     assert(numVertexCoord === attributeData.size(), 'Wrong attribute size.');
 
     const attributeDataArray = new Float32Array(numVertexCoord);
-    for (let i = 0; i < numVertexCoord; i += 3) {
-      attributeDataArray[i] = attributeData.GetValue(i);
-      attributeDataArray[i + 1] = attributeData.GetValue(i + 1);
-      attributeDataArray[i + 2] = attributeData.GetValue(i + 2);
+    for (let i = 0; i < numVertexCoord; i += stride) {
+      for (let j = 0; j < stride; ++j) {
+        attributeDataArray[i + j] = attributeData.GetValue(i + j);
+      }
     }
 
     decoderModule.destroy(attributeData);
-    meshBuilder.AddFloatAttributeToMesh(newMesh, encoderAttr, numPoints, 3,
-        attributeDataArray);
+    meshBuilder.AddFloatAttributeToMesh(newMesh, encoderAttr, numPoints,
+        stride, attributeDataArray);
   });
 
   let encodedData = new encoderModule.DracoInt8Array();
