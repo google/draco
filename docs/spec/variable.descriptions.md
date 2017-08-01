@@ -1,6 +1,6 @@
 ## Descriptions
 
-### Variabless
+### Variables
 
   * edgebreaker_traversal_type
     * 0: MeshEdgeBreakerTraversalDecoder
