@@ -38,7 +38,6 @@ endif
 #########
 
 DEFINES   := $(DRACO_CONFIG_DEFINES)
-DEFINES   += -DDRACO_INTERNAL_1_0_0
 INCLUDES  := -I../../ -I./ -I./src/
 SRCDIR    := src/draco
 OBJDIR    := obj

@@ -58,22 +58,13 @@ class StatusOr {
 };
 
 // In case StatusOr<T> is ok(), this macro assigns value stored in StatusOr<T>
-// to |lhs|, otherwise it returns the error Status. |error_expression| can be
-// used to provide custom return expressions.
+// to |lhs|, otherwise it returns the error Status.
 //
 //   DRACO_ASSIGN_OR_RETURN(lhs, expression)
-//   DRACO_ASSIGN_OR_RETURN(lhs, expression, error_expression);
 //
-#define DRACO_ASSIGN_OR_RETURN(...)                               \
-  DRACO_SELECT_NTH_FROM_3(__VA_ARGS__, DRACO_ASSIGN_OR_RETURN_3_, \
-                          DRACO_ASSIGN_OR_RETURN_2_)              \
-  (__VA_ARGS__)
-#define DRACO_ASSIGN_OR_RETURN_2_(lhs, expression) \
-  DRACO_ASSIGN_OR_RETURN_3_(lhs, expression, _status)
-
-#define DRACO_ASSIGN_OR_RETURN_3_(lhs, expression, error_expression)           \
+#define DRACO_ASSIGN_OR_RETURN(lhs, expression)                                \
   DRACO_ASSIGN_OR_RETURN_IMPL_(DRACO_MACROS_IMPL_CONCAT_(_statusor, __LINE__), \
-                               lhs, expression, error_expression)
+                               lhs, expression, _status)
 
 // The actual implementation of the above macro.
 #define DRACO_ASSIGN_OR_RETURN_IMPL_(statusor, lhs, expression, error_expr) \

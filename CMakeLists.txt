@@ -36,7 +36,6 @@ if (ENABLE_MESH_COMPRESSION)
   endif ()
 endif ()
 
-
 # Turn on more compiler warnings.
 if (ENABLE_EXTRA_WARNINGS)
   if (MSVC)
