@@ -89,7 +89,7 @@ function encodeMeshToFile(mesh, decoder) {
     const stride = attrs[attr];
     const numItems = numPoints * stride;
     const decoderAttr = decoderModule[attr];
-    const encoderAttr = decoderModule[attr];
+    const encoderAttr = encoderModule[attr];
     const attrId = decoder.GetAttributeId(mesh, decoderAttr);
 
     if (attrId < 0) {
