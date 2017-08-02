@@ -63,7 +63,7 @@ $ npm install draco3d
 ~~~~~ bash
 $ cp node_modules/draco3d/draco_nodejs_example.js .
 $ cp node_modules/draco3d/bunny.drc .
-$ nodejs draco_nodejs_example.js
+$ node draco_nodejs_example.js
 ~~~~~
 
 The code loads the [Bunny] model, it will first decode to a mesh

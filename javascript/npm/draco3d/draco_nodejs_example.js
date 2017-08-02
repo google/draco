@@ -15,6 +15,7 @@
 'use_strict';
 
 const fs = require('fs');
+const assert = require('assert');
 const draco3d = require('./draco3d');
 const decoderModule = draco3d.createDecoderModule({});
 const encoderModule = draco3d.createEncoderModule({});
@@ -26,7 +27,7 @@ fs.readFile('./bunny.drc', function(err, data) {
   console.log("Decoding file of size " + data.byteLength + " ..");
   // Decode mesh
   const decoder = new decoderModule.Decoder();
-  let decodedGeometry = decodeDracoData(data, decoder);
+  const decodedGeometry = decodeDracoData(data, decoder);
   // Encode mesh
   encodeMeshToFile(decodedGeometry, decoder);
 
@@ -65,10 +66,10 @@ function encodeMeshToFile(mesh, decoder) {
   const numFaces = mesh.num_faces();
   const numIndices = numFaces * 3;
   const numPoints = mesh.num_points();
-  const numVertexCoord = numPoints * 3;
+  const indices = new Uint32Array(numIndices);
+
   console.log("Number of faces " + numFaces);
   console.log("Number of vertices " + numPoints);
-  let indices = new Uint32Array(numIndices);
 
   // Add Faces to mesh
   const ia = new decoderModule.DracoInt32Array();
@@ -82,81 +83,36 @@ function encodeMeshToFile(mesh, decoder) {
   decoderModule.destroy(ia);
   meshBuilder.AddFacesToMesh(newMesh, numFaces, indices);
 
-  // Add position data to mesh.
-  const posAttId = decoder.GetAttributeId(mesh, decoderModule.POSITION);
-  if (posAttId === -1) {
-    console.log("No position attribute found.");
-    encoderModule.destroy(newMesh);
-    encoderModule.destroy(encoder);
-    return;
-  }
-  const posAttribute = decoder.GetAttribute(mesh, posAttId);
-  const posAttributeData = new decoderModule.DracoFloat32Array();
-  decoder.GetAttributeFloatForAllPoints(
-      mesh, posAttribute, posAttributeData);
-  let vertices = new Float32Array(numVertexCoord);
-  for (let i = 0; i < numVertexCoord; i += 3) {
-    vertices[i] = posAttributeData.GetValue(i);
-    vertices[i + 1] = posAttributeData.GetValue(i + 1);
-    vertices[i + 2] = posAttributeData.GetValue(i + 2);
-  }
-  decoderModule.destroy(posAttributeData);
-  meshBuilder.AddFloatAttributeToMesh(newMesh, encoderModule.POSITION,
-                                      numPoints, 3, vertices);
+  const attrs = {POSITION: 3, NORMAL: 3, COLOR: 3, TEX_COORD: 2};
 
-  const normalAttId = decoder.GetAttributeId(mesh, decoderModule.NORMAL);
-  if (normalAttId > -1) {
-    console.log("Adding normal attribute.");
-    const norAttribute = decoder.GetAttribute(mesh, normalAttId);
-    const norAttributeData = new decoderModule.DracoFloat32Array();
-    decoder.GetAttributeFloatForAllPoints(mesh, norAttribute,
-        norAttributeData);
-    const normals = new Float32Array(numVertexCoord);
-    for (let i = 0; i < numVertexCoord; i += 3) {
-      normals[i] = norAttributeData.GetValue(i);
-      normals[i + 1] = norAttributeData.GetValue(i + 1);
-      normals[i + 2] = norAttributeData.GetValue(i + 2);
-    }
-    decoderModule.destroy(norAttributeData);
-    meshBuilder.AddFloatAttributeToMesh(newMesh, encoderModule.NORMAL,
-        numPoints, 3, normals);
-  }
+  Object.keys(attrs).forEach((attr) => {
+    const stride = attrs[attr];
+    const numValues = numPoints * stride;
+    const decoderAttr = decoderModule[attr];
+    const encoderAttr = encoderModule[attr];
+    const attrId = decoder.GetAttributeId(mesh, decoderAttr);
 
-  const texAttId = decoder.GetAttributeId(mesh, decoderModule.TEX_COORD);
-  if (texAttId > -1) {
-    const texAttribute = decoder.GetAttribute(mesh, texAttId);
-    const texAttributeData = new decoderModule.DracoFloat32Array();
-    decoder.GetAttributeFloatForAllPoints(mesh, texAttribute,
-        texAttributeData);
-    assertEquals(numVertexCoord, texAttributeData.size());
-    const texcoords = new Float32Array(numVertexCoord);
-    for (let i = 0; i < numVertexCoord; i += 3) {
-      texcoords[i] = texAttributeData.GetValue(i);
-      texcoords[i + 1] = texAttributeData.GetValue(i + 1);
-      texcoords[i + 2] = texAttributeData.GetValue(i + 2);
+    if (attrId < 0) {
+      return;
     }
-    decoderModule.destroy(texAttributeData);
-    meshBuilder.AddFloatAttributeToMesh(newMesh, encoderModule.TEX_COORD,
-        numPoints, 3, normals);
-  }
 
-  const colorAttId = decoder.GetAttributeId(mesh, decoderModule.COLOR);
-  if (colorAttId > -1) {
-    const colAttribute = decoder.GetAttribute(mesh, colorAttId);
-    const colAttributeData = new decoderModule.DracoFloat32Array();
-    decoder.GetAttributeFloatForAllPoints(mesh, colAttribute,
-        colAttributeData);
-    assertEquals(numVertexCoord, colAttributeData.size());
-    const colors = new Float32Array(numVertexCoord);
-    for (let i = 0; i < numVertexCoord; i += 3) {
-      colors[i] = colAttributeData.GetValue(i);
-      colors[i + 1] = colAttributeData.GetValue(i + 1);
-      colors[i + 2] = colAttributeData.GetValue(i + 2);
+    console.log("Adding %s attribute", attr);
+
+    const attribute = decoder.GetAttribute(mesh, attrId);
+    const attributeData = new decoderModule.DracoFloat32Array();
+    decoder.GetAttributeFloatForAllPoints(mesh, attribute, attributeData);
+
+    assert(numValues === attributeData.size(), 'Wrong attribute size.');
+
+    const attributeDataArray = new Float32Array(numValues);
+    for (let i = 0; i < numValues; ++i) {
+      attributeDataArray[i] = attributeData.GetValue(i);
     }
-    decoderModule.destroy(colAttributeData);
-    meshBuilder.AddFloatAttributeToMesh(newMesh, encoderModule.COLOR,
-        numPoints, 3, normals);
-  }
+
+    decoderModule.destroy(attributeData);
+    meshBuilder.AddFloatAttributeToMesh(newMesh, encoderAttr, numPoints,
+        stride, attributeDataArray);
+  });
 
   let encodedData = new encoderModule.DracoInt8Array();
   // Set encoding options.
@@ -176,8 +132,8 @@ function encodeMeshToFile(mesh, decoder) {
     console.log("Error: Encoding failed.");
   }
   // Copy encoded data to buffer.
-  let outputBuffer = new ArrayBuffer(encodedLen);
-  let outputData = new Int8Array(outputBuffer);
+  const outputBuffer = new ArrayBuffer(encodedLen);
+  const outputData = new Int8Array(outputBuffer);
   for (let i = 0; i < encodedLen; ++i) {
     outputData[i] = encodedData.GetValue(i);
   }
@@ -187,7 +143,7 @@ function encodeMeshToFile(mesh, decoder) {
   // Write to file. You can view the the file using webgl_loader_draco.html
   // example.
   fs.writeFile("bunny_10.drc", Buffer(outputBuffer), "binary", function(err) {
-    if(err) {
+    if (err) {
         console.log(err);
     } else {
         console.log("The file was saved!");
