@@ -6,6 +6,7 @@ set(draco_src_root "${draco_root}/src/draco")
 set(draco_build_dir "${CMAKE_BINARY_DIR}")
 
 include("${draco_root}/cmake/compiler_flags.cmake")
+include("${draco_root}/cmake/util.cmake")
 
 # Draco requires C++11 support.
 require_cxx_flag_nomsvc("-std=c++11" YES)
@@ -760,6 +761,11 @@ else ()
               $<TARGET_OBJECTS:draco_points_dec>
               $<TARGET_OBJECTS:draco_points_enc>)
 
+  set(draco_header_only_targets
+      draco_compression_attributes_pred_schemes_dec
+      draco_dec_config
+      draco_enc_config)
+
   if (BUILD_SHARED_LIBS)
     set_target_properties(dracodec PROPERTIES SOVERSION 1)
     set_target_properties(dracoenc PROPERTIES SOVERSION 1)
@@ -832,4 +838,10 @@ else ()
           "${CMAKE_INSTALL_PREFIX}/bin")
   install(FILES "${draco_root}/cmake/FindDraco.cmake"
           DESTINATION "${CMAKE_INSTALL_PREFIX}/include/draco/cmake")
+
+  # Some generators complain about unknown link language for header only
+  # targets. Silence the harmless warnings/errors with some dummy source files.
+  foreach (target ${draco_header_only_targets})
+    add_dummy_source_file_to_target("${target}" "cc")
+  endforeach ()
 endif ()
