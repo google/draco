@@ -16,5 +16,15 @@ function (add_dummy_source_file_to_target target_name extension)
   target_sources(${target_name} PRIVATE ${dummy_source_file})
 endfunction ()
 
+function (extract_version_string version_file version_string_out_var)
+  file(STRINGS "${version_file}" draco_version REGEX "kDracoVersion")
+  list(GET draco_version 0 draco_version)
+  string(REPLACE "static const char kDracoVersion[] = " "" draco_version
+         "${draco_version}")
+  string(REPLACE ";" "" draco_version "${draco_version}")
+  string(REPLACE "\"" "" draco_version "${draco_version}")
+  set("${version_string_out_var}" "${draco_version}" PARENT_SCOPE)
+endfunction ()
+
 endif()  # DRACO_CMAKE_UTIL_CMAKE_
 
