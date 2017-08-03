@@ -40,6 +40,11 @@ div.draco-syntax pre
   line-height: 1.3
   margin-left: 1em
   width: 740px
+  // Generate a "Type" heading above 2nd column.
+  &:before
+    content: "Type\A"
+    font-weight: bold
+    padding-left: 594px
 
 // Specifically override Bootstrap defaults
 code, kbd, pre, samp
