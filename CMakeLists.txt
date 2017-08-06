@@ -8,7 +8,7 @@ set(draco_build_dir "${CMAKE_BINARY_DIR}")
 if ("${draco_root}" STREQUAL "${draco_build_dir}")
   message(FATAL_ERROR
           "Building from within the Draco source tree is not supported.\n"
-          "Hint: mkdir -p ../draco_build && cd ../draco_build\n"
+          "Hint: mkdir -p draco_build && cd draco_build\n"
           "Run cmake from there.")
 endif ()
 
