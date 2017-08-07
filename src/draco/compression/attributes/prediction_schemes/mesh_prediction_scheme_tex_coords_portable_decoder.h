@@ -64,7 +64,7 @@ class MeshPredictionSchemeTexCoordsPortableDecoder
   }
 
   bool SetParentAttribute(const PointAttribute *att) override {
-    if (att->attribute_type() != GeometryAttribute::POSITION)
+    if (!att || att->attribute_type() != GeometryAttribute::POSITION)
       return false;  // Invalid attribute type.
     if (att->num_components() != 3)
       return false;  // Currently works only for 3 component positions.
