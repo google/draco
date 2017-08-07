@@ -137,7 +137,6 @@ TEST_F(ObjDecoderTest, TestObjDecodingAll) {
   test_decoding("one_face_312.obj");
   test_decoding("one_face_321.obj");
   test_decoding("sphere.obj");
-  test_decoding("test_city_atts.obj");
   test_decoding("test_nm.obj");
   test_decoding("test_nm_trans.obj");
   test_decoding("test_sphere.obj");
