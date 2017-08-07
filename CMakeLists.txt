@@ -816,10 +816,10 @@ else ()
 
   # Collect all of the header files in the tree, and add an install rule for
   # each.
-  file(GLOB_RECURSE draco_headers RELATIVE ${draco_root} "*.h")
+  file(GLOB_RECURSE draco_headers RELATIVE ${draco_root}/src/draco "*.h")
   foreach (filename ${draco_headers})
     get_filename_component(file_directory ${filename} DIRECTORY)
-    install(FILES ${filename} DESTINATION
+    install(FILES src/draco/${filename} DESTINATION
             "${CMAKE_INSTALL_PREFIX}/include/draco/${file_directory}")
   endforeach()
 
