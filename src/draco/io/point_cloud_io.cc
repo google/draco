@@ -25,7 +25,8 @@ std::unique_ptr<PointCloud> ReadPointCloudFromFile(
     const std::string &file_name) {
   std::unique_ptr<PointCloud> pc(new PointCloud());
   // Analyze file extension.
-  const std::string extension = file_name.substr(file_name.size() - 4);
+  const std::string extension = file_name.size() >= 4 ?
+      file_name.substr(file_name.size() - 4) : file_name;
   if (extension == ".obj") {
     // Wavefront OBJ file format.
     ObjDecoder obj_decoder;

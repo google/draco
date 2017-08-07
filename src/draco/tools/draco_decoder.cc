@@ -134,8 +134,8 @@ int main(int argc, char **argv) {
 
   // Save the decoded geometry into a file.
   // TODO(ostava): Currently only .ply and .obj are supported.
-  const std::string extension =
-      options.output.substr(options.output.size() - 4);
+  const std::string extension = options.output.size() >= 4 ?
+      options.output.substr(options.output.size() - 4) : options.output;
   if (extension == ".obj") {
     draco::ObjEncoder obj_encoder;
     if (mesh) {

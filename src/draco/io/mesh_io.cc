@@ -31,7 +31,8 @@ std::unique_ptr<Mesh> ReadMeshFromFile(const std::string &file_name,
   std::unique_ptr<Mesh> mesh(new Mesh());
   // Analyze file extension.
   const std::string extension =
-      parser::ToLower(file_name.substr(file_name.size() - 4));
+      parser::ToLower(file_name.size() >= 4 ?
+      file_name.substr(file_name.size() - 4) : file_name);
   if (extension == ".obj") {
     // Wavefront OBJ file format.
     ObjDecoder obj_decoder;
