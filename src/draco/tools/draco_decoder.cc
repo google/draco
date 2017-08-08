@@ -18,6 +18,7 @@
 #include "draco/compression/decode.h"
 #include "draco/core/cycle_timer.h"
 #include "draco/io/obj_encoder.h"
+#include "draco/io/parser_utils.h"
 #include "draco/io/ply_encoder.h"
 
 namespace {
@@ -134,8 +135,11 @@ int main(int argc, char **argv) {
 
   // Save the decoded geometry into a file.
   // TODO(ostava): Currently only .ply and .obj are supported.
-  const std::string extension = options.output.size() >= 4 ?
-      options.output.substr(options.output.size() - 4) : options.output;
+  const std::string extension = draco::parser::ToLower(
+      options.output.size() >= 4
+          ? options.output.substr(options.output.size() - 4)
+          : options.output);
+
   if (extension == ".obj") {
     draco::ObjEncoder obj_encoder;
     if (mesh) {

@@ -58,8 +58,8 @@ bool SequentialAttributeDecoder::TransformAttributeToOriginalFormat(
 const PointAttribute *SequentialAttributeDecoder::GetPortableAttribute() {
   // If needed, copy point to attribute value index mapping from the final
   // attribute to the portable attribute.
-  if (!attribute_->is_mapping_identity() &&
-      portable_attribute_ && portable_attribute_->is_mapping_identity()) {
+  if (!attribute_->is_mapping_identity() && portable_attribute_ &&
+      portable_attribute_->is_mapping_identity()) {
     portable_attribute_->SetExplicitMapping(attribute_->indices_map_size());
     for (PointIndex i(0); i < attribute_->indices_map_size(); ++i) {
       portable_attribute_->SetPointMapEntry(i, attribute_->mapped_index(i));
