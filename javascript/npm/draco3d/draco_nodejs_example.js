@@ -16,7 +16,7 @@
 
 const fs = require('fs');
 const assert = require('assert');
-const draco3d = require('./draco3d');
+const draco3d = fs.existsSync('./draco3d') ? require('./draco3d') : require('draco3d');
 const decoderModule = draco3d.createDecoderModule({});
 const encoderModule = draco3d.createEncoderModule({});
 
