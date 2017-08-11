@@ -393,8 +393,8 @@ if (geom_type == draco::TRIANGULAR_MESH) {
 }
 ~~~~~
 
-Please see `mesh/mesh.h` for the full Mesh class interface and
-`point_cloud/point_cloud.h` for the full `PointCloud` class interface.
+Please see [src/draco/mesh/mesh.h](src/draco/mesh/mesh.h) for the full Mesh class interface and
+[src/draco/point_cloud/point_cloud.h](src/draco/point_cloud/point_cloud.h) for the full `PointCloud` class interface.
 
 
 Javascript Encoder API
@@ -456,12 +456,12 @@ encoderModule.destroy(encoder);
 encoderModule.destroy(meshBuilder);
 
 ~~~~~
-Please see `javascript/emscripten/draco_web_encoder.idl` for the full API.
+Please see [src/draco/javascript/emscripten/draco_web_encoder.idl](src/draco/javascript/emscripten/draco_web_encoder.idl) for the full API.
 
 Javascript Decoder API
 ----------------------
 
-The Javascript decoder is located in `javascript/draco_decoder.js`. The
+The Javascript decoder is located in [javascript/draco_decoder.js](javascript/draco_decoder.js). The
 Javascript decoder can decode mesh and point cloud. In order to use the
 decoder, you must first create an instance of `DracoDecoderModule`. The
 instance is then used to create `DecoderBuffer` and `Decoder` objects. Set
@@ -490,7 +490,7 @@ dracoDecoder.destroy(decoder);
 dracoDecoder.destroy(buffer);
 ~~~~~
 
-Please see `javascript/emscripten/draco_web_decoder.idl` for the full API.
+Please see [src/draco/javascript/emscripten/draco_web_encoder.idl](src/draco/javascript/emscripten/draco_web_encoder.idl) for the full API.
 
 Javascript Decoder Performance
 ------------------------------
@@ -552,11 +552,11 @@ const draco::AttributeMetadata *pos_metadata =
   pc_metadata->GetAttributeMetadata(pos_att_id);
 ~~~~~
 
-Please see `src/draco/metadata` and `src/draco/point_cloud` for the full API.
+Please see [src/draco/metadata](src/draco/metadata) and [src/draco/point_cloud](src/draco/point_cloud) for the full API.
 
 NPM Package
 -----------
-Draco NPM NodeJS package is located in `javascript/npm/draco3d`. Please see the
+Draco NPM NodeJS package is located in [javascript/npm/draco3d](javascript/npm/draco3d). Please see the
 doc in the folder for detailed usage.
 
 three.js Renderer Example
@@ -565,7 +565,7 @@ three.js Renderer Example
 Here's an [example] of a geometric compressed with Draco loaded via a
 Javascript decoder using the `three.js` renderer.
 
-Please see the `javascript/example/README` file for more information.
+Please see the [javascript/example/README](javascript/example/README) file for more information.
 
 Support
 =======
@@ -598,6 +598,6 @@ References
 [meshes]: https://en.wikipedia.org/wiki/Polygon_mesh
 [point clouds]: https://en.wikipedia.org/wiki/Point_cloud
 [Bunny]: https://graphics.stanford.edu/data/3Dscanrep/
-[CONTRIBUTING]: https://raw.githubusercontent.com/google/draco/master/CONTRIBUTING
+[CONTRIBUTING]: https://raw.githubusercontent.com/google/draco/master/CONTRIBUTING.md
 
 Bunny model from Stanford's graphic department <https://graphics.stanford.edu/data/3Dscanrep/>
