@@ -51,7 +51,7 @@ function createDracoDecoder() {
   };
   const create_t0 = performance.now();
 
-  dracoDecoder = DracoModule(dracoDecoderType);
+  dracoDecoder = DracoDecoderModule(dracoDecoderType);
   const create_t1 = performance.now();
   addCell('DracoModule', true);
   addCell(' ' + (create_t1 - create_t0), false);
@@ -153,11 +153,15 @@ function testMeshDecodingAsync(filenameList, index) {
 
       const decode_t0 = performance.now();
       const geometryType = decoder.GetEncodedGeometryType(buffer);
-      let outputGeometry;
+      let dracoGeometry;
+      let decodingStatus;
       if (geometryType == dracoDecoder.TRIANGULAR_MESH) {
-        outputGeometry = decoder.DecodeMeshFromBuffer(buffer);
+        dracoGeometry = new dracoDecoder.Mesh();
+        decodingStatus = decoder.DecodeBufferToMesh(buffer, dracoGeometry);
       } else {
-        outputGeometry = decoder.DecodePointCloudFromBuffer(buffer);
+        dracoGeometry = new dracoDecoder.PointCloud();
+        decodingStatus =
+            decoder.DecodeBufferToPointCloud(buffer, dracoGeometry);
       }
       const t1 = performance.now();
 
@@ -165,9 +169,9 @@ function testMeshDecodingAsync(filenameList, index) {
       addCell('' + (t1 - total_t0), false);
       addCell('' + (t1 - decode_t0), false);
       addCell('' + byteArray.length, false);
-      addCell('' + outputGeometry.num_points(), false);
+      addCell('' + dracoGeometry.num_points(), false);
 
-      dracoDecoder.destroy(outputGeometry);
+      dracoDecoder.destroy(dracoGeometry);
       dracoDecoder.destroy(decoder);
       dracoDecoder.destroy(buffer);
 

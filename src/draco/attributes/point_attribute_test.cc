@@ -51,4 +51,79 @@ TEST_F(PointAttributeTest, TestCopy) {
   }
 }
 
+TEST_F(PointAttributeTest, TestGetValueFloat) {
+  draco::GeometryAttribute pos_att;
+  pos_att.Init(draco::GeometryAttribute::POSITION, nullptr, 3,
+               draco::DT_FLOAT32, false, 4, 0);
+  draco::PointAttribute pa(pos_att);
+  pa.SetIdentityMapping();
+  pa.Reset(5);
+  float points[3];
+  for (int32_t i = 0; i < 5; ++i) {
+    points[0] = i * 3.0;
+    points[1] = (i * 3.0) + 1.0;
+    points[2] = (i * 3.0) + 2.0;
+    pa.SetAttributeValue(draco::AttributeValueIndex(i), &points);
+  }
+
+  for (int32_t i = 0; i < 5; ++i) {
+    pa.GetValue(draco::AttributeValueIndex(i), &points);
+    ASSERT_FLOAT_EQ(points[0], i * 3.0);
+    ASSERT_FLOAT_EQ(points[1], (i * 3.0) + 1.0);
+    ASSERT_FLOAT_EQ(points[2], (i * 3.0) + 2.0);
+  }
+}
+
+TEST_F(PointAttributeTest, TestGetArray) {
+  draco::GeometryAttribute pos_att;
+  pos_att.Init(draco::GeometryAttribute::POSITION, nullptr, 3,
+               draco::DT_FLOAT32, false, 4, 0);
+  draco::PointAttribute pa(pos_att);
+  pa.SetIdentityMapping();
+  pa.Reset(5);
+  float points[3];
+  for (int32_t i = 0; i < 5; ++i) {
+    points[0] = i * 3.0;
+    points[1] = (i * 3.0) + 1.0;
+    points[2] = (i * 3.0) + 2.0;
+    pa.SetAttributeValue(draco::AttributeValueIndex(i), &points);
+  }
+
+  for (int32_t i = 0; i < 5; ++i) {
+    std::array<float, 3> att_value;
+    att_value = pa.GetValue<float, 3>(draco::AttributeValueIndex(i));
+    ASSERT_FLOAT_EQ(att_value[0], i * 3.0);
+    ASSERT_FLOAT_EQ(att_value[1], (i * 3.0) + 1.0);
+    ASSERT_FLOAT_EQ(att_value[2], (i * 3.0) + 2.0);
+  }
+  for (int32_t i = 0; i < 5; ++i) {
+    std::array<float, 3> att_value;
+    EXPECT_TRUE(
+        (pa.GetValue<float, 3>(draco::AttributeValueIndex(i), &att_value)));
+    ASSERT_FLOAT_EQ(att_value[0], i * 3.0);
+    ASSERT_FLOAT_EQ(att_value[1], (i * 3.0) + 1.0);
+    ASSERT_FLOAT_EQ(att_value[2], (i * 3.0) + 2.0);
+  }
+}
+
+TEST_F(PointAttributeTest, TestArrayReadError) {
+  draco::GeometryAttribute pos_att;
+  pos_att.Init(draco::GeometryAttribute::POSITION, nullptr, 3,
+               draco::DT_FLOAT32, false, 4, 0);
+  draco::PointAttribute pa(pos_att);
+  pa.SetIdentityMapping();
+  pa.Reset(5);
+  float points[3];
+  for (int32_t i = 0; i < 5; ++i) {
+    points[0] = i * 3.0;
+    points[1] = (i * 3.0) + 1.0;
+    points[2] = (i * 3.0) + 2.0;
+    pa.SetAttributeValue(draco::AttributeValueIndex(i), &points);
+  }
+
+  std::array<float, 3> att_value;
+  EXPECT_FALSE(
+      (pa.GetValue<float, 3>(draco::AttributeValueIndex(5), &att_value)));
+}
+
 }  // namespace

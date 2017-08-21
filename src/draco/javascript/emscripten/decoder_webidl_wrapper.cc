@@ -197,6 +197,28 @@ bool Decoder::GetAttributeFloatForAllPoints(const PointCloud &pc,
   return true;
 }
 
+bool Decoder::GetAttributeIntForAllPoints(const PointCloud &pc,
+                                          const PointAttribute &pa,
+                                          DracoInt32Array *out_values) {
+  const int components = pa.num_components();
+  const int num_points = pc.num_points();
+  const int num_entries = num_points * components;
+  const int kMaxAttributeIntValues = 4;
+  int values[kMaxAttributeIntValues] = {0, 0, 0, 0};
+  int entry_id = 0;
+
+  out_values->SetValues(nullptr, num_entries);
+  for (draco::PointIndex i(0); i < num_points; ++i) {
+    const draco::AttributeValueIndex val_index = pa.mapped_index(i);
+    if (!pa.ConvertValue<int>(val_index, values))
+      return false;
+    for (int j = 0; j < components; ++j) {
+      out_values->SetValue(entry_id++, values[j]);
+    }
+  }
+  return true;
+}
+
 void Decoder::SkipAttributeTransform(draco_GeometryAttribute_Type att_type) {
   decoder_.SetSkipAttributeTransform(att_type);
 }

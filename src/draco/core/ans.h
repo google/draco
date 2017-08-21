@@ -313,7 +313,6 @@ static inline int ans_read_init(struct AnsDecoder *const ans,
     ans->buf_offset = offset - 3;
     ans->state = mem_get_le24(buf + offset - 3) & 0x3FFFFF;
   } else {
-    // x == 3 implies this byte is a super frame marker
     return 1;
   }
   ans->state += l_base;

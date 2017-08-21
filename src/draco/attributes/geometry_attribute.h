@@ -82,6 +82,21 @@ class GeometryAttribute {
     return out;
   }
 
+  // Function for getting a attribute value with a specific format.
+  // T is the attribute data type.
+  // att_components_t is the number of attribute components.
+  template <typename T, int att_components_t>
+  bool GetValue(AttributeValueIndex att_index,
+                std::array<T, att_components_t> *out) const {
+    // Byte address of the attribute index.
+    const int64_t byte_pos = byte_offset_ + byte_stride_ * att_index.value();
+    // Check we are not reading past end of data.
+    if (byte_pos + sizeof(*out) > buffer_->data_size())
+      return false;
+    buffer_->Read(byte_pos, &((*out)[0]), sizeof(*out));
+    return true;
+  }
+
   // Returns the byte position of the attribute entry in the data buffer.
   inline int64_t GetBytePos(AttributeValueIndex att_index) const {
     return byte_offset_ + byte_stride_ * att_index.value();
@@ -201,9 +216,10 @@ class GeometryAttribute {
   // out_att_components_t is the number of components of the output format.
   template <typename T, int att_components_t, typename OutT,
             int out_att_components_t>
-  void ConvertTypedValue(AttributeValueIndex att_id, OutT *out_value) const {
-    std::array<T, att_components_t> att_value =
-        GetValue<T, att_components_t>(att_id);
+  bool ConvertTypedValue(AttributeValueIndex att_id, OutT *out_value) const {
+    std::array<T, att_components_t> att_value;
+    if (!GetValue<T, att_components_t>(att_id, &att_value))
+      return false;
     // Convert all components available in both the original and output formats.
     for (int i = 0; i < std::min(att_components_t, out_att_components_t); ++i) {
       out_value[i] = static_cast<OutT>(att_value[i]);
@@ -223,30 +239,32 @@ class GeometryAttribute {
     for (int i = att_components_t; i < out_att_components_t; ++i) {
       out_value[i] = static_cast<OutT>(0);
     }
+    return true;
   }
 
   // The same as above but without a component specifier for input attribute.
   template <typename T, typename OutT, int OUT_CMPS>
   bool ConvertTypedValue(AttributeValueIndex att_index, OutT *out_value) const {
+    bool rv = false;
     // Select the right method to call based on the number of attribute
     // components.
     switch (num_components_) {
       case 1:
-        ConvertTypedValue<T, 1, OutT, OUT_CMPS>(att_index, out_value);
+        rv = ConvertTypedValue<T, 1, OutT, OUT_CMPS>(att_index, out_value);
         break;
       case 2:
-        ConvertTypedValue<T, 2, OutT, OUT_CMPS>(att_index, out_value);
+        rv = ConvertTypedValue<T, 2, OutT, OUT_CMPS>(att_index, out_value);
         break;
       case 3:
-        ConvertTypedValue<T, 3, OutT, OUT_CMPS>(att_index, out_value);
+        rv = ConvertTypedValue<T, 3, OutT, OUT_CMPS>(att_index, out_value);
         break;
       case 4:
-        ConvertTypedValue<T, 4, OutT, OUT_CMPS>(att_index, out_value);
+        rv = ConvertTypedValue<T, 4, OutT, OUT_CMPS>(att_index, out_value);
         break;
       default:
         return false;  // This shouldn't happen.
     }
-    return true;
+    return rv;
   }
 
   DataBuffer *buffer_;

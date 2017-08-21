@@ -29,91 +29,31 @@
         <pre id="fileDisplayArea"><pre>
     </div>
     <script src="https://cdn.rawgit.com/mrdoob/three.js/dev/build/three.min.js"></script>
-    <script src="DRACOLoader.js"></script>
+    <script src="../DRACOLoader.js"></script>
     <script src="geometry_helper.js"></script>
     <script>
       'use strict';
 
       // Global Draco decoder type.
-      var dracoDecoderType = {};
       var dracoLoader;
-      var currentDecoder;
+      var dracoDecoderType = {};
 
-      loadDracoDecoder();
+      createDracoDecoder();
 
-      // This function loads a JavaScript file and adds it to the page. "path"
-      // is the path to the JavaScript file. "onLoadFunc" is the function to be
-      // called when the JavaScript file has been loaded.
-      function loadJavaScriptFile(path, onLoadFunc) {
-        var head = document.getElementsByTagName('head')[0];
-        var element = document.createElement('script');
-        element.id = "decoder_script";
-        element.type = 'text/javascript';
-        element.src = path;
-        if (onLoadFunc !== null)
-          element.onload = onLoadFunc;
-
-        var previous_decoder_script = document.getElementById("decoder_script");
-        if (previous_decoder_script !== null) {
-          previous_decoder_script.parentNode.removeChild(previous_decoder_script);
-        }
-        head.appendChild(element);
-      }
-
-      function loadWebAssemblyDecoder() {
-        dracoDecoderType['wasmBinaryFile'] = '../draco_decoder.wasm';
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', '../draco_decoder.wasm', true);
-        xhr.responseType = 'arraybuffer';
-        xhr.onload = function() {
-          // draco_wasm_wrapper.js must be loaded before DracoDecoderModule is
-          // created. The object passed into DracoDecoderModule() must contain a
-          // property with the name of wasmBinary and the value must be an
-          // ArrayBuffer containing the contents of the .wasm file.
-          dracoDecoderType['wasmBinary'] = xhr.response;
-          createDracoDecoder();
-        };
-        xhr.send(null)
+      function createDracoDecoder() {
+        dracoLoader = new THREE.DRACOLoader();
       }
 
       function switchDecoder() {
         var showDecoder = document.getElementById('decoderType');
-        dracoDecoderType = {};
-        if (currentDecoder === "wasm") {
-          currentDecoder = "js";
-          loadJavaScriptFile('../draco_decoder.js', createDracoDecoder);
+        if (dracoDecoderType.type === "wasm") {
+          dracoDecoderType.type = "js";
           showDecoder.innerText = "Now using Javascript Decoder.";
         } else {
-          currentDecoder = "wasm";
-          loadJavaScriptFile('../draco_wasm_wrapper.js', loadWebAssemblyDecoder);
+          dracoDecoderType.type = "wasm";
           showDecoder.innerText = "Now using WebAssembly Decoder.";
         }
-      }
-
-      // This function will test if the browser has support for WebAssembly. If
-      // it does it will download the WebAssembly Draco decoder, if not it will
-      // download the asmjs Draco decoder.
-      // TODO: Investigate moving the Draco decoder loading code
-      // over to DRACOLoader.js.
-      function loadDracoDecoder() {
-        var showDecoder = document.getElementById('decoderType');
-        if (typeof WebAssembly !== 'object') {
-          // No WebAssembly support
-          currentDecoder = "js";
-          loadJavaScriptFile('../draco_decoder.js', createDracoDecoder);
-          var switchButton = document.getElementById('switchDecoder');
-          showDecoder.parentNode.removeChild(showDecoder);
-          switchButton.parentNode.removeChild(switchButton);
-        } else {
-          currentDecoder = "wasm";
-          loadJavaScriptFile('../draco_wasm_wrapper.js', loadWebAssemblyDecoder);
-          showDecoder.innerText = "Now using WebAssembly Decoder.";
-        }
-      }
-
-      function createDracoDecoder() {
-        dracoLoader = new THREE.DRACOLoader();
-        dracoLoader.setDracoDecoderType(dracoDecoderType);
+        dracoLoader = new THREE.DRACOLoader(undefined, dracoDecoderType);
       }
 
       var camera, cameraTarget, scene, renderer;

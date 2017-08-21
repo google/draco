@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_GEOMETRIC_NORMAL_PREDICTOR_H_
-#define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_GEOMETRIC_NORMAL_PREDICTOR_H_
+#ifndef DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_GEOMETRIC_NORMAL_PREDICTOR_BASE_H_
+#define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_GEOMETRIC_NORMAL_PREDICTOR_BASE_H_
 
 #include <math.h>
 
@@ -26,22 +26,23 @@
 
 namespace draco {
 
-// This predictor estimates the normal via the surrounding triangles of the
-// given corner. Triangles are weighted according to their area.
+// Base class for geometric normal predictors using position attribute.
 template <typename DataTypeT, class TransformT, class MeshDataT>
-class MeshPredictionSchemeGeometricNormalPredictor {
- public:
-  MeshPredictionSchemeGeometricNormalPredictor(const MeshDataT &md)
+class MeshPredictionSchemeGeometricNormalPredictorBase {
+ protected:
+  MeshPredictionSchemeGeometricNormalPredictorBase(const MeshDataT &md)
       : pos_attribute_(nullptr),
         entry_to_point_id_map_(nullptr),
         mesh_data_(md) {}
+  virtual ~MeshPredictionSchemeGeometricNormalPredictorBase() {}
+
+ public:
   void SetPositionAttribute(const PointAttribute &position_attribute) {
     pos_attribute_ = &position_attribute;
   }
   void SetEntryToPointIdMap(const PointIndex *map) {
     entry_to_point_id_map_ = map;
   }
-
   bool IsInitialized() const {
     if (pos_attribute_ == nullptr)
       return false;
@@ -50,6 +51,7 @@ class MeshPredictionSchemeGeometricNormalPredictor {
     return true;
   }
 
+ protected:
   VectorD<int64_t, 3> GetPositionForDataId(int data_id) const {
     DCHECK(this->IsInitialized());
     const auto point_id = entry_to_point_id_map_[data_id];
@@ -65,61 +67,16 @@ class MeshPredictionSchemeGeometricNormalPredictor {
     const auto data_id = mesh_data_.vertex_to_data_map()->at(vert_id);
     return GetPositionForDataId(data_id);
   }
-
   VectorD<int32_t, 2> GetOctahedralCoordForDataId(int data_id,
                                                   const DataTypeT *data) const {
     DCHECK(this->IsInitialized());
     const int data_offset = data_id * 2;
     return VectorD<int32_t, 2>(data[data_offset], data[data_offset + 1]);
   }
-
   // Computes predicted octahedral coordinates on a given corner.
-  void ComputePredictedValue(CornerIndex corner_id, DataTypeT *prediction) {
-    DCHECK(this->IsInitialized());
-    typedef typename MeshDataT::CornerTable CornerTable;
-    const CornerTable *const corner_table = mesh_data_.corner_table();
-    // Going to compute the predicted normal from the surrounding triangles
-    // according to the connectivity of the given corner table.
-    VertexCornersIterator<CornerTable> cit(corner_table, corner_id);
-    // Position of central vertex does not change in loop.
-    const VectorD<int64_t, 3> pos_cent = GetPositionForCorner(corner_id);
-    // Computing normals for triangles and adding them up.
+  virtual void ComputePredictedValue(CornerIndex corner_id,
+                                     DataTypeT *prediction) = 0;
 
-    VectorD<int64_t, 3> normal;
-    while (!cit.End()) {
-      // Getting corners.
-      const CornerIndex c_next = corner_table->Next(corner_id);
-      const CornerIndex c_prev = corner_table->Previous(corner_id);
-      // Getting positions for next and previous.
-      const auto pos_next = GetPositionForCorner(c_next);
-      const auto pos_prev = GetPositionForCorner(c_prev);
-
-      // Computing delta vectors to next and prev.
-      const auto delta_next = pos_next - pos_cent;
-      const auto delta_prev = pos_prev - pos_cent;
-
-      // TODO(hemmer): Improve weight function.
-
-      // Computing cross product.
-      const auto cross = CrossProduct(delta_next, delta_prev);
-      normal = normal + cross;
-      cit.Next();
-    }
-
-    // Convert to int32_t, make sure entries are not too large.
-    const int32_t abs_sum = normal.AbsSum();
-    constexpr int64_t upper_bound = 1 << 29;
-    if (abs_sum > upper_bound) {
-      const int64_t quotient = abs_sum / upper_bound;
-      normal = normal / quotient;
-    }
-    DCHECK_LE(normal.AbsSum(), upper_bound);
-    prediction[0] = static_cast<int32_t>(normal[0]);
-    prediction[1] = static_cast<int32_t>(normal[1]);
-    prediction[2] = static_cast<int32_t>(normal[2]);
-  }
-
- private:
   const PointAttribute *pos_attribute_;
   const PointIndex *entry_to_point_id_map_;
   MeshDataT mesh_data_;
@@ -127,4 +84,4 @@ class MeshPredictionSchemeGeometricNormalPredictor {
 
 }  // namespace draco
 
-#endif  // DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_GEOMETRIC_NORMAL_PREDICTOR_H_
+#endif  // DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_GEOMETRIC_NORMAL_PREDICTOR_BASE_H_

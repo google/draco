@@ -16,7 +16,7 @@
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_GEOMETRIC_NORMAL_ENCODER_H_
 
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_encoder.h"
-#include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_predictor.h"
+#include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_predictor_area.h"
 #include "draco/compression/config/compression_shared.h"
 #include "draco/core/bit_coders/rans_bit_encoder.h"
 
@@ -80,7 +80,8 @@ class MeshPredictionSchemeGeometricNormalEncoder
     DCHECK_LE(q, 30);
     octahedron_tool_box_.SetQuantizationBits(q);
   }
-  MeshPredictionSchemeGeometricNormalPredictor<DataTypeT, TransformT, MeshDataT>
+  MeshPredictionSchemeGeometricNormalPredictorArea<DataTypeT, TransformT,
+                                                   MeshDataT>
       predictor_;
 
   OctahedronToolBox octahedron_tool_box_;

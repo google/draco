@@ -40,39 +40,47 @@ Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud &pc,
                                                EncoderBuffer *out_buffer) {
   std::unique_ptr<PointCloudEncoder> encoder;
   const int encoding_method = options().GetGlobalInt("encoding_method", -1);
-  if (encoding_method == POINT_CLOUD_KD_TREE_ENCODING ||
-      (options().GetSpeed() < 10 && pc.num_attributes() == 1)) {
+
+  if (encoding_method == POINT_CLOUD_SEQUENTIAL_ENCODING) {
+    // Use sequential encoding if requested.
+    encoder.reset(new PointCloudSequentialEncoder());
+  } else if (encoding_method == -1 && options().GetSpeed() == 10) {
+    // Use sequential encoding if speed is at max.
+    encoder.reset(new PointCloudSequentialEncoder());
+  } else {
+    // Speed < 10, use POINT_CLOUD_KD_TREE_ENCODING if possible.
     const PointAttribute *const att = pc.attribute(0);
-    bool create_kd_tree_encoder = true;
+    bool kd_tree_possible = true;
     // Kd-Tree encoder can be currently used only under following conditions:
     //   - Point cloud has one attribute describing positions
     //   - Position is described by three components (x,y,z)
     //   - Position data type is one of the following:
     //         -float32 and quantization is enabled
     //         -uint32
-    if (att->attribute_type() != GeometryAttribute::POSITION ||
-        att->num_components() != 3)
-      create_kd_tree_encoder = false;
-    if (create_kd_tree_encoder && att->data_type() != DT_FLOAT32 &&
+    if (kd_tree_possible &&
+        att->attribute_type() != GeometryAttribute::POSITION)
+      kd_tree_possible = false;
+    if (kd_tree_possible && att->num_components() != 3)
+      kd_tree_possible = false;
+    if (kd_tree_possible && att->data_type() != DT_FLOAT32 &&
         att->data_type() != DT_UINT32)
-      create_kd_tree_encoder = false;
-    if (create_kd_tree_encoder && att->data_type() == DT_FLOAT32 &&
+      kd_tree_possible = false;
+    if (kd_tree_possible && att->data_type() == DT_FLOAT32 &&
         options().GetAttributeInt(0, "quantization_bits", -1) <= 0)
-      create_kd_tree_encoder = false;  // Quantization not enabled.
-    if (create_kd_tree_encoder) {
+      kd_tree_possible = false;  // Quantization not enabled.
+
+    if (kd_tree_possible) {
       // Create kD-tree encoder (all checks passed).
-      encoder =
-          std::unique_ptr<PointCloudEncoder>(new PointCloudKdTreeEncoder());
+      encoder.reset(new PointCloudKdTreeEncoder());
     } else if (encoding_method == POINT_CLOUD_KD_TREE_ENCODING) {
-      // Encoding method was explicitly specified but we cannot use it for the
-      // given input (some of the checks above failed).
+      // Encoding method was explicitly specified but we cannot use it for
+      // the given input (some of the checks above failed).
       return Status(Status::ERROR, "Invalid encoding method.");
     }
   }
   if (!encoder) {
     // Default choice.
-    encoder =
-        std::unique_ptr<PointCloudEncoder>(new PointCloudSequentialEncoder());
+    encoder.reset(new PointCloudSequentialEncoder());
   }
   encoder->SetPointCloud(pc);
   return encoder->Encode(options(), out_buffer);

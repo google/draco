@@ -1,0 +1,11 @@
+ply
+format binary_little_endian 1.0
+comment VCGLIB generated
+element vertex 4
+property float x
+property float y
+property float z
+element face 0
+property list uchar int vertex_indices
+end_header
+\B‡YšAh ¬?ä¼B›f…A$ĞQ@ã/B³¼Aî	a@ËT0BU7Aè†_@

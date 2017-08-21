@@ -73,8 +73,12 @@ class DracoFloat32Array {
 class DracoInt32Array {
  public:
   DracoInt32Array();
+
   int GetValue(int index) const;
   bool SetValues(const int *values, int count);
+
+  void SetValue(int index, int val) { values_[index] = val; }
+
   int size() const { return values_.size(); }
 
  private:
@@ -141,6 +145,12 @@ class Decoder {
   static bool GetAttributeFloatForAllPoints(const draco::PointCloud &pc,
                                             const draco::PointAttribute &pa,
                                             DracoFloat32Array *out_values);
+
+  // Returns integer attribute values for all point ids of the point cloud.
+  // I.e., the |out_values| is going to contain m.num_points() entries.
+  static bool GetAttributeIntForAllPoints(const draco::PointCloud &pc,
+                                          const draco::PointAttribute &pa,
+                                          DracoInt32Array *out_values);
 
   // Tells the decoder to skip an attribute transform (e.g. dequantization) for
   // an attribute of a given type.
