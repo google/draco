@@ -3,6 +3,7 @@ set(DRACO_CMAKE_COMPILER_FLAGS_CMAKE_ 1)
 
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
+include("${draco_root}/cmake/compiler_tests.cmake")
 
 # Strings used to cache failed C/CXX flags.
 set(DRACO_FAILED_C_FLAGS)
@@ -103,7 +104,7 @@ endfunction ()
 
 # Checks for support of $flag by both the C and CXX compilers. Terminates
 # generation when support is not present in both compilers.
-function (require_flag flag update_cmake_flags)
+function (require_compiler_flag flag update_cmake_flags)
   require_c_flag(${flag} ${update_cmake_flags})
   require_cxx_flag(${flag} ${update_cmake_flags})
 endfunction ()
@@ -127,7 +128,7 @@ endfunction ()
 # Checks only non-MSVC targets for support of $flag by both the C and CXX
 # compilers. Terminates generation when support is not present in both
 # compilers.
-function (require_flag_nomsvc flag update_cmake_flags)
+function (require_compiler_flag_nomsvc flag update_cmake_flags)
   require_c_flag_nomsvc(${flag} ${update_cmake_flags})
   require_cxx_flag_nomsvc(${flag} ${update_cmake_flags})
 endfunction ()
@@ -231,5 +232,18 @@ function (append_link_flag_to_target target flags)
   set_target_properties(${target} PROPERTIES LINK_FLAGS ${target_link_flags})
 endfunction ()
 
-endif ()  # DRACO_CMAKE_COMPILER_FLAGS_CMAKE_
+# Adds $flag to executable linker flags, and makes sure C/CXX builds still work.
+function (require_linker_flag flag)
+  append_exe_linker_flag(${flag})
 
+  unset(c_passed)
+  draco_check_c_compiles("LINKER_FLAG_C_TEST(${flag})" "" c_passed)
+  unset(cxx_passed)
+  draco_check_cxx_compiles("LINKER_FLAG_CXX_TEST(${flag})" "" cxx_passed)
+
+  if (NOT c_passed OR NOT cxx_passed)
+    message(FATAL_ERROR "Linker flag test for ${flag} failed.")
+  endif ()
+endfunction ()
+
+endif ()  # DRACO_CMAKE_COMPILER_FLAGS_CMAKE_

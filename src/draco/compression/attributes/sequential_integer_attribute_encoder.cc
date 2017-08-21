@@ -195,7 +195,9 @@ bool SequentialIntegerAttributeEncoder::PrepareValues(
   int32_t *const portable_attribute_data = GetPortableAttributeData();
   for (PointIndex pi : point_ids) {
     const AttributeValueIndex att_id = attrib->mapped_index(pi);
-    attrib->ConvertValue<int32_t>(att_id, portable_attribute_data + dst_index);
+    if (!attrib->ConvertValue<int32_t>(att_id,
+                                       portable_attribute_data + dst_index))
+      return false;
     dst_index += num_components;
   }
   return true;

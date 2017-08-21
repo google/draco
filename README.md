@@ -159,6 +159,12 @@ And your standard debug build will be produced using:
 $ cmake path/to/draco -DCMAKE_BUILD_TYPE=debug
 ~~~~~
 
+To enable the use of sanitizers when the compiler in use supports them, set the
+sanitizer type when running CMake:
+
+~~~~~ bash
+$ cmake path/to/draco -DSANITIZE=address
+~~~~~
 
 Googletest Integration
 ----------------------

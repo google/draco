@@ -175,5 +175,9 @@ interface Decoder {
   boolean GetAttributeFloatForAllPoints([Ref, Const] PointCloud pc,
                                         [Ref, Const] PointAttribute pa,
                                         DracoFloat32Array out_values);
+  boolean GetAttributeIntForAllPoints([Ref, Const] PointCloud pc,
+                                      [Ref, Const] PointAttribute pa,
+                                      DracoInt32Array out_values);
+
   void SkipAttributeTransform(draco_GeometryAttribute_Type att_type);
 };

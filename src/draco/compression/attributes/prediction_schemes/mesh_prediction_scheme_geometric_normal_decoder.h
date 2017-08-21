@@ -16,7 +16,7 @@
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_GEOMETRIC_NORMAL_DECODER_H_
 
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
-#include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_predictor.h"
+#include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_predictor_area.h"
 #include "draco/core/bit_coders/rans_bit_decoder.h"
 
 namespace draco {
@@ -80,7 +80,8 @@ class MeshPredictionSchemeGeometricNormalDecoder
   }
 
  private:
-  MeshPredictionSchemeGeometricNormalPredictor<DataTypeT, TransformT, MeshDataT>
+  MeshPredictionSchemeGeometricNormalPredictorArea<DataTypeT, TransformT,
+                                                   MeshDataT>
       predictor_;
   OctahedronToolBox octahedron_tool_box_;
   RAnsBitDecoder flip_normal_bit_decoder_;

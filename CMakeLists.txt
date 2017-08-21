@@ -14,22 +14,26 @@ endif ()
 
 include(CMakePackageConfigHelpers)
 include("${draco_root}/cmake/compiler_flags.cmake")
+include("${draco_root}/cmake/sanitizers.cmake")
 include("${draco_root}/cmake/util.cmake")
 
 # Draco requires C++11 support.
 require_cxx_flag_nomsvc("-std=c++11" YES)
 
-option(ENABLE_POINT_CLOUD_COMPRESSION "" ON)
-option(ENABLE_MESH_COMPRESSION "" ON)
-option(ENABLE_STANDARD_EDGEBREAKER "" ON)
-option(ENABLE_PREDICTIVE_EDGEBREAKER "" ON)
+option(ENABLE_CCACHE "Enable ccache support." OFF)
+option(ENABLE_DISTCC "Enable distcc support." OFF)
 option(ENABLE_EXTRA_SPEED "" OFF)
 option(ENABLE_EXTRA_WARNINGS "" OFF)
+option(ENABLE_GOMA "Enable goma support." OFF)
+option(ENABLE_MESH_COMPRESSION "" ON)
+option(ENABLE_POINT_CLOUD_COMPRESSION "" ON)
+option(ENABLE_PREDICTIVE_EDGEBREAKER "" ON)
+option(ENABLE_STANDARD_EDGEBREAKER "" ON)
 option(ENABLE_TESTS "Enables tests." OFF)
+option(ENABLE_WASM "" OFF)
 option(ENABLE_WERROR "" OFF)
 option(ENABLE_WEXTRA "" OFF)
 option(IGNORE_EMPTY_BUILD_TYPE "" OFF)
-option(ENABLE_WASM "" OFF)
 
 if (ENABLE_POINT_CLOUD_COMPRESSION)
   add_cxx_preproc_definition("DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED")
@@ -72,6 +76,15 @@ if (ENABLE_WERROR)
 endif ()
 if (ENABLE_WEXTRA)
   add_compiler_flag_if_supported("-Wextra")
+endif ()
+if (ENABLE_CCACHE)
+  set_compiler_launcher(ENABLE_CCACHE ccache)
+endif ()
+if (ENABLE_DISTCC)
+  set_compiler_launcher(ENABLE_DISTCC distcc)
+endif ()
+if (ENABLE_GOMA)
+  set_compiler_launcher(ENABLE_GOMA gomacc)
 endif ()
 
 # Generate a version file containing repository info.
@@ -224,7 +237,8 @@ set(draco_compression_attributes_pred_schemes_dec_sources
     "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_data.h"
     "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
     "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_decoder.h"
-    "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_predictor.h"
+    "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_predictor_area.h"
+    "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_predictor_base.h"
     "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_multi_parallelogram_decoder.h"
     "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram_encoder.h"
     "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram_shared.h"
@@ -251,7 +265,8 @@ set(draco_compression_attributes_pred_schemes_enc_sources
     "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_data.h"
     "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_encoder.h"
     "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_encoder.h"
-    "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_predictor.h"
+    "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_predictor_area.h"
+    "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_predictor_base.h"
     "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_multi_parallelogram_encoder.h"
     "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram_encoder.h"
     "${draco_src_root}/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram_shared.h"
@@ -541,21 +556,21 @@ include_directories("${draco_root}/src")
 #
 if (EMSCRIPTEN)
   # Draco js decoder.
-  require_flag("-s ALLOW_MEMORY_GROWTH=1" YES)
-  require_flag("-Wno-almost-asm" YES)
-  require_flag("--memory-init-file 0" YES)
-  require_flag("-fno-omit-frame-pointer" YES)
-  require_flag("-s MODULARIZE=1" YES)
+  require_compiler_flag("-s ALLOW_MEMORY_GROWTH=1" YES)
+  require_compiler_flag("-Wno-almost-asm" YES)
+  require_compiler_flag("--memory-init-file 0" YES)
+  require_compiler_flag("-fno-omit-frame-pointer" YES)
+  require_compiler_flag("-s MODULARIZE=1" YES)
   if (ENABLE_EXTRA_SPEED)
-    require_flag("--llvm-lto 1" YES)
+    require_compiler_flag("--llvm-lto 1" YES)
   endif ()
-  require_flag("-s NO_FILESYSTEM=1" YES)
-  require_flag("-s ELIMINATE_DUPLICATE_FUNCTIONS=1" YES)
-  require_flag("-s EXPORTED_RUNTIME_METHODS=[]" YES)
-  require_flag("-s PRECISE_F32=1" YES)
+  require_compiler_flag("-s NO_FILESYSTEM=1" YES)
+  require_compiler_flag("-s ELIMINATE_DUPLICATE_FUNCTIONS=1" YES)
+  require_compiler_flag("-s EXPORTED_RUNTIME_METHODS=[]" YES)
+  require_compiler_flag("-s PRECISE_F32=1" YES)
   if (ENABLE_WASM)
-    require_flag("-s WASM=1" YES)
-    require_flag("-s BINARYEN_IMPRECISE=1" YES)
+    require_compiler_flag("-s WASM=1" YES)
+    require_compiler_flag("-s BINARYEN_IMPRECISE=1" YES)
   endif ()
 
   if (CMAKE_BUILD_TYPE STREQUAL "")
