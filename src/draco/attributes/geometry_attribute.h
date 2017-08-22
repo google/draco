@@ -127,27 +127,39 @@ class GeometryAttribute {
     if (out_val == nullptr)
       return false;
     switch (data_type_) {
-      case DT_FLOAT32:
-        return ConvertTypedValue<float, OutT, out_att_components_t>(att_id,
-                                                                    out_val);
-      case DT_UINT8:
-        return ConvertTypedValue<uint8_t, OutT, out_att_components_t>(att_id,
-                                                                      out_val);
       case DT_INT8:
         return ConvertTypedValue<int8_t, OutT, out_att_components_t>(att_id,
                                                                      out_val);
-      case DT_UINT16:
-        return ConvertTypedValue<uint16_t, OutT, out_att_components_t>(att_id,
-                                                                       out_val);
+      case DT_UINT8:
+        return ConvertTypedValue<uint8_t, OutT, out_att_components_t>(att_id,
+                                                                      out_val);
       case DT_INT16:
         return ConvertTypedValue<int16_t, OutT, out_att_components_t>(att_id,
                                                                       out_val);
-      case DT_UINT32:
-        return ConvertTypedValue<uint32_t, OutT, out_att_components_t>(att_id,
+      case DT_UINT16:
+        return ConvertTypedValue<uint16_t, OutT, out_att_components_t>(att_id,
                                                                        out_val);
       case DT_INT32:
         return ConvertTypedValue<int32_t, OutT, out_att_components_t>(att_id,
                                                                       out_val);
+      case DT_UINT32:
+        return ConvertTypedValue<uint32_t, OutT, out_att_components_t>(att_id,
+                                                                       out_val);
+      case DT_INT64:
+        return ConvertTypedValue<int64_t, OutT, out_att_components_t>(att_id,
+                                                                      out_val);
+      case DT_UINT64:
+        return ConvertTypedValue<uint64_t, OutT, out_att_components_t>(att_id,
+                                                                       out_val);
+      case DT_FLOAT32:
+        return ConvertTypedValue<float, OutT, out_att_components_t>(att_id,
+                                                                    out_val);
+      case DT_FLOAT64:
+        return ConvertTypedValue<double, OutT, out_att_components_t>(att_id,
+                                                                     out_val);
+      case DT_BOOL:
+        return ConvertTypedValue<bool, OutT, out_att_components_t>(att_id,
+                                                                   out_val);
       default:
         // Wrong attribute type.
         return false;
