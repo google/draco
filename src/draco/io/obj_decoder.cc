@@ -484,12 +484,12 @@ bool ObjDecoder::ParseObject(bool *error) {
   if (!parser::ParseString(buffer(), &obj_name))
     return false;
   auto it = obj_name_to_id_.find(obj_name);
-  if (it != obj_name_to_id_.end()) {
-    // TODO(zhafang): An object name can appear multiple places in an .obj?
-    return false;
+  if (it == obj_name_to_id_.end()) {
+    obj_name_to_id_[obj_name] = num_sub_objects_;
+    num_sub_objects_++;
+  } else {
+    num_sub_objects_ = it->second;
   }
-  obj_name_to_id_[obj_name] = num_sub_objects_;
-  num_sub_objects_++;
   return true;
 }
 
