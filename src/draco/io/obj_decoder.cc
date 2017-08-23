@@ -488,7 +488,7 @@ bool ObjDecoder::ParseObject(bool *error) {
     obj_name_to_id_[obj_name] = num_sub_objects_;
     num_sub_objects_++;
   } else {
-    num_sub_objects_ = it->second;
+    num_sub_objects_ = it->second + 1;
   }
   return true;
 }
