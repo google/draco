@@ -2,6 +2,7 @@ dist: trusty
 sudo: require
 language: cpp
 compiler: gcc
+cache: ccache
 
 addons:
   apt:
