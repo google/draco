@@ -1,8 +1,9 @@
 os: linux
 dist: trusty
-sudo: require
 language: cpp
-compiler: gcc
+compiler:
+  - clang
+  - gcc
 cache: ccache
 
 addons:
@@ -10,20 +11,16 @@ addons:
     sources:
     - ubuntu-toolchain-r-test
     packages:
-    - gcc-6
-    - g++-6
     - ccache
     - cmake
 
 script:
-  # Link gcc-6 and g++-6 to their standard commands
-  - ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
-  - ln -s /usr/bin/g++-6 /usr/local/bin/g++
-  # Export CC and CXX to tell cmake which compiler to use
-  - export CC=/usr/bin/gcc-6
-  - export CXX=/usr/bin/g++-6
-  # Check versions of gcc, g++ and cmake
-  - gcc -v && g++ -v && cmake --version
+  # Output versions of gcc, g++ and cmake
+  - clang -v
+  - clang++ -v
+  - gcc -v
+  - g++ -v
+  - make --version
   # Configure and build
   - mkdir _travis_build && cd _travis_build
   - cmake -G "Unix Makefiles" -DENABLE_TESTING=ON -DENABLE_CCACHE=ON ..
