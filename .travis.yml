@@ -15,11 +15,10 @@ addons:
     - cmake
 
 script:
-  # Output versions of gcc, g++ and cmake
-  - clang -v
-  - clang++ -v
-  - gcc -v
-  - g++ -v
+  # Output version info for compilers, cmake, and make
+  - ${CC} -v
+  - ${CXX} -v
+  - cmake --version
   - make --version
   # Configure and build
   - mkdir _travis_build && cd _travis_build
