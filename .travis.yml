@@ -23,6 +23,6 @@ script:
   - make --version
   # Configure and build
   - mkdir _travis_build && cd _travis_build
-  - cmake -G "Unix Makefiles" -DENABLE_TESTING=ON -DENABLE_CCACHE=ON ..
+  - cmake -G "Unix Makefiles" -DENABLE_TESTS=ON -DENABLE_CCACHE=ON ..
   - make -j
   - ./draco_tests
