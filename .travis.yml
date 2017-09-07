@@ -1,5 +1,8 @@
-os: linux
+os:
+  - linux
+  - osx
 dist: trusty
+osx_image: xcode8.3
 language: cpp
 compiler:
   - clang
@@ -13,6 +16,9 @@ addons:
     packages:
     - ccache
     - cmake
+
+before_install:
+  - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then brew install ccache; fi
 
 script:
   # Output version info for compilers, cmake, and make
