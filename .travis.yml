@@ -26,6 +26,8 @@ script:
   - ${CXX} -v
   - cmake --version
   - make --version
+  # Clone googletest
+  - pushd .. && git clone https://github.com/google/googletest.git && popd
   # Configure and build
   - mkdir _travis_build && cd _travis_build
   - cmake -G "Unix Makefiles" -DENABLE_TESTS=ON -DENABLE_CCACHE=ON ..
