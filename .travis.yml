@@ -1,0 +1,38 @@
+cache: ccache
+language: cpp
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      compiler: clang
+    - os: linux
+      dist: trusty
+      compiler: gcc
+    - os: osx
+      osx_image: xcode8.3
+      compiler: clang
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - ccache
+    - cmake
+
+before_install:
+  - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then brew install ccache; fi
+
+script:
+  # Output version info for compilers, cmake, and make
+  - ${CC} -v
+  - ${CXX} -v
+  - cmake --version
+  - make --version
+  # Clone googletest
+  - pushd .. && git clone https://github.com/google/googletest.git && popd
+  # Configure and build
+  - mkdir _travis_build && cd _travis_build
+  - cmake -G "Unix Makefiles" -DENABLE_TESTS=ON -DENABLE_CCACHE=ON ..
+  - make -j
+  - ./draco_tests
