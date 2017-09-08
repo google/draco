@@ -1,13 +1,16 @@
-os:
-  - linux
-  - osx
-dist: trusty
-osx_image: xcode8.3
-language: cpp
-compiler:
-  - clang
-  - gcc
 cache: ccache
+language: cpp
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      compiler: clang
+    - os: linux
+      dist: trusty
+      compiler: gcc
+    - os: osx
+      osx_image: xcode8.3
+      compiler: clang
 
 addons:
   apt:
