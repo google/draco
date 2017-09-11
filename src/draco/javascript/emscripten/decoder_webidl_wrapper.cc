@@ -129,6 +129,11 @@ const PointAttribute *Decoder::GetAttribute(const PointCloud &pc, long att_id) {
   return pc.attribute(att_id);
 }
 
+const PointAttribute *Decoder::GetAttributeByUniqueId(const PointCloud &pc,
+                                                      long unique_id) {
+  return pc.GetAttributeByUniqueId(unique_id);
+}
+
 long Decoder::GetAttributeIdByName(const PointCloud &pc,
                                    const char *attribute_name) {
   const std::string entry_value(attribute_name);

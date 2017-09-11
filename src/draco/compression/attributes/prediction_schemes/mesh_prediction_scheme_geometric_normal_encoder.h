@@ -163,7 +163,7 @@ bool MeshPredictionSchemeGeometricNormalEncoder<
   if (!this->transform().EncodeTransformData(buffer))
     return false;
 
-  const uint8_t prediction_mode = 0;
+  const uint8_t prediction_mode = predictor_.GetNormalPredictionMode();
   if (!buffer->Encode(prediction_mode))
     return false;
 

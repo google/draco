@@ -1,5 +1,4 @@
-module.exports = CreateDracoModule;
-function  CreateDracoModule(DracoEncoderModule) {
+var DracoEncoderModule = function(DracoEncoderModule) {
   DracoEncoderModule = DracoEncoderModule || {};
   var Module = DracoEncoderModule;
 
@@ -25,4 +24,7 @@ var Ma=[Pq,Oo,fq,jm,Rn,Eh,qk,tm,Fi,qc,Jg,Dh,ij,_g,Xi,ji,qm,Nn,Ck,Pq,Pq,Pq,Pq,Pq,
 
 
   return DracoEncoderModule;
+};
+if (typeof module === "object" && module.exports) {
+  module['exports'] = DracoEncoderModule;
 };

@@ -268,8 +268,16 @@ void MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
 
     if (std::is_integral<DataTypeT>::value) {
       // Round the predicted value for integer types.
-      predicted_value_[0] = static_cast<int>(floor(predicted_uv[0] + 0.5));
-      predicted_value_[1] = static_cast<int>(floor(predicted_uv[1] + 0.5));
+      if (std::isnan(predicted_uv[0])) {
+        predicted_value_[0] = INT_MIN;
+      } else {
+        predicted_value_[0] = static_cast<int>(floor(predicted_uv[0] + 0.5));
+      }
+      if (std::isnan(predicted_uv[1])) {
+        predicted_value_[1] = INT_MIN;
+      } else {
+        predicted_value_[1] = static_cast<int>(floor(predicted_uv[1] + 0.5));
+      }
     } else {
       predicted_value_[0] = static_cast<int>(predicted_uv[0]);
       predicted_value_[1] = static_cast<int>(predicted_uv[1]);

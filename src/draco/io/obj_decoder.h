@@ -93,7 +93,7 @@ class ObjDecoder {
   int num_positions_;
   int num_tex_coords_;
   int num_normals_;
-  int num_sub_objects_;
+  int last_sub_obj_id_;
 
   int pos_att_id_;
   int tex_att_id_;
@@ -106,7 +106,6 @@ class ObjDecoder {
   int last_material_id_;
   std::string material_file_name_;
 
-  bool open_material_file_;
   std::string input_file_name_;
 
   std::unordered_map<std::string, int> material_name_to_id_;

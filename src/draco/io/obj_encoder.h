@@ -42,10 +42,14 @@ class ObjEncoder {
   bool ExitAndCleanup(bool return_value);
 
  private:
+  bool GetSubObjects();
+  bool EncodeMaterialFileName();
   bool EncodePositions();
   bool EncodeTextureCoordinates();
   bool EncodeNormals();
   bool EncodeFaces();
+  bool EncodeSubObject(FaceIndex face_id);
+  bool EncodeMaterial(FaceIndex face_id);
   bool EncodeFaceCorner(FaceIndex face_id, int local_corner_id);
 
   void EncodeFloat(float val);
@@ -57,6 +61,8 @@ class ObjEncoder {
   const PointAttribute *pos_att_;
   const PointAttribute *tex_coord_att_;
   const PointAttribute *normal_att_;
+  const PointAttribute *material_att_;
+  const PointAttribute *sub_obj_att_;
 
   // Buffer used for encoding float/int numbers.
   char num_buffer_[20];
@@ -65,6 +71,16 @@ class ObjEncoder {
 
   const PointCloud *in_point_cloud_;
   const Mesh *in_mesh_;
+
+  // Store sub object name for each value.
+  std::unordered_map<int, std::string> sub_obj_id_to_name_;
+  // Current sub object id of faces.
+  int current_sub_obj_id_;
+
+  // Store material name for each value in material attribute.
+  std::unordered_map<int, std::string> material_id_to_name_;
+  // Current material id of faces.
+  int current_material_id_;
 };
 
 }  // namespace draco

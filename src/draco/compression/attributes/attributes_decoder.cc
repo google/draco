@@ -83,7 +83,7 @@ bool AttributesDecoder::DecodeAttributesDecoderData(DecoderBuffer *in_buffer) {
     // Update the inverse map.
     if (att_id >= static_cast<int32_t>(point_attribute_to_local_id_map_.size()))
       point_attribute_to_local_id_map_.resize(att_id + 1, -1);
-    point_attribute_to_local_id_map_[att_id] = point_attribute_ids_.size() - 1;
+    point_attribute_to_local_id_map_[att_id] = i;
   }
   return true;
 }

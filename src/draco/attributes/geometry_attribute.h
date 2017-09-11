@@ -47,13 +47,13 @@ class GeometryAttribute {
     NORMAL,
     COLOR,
     TEX_COORD,
-    // Total number of different attribute types.
-    // Always keep behind all named attributes.
-    NAMED_ATTRIBUTES_COUNT,
     // A special id used to mark attributes that are not assigned to any known
     // predefined use case. Such attributes are often used for a shader specific
     // data.
-    GENERIC = NAMED_ATTRIBUTES_COUNT
+    GENERIC,
+    // Total number of different attribute types.
+    // Always keep behind all named attributes.
+    NAMED_ATTRIBUTES_COUNT,
   };
 
   GeometryAttribute();

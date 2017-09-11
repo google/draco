@@ -32,6 +32,8 @@ struct Options {
   bool tex_coords_deleted;
   int normals_quantization_bits;
   bool normals_deleted;
+  int generic_quantization_bits;
+  bool generic_deleted;
   int compression_level;
   bool use_metadata;
   std::string input;
@@ -45,6 +47,8 @@ Options::Options()
       tex_coords_deleted(false),
       normals_quantization_bits(10),
       normals_deleted(false),
+      generic_quantization_bits(8),
+      generic_deleted(false),
       compression_level(7) {}
 
 void Usage() {
@@ -67,10 +71,14 @@ void Usage() {
       "  -qn <value>           quantization bits for the normal vector "
       "attribute, default=10.\n");
   printf(
+      "  -qg <value>           quantization bits for any generic attribute, "
+      "default=8.\n");
+  printf(
       "  -cl <value>           compression level [0-10], most=10, least=0, "
       "default=7.\n");
   printf(
-      "  --skip ATTRIBUTE_NAME skip a given attribute (NORMAL, TEX_COORD)\n");
+      "  --skip ATTRIBUTE_NAME skip a given attribute (NORMAL, TEX_COORD, "
+      "GENERIC)\n");
   printf(
       "\nUse negative quantization values to skip the specified attribute\n");
   printf(
@@ -113,6 +121,17 @@ void PrintOptions(const draco::PointCloud &pc, const Options &options) {
     }
   } else if (options.normals_deleted) {
     printf("  Normals: Skipped\n");
+  }
+
+  if (pc.GetNamedAttributeId(draco::GeometryAttribute::GENERIC) >= 0) {
+    if (options.generic_quantization_bits == 0) {
+      printf("  Generic: No quantization\n");
+    } else {
+      printf("  Generic: Quantization = %d bits\n",
+             options.generic_quantization_bits);
+    }
+  } else if (options.generic_deleted) {
+    printf("  Generic: Skipped\n");
   }
   printf("\n");
 }
@@ -209,6 +228,14 @@ int main(int argc, char **argv) {
             "attribute is 31.\n");
         return -1;
       }
+    } else if (!strcmp("-qg", argv[i]) && i < argc_check) {
+      options.generic_quantization_bits = StringToInt(argv[++i]);
+      if (options.generic_quantization_bits > 31) {
+        printf(
+            "Error: The maximum number of quantization bits for generic "
+            "attributes is 31.\n");
+        return -1;
+      }
     } else if (!strcmp("-cl", argv[i]) && i < argc_check) {
       options.compression_level = StringToInt(argv[++i]);
     } else if (!strcmp("--skip", argv[i]) && i < argc_check) {
@@ -216,11 +243,14 @@ int main(int argc, char **argv) {
         options.normals_quantization_bits = -1;
       } else if (!strcmp("TEX_COORD", argv[i + 1])) {
         options.tex_coords_quantization_bits = -1;
+      } else if (!strcmp("GENERIC", argv[i + 1])) {
+        options.generic_quantization_bits = -1;
       } else {
         printf("Error: Invalid attribute name after --skip\n");
         return -1;
       }
-    } else if (!strcmp("--metadata", argv[i]) && i < argc_check) {
+      ++i;
+    } else if (!strcmp("--metadata", argv[i])) {
       options.use_metadata = true;
     }
   }
@@ -273,10 +303,19 @@ int main(int argc, char **argv) {
           pc->GetNamedAttributeId(draco::GeometryAttribute::NORMAL, 0));
     }
   }
-
+  if (options.generic_quantization_bits < 0) {
+    if (pc->NumNamedAttributes(draco::GeometryAttribute::GENERIC) > 0) {
+      options.generic_deleted = true;
+    }
+    while (pc->NumNamedAttributes(draco::GeometryAttribute::GENERIC) > 0) {
+      pc->DeleteAttribute(
+          pc->GetNamedAttributeId(draco::GeometryAttribute::GENERIC, 0));
+    }
+  }
   // If any attribute has been deleted, run deduplication of point indices again
   // as some points can be possibly combined.
-  if (options.tex_coords_deleted || options.normals_deleted) {
+  if (options.tex_coords_deleted || options.normals_deleted ||
+      options.generic_deleted) {
     pc->DeduplicatePointIds();
   }
 
@@ -296,6 +335,10 @@ int main(int argc, char **argv) {
   if (options.normals_quantization_bits > 0) {
     encoder.SetAttributeQuantization(draco::GeometryAttribute::NORMAL,
                                      options.normals_quantization_bits);
+  }
+  if (options.generic_quantization_bits > 0) {
+    encoder.SetAttributeQuantization(draco::GeometryAttribute::GENERIC,
+                                     options.generic_quantization_bits);
   }
   encoder.SetSpeedOptions(speed, speed);
 

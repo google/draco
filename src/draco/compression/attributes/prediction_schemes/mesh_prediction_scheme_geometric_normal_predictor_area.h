@@ -31,12 +31,14 @@ class MeshPredictionSchemeGeometricNormalPredictorArea
 
  public:
   MeshPredictionSchemeGeometricNormalPredictorArea(const MeshDataT &md)
-      : Base(md){};
+      : Base(md) {
+    this->SetNormalPredictionMode(TRIANGLE_AREA);
+  };
   virtual ~MeshPredictionSchemeGeometricNormalPredictorArea() {}
 
   // Computes predicted octahedral coordinates on a given corner.
-  virtual void ComputePredictedValue(CornerIndex corner_id,
-                                     DataTypeT *prediction) override {
+  void ComputePredictedValue(CornerIndex corner_id,
+                             DataTypeT *prediction) override {
     DCHECK(this->IsInitialized());
     typedef typename MeshDataT::CornerTable CornerTable;
     const CornerTable *const corner_table = this->mesh_data_.corner_table();
@@ -48,35 +50,58 @@ class MeshPredictionSchemeGeometricNormalPredictorArea
     // Computing normals for triangles and adding them up.
 
     VectorD<int64_t, 3> normal;
+    CornerIndex c_next, c_prev;
     while (!cit.End()) {
       // Getting corners.
-      const CornerIndex c_next = corner_table->Next(corner_id);
-      const CornerIndex c_prev = corner_table->Previous(corner_id);
-      // Getting positions for next and previous.
-      const auto pos_next = this->GetPositionForCorner(c_next);
-      const auto pos_prev = this->GetPositionForCorner(c_prev);
+      if (this->normal_prediction_mode_ == ONE_TRIANGLE) {
+        c_next = corner_table->Next(corner_id);
+        c_prev = corner_table->Previous(corner_id);
+      } else {
+        c_next = corner_table->Next(cit.Corner());
+        c_prev = corner_table->Previous(cit.Corner());
+      }
+      const VectorD<int64_t, 3> pos_next = this->GetPositionForCorner(c_next);
+      const VectorD<int64_t, 3> pos_prev = this->GetPositionForCorner(c_prev);
 
       // Computing delta vectors to next and prev.
-      const auto delta_next = pos_next - pos_cent;
-      const auto delta_prev = pos_prev - pos_cent;
+      const VectorD<int64_t, 3> delta_next = pos_next - pos_cent;
+      const VectorD<int64_t, 3> delta_prev = pos_prev - pos_cent;
 
       // Computing cross product.
-      const auto cross = CrossProduct(delta_next, delta_prev);
+      const VectorD<int64_t, 3> cross = CrossProduct(delta_next, delta_prev);
       normal = normal + cross;
       cit.Next();
     }
 
     // Convert to int32_t, make sure entries are not too large.
-    const int32_t abs_sum = normal.AbsSum();
     constexpr int64_t upper_bound = 1 << 29;
-    if (abs_sum > upper_bound) {
-      const int64_t quotient = abs_sum / upper_bound;
-      normal = normal / quotient;
+    if (this->normal_prediction_mode_ == ONE_TRIANGLE) {
+      const int32_t abs_sum = normal.AbsSum();
+      if (abs_sum > upper_bound) {
+        const int64_t quotient = abs_sum / upper_bound;
+        normal = normal / quotient;
+      }
+    } else {
+      const int64_t abs_sum = normal.AbsSum();
+      if (abs_sum > upper_bound) {
+        const int64_t quotient = abs_sum / upper_bound;
+        normal = normal / quotient;
+      }
     }
     DCHECK_LE(normal.AbsSum(), upper_bound);
     prediction[0] = static_cast<int32_t>(normal[0]);
     prediction[1] = static_cast<int32_t>(normal[1]);
     prediction[2] = static_cast<int32_t>(normal[2]);
+  }
+  bool SetNormalPredictionMode(NormalPredictionMode mode) override {
+    if (mode == ONE_TRIANGLE) {
+      this->normal_prediction_mode_ = mode;
+      return true;
+    } else if (mode == TRIANGLE_AREA) {
+      this->normal_prediction_mode_ = mode;
+      return true;
+    }
+    return false;
   }
 };
 

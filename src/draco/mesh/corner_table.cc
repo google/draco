@@ -13,6 +13,9 @@
 // limitations under the License.
 //
 #include "draco/mesh/corner_table.h"
+
+#include <limits>
+
 #include "draco/mesh/corner_table_iterators.h"
 
 namespace draco {
@@ -48,6 +51,8 @@ bool CornerTable::Initialize(
 
 bool CornerTable::Reset(int num_faces) {
   if (num_faces < 0)
+    return false;
+  if (num_faces > std::numeric_limits<CornerIndex::ValueType>::max() / 3)
     return false;
   corner_to_vertex_map_.assign(num_faces * 3, kInvalidVertexIndex);
   opposite_corners_.assign(num_faces * 3, kInvalidCornerIndex);

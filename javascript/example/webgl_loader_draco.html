@@ -29,7 +29,7 @@
         <pre id="fileDisplayArea"><pre>
     </div>
     <script src="https://cdn.rawgit.com/mrdoob/three.js/dev/build/three.min.js"></script>
-    <script src="../DRACOLoader.js"></script>
+    <script src="DRACOLoader.js"></script>
     <script src="geometry_helper.js"></script>
     <script>
       'use strict';
@@ -41,7 +41,7 @@
       createDracoDecoder();
 
       function createDracoDecoder() {
-        dracoLoader = new THREE.DRACOLoader();
+        dracoLoader = new THREE.DRACOLoader('../');
       }
 
       function switchDecoder() {
@@ -53,7 +53,7 @@
           dracoDecoderType.type = "wasm";
           showDecoder.innerText = "Now using WebAssembly Decoder.";
         }
-        dracoLoader = new THREE.DRACOLoader(undefined, dracoDecoderType);
+        dracoLoader = new THREE.DRACOLoader('../', dracoDecoderType);
       }
 
       var camera, cameraTarget, scene, renderer;

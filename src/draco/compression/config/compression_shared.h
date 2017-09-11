@@ -21,7 +21,7 @@ namespace draco {
 
 // Latest Draco bit-stream version.
 static constexpr uint8_t kDracoBitstreamVersionMajor = 2;
-static constexpr uint8_t kDracoBitstreamVersionMinor = 0;
+static constexpr uint8_t kDracoBitstreamVersionMinor = 1;
 
 // Macro that converts the Draco bit-stream into one uint16_t number.
 // Useful mostly when checking version numbers.
@@ -118,6 +118,11 @@ struct DracoHeader {
   uint8_t encoder_type;
   uint8_t encoder_method;
   uint16_t flags;
+};
+
+enum NormalPredictionMode {
+  ONE_TRIANGLE = 0,  // To be deprecated.
+  TRIANGLE_AREA = 1,
 };
 
 // Mask for setting and getting the bit for metadata in |flags| of header.

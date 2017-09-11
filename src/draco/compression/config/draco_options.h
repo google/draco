@@ -68,6 +68,8 @@ class DracoOptions {
                         bool default_val) const;
   void SetAttributeBool(const AttributeKey &att_key, const std::string &name,
                         bool val);
+  bool IsAttributeOptionSet(const AttributeKey &att_key,
+                            const std::string &name) const;
 
   // Gets/sets a global option that is not specific to any attribute.
   int GetGlobalInt(const std::string &name, int default_val) const {
@@ -81,6 +83,9 @@ class DracoOptions {
   }
   void SetGlobalBool(const std::string &name, bool val) {
     global_options_.SetBool(name, val);
+  }
+  bool IsGlobalOptionSet(const std::string &name) const {
+    return global_options_.IsOptionSet(name);
   }
 
   // Sets or replaces attribute options with the provided |options|.
@@ -154,6 +159,15 @@ void DracoOptions<AttributeKeyT>::SetAttributeBool(const AttributeKeyT &att_key,
                                                    const std::string &name,
                                                    bool val) {
   GetAttributeOptions(att_key)->SetBool(name, val);
+}
+
+template <typename AttributeKeyT>
+bool DracoOptions<AttributeKeyT>::IsAttributeOptionSet(
+    const AttributeKey &att_key, const std::string &name) const {
+  const Options *const att_options = FindAttributeOptions(att_key);
+  if (att_options)
+    return att_options->IsOptionSet(name);
+  return global_options_.IsOptionSet(name);
 }
 
 template <typename AttributeKeyT>

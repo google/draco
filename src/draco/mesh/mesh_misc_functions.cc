@@ -37,6 +37,23 @@ std::unique_ptr<CornerTable> CreateCornerTable(const Mesh *mesh) {
   return CT::Create(faces);
 }
 
+std::unique_ptr<CornerTable> CreateCornerTableFromAllAttributes(
+    const Mesh *mesh) {
+  IndexTypeVector<FaceIndex, FaceType> faces(mesh->num_faces());
+  FaceType new_face;
+  for (FaceIndex i(0); i < mesh->num_faces(); ++i) {
+    const Mesh::Face &face = mesh->face(i);
+    // Each face is identified by point indices that automatically split the
+    // mesh along attribute seams.
+    for (int j = 0; j < 3; ++j) {
+      new_face[j] = face[j].value();
+    }
+    faces[i] = new_face;
+  }
+  // Build the corner table.
+  return CornerTable::Create(faces);
+}
+
 PointIndex CornerToPointId(CornerIndex ci, const CornerTable *ct,
                            const Mesh *mesh) {
   if (!ct->IsValid(ci))

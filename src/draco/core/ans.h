@@ -172,7 +172,7 @@ static inline int rabs_desc_read(struct AnsDecoder *ans, AnsP8 p0) {
   unsigned quot, rem, x, xn;
 #endif
   const AnsP8 p = ans_p8_precision - p0;
-  if (ans->state < l_base) {
+  if (ans->state < l_base && ans->buf_offset > 0) {
     ans->state = ans->state * io_base + ans->buf[--ans->buf_offset];
   }
 #if ANS_IMPL1

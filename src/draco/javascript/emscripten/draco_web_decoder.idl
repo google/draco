@@ -158,6 +158,8 @@ interface Decoder {
                                      [Const] DOMString value);
 
   [Const] PointAttribute GetAttribute([Ref, Const] PointCloud pc, long att_id);
+  [Const] PointAttribute GetAttributeByUniqueId([Ref, Const] PointCloud pc,
+                                                long unique_id);
 
   [Const] Metadata GetMetadata([Ref, Const] PointCloud pc);
   [Const] Metadata GetAttributeMetadata([Ref, Const] PointCloud pc,

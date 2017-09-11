@@ -111,6 +111,7 @@ class MeshEdgeBreakerDecoderImpl : public MeshEdgeBreakerDecoderImplInterface {
 
   // Decodes all non-position attribute connectivity on the currently
   // processed face.
+  bool DecodeAttributeConnectivitiesOnFaceLegacy(CornerIndex corner);
   bool DecodeAttributeConnectivitiesOnFace(CornerIndex corner);
 
   // Initializes mapping between corners and point ids.
@@ -148,9 +149,6 @@ class MeshEdgeBreakerDecoderImpl : public MeshEdgeBreakerDecoderImplInterface {
 
   // List of decoded hole events.
   std::vector<HoleEventData> hole_event_data_;
-
-  // The number of processed hole events.
-  int num_processed_hole_events_;
 
   // Configuration of the initial face for each mesh component.
   std::vector<bool> init_face_configurations_;

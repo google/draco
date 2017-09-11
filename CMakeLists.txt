@@ -49,6 +49,7 @@ if (ENABLE_MESH_COMPRESSION)
   endif ()
 endif ()
 
+
 # Turn on more compiler warnings.
 if (ENABLE_EXTRA_WARNINGS)
   if (MSVC)
@@ -534,6 +535,7 @@ set(draco_test_sources
     "${draco_src_root}/core/symbol_coding_test.cc"
     "${draco_src_root}/core/vector_d_test.cc"
     "${draco_src_root}/io/obj_decoder_test.cc"
+    "${draco_src_root}/io/obj_encoder_test.cc"
     "${draco_src_root}/io/ply_decoder_test.cc"
     "${draco_src_root}/io/ply_reader_test.cc"
     "${draco_src_root}/io/point_cloud_io_test.cc"
@@ -565,12 +567,12 @@ if (EMSCRIPTEN)
     require_compiler_flag("--llvm-lto 1" YES)
   endif ()
   require_compiler_flag("-s NO_FILESYSTEM=1" YES)
-  require_compiler_flag("-s ELIMINATE_DUPLICATE_FUNCTIONS=1" YES)
   require_compiler_flag("-s EXPORTED_RUNTIME_METHODS=[]" YES)
   require_compiler_flag("-s PRECISE_F32=1" YES)
   if (ENABLE_WASM)
     require_compiler_flag("-s WASM=1" YES)
-    require_compiler_flag("-s BINARYEN_IMPRECISE=1" YES)
+  else ()
+    require_compiler_flag("-s ELIMINATE_DUPLICATE_FUNCTIONS=1" YES)
   endif ()
 
   if (CMAKE_BUILD_TYPE STREQUAL "")
@@ -588,14 +590,17 @@ if (EMSCRIPTEN)
   execute_process(COMMAND ${PYTHON_EXECUTABLE}
                   $ENV{EMSCRIPTEN}/tools/webidl_binder.py
                   ${draco_js_dec_idl}
-                  ${draco_build_dir}/glue_decoder
-                  OUTPUT_FILE ${draco_build_dir}/glue_decoder.cpp)
+                  ${draco_build_dir}/glue_decoder)
 
   execute_process(COMMAND ${PYTHON_EXECUTABLE}
                   $ENV{EMSCRIPTEN}/tools/webidl_binder.py
                   ${draco_js_enc_idl}
-                  ${draco_build_dir}/glue_encoder
-                  OUTPUT_FILE ${draco_build_dir}/glue_encoder.cpp)
+                  ${draco_build_dir}/glue_encoder)
+
+  if (NOT EXISTS "${draco_build_dir}/glue_decoder.cpp" OR
+      NOT EXISTS "${draco_build_dir}/glue_encoder.cpp")
+    message(FATAL_ERROR "Glue generation failed.")
+  endif ()
 
   # Add a custom rule depending on the IDL to regenerate
   # ${draco_build_dir}/glue_decoder.cpp as needed.

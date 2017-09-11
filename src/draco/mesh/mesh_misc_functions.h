@@ -23,8 +23,14 @@
 
 namespace draco {
 
-// Creates a CornerTable from |*mesh|. Returns nullptr on error.
+// Creates a CornerTable from the position attribute of |mesh|. Returns nullptr
+// on error.
 std::unique_ptr<CornerTable> CreateCornerTable(const Mesh *mesh);
+
+// Creates a CornerTable from all attributes of |mesh|. Boundaries are
+// automatically introduced on all attribute seams. Returns nullptr on error.
+std::unique_ptr<CornerTable> CreateCornerTableFromAllAttributes(
+    const Mesh *mesh);
 
 // Returns the point id stored on corner |ci|.
 PointIndex CornerToPointId(CornerIndex ci, const CornerTable *ct,

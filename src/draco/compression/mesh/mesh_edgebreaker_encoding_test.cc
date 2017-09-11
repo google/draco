@@ -150,4 +150,43 @@ TEST_F(MeshEdgebreakerEncodingTest, TestDecoderReuse) {
       << "Decoded meshes are not the same";
 }
 
+TEST_F(MeshEdgebreakerEncodingTest, TestSingleConnectivityEncoding) {
+  // Tests whether the edgebreaker method successfully encodes a mesh with
+  // multiple attributes using single connectivity by breaking the mesh along
+  // attribute seams.
+  const std::string file_name = "cube_att.obj";
+  const std::string path = GetTestFileFullPath(file_name);
+  const std::unique_ptr<Mesh> mesh(ReadMeshFromFile(path));
+  ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
+
+  for (int i = 0; i < 2; ++i) {
+    // Set the option to enable/disable single connectivity encoding.
+    EncoderOptionsBase<GeometryAttribute::Type> options =
+        EncoderOptionsBase<GeometryAttribute::Type>::CreateDefaultOptions();
+    options.SetGlobalBool("split_mesh_on_seams", i == 0 ? true : false);
+
+    EncoderBuffer buffer;
+    draco::Encoder encoder;
+    encoder.Reset(options);
+    encoder.SetSpeedOptions(0, 0);
+    encoder.SetAttributeQuantization(GeometryAttribute::POSITION, 8);
+    encoder.SetAttributeQuantization(GeometryAttribute::TEX_COORD, 8);
+    encoder.SetAttributeQuantization(GeometryAttribute::NORMAL, 8);
+    encoder.SetEncodingMethod(MESH_EDGEBREAKER_ENCODING);
+    ASSERT_TRUE(encoder.EncodeMeshToBuffer(*mesh, &buffer).ok());
+
+    DecoderBuffer dec_buffer;
+    dec_buffer.Init(buffer.data(), buffer.size());
+
+    Decoder decoder;
+    auto dec_mesh = decoder.DecodeMeshFromBuffer(&dec_buffer).value();
+    ASSERT_NE(dec_mesh, nullptr);
+    ASSERT_EQ(dec_mesh->num_points(), 24);
+    ASSERT_EQ(dec_mesh->num_attributes(), 3);
+    ASSERT_EQ(dec_mesh->attribute(0)->size(), i == 0 ? 24 : 8);
+    ASSERT_EQ(dec_mesh->attribute(1)->size(), 24);
+    ASSERT_EQ(dec_mesh->attribute(2)->size(), 24);
+  }
+}
+
 }  // namespace draco

@@ -103,10 +103,17 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
     if (!in_buffer->Decode(&num_bytes))
       return false;
     if (num_bytes == DataTypeLength(DT_INT32)) {
+      if (portable_attribute()->buffer()->data_size() <
+          sizeof(int32_t) * num_values)
+        return false;
       if (!in_buffer->Decode(portable_attribute_data,
                              sizeof(int32_t) * num_values))
         return false;
     } else {
+      if (portable_attribute()->buffer()->data_size() < num_bytes * num_values)
+        return false;
+      if (in_buffer->remaining_size() < num_bytes * num_values)
+        return false;
       for (uint32_t i = 0; i < num_values; ++i) {
         in_buffer->Decode(portable_attribute_data + i, num_bytes);
       }

@@ -29,7 +29,7 @@ ObjDecoder::ObjDecoder()
       num_positions_(0),
       num_tex_coords_(0),
       num_normals_(0),
-      num_sub_objects_(0),
+      last_sub_obj_id_(0),
       pos_att_id_(-1),
       tex_att_id_(-1),
       norm_att_id_(-1),
@@ -37,7 +37,6 @@ ObjDecoder::ObjDecoder()
       sub_obj_att_id_(-1),
       deduplicate_input_values_(true),
       last_material_id_(0),
-      open_material_file_(false),
       use_metadata_(false),
       out_mesh_(nullptr),
       out_point_cloud_(nullptr) {}
@@ -65,7 +64,6 @@ bool ObjDecoder::DecodeFromFile(const std::string &file_name,
   buffer_.Init(&data[0], file_size);
 
   out_point_cloud_ = out_point_cloud;
-  open_material_file_ = true;
   input_file_name_ = file_name;
   return DecodeInternal();
 }
@@ -79,7 +77,6 @@ bool ObjDecoder::DecodeFromBuffer(DecoderBuffer *buffer,
                                   PointCloud *out_point_cloud) {
   out_point_cloud_ = out_point_cloud;
   buffer_.Init(buffer->data_head(), buffer->remaining_size());
-  open_material_file_ = false;
   return DecodeInternal();
 }
 
@@ -91,7 +88,7 @@ bool ObjDecoder::DecodeInternal() {
   counting_mode_ = true;
   ResetCounters();
   material_name_to_id_.clear();
-  num_sub_objects_ = 0;
+  last_sub_obj_id_ = 0;
   // Parse all lines.
   bool error = false;
   while (ParseDefinition(&error) && !error) {
@@ -156,22 +153,24 @@ bool ObjDecoder::DecodeInternal() {
         const AttributeValueIndex i(itr.second);
         material_metadata->AddEntryInt(itr.first, itr.second);
       }
-      material_metadata->AddEntryString("file_name", material_file_name_);
+      if (!material_file_name_.empty()) {
+        material_metadata->AddEntryString("file_name", material_file_name_);
+      }
 
       out_point_cloud_->AddAttributeMetadata(std::move(material_metadata));
     }
   }
-  if (num_sub_objects_ > 1) {
+  if (!obj_name_to_id_.empty()) {
     GeometryAttribute va;
-    if (num_sub_objects_ < 256) {
+    if (obj_name_to_id_.size() < 256) {
       va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT8, false, 1, 0);
-    } else if (num_sub_objects_ < (1 << 16)) {
+    } else if (obj_name_to_id_.size() < (1 << 16)) {
       va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT16, false, 2, 0);
     } else {
       va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT32, false, 4, 0);
     }
     sub_obj_att_id_ =
-        out_point_cloud_->AddAttribute(va, false, num_sub_objects_);
+        out_point_cloud_->AddAttribute(va, false, obj_name_to_id_.size());
     // Fill the sub object id entries.
     for (const auto &itr : obj_name_to_id_) {
       const AttributeValueIndex i(itr.second);
@@ -224,7 +223,7 @@ void ObjDecoder::ResetCounters() {
   num_tex_coords_ = 0;
   num_normals_ = 0;
   last_material_id_ = 0;
-  num_sub_objects_ = 0;
+  last_sub_obj_id_ = 0;
 }
 
 bool ObjDecoder::ParseDefinition(bool *error) {
@@ -419,9 +418,6 @@ bool ObjDecoder::ParseMaterialLib(bool *error) {
   // Allow only one material library per file for now.
   if (material_name_to_id_.size() > 0)
     return false;
-  // Skip the parsing if we don't want to open material files.
-  if (!open_material_file_)
-    return false;
   std::array<char, 6> c;
   if (!buffer()->Peek(&c)) {
     return false;
@@ -447,10 +443,9 @@ bool ObjDecoder::ParseMaterialLib(bool *error) {
 }
 
 bool ObjDecoder::ParseMaterial(bool * /* error */) {
-  if (counting_mode_)
-    return false;  // Skip when we are counting definitions.
-  if (material_att_id_ < 0)
-    return false;  // Don't parse it when we don't use materials.
+  // In second pass, skip when we don't use materials.
+  if (!counting_mode_ && material_att_id_ < 0)
+    return false;
   std::array<char, 6> c;
   if (!buffer()->Peek(&c)) {
     return false;
@@ -464,7 +459,11 @@ bool ObjDecoder::ParseMaterial(bool * /* error */) {
     return false;
   auto it = material_name_to_id_.find(mat_name);
   if (it == material_name_to_id_.end()) {
-    // Invalid material..ignore.
+    // In first pass, materials found in obj that's not in the .mtl file
+    // will be added to the list.
+    const size_t num_mat = material_name_to_id_.size();
+    material_name_to_id_[mat_name] = num_mat;
+    last_material_id_ = num_mat;
     return true;
   }
   last_material_id_ = it->second;
@@ -485,10 +484,11 @@ bool ObjDecoder::ParseObject(bool *error) {
     return false;
   auto it = obj_name_to_id_.find(obj_name);
   if (it == obj_name_to_id_.end()) {
-    obj_name_to_id_[obj_name] = num_sub_objects_;
-    num_sub_objects_++;
+    const int num_obj = obj_name_to_id_.size();
+    obj_name_to_id_[obj_name] = num_obj;
+    last_sub_obj_id_ = num_obj;
   } else {
-    num_sub_objects_ = it->second + 1;
+    last_sub_obj_id_ = it->second;
   }
   return true;
 }
@@ -584,9 +584,8 @@ void ObjDecoder::MapPointToVertexIndices(
 
   // Assign sub-object index to the point if it is available.
   if (sub_obj_att_id_ >= 0) {
-    const int sub_obj_id = num_sub_objects_ > 0 ? num_sub_objects_ - 1 : 0;
     out_point_cloud_->attribute(sub_obj_att_id_)
-        ->SetPointMapEntry(vert_id, AttributeValueIndex(sub_obj_id));
+        ->SetPointMapEntry(vert_id, AttributeValueIndex(last_sub_obj_id_));
   }
 }
 
@@ -642,8 +641,7 @@ bool ObjDecoder::ParseMaterialFileDefinition(bool * /* error */) {
     return false;
   if (str.compare("newmtl") == 0) {
     parser::SkipWhitespace(buffer());
-    if (!parser::ParseString(buffer(), &str))
-      return false;
+    parser::ParseLine(buffer(), &str);
     // Add new material to our map.
     const size_t material_name_id = material_name_to_id_.size();
     material_name_to_id_[str] = material_name_id;

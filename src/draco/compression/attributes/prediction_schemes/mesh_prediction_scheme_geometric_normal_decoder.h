@@ -101,8 +101,6 @@ bool MeshPredictionSchemeGeometricNormalDecoder<
   // Expecting in_data in octahedral coordinates, i.e., portable attribute.
   DCHECK_EQ(num_components, 2);
 
-  flip_normal_bit_decoder_.EndDecoding();
-
   const int corner_map_size = this->mesh_data().data_to_corner_map()->size();
 
   VectorD<int32_t, 3> pred_normal_3d;
@@ -126,6 +124,7 @@ bool MeshPredictionSchemeGeometricNormalDecoder<
     this->transform().ComputeOriginalValue(
         pred_normal_oct, in_corr + data_offset, out_data + data_offset);
   }
+  flip_normal_bit_decoder_.EndDecoding();
   return true;
 }
 
@@ -139,7 +138,9 @@ bool MeshPredictionSchemeGeometricNormalDecoder<
 
   uint8_t prediction_mode;
   buffer->Decode(&prediction_mode);
-  if (prediction_mode)
+
+  if (!predictor_.SetNormalPredictionMode(
+          NormalPredictionMode(prediction_mode)))
     return false;
 
   // Init normal flips.

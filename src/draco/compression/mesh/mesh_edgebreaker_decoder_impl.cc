@@ -43,7 +43,6 @@ namespace draco {
 template <class TraversalDecoder>
 MeshEdgeBreakerDecoderImpl<TraversalDecoder>::MeshEdgeBreakerDecoderImpl()
     : decoder_(nullptr),
-      num_processed_hole_events_(0),
       last_symbol_id_(-1),
       last_vert_id_(-1),
       last_face_id_(-1),
@@ -264,7 +263,6 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   init_face_configurations_.clear();
   init_corners_.clear();
 
-  num_processed_hole_events_ = 0;
   last_symbol_id_ = -1;
 
   last_face_id_ = -1;
@@ -352,9 +350,16 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
 
   // Decode connectivity of non-position attributes.
   if (attribute_data_.size() > 0) {
-    for (CornerIndex ci(0); ci < corner_table_->num_corners(); ci += 3) {
-      if (!DecodeAttributeConnectivitiesOnFace(ci))
-        return false;
+    if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 1)) {
+      for (CornerIndex ci(0); ci < corner_table_->num_corners(); ci += 3) {
+        if (!DecodeAttributeConnectivitiesOnFaceLegacy(ci))
+          return false;
+      }
+    } else {
+      for (CornerIndex ci(0); ci < corner_table_->num_corners(); ci += 3) {
+        if (!DecodeAttributeConnectivitiesOnFace(ci))
+          return false;
+      }
     }
   }
   traversal_decoder_.Done();
@@ -761,11 +766,11 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
       }
     }
   }
-  uint32_t num_hole_events;
+  uint32_t num_hole_events = 0;
   if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     if (!decoder_buffer->Decode(&num_hole_events))
       return -1;
-  } else {
+  } else if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 1)) {
     if (!DecodeVarint(&num_hole_events, decoder_buffer))
       return -1;
   }
@@ -794,8 +799,8 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
 }
 
 template <class TraversalDecoder>
-bool MeshEdgeBreakerDecoderImpl<
-    TraversalDecoder>::DecodeAttributeConnectivitiesOnFace(CornerIndex corner) {
+bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::
+    DecodeAttributeConnectivitiesOnFaceLegacy(CornerIndex corner) {
   // Three corners of the face.
   const CornerIndex corners[3] = {corner, corner_table_->Next(corner),
                                   corner_table_->Previous(corner)};
@@ -810,6 +815,38 @@ bool MeshEdgeBreakerDecoderImpl<
       }
       continue;
     }
+
+    for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
+      const bool is_seam = traversal_decoder_.DecodeAttributeSeam(i);
+      if (is_seam)
+        attribute_data_[i].attribute_seam_corners.push_back(corners[c].value());
+    }
+  }
+  return true;
+}
+
+template <class TraversalDecoder>
+bool MeshEdgeBreakerDecoderImpl<
+    TraversalDecoder>::DecodeAttributeConnectivitiesOnFace(CornerIndex corner) {
+  // Three corners of the face.
+  const CornerIndex corners[3] = {corner, corner_table_->Next(corner),
+                                  corner_table_->Previous(corner)};
+
+  const FaceIndex src_face_id = corner_table_->Face(corner);
+  for (int c = 0; c < 3; ++c) {
+    const CornerIndex opp_corner = corner_table_->Opposite(corners[c]);
+    if (opp_corner < 0) {
+      // Don't decode attribute seams on boundary edges (every boundary edge
+      // is automatically an attribute seam).
+      for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
+        attribute_data_[i].attribute_seam_corners.push_back(corners[c].value());
+      }
+      continue;
+    }
+    const FaceIndex opp_face_id = corner_table_->Face(opp_corner);
+    // Don't decode edges when the opposite face has been already processed.
+    if (opp_face_id < src_face_id)
+      continue;
 
     for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
       const bool is_seam = traversal_decoder_.DecodeAttributeSeam(i);

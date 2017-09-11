@@ -38,7 +38,8 @@ MeshEdgeBreakerEncoderImpl<TraversalEncoder>::MeshEdgeBreakerEncoderImpl()
     : encoder_(nullptr),
       mesh_(nullptr),
       last_encoded_symbol_id_(-1),
-      num_split_symbols_(0) {}
+      num_split_symbols_(0),
+      use_single_connectivity_(false) {}
 
 template <class TraversalEncoder>
 bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::Init(
@@ -46,6 +47,16 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::Init(
   encoder_ = encoder;
   mesh_ = encoder->mesh();
   attribute_encoder_to_data_id_map_.clear();
+
+  if (encoder_->options()->IsGlobalOptionSet("split_mesh_on_seams")) {
+    use_single_connectivity_ =
+        encoder_->options()->GetGlobalBool("split_mesh_on_seams", false);
+  } else if (encoder_->options()->GetSpeed() >= 6) {
+    // Else use default setting based on speed.
+    use_single_connectivity_ = true;
+  } else {
+    use_single_connectivity_ = false;
+  }
   return true;
 }
 
@@ -101,9 +112,16 @@ MeshEdgeBreakerEncoderImpl<TraversalEncoder>::CreateVertexTraversalSequencer(
 template <class TraversalEncoder>
 bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
     int32_t att_id) {
-  // For now, create one encoder for each attribute. Ideally we can share
-  // the same encoder for attributes with the same connectivity (this is
-  // especially true for per-vertex attributes).
+  // For now, either create one encoder for each attribute or use a single
+  // encoder for all attributes. Ideally we can share the same encoder for
+  // a sub-set of attributes with the same connectivity (this is especially true
+  // for per-vertex attributes).
+  if (use_single_connectivity_ && GetEncoder()->num_attributes_encoders() > 0) {
+    // We are using single connectivity and we already have an attribute
+    // encoder. Add the attribute to the encoder and return.
+    GetEncoder()->attributes_encoder(0)->AddAttributeId(att_id);
+    return true;
+  }
   const int32_t element_type =
       GetEncoder()->mesh()->GetAttributeElementType(att_id);
   const PointAttribute *const att =
@@ -117,7 +135,8 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
   }
   MeshTraversalMethod traversal_method = MESH_TRAVERSAL_DEPTH_FIRST;
   std::unique_ptr<PointsSequencer> sequencer;
-  if (att->attribute_type() == GeometryAttribute::POSITION ||
+  if (use_single_connectivity_ ||
+      att->attribute_type() == GeometryAttribute::POSITION ||
       element_type == MESH_VERTEX_ATTRIBUTE ||
       (element_type == MESH_CORNER_ATTRIBUTE &&
        attribute_data_[att_data_id].connectivity_data.no_interior_seams())) {
@@ -127,20 +146,30 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
     typedef MeshAttributeIndicesEncodingObserver<CornerTable> AttObserver;
 
     MeshAttributeIndicesEncodingData *encoding_data;
-    if (att->attribute_type() == GeometryAttribute::POSITION) {
+    if (use_single_connectivity_ ||
+        att->attribute_type() == GeometryAttribute::POSITION) {
       encoding_data = &pos_encoding_data_;
     } else {
       encoding_data = &attribute_data_[att_data_id].encoding_data;
       attribute_data_[att_data_id].is_connectivity_used = false;
     }
 
-    if (att->attribute_type() == GeometryAttribute::POSITION &&
-        GetEncoder()->options()->GetSpeed() == 0) {
+    if (GetEncoder()->options()->GetSpeed() == 0 &&
+        att->attribute_type() == GeometryAttribute::POSITION) {
+      traversal_method = MESH_TRAVERSAL_PREDICTION_DEGREE;
+      if (use_single_connectivity_ && mesh_->num_attributes() > 1) {
+        // Make sure we don't use the prediction degree traversal when we encode
+        // multiple attributes using the same connectivity.
+        // TODO(ostava): We should investigate this and see if the prediction
+        // degree can be actually used efficiently for non-position attributes.
+        traversal_method = MESH_TRAVERSAL_DEPTH_FIRST;
+      }
+    }
+    if (traversal_method == MESH_TRAVERSAL_PREDICTION_DEGREE) {
       // Traverser that is used to generate the encoding order of each
       // attribute.
       typedef PredictionDegreeTraverser<AttProcessor, AttObserver> AttTraverser;
       sequencer = CreateVertexTraversalSequencer<AttTraverser>(encoding_data);
-      traversal_method = MESH_TRAVERSAL_PREDICTION_DEGREE;
     } else {
       // Traverser that is used to generate the encoding order of each
       // attribute.
@@ -230,8 +259,14 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   // To encode the mesh, we need face connectivity data stored in a corner
   // table. To compute the connectivity we must use indices associated with
   // POSITION attribute, because they define which edges can be connected
-  // together.
-  corner_table_ = CreateCornerTable(mesh_);
+  // together, unless the option |use_single_connectivity_| is set in which case
+  // we break the mesh along attribute seams and use the same connectivity for
+  // all attributes.
+  if (use_single_connectivity_) {
+    corner_table_ = CreateCornerTableFromAllAttributes(mesh_);
+  } else {
+    corner_table_ = CreateCornerTable(mesh_);
+  }
   if (corner_table_ == nullptr) {
     // Failed to construct the corner table.
     return false;
@@ -274,7 +309,6 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   face_to_split_symbol_map_.clear();
   visited_holes_.clear();
   vertex_hole_id_.assign(corner_table_->num_vertices(), -1);
-  hole_event_data_.clear();
   processed_connectivity_corners_.clear();
   processed_connectivity_corners_.reserve(corner_table_->num_faces());
   pos_encoding_data_.num_values = 0;
@@ -287,6 +321,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
 
   const int8_t num_attribute_data = attribute_data_.size();
   encoder_->buffer()->Encode(num_attribute_data);
+  traversal_encoder_.SetNumAttributeData(num_attribute_data);
 
   const int num_corners = corner_table_->num_corners();
 
@@ -361,6 +396,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   // Encode connectivity for all non-position attributes.
   if (attribute_data_.size() > 0) {
     // Use the same order of corner that will be used by the decoder.
+    visited_faces_.assign(mesh_->num_faces(), false);
     for (CornerIndex ci : processed_connectivity_corners_) {
       EncodeAttributeConnectivitiesOnFace(ci);
     }
@@ -412,19 +448,6 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
           2, event_data.source_edge | (event_data.split_edge << 1));
     }
     encoder_->buffer()->EndBitEncoding();
-  }
-  // Encode hole events data.
-  num_events = hole_event_data_.size();
-  EncodeVarint(num_events, encoder_->buffer());
-  if (num_events > 0) {
-    // Encode hole symbol ids using delta and varint coding. The symbol ids are
-    // always stored in increasing order so the deltas are going to be positive.
-    int last_symbol_id = 0;
-    for (uint32_t i = 0; i < num_events; ++i) {
-      EncodeVarint<uint32_t>(hole_event_data_[i].symbol_id - last_symbol_id,
-                             encoder_->buffer());
-      last_symbol_id = hole_event_data_[i].symbol_id;
-    }
   }
   return true;
 }
@@ -552,8 +575,6 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivityFromCorner(
             const int hole_id = vertex_hole_id_[vert_id.value()];
             if (!visited_holes_[hole_id]) {
               EncodeHole(corner_id, false);
-              hole_event_data_.push_back(
-                  HoleEventData(last_encoded_symbol_id_));
             }
           }
           face_to_split_symbol_map_[face_id.value()] = last_encoded_symbol_id_;
@@ -732,6 +753,9 @@ void MeshEdgeBreakerEncoderImpl<
 
 template <class TraversalEncoder>
 bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::InitAttributeData() {
+  if (use_single_connectivity_)
+    return true;  // All attributes use the same connectivity.
+
   const int num_attributes = mesh_->num_attributes();
   // Ignore the position attribute. It's decoded separately.
   attribute_data_.resize(num_attributes - 1);
@@ -773,10 +797,16 @@ bool MeshEdgeBreakerEncoderImpl<
   const CornerIndex corners[3] = {corner, corner_table_->Next(corner),
                                   corner_table_->Previous(corner)};
 
+  const FaceIndex src_face_id = corner_table_->Face(corner);
+  visited_faces_[src_face_id.value()] = true;
   for (int c = 0; c < 3; ++c) {
     const CornerIndex opp_corner = corner_table_->Opposite(corners[c]);
     if (opp_corner < 0)
       continue;  // Don't encode attribute seams on boundary edges.
+    const FaceIndex opp_face_id = corner_table_->Face(opp_corner);
+    // Don't encode edges when the opposite face has been already processed.
+    if (visited_faces_[opp_face_id.value()])
+      continue;
 
     for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
       if (attribute_data_[i].connectivity_data.IsCornerOppositeToSeamEdge(

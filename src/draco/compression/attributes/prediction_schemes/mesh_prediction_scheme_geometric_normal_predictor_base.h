@@ -19,6 +19,7 @@
 
 #include "draco/attributes/point_attribute.h"
 #include "draco/compression/attributes/normal_compression_utils.h"
+#include "draco/compression/config/compression_shared.h"
 #include "draco/core/math_utils.h"
 #include "draco/core/vector_d.h"
 #include "draco/mesh/corner_table.h"
@@ -51,6 +52,11 @@ class MeshPredictionSchemeGeometricNormalPredictorBase {
     return true;
   }
 
+  virtual bool SetNormalPredictionMode(NormalPredictionMode mode) = 0;
+  virtual NormalPredictionMode GetNormalPredictionMode() const {
+    return normal_prediction_mode_;
+  }
+
  protected:
   VectorD<int64_t, 3> GetPositionForDataId(int data_id) const {
     DCHECK(this->IsInitialized());
@@ -80,6 +86,7 @@ class MeshPredictionSchemeGeometricNormalPredictorBase {
   const PointAttribute *pos_attribute_;
   const PointIndex *entry_to_point_id_map_;
   MeshDataT mesh_data_;
+  NormalPredictionMode normal_prediction_mode_;
 };
 
 }  // namespace draco

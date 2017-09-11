@@ -5,23 +5,17 @@
 
 News
 =======
-### Version 1.0.0 release
-The latest version of Draco brings many new enhancements to improve the
-development experience:
-* Stable API release
-* Support for npm Javascript package management
-* Javascript based encoder
-* Generalized metadata for meshes and point clouds
-  * Now supporting material properties included along with encoded file
-* Improved compression rates:
-  * 15% better compression on smaller models
-  * 40% better compression of normals
-* Performance improvements (~10% faster encoding, decoding)
-* Reduced GPU memory usage:
-  * Option to store decoded quantized attributes
-  * Support for triangle strip connectivity on decoded meshes
-* iOS 9 Javascript decoder
-* Bitstream specification now available
+### Version 1.1.0 release
+The latest version of Draco brings a number of new compression enhancements for
+even smaller models:
+* Improved compression
+  * Up to 40% better compression of normals
+  * Up to 5% better compression for models with multiple attributes
+* Faster decode speeds
+  * 30% faster decoding for models with multiple attributes for lower compression levels 4 and below
+    * Note: Decreases compression by 10%.
+* Encoding of metadata to .obj (e.g. Draco can preserve material or sub-object names)
+* Security fixes
 
 Description
 ===========

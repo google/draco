@@ -50,6 +50,9 @@ class PointCloud {
   const PointAttribute *GetNamedAttributeByUniqueId(
       GeometryAttribute::Type type, uint32_t id) const;
 
+  // Returns the attribute of a given unique id.
+  const PointAttribute *GetAttributeByUniqueId(uint32_t id) const;
+
   int32_t num_attributes() const { return attributes_.size(); }
   const PointAttribute *attribute(int32_t att_id) const {
     DCHECK_LE(0, att_id);

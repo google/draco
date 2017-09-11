@@ -14,9 +14,10 @@
 //
 'use strict';
 
-// If |dracoDecoderType|.type is set to "js", then DRACOLoader will load the
-// Draco JavaScript decoder.
-THREE.DRACOLoader = function(manager, dracoDecoderType) {
+// |dracoPath| sets the path for the Draco decoder source files. The default
+// path is "./". If |dracoDecoderType|.type is set to "js", then DRACOLoader
+// will load the Draco JavaScript decoder.
+THREE.DRACOLoader = function(dracoPath, dracoDecoderType, manager) {
     this.timeLoaded = 0;
     this.manager = (manager !== undefined) ? manager :
         THREE.DefaultLoadingManager;
@@ -26,6 +27,7 @@ THREE.DRACOLoader = function(manager, dracoDecoderType) {
     this.dracoDecoderType =
         (dracoDecoderType !== undefined) ? dracoDecoderType : {};
     this.drawMode = THREE.TrianglesDrawMode;
+    this.dracoSrcPath = (dracoPath !== undefined) ? dracoPath : './';
     THREE.DRACOLoader.loadDracoDecoder(this);
 };
 
@@ -399,9 +401,10 @@ THREE.DRACOLoader.loadJavaScriptFile = function(path, onLoadFunc,
 }
 
 THREE.DRACOLoader.loadWebAssemblyDecoder = function(dracoDecoder) {
-  dracoDecoder.dracoDecoderType['wasmBinaryFile'] = '../draco_decoder.wasm';
+  dracoDecoder.dracoDecoderType['wasmBinaryFile'] =
+      dracoDecoder.dracoSrcPath + 'draco_decoder.wasm';
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', '../draco_decoder.wasm', true);
+  xhr.open('GET', dracoDecoder.dracoSrcPath + 'draco_decoder.wasm', true);
   xhr.responseType = 'arraybuffer';
   xhr.onload = function() {
     // draco_wasm_wrapper.js must be loaded before DracoDecoderModule is
@@ -421,10 +424,11 @@ THREE.DRACOLoader.loadDracoDecoder = function(dracoDecoder) {
   if (typeof WebAssembly !== 'object' ||
       dracoDecoder.dracoDecoderType.type === 'js') {
     // No WebAssembly support
-    THREE.DRACOLoader.loadJavaScriptFile('../draco_decoder.js',
-        null, dracoDecoder);
+    THREE.DRACOLoader.loadJavaScriptFile(dracoDecoder.dracoSrcPath +
+        'draco_decoder.js', null, dracoDecoder);
   } else {
-    THREE.DRACOLoader.loadJavaScriptFile('../draco_wasm_wrapper.js',
+    THREE.DRACOLoader.loadJavaScriptFile(dracoDecoder.dracoSrcPath +
+        'draco_wasm_wrapper.js',
         function (dracoDecoder) {
           THREE.DRACOLoader.loadWebAssemblyDecoder(dracoDecoder);
         }, dracoDecoder);

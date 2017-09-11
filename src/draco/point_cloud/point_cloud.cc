@@ -63,6 +63,14 @@ const PointAttribute *PointCloud::GetNamedAttributeByUniqueId(
   return nullptr;
 }
 
+const PointAttribute *PointCloud::GetAttributeByUniqueId(uint32_t id) const {
+  for (size_t att_id = 0; att_id < attributes_.size(); ++att_id) {
+    if (attributes_[att_id]->unique_id() == id)
+      return attributes_[att_id].get();
+  }
+  return nullptr;
+}
+
 int PointCloud::AddAttribute(std::unique_ptr<PointAttribute> pa) {
   SetAttribute(attributes_.size(), std::move(pa));
   return attributes_.size() - 1;

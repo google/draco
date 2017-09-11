@@ -16,15 +16,21 @@
 
 #include <fstream>
 
+#include "draco/metadata/geometry_metadata.h"
+
 namespace draco {
 
 ObjEncoder::ObjEncoder()
     : pos_att_(nullptr),
       tex_coord_att_(nullptr),
       normal_att_(nullptr),
+      material_att_(nullptr),
+      sub_obj_att_(nullptr),
       out_buffer_(nullptr),
       in_point_cloud_(nullptr),
-      in_mesh_(nullptr) {}
+      in_mesh_(nullptr),
+      current_sub_obj_id_(-1),
+      current_material_id_(-1) {}
 
 bool ObjEncoder::EncodeToFile(const PointCloud &pc,
                               const std::string &file_name) {
@@ -63,6 +69,14 @@ bool ObjEncoder::EncodeInternal() {
   pos_att_ = nullptr;
   tex_coord_att_ = nullptr;
   normal_att_ = nullptr;
+  material_att_ = nullptr;
+  sub_obj_att_ = nullptr;
+  current_sub_obj_id_ = -1;
+  current_material_id_ = -1;
+  if (!GetSubObjects())
+    return false;
+  if (!EncodeMaterialFileName())
+    return false;
   if (!EncodePositions())
     return false;
   if (!EncodeTextureCoordinates())
@@ -81,7 +95,64 @@ bool ObjEncoder::ExitAndCleanup(bool return_value) {
   pos_att_ = nullptr;
   tex_coord_att_ = nullptr;
   normal_att_ = nullptr;
+  material_att_ = nullptr;
+  sub_obj_att_ = nullptr;
+  current_sub_obj_id_ = -1;
+  current_material_id_ = -1;
   return return_value;
+}
+
+bool ObjEncoder::GetSubObjects() {
+  const GeometryMetadata *pc_metadata = in_point_cloud_->GetMetadata();
+  if (!pc_metadata)
+    return true;
+  const AttributeMetadata *sub_obj_metadata =
+      pc_metadata->GetAttributeMetadataByStringEntry("name", "sub_obj");
+  if (!sub_obj_metadata)
+    return true;
+  sub_obj_id_to_name_.clear();
+  for (const auto &entry : sub_obj_metadata->entries()) {
+    // Sub-object id must be int.
+    int value = 0;
+    if (!entry.second.GetValue(&value))
+      continue;
+    sub_obj_id_to_name_[value] = entry.first;
+  }
+  const int sub_obj_att_id = sub_obj_metadata->attribute_id();
+  sub_obj_att_ = in_point_cloud_->attribute(sub_obj_att_id);
+  if (sub_obj_att_ == nullptr || sub_obj_att_->size() == 0)
+    return false;
+  return true;
+}
+
+bool ObjEncoder::EncodeMaterialFileName() {
+  const GeometryMetadata *pc_metadata = in_point_cloud_->GetMetadata();
+  if (!pc_metadata)
+    return true;
+  const AttributeMetadata *material_metadata =
+      pc_metadata->GetAttributeMetadataByStringEntry("name", "material");
+  if (!material_metadata)
+    return true;
+  std::string material_file_name;
+  if (!material_metadata->GetEntryString("file_name", &material_file_name))
+    return false;
+  buffer()->Encode("mtllib ", 7);
+  buffer()->Encode(material_file_name.c_str(), material_file_name.size());
+  buffer()->Encode("\n", 1);
+  material_id_to_name_.clear();
+  for (const auto &entry : material_metadata->entries()) {
+    // Material id must be int.
+    int value = 0;
+    // Found entry that are not material id, e.g. file name as a string.
+    if (!entry.second.GetValue(&value))
+      continue;
+    material_id_to_name_[value] = entry.first;
+  }
+  const int material_att_id = material_metadata->attribute_id();
+  material_att_ = in_point_cloud_->attribute(material_att_id);
+  if (material_att_ == nullptr || material_att_->size() == 0)
+    return false;
+  return true;
 }
 
 bool ObjEncoder::EncodePositions() {
@@ -137,12 +208,61 @@ bool ObjEncoder::EncodeNormals() {
 
 bool ObjEncoder::EncodeFaces() {
   for (FaceIndex i(0); i < in_mesh_->num_faces(); ++i) {
+    if (sub_obj_att_)
+      if (!EncodeSubObject(i))
+        return false;
+    if (material_att_)
+      if (!EncodeMaterial(i))
+        return false;
     buffer()->Encode('f');
     for (int j = 0; j < 3; ++j) {
       if (!EncodeFaceCorner(i, j))
         return false;
     }
     buffer()->Encode("\n", 1);
+  }
+  return true;
+}
+
+bool ObjEncoder::EncodeMaterial(FaceIndex face_id) {
+  int material_id = 0;
+  // Pick the first corner, all corners of a face should have same id.
+  const PointIndex vert_index = in_mesh_->face(face_id)[0];
+  const AttributeValueIndex index_id(material_att_->mapped_index(vert_index));
+  if (!material_att_->ConvertValue<int>(index_id, &material_id)) {
+    return false;
+  }
+
+  if (material_id != current_material_id_) {
+    // Update material information.
+    buffer()->Encode("usemtl ", 7);
+    const auto mat_ptr = material_id_to_name_.find(material_id);
+    // If the material id is not found.
+    if (mat_ptr == material_id_to_name_.end())
+      return false;
+    buffer()->Encode(mat_ptr->second.c_str(), mat_ptr->second.size());
+    buffer()->Encode("\n", 1);
+    current_material_id_ = material_id;
+  }
+  return true;
+}
+
+bool ObjEncoder::EncodeSubObject(FaceIndex face_id) {
+  int sub_obj_id = 0;
+  // Pick the first corner, all corners of a face should have same id.
+  const PointIndex vert_index = in_mesh_->face(face_id)[0];
+  const AttributeValueIndex index_id(sub_obj_att_->mapped_index(vert_index));
+  if (!sub_obj_att_->ConvertValue<int>(index_id, &sub_obj_id)) {
+    return false;
+  }
+  if (sub_obj_id != current_sub_obj_id_) {
+    buffer()->Encode("o ", 2);
+    const auto sub_obj_ptr = sub_obj_id_to_name_.find(sub_obj_id);
+    if (sub_obj_ptr == sub_obj_id_to_name_.end())
+      return false;
+    buffer()->Encode(sub_obj_ptr->second.c_str(), sub_obj_ptr->second.size());
+    buffer()->Encode("\n", 1);
+    current_sub_obj_id_ = sub_obj_id;
   }
   return true;
 }

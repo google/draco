@@ -31,11 +31,17 @@ typedef RAnsBitEncoder BinaryEncoder;
 class MeshEdgeBreakerTraversalEncoder {
  public:
   MeshEdgeBreakerTraversalEncoder()
-      : encoder_impl_(nullptr), attribute_connectivity_encoders_(nullptr) {}
+      : encoder_impl_(nullptr),
+        attribute_connectivity_encoders_(nullptr),
+        num_attribute_data_(0) {}
   bool Init(MeshEdgeBreakerEncoderImplInterface *encoder) {
     encoder_impl_ = encoder;
     return true;
   }
+
+  // Set the number of non-position attribute data for which we need to encode
+  // the connectivity.
+  void SetNumAttributeData(int num_data) { num_attribute_data_ = num_data; }
 
   // Called before the traversal encoding is started.
   void Start() {
@@ -43,12 +49,12 @@ class MeshEdgeBreakerTraversalEncoder {
     // Allocate enough storage to store initial face configurations. This can
     // consume at most 1 bit per face if all faces are isolated.
     start_face_buffer_.StartBitEncoding(mesh->num_faces(), true);
-    if (mesh->num_attributes() > 1) {
+    if (num_attribute_data_ > 0) {
       // Init and start arithmetic encoders for storing configuration types
       // of non-position attributes.
       attribute_connectivity_encoders_ = std::unique_ptr<BinaryEncoder[]>(
-          new BinaryEncoder[mesh->num_attributes() - 1]);
-      for (int i = 0; i < mesh->num_attributes() - 1; ++i) {
+          new BinaryEncoder[num_attribute_data_]);
+      for (int i = 0; i < num_attribute_data_; ++i) {
         attribute_connectivity_encoders_[i].StartEncoding();
       }
     }
@@ -92,8 +98,7 @@ class MeshEdgeBreakerTraversalEncoder {
     traversal_buffer_.Encode(start_face_buffer_.data(),
                              start_face_buffer_.size());
     if (attribute_connectivity_encoders_ != nullptr) {
-      const Mesh *const mesh = encoder_impl_->GetEncoder()->mesh();
-      for (int i = 0; i < mesh->num_attributes() - 1; ++i) {
+      for (int i = 0; i < num_attribute_data_; ++i) {
         attribute_connectivity_encoders_[i].EndEncoding(&traversal_buffer_);
       }
     }
@@ -120,6 +125,7 @@ class MeshEdgeBreakerTraversalEncoder {
   // Arithmetic encoder for encoding attribute seams.
   // One context for each non-position attribute.
   std::unique_ptr<BinaryEncoder[]> attribute_connectivity_encoders_;
+  int num_attribute_data_;
 };
 
 }  // namespace draco

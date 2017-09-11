@@ -164,9 +164,6 @@ class MeshEdgeBreakerEncoderImpl : public MeshEdgeBreakerEncoderImplInterface {
   // Array for mapping vertices to hole ids. If a vertex is not on a hole, the
   // stored value is -1.
   std::vector<int> vertex_hole_id_;
-  // Array of hole events encountered during the traversal. There will be always
-  // exactly one hole event for each hole in the input mesh.
-  std::vector<HoleEventData> hole_event_data_;
 
   // Id of the last encoded symbol.
   int last_encoded_symbol_id_;
@@ -194,6 +191,13 @@ class MeshEdgeBreakerEncoderImpl : public MeshEdgeBreakerEncoderImplInterface {
   std::vector<int32_t> attribute_encoder_to_data_id_map_;
 
   TraversalEncoderT traversal_encoder_;
+
+  // If set, the encoder is going to use the same connectivity for all
+  // attributes. This effectively breaks the mesh along all attribute seams.
+  // In general, this approach should be much faster compared to encoding each
+  // connectivity separately, but the decoded model may contain higher number of
+  // duplicate attribute values which may decrease the compression ratio.
+  bool use_single_connectivity_;
 };
 
 }  // namespace draco
