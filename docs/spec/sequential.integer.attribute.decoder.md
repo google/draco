@@ -1,55 +1,64 @@
 
 ## Sequential Integer Attribute Decoder
 
+### ConvertSymbolToSignedInt()
+
 ~~~~~
-Initialize(...) {
-  SequentialAttributeDecoder_Initialize()
+int ConvertSymbolToSignedInt(val) {
+  is_positive = !static_cast<bool>(val & 1);
+  val >>= 1;
+  if (is_positive) {
+    return val;
+  }
+  val = -val - 1;
+  return val;
 }
 ~~~~~
 {:.draco-syntax }
 
 
-### DecodeValues()
+### ConvertSymbolsToSignedInts()
 
 ~~~~~
-DecodeValues(point_ids) {
-  prediction_scheme_method                                                           I8
-  if (prediction_scheme_method != PREDICTION_NONE) {
-    prediction_transform_type                                                        I8
-    prediction_scheme_ = CreateIntPredictionScheme(...)
+void ConvertSymbolsToSignedInts() {
+  decoded_symbols = seq_int_att_dec_decoded_values[curr_att_dec][curr_att];
+  for (i = 0; i < decoded_symbols.size(); ++i) {
+    val = ConvertSymbolToSignedInt(decoded_symbols[i]);
+    seq_int_att_dec_symbols_to_signed_ints[i] = val;
   }
-  if (prediction_scheme_) {
-  }
-  DecodeIntegerValues(point_ids)
-  //SequentialQuantizationAttributeDecoder_DecodeIntegerValues()
-  //StoreValues()
-  DequantizeValues(num_values)
 }
 ~~~~~
 {:.draco-syntax }
 
 
-### DecodeIntegerValues()
+### SequentialIntegerAttributeDecoder_DecodeIntegerValues()
 
 ~~~~~
-DecodeIntegerValues(point_ids) {
-  compressed                                                                         UI8
-  if (compressed) {
-    DecodeSymbols(..., values_.data())
-  } else {
-  // TODO
+void SequentialIntegerAttributeDecoder_DecodeIntegerValues() {
+  num_components = GetNumComponents();
+  num_entries = att_dec_num_values_to_decode[curr_att_dec][curr_att];
+  num_values = num_entries * num_components;
+  if (seq_int_att_dec_compressed[curr_att_dec][curr_att] > 0) {
+    DecodeSymbols(num_values, num_components, &decoded_symbols);
   }
-  if (!prediction_scheme_->AreCorrectionsPositive()) {
-    ConvertSymbolsToSignedInts(...)
+  seq_int_att_dec_decoded_values[curr_att_dec][curr_att] = decoded_symbols;
+  if (num_values > 0) {
+    if (seq_att_dec_prediction_transform_type[curr_att_dec][curr_att] ==
+          PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON_CANONICALIZED) {
+      decoded_symbols = seq_int_att_dec_decoded_values[curr_att_dec][curr_att];
+      for (int i = 0; i < decoded_symbols.size(); ++i) {
+        signed_vals[i] = decoded_symbols[i];
+      }
+      seq_int_att_dec_symbols_to_signed_ints[curr_att_dec][curr_att] = signed_vals;
+    } else {
+      ConvertSymbolsToSignedInts();
+    }
   }
-  if (prediction_scheme_) {
-    prediction_scheme_->DecodePredictionData(buffer)
-    // DecodeTransformData(buffer)
-    if (!values_.empty()) {
-      prediction_scheme_->Decode(values_.data(), &values_[0],
-                                 values_.size(), num_components, point_ids.data())
-      // MeshPredictionSchemeParallelogram_Decode()
+  if (seq_att_dec_prediction_scheme[curr_att_dec][curr_att] != PREDICTION_NONE) {
+    DecodePredictionData(seq_att_dec_prediction_scheme[curr_att_dec][curr_att]);
+    PredictionScheme_ComputeOriginalValues(
+        seq_att_dec_prediction_scheme[curr_att_dec][curr_att], num_entries);
+  }
 }
 ~~~~~
 {:.draco-syntax }
-
