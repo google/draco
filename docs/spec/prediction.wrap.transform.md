@@ -8,7 +8,7 @@ void PredictionSchemeWrapTransformBase_ClampPredictedValue(predicted_val,
   num_components = GetNumComponents();
   min_value_ = pred_trasnform_wrap_min[curr_att_dec][curr_att];
   max_value_ = pred_trasnform_wrap_max[curr_att_dec][curr_att];
-  for (int i = 0; i < num_components; ++i) {
+  for (i = 0; i < num_components; ++i) {
     if (predicted_val[i] > max_value_)
       clamped_value_[i] = max_value_;
     else if (predicted_val[i] < min_value_)

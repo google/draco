@@ -46,7 +46,7 @@ void SequentialIntegerAttributeDecoder_DecodeIntegerValues() {
     if (seq_att_dec_prediction_transform_type[curr_att_dec][curr_att] ==
           PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON_CANONICALIZED) {
       decoded_symbols = seq_int_att_dec_decoded_values[curr_att_dec][curr_att];
-      for (int i = 0; i < decoded_symbols.size(); ++i) {
+      for (i = 0; i < decoded_symbols.size(); ++i) {
         signed_vals[i] = decoded_symbols[i];
       }
       seq_int_att_dec_symbols_to_signed_ints[curr_att_dec][curr_att] = signed_vals;
