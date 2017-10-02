@@ -17,12 +17,16 @@
 
     <!-- Custom styles for this template -->
     <link rel="stylesheet" href="{{ 'assets/css/navbar-fixed-top.css' | relative_url }}">
-
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      asciimath2jax: {
+        delimiters: [],
+        ignoreClass: "asciimath2jax_ignore"
+      }
+    });
+    </script>
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=AM_HTMLorMML">
+    </script>
     <link rel="apple-touch-icon" sizes="57x57" href="{{ 'artwork/favicon/apple-icon-57x57.png' | relative_url }}">
     <link rel="apple-touch-icon" sizes="60x60" href="{{ 'artwork/favicon/apple-icon-60x60.png' | relative_url }}">
     <link rel="apple-touch-icon" sizes="72x72" href="{{ 'artwork/favicon/apple-icon-72x72.png' | relative_url }}">
