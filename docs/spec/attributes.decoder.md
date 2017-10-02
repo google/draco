@@ -51,7 +51,6 @@ void DecodeAttributeData() {
     }
     Attribute_AssignPointsToCorners();
   }
-ß
   for (i = 0; i < num_attributes_decoders; ++i) {
     curr_att_dec = i;
     is_face_visited_.assign(num_faces, false);

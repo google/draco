@@ -1,8 +1,8 @@
 ---
 layout: spec-page
-title: Draco Bitstream Specification (Draft)
+title: Draco Bitstream Specification
 version: Version 2,1
-version_date: Released 2017-xx-xx
+version_date: Released 2017-10-02
 ---
 
 <ol class="breadcrumb">
@@ -18,7 +18,6 @@ version_date: Released 2017-xx-xx
 {% include_relative 00.00.05.toc.md %}
 
 {% include_relative 01.00.00.scope.md %}
-{% include_relative 02.00.00.terms.md %}
 {% include_relative 03.00.00.symbols.md %}
 {% include_relative 04.00.00.conventions.md %}
 {% include_relative draco.decoder.md %}

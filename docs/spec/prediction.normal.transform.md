@@ -39,7 +39,9 @@ void InvertDiamond(s, t, center_value_) {
     s = -t;
     t = -temp;
   } else {
-    std::swap(s, t);
+    temp = s;
+    s = t;
+    t = temp;
   }
   s = (s + corner_point_s) / 2;
   t = (t + corner_point_t) / 2;
@@ -128,7 +130,7 @@ void PredictionSchemeNormalOctahedronCanonicalizedDecodingTransform_ComputeOrigi
     pred_in, corr, out, center_value_, max_quantized_value_) {
   t.assign(2, center_value_);
   SubtractVectors(pred_in, t, &pred);
-  pred_is_in_diamond = std::abs(pred[0]) + std::abs(pred[1]) <= center_value_;
+  pred_is_in_diamond = Abs(pred[0]) + Abs(pred[1]) <= center_value_;
   if (!pred_is_in_diamond) {
     InvertDiamond(&pred[0], &pred[1], center_value_);
   }

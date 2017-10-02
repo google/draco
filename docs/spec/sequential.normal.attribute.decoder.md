@@ -47,8 +47,8 @@ void OctaherdalCoordsToUnitVector(in_s, in_t, out_vector) {
   }
   y = 2.0 * s - 1.0;
   z = 2.0 * t - 1.0;
-  x = std::min(std::min(2.0 * spt - 1.0, 3.0 - 2.0 * spt),
-      std::min(2.0 * smt + 1.0, 1.0 - 2.0 * smt)) * x_sign;
+  x = Min(Min(2.0 * spt - 1.0, 3.0 - 2.0 * spt),
+      Min(2.0 * smt + 1.0, 1.0 - 2.0 * smt)) * x_sign;
   normSquared = x * x + y * y + z * z;
   if (normSquared < 1e-6) {
     out_vector[0] = 0;

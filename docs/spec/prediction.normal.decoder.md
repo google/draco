@@ -86,16 +86,16 @@ void MeshPredictionSchemeGeometricNormalPredictorArea_ComputePredictedValue(
 
 ~~~~~
 void CanonicalizeIntegerVector(vec, center_value_) {
-  abs_sum = std::abs(vec[0]) + std::abs(vec[1]) + std::abs(vec[2]);
+  abs_sum = Abs(vec[0]) + Abs(vec[1]) + Abs(vec[2]);
   if (abs_sum == 0) {
     vec[0] = center_value_;
   } else {
     vec[0] = (vec[0] * center_value_) / abs_sum;
     vec[1] = (vec[1] * center_value_) / abs_sum;
     if (vec[2] >= 0) {
-      vec[2] = center_value_ - std::abs(vec[0]) - std::abs(vec[1]);
+      vec[2] = center_value_ - Abs(vec[0]) - Abs(vec[1]);
     } else {
-      vec[2] = -(center_value_ - std::abs(vec[0]) - std::abs(vec[1]));
+      vec[2] = -(center_value_ - Abs(vec[0]) - Abs(vec[1]));
     }
   }
 }
@@ -138,14 +138,14 @@ void IntegerVectorToQuantizedOctahedralCoords(
     t = (int_vec[2] + center_value_);
   } else {
     if (int_vec[1] < 0) {
-      s = std::abs(int_vec[2]);
+      s = Abs(int_vec[2]);
     } else {
-      s = (max_value_ - std::abs(int_vec[2]));
+      s = (max_value_ - Abs(int_vec[2]));
     }
     if (int_vec[2] < 0) {
-      t = std::abs(int_vec[1]);
+      t = Abs(int_vec[1]);
     } else {
-      t = (max_value_ - std::abs(int_vec[1]));
+      t = (max_value_ - Abs(int_vec[1]));
     }
   }
   CanonicalizeOctahedralCoords(s, t, out_s, out_t, center_value_, max_value_);
