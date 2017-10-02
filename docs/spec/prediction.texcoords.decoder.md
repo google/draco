@@ -28,7 +28,7 @@ void GetPositionForEntryId(entry_id, pos) {
   corner = encoded_attribute_value_index_to_corner_map[curr_att_dec][entry_id];
   point_id = corner_to_point_map[corner];
   mapped_index = indices_map_[0][point_id];
-  pos_orig = seq_int_att_dec_original_values[std::make_pair(0, 0)];
+  pos_orig = seq_int_att_dec_original_values[0][0];
   for (i = 0; i < 3; ++i) {
     pos.push_back(pos_orig[(mapped_index * 3) + i]);
   }

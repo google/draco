@@ -19,7 +19,7 @@ void Dot(vec_x, vec_y, dot) {
 void AbsSum(vec, abs_sum) {
   result = 0;
   for (i = 0; i < vec.size(); ++i) {
-    result += std::abs(vec[i]);
+    result += Abs(vec[i]);
   }
   abs_sum = result;
 }
