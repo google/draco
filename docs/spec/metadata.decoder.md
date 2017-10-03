@@ -4,7 +4,7 @@
 
 ~~~~~
 void DecodeMetadata() {
-  ParseMetedataCount();
+  ParseMetadataCount();
 
   for (i = 0; i < num_att_metadata; ++i) {
     ParseAttributeMetadataId(i);
@@ -16,10 +16,10 @@ void DecodeMetadata() {
 {:.draco-syntax}
 
 
-### ParseMetedataCount()
+### ParseMetadataCount()
 
 ~~~~~
-void ParseMetedataCount() {
+void ParseMetadataCount() {
   num_att_metadata                                                                    varUI32
 }
 ~~~~~

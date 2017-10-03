@@ -42,8 +42,8 @@ void GetPositionForEntryId(entry_id, pos) {
 ~~~~~
 void GetTexCoordForEntryId(entry_id, data, tex_coords) {
   data_offset = entry_id * kTexCoordsNumComponents;
-  tex_coords->push_back(data[data_offset]);
-  tex_coords->push_back(data[data_offset + 1]);
+  tex_coords.push_back(data[data_offset]);
+  tex_coords.push_back(data[data_offset + 1]);
 }
 ~~~~~
 {:.draco-syntax}
