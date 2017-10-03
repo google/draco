@@ -61,7 +61,6 @@ void DecodeTaggedSymbols(num_values, num_components, out_values) {
   rans_precision = 1 << rans_precision_bits_t;
   l_rans_base = rans_precision * 4;
   num_symbols_                                                                        varUI32
-  ReadVarUI32(&num_symbols_);
   BuildSymbolTables(num_symbols_, lut_table_, probability_table_);
   bytes_encoded                                                                       varUI64
   encoded_data                                                                        UI8[size]
@@ -220,18 +219,18 @@ void fetch_sym(sym, rem, lut_table_, probability_table_) {
 ~~~~~
 void RabsDescRead(ans, p0, out_val) {
   p = rabs_ans_p8_precision - p0;
-  if (ans->state < rabs_l_base) {
-    ans->state = ans->state * IO_BASE + ans->buf[--ans->buf_offset];
+  if (ans.state < rabs_l_base) {
+    ans.state = ans.state * IO_BASE + ans.buf[--ans.buf_offset];
   }
-  x = ans->state;
+  x = ans.state;
   quot = x / rabs_ans_p8_precision;
   rem = x % rabs_ans_p8_precision;
   xn = quot * p;
   val = rem < p;
   if (val) {
-    ans->state = xn + rem;
+    ans.state = xn + rem;
   } else {
-    ans->state = x - xn - p;
+    ans.state = x - xn - p;
   }
   out_val = val;
 }
