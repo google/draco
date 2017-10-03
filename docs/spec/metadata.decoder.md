@@ -42,8 +42,8 @@ void ParseAttributeMetadataId(index) {
 void ParseMetadataElement(metadata) {
   metadata.num_entries                                                                varUI32
   for (i = 0; i < metadata.num_entries; ++i) {
-    metadata.name_size[i]                                                             UI8
-    metadata.name[i]                                                                  I8[size]
+    metadata.key_size[i]                                                              UI8
+    metadata.key[i]                                                                   I8[size]
     metadata.value_size[i]                                                            UI8
     metadata.value[i]                                                                 I8[size]
   }
@@ -53,12 +53,12 @@ void ParseMetadataElement(metadata) {
 {:.draco-syntax}
 
 
-### ParseSubMetadataName()
+### ParseSubMetadataKey()
 
 ~~~~~
-void ParseSubMetadataName(metadata, index) {
-  metadata.sub_metadata_name_size[index]                                              UI8
-  metadata.sub_metadata_name[index]                                                   I8[size]
+void ParseSubMetadataKey(metadata, index) {
+  metadata.sub_metadata_key_size[index]                                               UI8
+  metadata.sub_metadata_key[index]                                                    I8[size]
 }
 ~~~~~
 {:.draco-syntax}
@@ -70,7 +70,7 @@ void ParseSubMetadataName(metadata, index) {
 void DecodeMetadataElement(metadata) {
   ParseMetadataElement(metadata);
   for (i = 0; i < metadata.num_sub_metadata; ++i) {
-    ParseSubMetadataName(metadata, i);
+    ParseSubMetadataKey(metadata, i);
     DecodeMetadataElement(metadata.sub_metadata[i]);
   }
 }
