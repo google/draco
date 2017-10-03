@@ -1,17 +1,20 @@
 
 ## Core Functions
 
-### DecodeVarint
+### LEB128
 
 ~~~~~
-void DecodeVarint(out_val) {
-  in                                                                                  UI8
-  if (in & (1 << 7)) {
-    DecodeVarint(out_val);
-    out_val = (out_val << 7) | (in & ((1 << 7) - 1));
-  } else {
-    out_val = in;
+uint64_t LEB128() {
+  result = 0;
+  shift = 0;
+  while(true) {
+    in                                                                                UI8
+    result |= (low order 7 bits of in) << shift;
+    if (high order bit of in == 0)
+      break;
+    shift += 7;
   }
+  return result;
 }
 ~~~~~
 {:.draco-syntax }
