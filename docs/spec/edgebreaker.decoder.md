@@ -21,12 +21,12 @@ void ParseEdgebreakerConnectivityData() {
 
 ~~~~~
 void ParseTopologySplitEvents() {
-  num_topologoy_splits                                                                varUI32
-  for (i = 0; i < num_topologoy_splits; ++i) {
+  num_topology_splits                                                                 varUI32
+  for (i = 0; i < num_topology_splits; ++i) {
     source_id_delta[i]                                                                varUI32
     split_id_delta[i]                                                                 varUI32
   }
-  for (i = 0; i < num_topologoy_splits; ++i) {
+  for (i = 0; i < num_topology_splits; ++i) {
     split_edge_bit[i]                                                                 f[1]
     source_edge_bit[i]                                                                f[1]
   }
