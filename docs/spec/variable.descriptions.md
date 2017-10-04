@@ -120,7 +120,7 @@
   * Number of encoded EdgeBreaker split symbols
 * encoded_connectivity_size
   * Size of encoded connectivity data in bytes
-* num_topologoy_splits
+* num_topology_splits
 * source_id_delta
   * Array of delta encoded source symbol ids
 * split_id_delta
