@@ -7,7 +7,7 @@
 void DecodeConnectivityData() {
   if (encoder_method == MESH_SEQUENTIAL_ENCODING)
     DecodeSequentialConnectivityData();
-  else
+  else if (encoder_method == MESH_EDGEBREAKER_ENCODING)
     DecodeEdgebreakerConnectivityData();
 }
 
