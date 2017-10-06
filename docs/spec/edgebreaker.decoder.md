@@ -40,13 +40,7 @@ void ParseTopologySplitEvents() {
 ~~~~~
 void DecodeEdgebreakerConnectivityData() {
   ParseEdgebreakerConnectivityData();
-
-  // file pointer must be set to current position
-  // + encoded_connectivity_size
   DecodeTopologySplitEvents();
-
-  // file pointer must be saved, as it points to the attribute data
-  // file pointer must be set to old current position
   EdgebreakerTraversalStart();
   DecodeEdgeBreakerConnectivity();
 }
