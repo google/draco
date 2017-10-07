@@ -11,7 +11,6 @@ void ParseEdgebreakerConnectivityData() {
   num_attribute_data                                                                  I8
   num_encoded_symbols                                                                 varUI32
   num_encoded_split_symbols                                                           varUI32
-  encoded_connectivity_size                                                           varUI32
 }
 ~~~~~
 {:.draco-syntax }
