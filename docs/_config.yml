@@ -18,7 +18,7 @@ title: Draco 3D Data Compression
 email: webmaster@webmproject.org
 description: > 
   Description here
-#baseurl: "/docs" # the subpath of your site, e.g. /blog
+baseurl: "/draco"
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: webm
 github_username:  webmproject
