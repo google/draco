@@ -8,7 +8,7 @@ void ParseEdgebreakerConnectivityData() {
   num_new_vertices                                                                    varUI32
   num_encoded_vertices                                                                varUI32
   num_faces                                                                           varUI32
-  num_attribute_data                                                                  I8
+  num_attribute_data                                                                  UI8
   num_encoded_symbols                                                                 varUI32
   num_encoded_split_symbols                                                           varUI32
 }
