@@ -5,8 +5,8 @@
 
 ~~~~~
 void ParseSequentialConnectivityData() {
-  num_faces                                                                           I32
-  num_points                                                                          I32
+  num_faces                                                                           varUI32
+  num_points                                                                          varUI32
   connectivity_method                                                                 UI8
 }
 ~~~~~
@@ -41,6 +41,20 @@ void ParseSequentialIndicesUI16() {
 {:.draco-syntax }
 
 
+### ParseSequentialIndicesVarUI32()
+
+~~~~~
+void ParseSequentialIndicesVarUI32() {
+  for (i = 0; i < num_faces; ++i) {
+    for (j = 0; j < 3; ++j) {
+      face_to_vertex[j][i]                                                            varUI32
+    }
+  }
+}
+~~~~~
+{:.draco-syntax }
+
+
 ### ParseSequentialIndicesUI32()
 
 ~~~~~
@@ -63,6 +77,8 @@ void DecodeSequentialIndices() {
     ParseSequentialIndicesUI8();
   } else if (num_points < (1 << 16)) {
     ParseSequentialIndicesUI16();
+  } else if (num_points < (1 << 21)) {
+    ParseSequentialIndicesVarUI32();
   } else {
     ParseSequentialIndicesUI32();
   }
