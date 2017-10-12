@@ -156,8 +156,6 @@
   * Array of attribute connectivity data
 
 #### EdgeBreaker Valence Traversal
-* eb_num_split_symbols
-* eb_mode
 * ebv_context_counters
   * Array of number of context symbols
 * ebv_context_symbols

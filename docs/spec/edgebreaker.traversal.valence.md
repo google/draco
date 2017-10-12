@@ -1,18 +1,6 @@
 
 ## EdgeBreaker Traversal Valence
 
-### ParseEdgebreakerTraversalValenceData()
-
-~~~~~
-void ParseEdgebreakerTraversalValenceData() {
-  eb_num_split_symbols                                                                varUI32
-  eb_mode                                                                             I8
-}
-~~~~~
-{:.draco-syntax }
-
-
-
 ### ParseValenceContextCounters()
 
 ~~~~~
@@ -28,7 +16,7 @@ void ParseValenceContextCounters(index) {
 
 ~~~~~
 void EdgeBreakerTraversalValenceStart() {
-  vertex_valences_.assign(num_encoded_vertices + eb_num_split_symbols, 0);
+  vertex_valences_.assign(num_encoded_vertices + num_encoded_split_symbols, 0);
   for (i = 0; i < NUM_UNIQUE_VALENCES; ++i) {
     ParseValenceContextCounters(i);
     if (ebv_context_counters[i] > 0) {
