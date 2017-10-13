@@ -224,7 +224,7 @@ void PredictionSchemeDifference_ComputeOriginalValues(num_values) {
   signed_values = seq_int_att_dec_symbols_to_signed_ints[curr_att_dec][curr_att];
   size = num_components * num_values;
   zero_vals.assign(num_components, 0);
-  out_values.insert(out_values.begin(), signed_values.begin(), signed_values.end());
+  out_values = signed_values;
   PredictionSchemeTransform_ComputeOriginalValue(
       &zero_vals[0], &signed_values[0], &out_values[0]);
   for (i = num_components; i < size; i += num_components) {
