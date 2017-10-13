@@ -24,7 +24,7 @@ bitstream format and decoding process.
 * TOC
 {:toc}
 
-The document is built from plaintext section and subsection [Markdown] files
+The document is built from plain text section and subsection [Markdown] files
 (more specifically, [kramdown] files) using the [Jekyll] static site building
 tool. GitHub supports Jekyll natively.
 
