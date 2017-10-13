@@ -90,7 +90,7 @@ void MeshPredictionSchemeTexCoordsPortablePredictor_ComputePredictedValue(
       temp_vec.push_back(-pn_uv[0]);
       norm_squared = IntSqrt(cx_norm2_squared * pn_norm2_squared);
       MultiplyScalar(temp_vec, norm_squared, &cx_uv);
-      orientation = pred_tex_coords_orientaitons[curr_att_dec][curr_att].pop();
+      orientation = pred_tex_coords_orientaitons[curr_att_dec][curr_att].pop_back();
       if (orientation)
         AddVectors(x_uv, cx_uv, &temp_vec);
       else
