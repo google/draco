@@ -10,7 +10,7 @@ void MeshPredictionSchemeConstrainedMultiParallelogramDecoder_ComputeOriginalVal
   for (i = 0; i < kMaxNumParallelograms; ++i) {
     pred_vals[i].resize(num_components, 0);
   }
-  out_values.insert(out_values.begin(), signed_values.begin(), signed_values.end());
+  out_values = signed_values;
   PredictionSchemeTransform_ComputeOriginalValue(
       pred_vals[0].data(), &signed_values[0], &out_values[0]);
   is_crease_edge_pos(kMaxNumParallelograms, 0);

@@ -132,7 +132,7 @@ void MeshPredictionSchemeTexCoordsPortableDecoder_ComputeOriginalValues(num_valu
   signed_values = seq_int_att_dec_symbols_to_signed_ints[curr_att_dec][curr_att];
   num_components = GetNumComponents();
   corner_map_size = num_values;
-  out_values.insert(out_values.begin(), signed_values.begin(), signed_values.end());
+  out_values = signed_values;
   for (p = 0; p < corner_map_size; ++p) {
     corner_id = encoded_attribute_value_index_to_corner_map[curr_att_dec][p];
     MeshPredictionSchemeTexCoordsPortablePredictor_ComputePredictedValue(corner_id, &out_values[0], p, &predicted_value_);

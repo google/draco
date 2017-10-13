@@ -167,7 +167,7 @@ void MeshPredictionSchemeGeometricNormalDecoder_ComputeOriginalValues(num_values
   center_value_ = max_value_ / 2;
   corner_map_size = num_values;
   flip_normal_bits = pred_transform_normal_flip_normal_bits[curr_att_dec][curr_att];
-  out_values.insert(out_values.begin(), signed_values.begin(), signed_values.end());
+  out_values = signed_values;
   for (data_id = 0; data_id < corner_map_size; ++data_id) {
     corner_id = encoded_attribute_value_index_to_corner_map[curr_att_dec][data_id];
     MeshPredictionSchemeGeometricNormalPredictorArea_ComputePredictedValue(corner_id, &pred_normal_3d);

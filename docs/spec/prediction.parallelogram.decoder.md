@@ -46,7 +46,7 @@ bool ComputeParallelogramPrediction(data_entry_id, ci, in_data,
 void MeshPredictionSchemeParallelogramDecoder_ComputeOriginalValues(num_values) {
   signed_values = seq_int_att_dec_symbols_to_signed_ints[curr_att_dec][curr_att];
   num_components = GetNumComponents();
-  out_values.insert(out_values.begin(), signed_values.begin(), signed_values.end());
+  out_values = signed_values;
   PredictionSchemeWrapDecodingTransform_ComputeOriginalValue(pred_vals.get(),
       &signed_values[0], &out_values[0]);
   corner_map_size = num_values;
