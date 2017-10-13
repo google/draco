@@ -19,26 +19,13 @@ void ParseEdgebreakerTraversalStandardData() {
 {:.draco-syntax }
 
 
-### DecodeEdgebreakerTraversalData()
-
-~~~~~
-void DecodeEdgebreakerTraversalData() {
-  ParseEdgebreakerTraversalStandardData();
-  if (edgebreaker_traversal_type == VALENCE_EDGEBREAKER) {
-    ParseEdgebreakerTraversalValenceData();
-  }
-}
-~~~~~
-{:.draco-syntax }
-
-
 ### EdgebreakerTraversalStart()
 
 ~~~~~
 void EdgebreakerTraversalStart() {
   last_symbol_ = -1;
   active_context_ = -1;
-  DecodeEdgebreakerTraversalData();
+  ParseEdgebreakerTraversalStandardData();
   if (edgebreaker_traversal_type == VALENCE_EDGEBREAKER) {
     EdgeBreakerTraversalValenceStart();
   }

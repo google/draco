@@ -40,7 +40,7 @@ void DecodeAttributeData() {
   curr_att_dec = 0;
   if (encoder_method == MESH_EDGEBREAKER_ENCODING) {
     DecodeAttributeSeams();
-    for (i = 0; i < num_encoded_vertices + eb_num_split_symbols; ++i) {
+    for (i = 0; i < num_encoded_vertices + num_encoded_split_symbols; ++i) {
       if (is_vert_hole_[i]) {
         UpdateVertexToCornerMap(i);
       }
@@ -86,7 +86,7 @@ void RecomputeVerticesInternal() {
   attr_face_to_vertex.push_back(face_to_vertex);
   corner_to_vertex_map_[curr_att_dec].assign(
       attr_face_to_vertex[attr][0].size() * 3, -1);
-  for (v = 0; v < num_encoded_vertices + eb_num_split_symbols; ++v) {
+  for (v = 0; v < num_encoded_vertices + num_encoded_split_symbols; ++v) {
     c = vertex_corners_[v];
     if (c < 0)
       continue;
@@ -129,7 +129,7 @@ void RecomputeVerticesInternal() {
 ~~~~~
 void Attribute_AssignPointsToCorners() {
   num_corners = face_to_vertex[0].size() * 3;
-  for (v = 0; v < num_encoded_vertices + eb_num_split_symbols; ++v) {
+  for (v = 0; v < num_encoded_vertices + num_encoded_split_symbols; ++v) {
     c = vertex_corners_[v];
     if (c < 0)
       continue;
@@ -205,7 +205,7 @@ void SequentialGenerateSequence() {
 ~~~~~
 void EdgebreakerGenerateSequence() {
   if (att_dec_traversal_method[curr_att_dec] == MESH_TRAVERSAL_PREDICTION_DEGREE) {
-    prediction_degree_.assign(num_encoded_vertices + eb_num_split_symbols, 0);
+    prediction_degree_.assign(num_encoded_vertices + num_encoded_split_symbols, 0);
   }
   for (i = 0; i < num_faces; ++i) {
     if (att_dec_traversal_method[curr_att_dec] == MESH_TRAVERSAL_DEPTH_FIRST) {
