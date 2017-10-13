@@ -64,7 +64,6 @@ void ParseWrapTransformData() {
 ~~~~~
 void ParseNormalOctahedronCanonicalizedTransformData() {
   pred_trasnform_normal_max_q_val[curr_att_dec][curr_att]                             I32
-  temp                                                                                I32
 }
 ~~~~~
 {:.draco-syntax}
@@ -97,16 +96,6 @@ void ParsePredictionRansData() {
 {:.draco-syntax}
 
 
-### ParseConstrainedMultiMode()
-
-~~~~~
-void ParseConstrainedMultiMode() {
-  temp                                                                                UI8
-}
-~~~~~
-{:.draco-syntax}
-
-
 ### ParseConstrainedMultiNumFlags()
 
 ~~~~~
@@ -121,7 +110,6 @@ void ParseConstrainedMultiNumFlags() {
 
 ~~~~~
 void DecodePredictionData_ConstrainedMulti() {
-  ParseConstrainedMultiMode();
   for (i = 0; i < kMaxNumParallelograms; ++i) {
     ParseConstrainedMultiNumFlags();
     if (constrained_multi_num_flags > 0) {
@@ -144,7 +132,7 @@ void DecodePredictionData_ConstrainedMulti() {
 
 ~~~~~
 void ParseTexCoordsNumOrientations() {
-  tex_coords_num_orientations                                                         I32
+  tex_coords_num_orientations                                                         varUI32
 }
 ~~~~~
 {:.draco-syntax}
@@ -171,21 +159,10 @@ void DecodePredictionData_TexCoords() {
 {:.draco-syntax}
 
 
-### ParseGeometricNormalPredictionMode()
-
-~~~~~
-void ParseGeometricNormalPredictionMode() {
-  temp                                                                                UI8
-}
-~~~~~
-{:.draco-syntax}
-
-
 ### DecodePredictionData_GeometricNormal()
 
 ~~~~~
 void DecodePredictionData_GeometricNormal() {
-  ParseGeometricNormalPredictionMode();
   ParsePredictionRansData();
   RansInitDecoder(ans_decoder_, data.data() + pos,
                   prediction_rans_data_size, L_RANS_BASE);
