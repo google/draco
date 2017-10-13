@@ -47,21 +47,21 @@ void MeshPredictionSchemeParallelogramDecoder_ComputeOriginalValues(num_values) 
   signed_values = seq_int_att_dec_symbols_to_signed_ints[curr_att_dec][curr_att];
   num_components = GetNumComponents();
   out_values = signed_values;
-  PredictionSchemeWrapDecodingTransform_ComputeOriginalValue(pred_vals.get(),
+  PredictionSchemeWrapDecodingTransform_ComputeOriginalValue(pred_vals,
       &signed_values[0], &out_values[0]);
   corner_map_size = num_values;
   for (p = 1; p < corner_map_size; ++p) {
     corner_id = encoded_attribute_value_index_to_corner_map[curr_att_dec][p];
     dst_offset = p * num_components;
     if (!ComputeParallelogramPrediction(p, corner_id, &out_values[0],
-                                        num_components, pred_vals.get())) {
+                                        num_components, pred_vals)) {
       src_offset = (p - 1) * num_components;
       PredictionSchemeWrapDecodingTransform_ComputeOriginalValue(
           &out_values[src_offset], &signed_values[dst_offset],
           &out_values[dst_offset]);
     } else {
       PredictionSchemeWrapDecodingTransform_ComputeOriginalValue(
-          pred_vals.get(), &signed_values[dst_offset], &out_values[dst_offset]);
+          pred_vals, &signed_values[dst_offset], &out_values[dst_offset]);
     }
   }
   seq_int_att_dec_original_values[curr_att_dec][curr_att] = out_values;

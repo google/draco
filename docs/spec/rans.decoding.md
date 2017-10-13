@@ -16,17 +16,6 @@ void DecodeSymbols(num_symbols, num_components, out_values) {
 {:.draco-syntax }
 
 
-### DecodeSymbols
-
-~~~~~
-void ReadEncodedData(bytes_encoded, buffer) {
-  bytes_encoded                                                                       varUI64
-  buffer                                                                              UI8[size]
-}
-~~~~~
-{:.draco-syntax }
-
-
 ### ComputeRAnsUnclampedPrecision
 
 ~~~~~
