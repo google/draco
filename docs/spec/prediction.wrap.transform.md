@@ -31,7 +31,7 @@ void PredictionSchemeWrapDecodingTransform_ComputeOriginalValue(
   max = pred_trasnform_wrap_max[curr_att_dec][curr_att];
   max_dif_ = 1 + max - min;
   PredictionSchemeWrapTransformBase_ClampPredictedValue(predicted_vals,
-                                                        clamped_vals.get());
+                                                        clamped_vals);
   for (i = 0; i < num_components; ++i) {
     out_original_vals[i] = clamped_vals[i] + corr_vals[i];
     if (out_original_vals[i] > max)

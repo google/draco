@@ -13,7 +13,7 @@ void MeshPredictionSchemeConstrainedMultiParallelogramDecoder_ComputeOriginalVal
   out_values = signed_values;
   PredictionSchemeTransform_ComputeOriginalValue(
       pred_vals[0].data(), &signed_values[0], &out_values[0]);
-  is_crease_edge_pos(kMaxNumParallelograms, 0);
+  is_crease_edge_pos.assign(kMaxNumParallelograms, 0);
   corner_map_size = num_values;
   for (p = 1; p < corner_map_size; ++p) {
     start_corner_id = encoded_attribute_value_index_to_corner_map[curr_att_dec][p];
