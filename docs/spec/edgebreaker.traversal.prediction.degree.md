@@ -36,7 +36,7 @@ int ComputePriority(corner_id) {
 int PopNextCornerToTraverse() {
   for (i = best_priority_; i < kMaxPriority; ++i) {
     if (!traversal_stacks_[i].empty()) {
-      ret = traversal_stacks_[i].pop();
+      ret = traversal_stacks_[i].pop_back();
       best_priority_ = i;
       return ret;
     }

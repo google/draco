@@ -80,9 +80,9 @@ bool IsTopologySplit(encoder_symbol_id, out_face_edge,
                      out_encoder_split_symbol_id) {
   if (source_symbol_id.back() != encoder_symbol_id)
     return false;
-  *out_face_edge = source_edge_bit.pop();
-  *out_encoder_split_symbol_id = split_symbol_id.pop();
-  source_symbol_id.pop();
+  *out_face_edge = source_edge_bit.pop_back();
+  *out_encoder_split_symbol_id = split_symbol_id.pop_back();
+  source_symbol_id.pop_back();
   return true;
 }
 ~~~~~
@@ -161,7 +161,7 @@ void NewActiveCornerReached(new_corner, symbol_id) {
       break;
     case TOPOLOGY_S:
       {
-        corner_b = active_corner_stack.pop();
+        corner_b = active_corner_stack.pop_back();
         for (i = 0; i < split_active_corners.size(); ++i) {
           if (split_active_corners[i].decoder_split_symbol_id == symbol_id) {
             active_corner_stack.push_back(split_active_corners[i].corner);
