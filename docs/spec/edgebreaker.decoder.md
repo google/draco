@@ -322,7 +322,7 @@ void ParseEdgebreakerStandardSymbol() {
 void EdgebreakerDecodeSymbol() {
   if (edgebreaker_traversal_type == VALENCE_EDGEBREAKER) {
     EdgebreakerValenceDecodeSymbol(sym);
-  } else {
+  } else if (edgebreaker_traversal_type == STANDARD_EDGEBREAKER) {
     ParseEdgebreakerStandardSymbol(sym);
   }
 }

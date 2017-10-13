@@ -37,7 +37,6 @@
 
 * EdgeBreaker encoding methods
   * 0: STANDARD_EDGEBREAKER
-  * 1: PREDICTIVE_EDGEBREAKER
   * 2: VALENCE_EDGEBREAKER
 
 * EdgeBreaker constants
