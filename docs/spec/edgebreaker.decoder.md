@@ -360,3 +360,47 @@ void DecodeEdgeBreakerConnectivity() {
 }
 ~~~~~
 {:.draco-syntax }
+
+
+### ProcessInteriorEdges()
+
+~~~~~
+void ProcessInteriorEdges() {
+  while (active_corner_stack.size() > 0) {
+    corner_a = active_corner_stack.pop_back();
+    interior_face = eb_start_face_buffer.ReadBits32(1);
+    if (interior_face) {
+      corner_b = Previous(corner_a);
+      while (PosOpposite(corner_b) >= 0) {
+        b_opp = PosOpposite(corner_b);
+        corner_b = Previous(b_opp);
+      }
+      corner_c = Next(corner_a);
+      while (PosOpposite(corner_c) >= 0) {
+        c_opp = PosOpposite(corner_c);
+        corner_c = Next(c_opp);
+      }
+      new_corner = face_to_vertex[0].size() * 3;
+      SetOppositeCorners(new_corner, corner_a);
+      SetOppositeCorners(new_corner + 1, corner_b);
+      SetOppositeCorners(new_corner + 2, corner_c);
+
+      CornerToVerts(0, corner_a, &temp_v, &next_a, &temp_p);
+      CornerToVerts(0, corner_b, &temp_v, &next_b, &temp_p);
+      CornerToVerts(0, corner_c, &temp_v, &next_c, &temp_p);
+      MapCornerToVertex(new_corner, next_b);
+      MapCornerToVertex(new_corner + 1, next_c);
+      MapCornerToVertex(new_corner + 2, next_a);
+      face_to_vertex[0].push_back(next_b);
+      face_to_vertex[1].push_back(next_c);
+      face_to_vertex[2].push_back(next_a);
+
+      // Mark all three vertices as interior.
+      is_vert_hole_[next_b] = false;
+      is_vert_hole_[next_c] = false;
+      is_vert_hole_[next_a] = false;
+    }
+  }
+}
+~~~~~
+{:.draco-syntax }
