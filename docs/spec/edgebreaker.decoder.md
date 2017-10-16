@@ -46,6 +46,22 @@ void DecodeEdgebreakerConnectivityData() {
 ~~~~~
 {:.draco-syntax }
 
+### GetNumComponents()
+
+~~~~~
+int GetNumComponents() {
+  decoder_type = seq_att_dec_decoder_type[curr_att_dec][curr_att];
+  if (decoder_type == SEQUENTIAL_ATTRIBUTE_ENCODER_NORMALS) {
+    prediction_scheme = seq_att_dec_prediction_scheme[curr_att_dec][curr_att];
+    if (prediction_scheme == PREDICTION_DIFFERENCE) {
+      return 2;
+    }
+  }
+  return att_dec_num_components[curr_att_dec][curr_att];
+}
+~~~~~
+{:.draco-syntax }
+
 
 ### ProcessSplitData()
 
