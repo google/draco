@@ -368,7 +368,7 @@ void DecodeEdgeBreakerConnectivity() {
 void ProcessInteriorEdges() {
   while (active_corner_stack.size() > 0) {
     corner_a = active_corner_stack.pop_back();
-    interior_face = eb_start_face_buffer.ReadBits32(1);
+    interior_face = eb_start_face_buffer.ReadBits(1);
     if (interior_face) {
       corner_b = Previous(corner_a);
       while (PosOpposite(corner_b) >= 0) {
