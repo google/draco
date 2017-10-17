@@ -320,7 +320,7 @@ void NewActiveCornerReached(new_corner, symbol_id) {
 
 ~~~~~
 void ParseEdgebreakerStandardSymbol() {
-  symbol = bit_symbol_buffer.ReadBits32(1);
+  symbol = bit_symbol_buffer.ReadBits(1);
   if (symbol != TOPOLOGY_C) {
     // Else decode two additional bits.
     symbol_suffix = bit_symbol_buffer.ReadBits(2);
