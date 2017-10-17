@@ -139,6 +139,8 @@
   * Id of the last vertex decoded
 * bit_symbol_buffer
   * Standard EdgeBreaker encoded symbol buffer
+* active_corner_stack
+  * Array of current working corners used during EdgeBreaker decoding
 
 #### EdgeBreaker Traversal
 * eb_symbol_buffer_size
