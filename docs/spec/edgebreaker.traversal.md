@@ -11,7 +11,7 @@ void ParseEdgebreakerTraversalStandardData() {
   eb_start_face_buffer                                                                size * UI8
   for (i = 0; i < num_attribute_data; ++i) {
     attribute_connectivity_decoders_prob_zero[i]                                      UI8
-    attribute_connectivity_decoders_size[i]                                           UI32
+    attribute_connectivity_decoders_size[i]                                           varUI32
     attribute_connectivity_decoders_buffer[i]                                         size * UI8
   }
 }
