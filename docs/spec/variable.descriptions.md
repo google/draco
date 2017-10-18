@@ -124,7 +124,6 @@
   * Array of delta encoded source symbol ids
 * split_id_delta
   * Array of delta encoded split symbol ids
-* split_edge_bit
 * source_edge_bit
   * Array of source edge types
   * 0: LEFT_FACE_EDGE

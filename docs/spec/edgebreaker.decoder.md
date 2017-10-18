@@ -26,7 +26,6 @@ void ParseTopologySplitEvents() {
     split_id_delta[i]                                                                 varUI32
   }
   for (i = 0; i < num_topology_splits; ++i) {
-    split_edge_bit[i]                                                                 f[1]
     source_edge_bit[i]                                                                f[1]
   }
 }
