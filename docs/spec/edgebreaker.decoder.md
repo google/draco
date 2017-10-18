@@ -365,9 +365,14 @@ void DecodeEdgeBreakerConnectivity() {
 
 ~~~~~
 void ProcessInteriorEdges() {
+  AnsDecoder ans_decoder_;
+  RansInitDecoder(ans_decoder_, eb_start_face_buffer,
+      eb_start_face_buffer_size, L_RANS_BASE);
+
   while (active_corner_stack.size() > 0) {
     corner_a = active_corner_stack.pop_back();
-    interior_face = eb_start_face_buffer.ReadBits(1);
+    RabsDescRead(ans_decoder_,
+        eb_start_face_buffer_prob_zero, &interior_face);
     if (interior_face) {
       corner_b = Previous(corner_a);
       while (PosOpposite(corner_b) >= 0) {
