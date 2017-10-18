@@ -90,7 +90,7 @@ void DecodeTransformData() {
 ~~~~~
 void ParsePredictionRansData() {
   prediction_rans_prob_zero                                                           UI8
-  prediction_rans_data_size                                                           UI32
+  prediction_rans_data_size                                                           varUI32
 }
 ~~~~~
 {:.draco-syntax}
