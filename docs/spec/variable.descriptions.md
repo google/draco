@@ -145,6 +145,8 @@
 * eb_symbol_buffer_size
 * eb_symbol_buffer
   * EdgeBreaker encoded symbol data
+* eb_start_face_buffer_prob_zero
+    * Face configuration encoded probability
 * eb_start_face_buffer_size
 * eb_start_face_buffer
   * EdgeBreaker encoded face configuration data
