@@ -16,6 +16,8 @@ void ParseValenceContextCounters(index) {
 
 ~~~~~
 void EdgeBreakerTraversalValenceStart() {
+  ParseEdgebreakerTraversalStandardFaceData()
+  ParseEdgebreakerTraversalStandardAttributeConnectivityData()
   vertex_valences_.assign(num_encoded_vertices + num_encoded_split_symbols, 0);
   for (i = 0; i < NUM_UNIQUE_VALENCES; ++i) {
     ParseValenceContextCounters(i);
@@ -38,7 +40,7 @@ void EdgebreakerValenceDecodeSymbol() {
                                    [--ebv_context_counters[active_context_]];
     last_symbol_ = edge_breaker_symbol_to_topology_id[symbol_id];
   } else {
-    ParseEdgebreakerStandardSymbol();
+    last_symbol_ = TOPOLOGY_E;
   }
 }
 ~~~~~
