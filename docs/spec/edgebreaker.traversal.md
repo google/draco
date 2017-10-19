@@ -5,7 +5,7 @@
 
 ~~~~~
 void ParseEdgebreakerTraversalStandardSymbolData() {
-  eb_symbol_buffer_size                                                               UI64
+  eb_symbol_buffer_size                                                               varUI64
   eb_symbol_buffer                                                                    size * UI8
 }
 ~~~~~
