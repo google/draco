@@ -82,7 +82,7 @@ void DecodeRawSymbols(num_values, out_values) {
   rans_precision = 1 << rans_precision_bits;
   l_rans_base = rans_precision * 4;
   BuildSymbolTables(num_symbols_, lut_table_, probability_table_);
-  bytes_encoded                                                                       UI64
+  bytes_encoded                                                                       varUI64
   buffer                                                                              UI8[size]
   RansInitDecoder(ans_, &buffer[0], bytes_encoded, l_rans_base);
   for (i = 0; i < num_values; ++i) {
