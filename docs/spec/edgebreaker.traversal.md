@@ -1,20 +1,50 @@
 
 ## EdgeBreaker Traversal
 
-### ParseEdgebreakerTraversalStandardData()
+### ParseEdgebreakerTraversalStandardSymbolData()
 
 ~~~~~
-void ParseEdgebreakerTraversalStandardData() {
+void ParseEdgebreakerTraversalStandardSymbolData() {
   eb_symbol_buffer_size                                                               UI64
   eb_symbol_buffer                                                                    size * UI8
+}
+~~~~~
+{:.draco-syntax }
+
+
+### ParseEdgebreakerTraversalStandardFaceData()
+
+~~~~~
+void ParseEdgebreakerTraversalStandardFaceData() {
   eb_start_face_buffer_prob_zero                                                      UI8
   eb_start_face_buffer_size                                                           varUI32
   eb_start_face_buffer                                                                size * UI8
+}
+~~~~~
+{:.draco-syntax }
+
+
+### ParseEdgebreakerTraversalStandardAttributeConnectivityData()
+
+~~~~~
+void ParseEdgebreakerTraversalStandardAttributeConnectivityData() {
   for (i = 0; i < num_attribute_data; ++i) {
     attribute_connectivity_decoders_prob_zero[i]                                      UI8
     attribute_connectivity_decoders_size[i]                                           varUI32
     attribute_connectivity_decoders_buffer[i]                                         size * UI8
   }
+}
+~~~~~
+{:.draco-syntax }
+
+
+### DecodeEdgebreakerTraversalStandardData()
+
+~~~~~
+void DecodeEdgebreakerTraversalStandardData() {
+  ParseEdgebreakerTraversalStandardSymbolData()
+  ParseEdgebreakerTraversalStandardFaceData()
+  ParseEdgebreakerTraversalStandardAttributeConnectivityData()
 }
 ~~~~~
 {:.draco-syntax }
@@ -26,8 +56,9 @@ void ParseEdgebreakerTraversalStandardData() {
 void EdgebreakerTraversalStart() {
   last_symbol_ = -1;
   active_context_ = -1;
-  ParseEdgebreakerTraversalStandardData();
-  if (edgebreaker_traversal_type == VALENCE_EDGEBREAKER) {
+  if (edgebreaker_traversal_type == STANDARD_EDGEBREAKER) {
+    DecodeEdgebreakerTraversalStandardData();
+  } else if (edgebreaker_traversal_type == VALENCE_EDGEBREAKER) {
     EdgeBreakerTraversalValenceStart();
   }
 }
