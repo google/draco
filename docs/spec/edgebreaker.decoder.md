@@ -69,7 +69,7 @@ void ProcessSplitData() {
   last_id = 0;
   for (i = 0; i < source_id_delta.size(); ++i) {
     source_symbol_id[i] = source_id_delta[i] + last_id;
-    split_symbol_id.[i] = source_symbol_id[i] - split_id_delta[i];
+    split_symbol_id[i] = source_symbol_id[i] - split_id_delta[i];
     last_id = source_symbol_id[i];
   }
 }
@@ -159,9 +159,9 @@ void NewActiveCornerReached(new_corner, symbol_id) {
         SetOppositeCorners(corner_b, new_corner + 2);
         active_corner_stack.back() = new_corner;
       }
-      vert = CornerToVert(Next(corner_a));
-      next = CornerToVert(Next(corner_b));
-      prev = CornerToVert(Previous(corner_a));
+      vert = CornerToVert(curr_att_dec, Next(corner_a));
+      next = CornerToVert(curr_att_dec, Next(corner_b));
+      prev = CornerToVert(curr_att_dec, Previous(corner_a));
       if (edgebreaker_traversal_type == VALENCE_EDGEBREAKER) {
         vertex_valences_[next] += 1;
         vertex_valences_[prev] += 1;
@@ -188,14 +188,14 @@ void NewActiveCornerReached(new_corner, symbol_id) {
         active_corner_stack.back() = new_corner;
       }
 
-      vert = CornerToVert(Previous(corner_a));
-      next = CornerToVert(Next(corner_a));
-      prev = CornerToVert(Previous(corner_b));
+      vert = CornerToVert(curr_att_dec, Previous(corner_a));
+      next = CornerToVert(curr_att_dec, Next(corner_a));
+      prev = CornerToVert(curr_att_dec, Previous(corner_b));
       MapCornerToVertex(new_corner, vert);
       MapCornerToVertex(new_corner + 1, next);
       MapCornerToVertex(new_corner + 2, prev);
       corner_n = Next(corner_b);
-      vertex_n = CornerToVert(corner_n);
+      vertex_n = CornerToVert(curr_att_dec, corner_n);
       if (edgebreaker_traversal_type == VALENCE_EDGEBREAKER) {
         vertex_valences_[vert] += vertex_valences_[vertex_n];
       }
@@ -218,8 +218,8 @@ void NewActiveCornerReached(new_corner, symbol_id) {
         active_corner_stack.back() = new_corner;
       }
       check_topology_split = true;
-      vert = CornerToVert(Previous(corner_a));
-      next = CornerToVert(Next(corner_a));
+      vert = CornerToVert(curr_att_dec, Previous(corner_a));
+      next = CornerToVert(curr_att_dec, Next(corner_a));
       prev = ++last_vert_added;
       if (edgebreaker_traversal_type == VALENCE_EDGEBREAKER) {
         vertex_valences_[vert] += 1;
@@ -243,8 +243,8 @@ void NewActiveCornerReached(new_corner, symbol_id) {
         active_corner_stack.back() = new_corner;
       }
       check_topology_split = true;
-      vert = CornerToVert(Previous(corner_a));
-      next = CornerToVert(Next(corner_a));
+      vert = CornerToVert(curr_att_dec, Previous(corner_a));
+      next = CornerToVert(curr_att_dec, Next(corner_a));
       prev = ++last_vert_added;
       if (edgebreaker_traversal_type == VALENCE_EDGEBREAKER) {
         vertex_valences_[vert] += 1;
@@ -336,9 +336,9 @@ void ParseEdgebreakerStandardSymbol() {
 ~~~~~
 void EdgebreakerDecodeSymbol() {
   if (edgebreaker_traversal_type == VALENCE_EDGEBREAKER) {
-    EdgebreakerValenceDecodeSymbol(sym);
+    EdgebreakerValenceDecodeSymbol();
   } else if (edgebreaker_traversal_type == STANDARD_EDGEBREAKER) {
-    ParseEdgebreakerStandardSymbol(sym);
+    ParseEdgebreakerStandardSymbol();
   }
 }
 ~~~~~

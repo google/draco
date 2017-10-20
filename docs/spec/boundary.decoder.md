@@ -7,7 +7,7 @@ void DecodeAttributeSeams() {
   for (a = 0; a < num_attributes_decoders - 1; ++a) {
     AnsDecoder ans_decoder_;
     RansInitDecoder(ans_decoder_,
-        attribute_connectivity_decoders_buffer[a].data(),
+        attribute_connectivity_decoders_buffer[a],
         attribute_connectivity_decoders_size[a], L_RANS_BASE);
     ans_decoders.push_back(ans_decoder_);
     is_edge_on_seam_[a].assign(face_to_vertex[0].size() * 3, false);
