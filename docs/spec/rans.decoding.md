@@ -51,15 +51,15 @@ void DecodeTaggedSymbols(num_values, num_components, out_values) {
   l_rans_base = rans_precision * 4;
   num_symbols_                                                                        varUI32
   BuildSymbolTables(num_symbols_, lut_table_, probability_table_);
-  bytes_encoded                                                                       varUI64
+  size                                                                                varUI64
   encoded_data                                                                        UI8[size]
 
-  RansInitDecoder(ans_, &encoded_data[0], bytes_encoded, l_rans_base);
+  RansInitDecoder(ans_, &encoded_data[0], size, l_rans_base);
   for (i = 0; i < num_values; i += num_components) {
     RansRead(ans_, l_rans_base, rans_precision,
-             lut_table_, probability_table_, &bit_length);
+             lut_table_, probability_table_, &size);
     for (j = 0; j < num_components; ++j) {
-      val                                                                             f[bit_length]
+      val                                                                             f[size]
       out_values.push_back(val);
     }
   }
@@ -82,9 +82,9 @@ void DecodeRawSymbols(num_values, out_values) {
   rans_precision = 1 << rans_precision_bits;
   l_rans_base = rans_precision * 4;
   BuildSymbolTables(num_symbols_, lut_table_, probability_table_);
-  bytes_encoded                                                                       varUI64
+  size                                                                                varUI64
   buffer                                                                              UI8[size]
-  RansInitDecoder(ans_, &buffer[0], bytes_encoded, l_rans_base);
+  RansInitDecoder(ans_, &buffer[0], size, l_rans_base);
   for (i = 0; i < num_values; ++i) {
     RansRead(ans_, l_rans_base, rans_precision,
               lut_table_, probability_table_, &val);

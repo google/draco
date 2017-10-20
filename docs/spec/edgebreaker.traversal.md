@@ -5,8 +5,8 @@
 
 ~~~~~
 void ParseEdgebreakerTraversalStandardSymbolData() {
-  eb_symbol_buffer_size                                                               varUI64
-  eb_symbol_buffer                                                                    size * UI8
+  sz = eb_symbol_buffer_size                                                          varUI64
+  eb_symbol_buffer                                                                    UI8[sz]
 }
 ~~~~~
 {:.draco-syntax }
@@ -17,8 +17,8 @@ void ParseEdgebreakerTraversalStandardSymbolData() {
 ~~~~~
 void ParseEdgebreakerTraversalStandardFaceData() {
   eb_start_face_buffer_prob_zero                                                      UI8
-  eb_start_face_buffer_size                                                           varUI32
-  eb_start_face_buffer                                                                size * UI8
+  sz = eb_start_face_buffer_size                                                      varUI32
+  eb_start_face_buffer                                                                UI8[sz]
 }
 ~~~~~
 {:.draco-syntax }
@@ -30,8 +30,8 @@ void ParseEdgebreakerTraversalStandardFaceData() {
 void ParseEdgebreakerTraversalStandardAttributeConnectivityData() {
   for (i = 0; i < num_attribute_data; ++i) {
     attribute_connectivity_decoders_prob_zero[i]                                      UI8
-    attribute_connectivity_decoders_size[i]                                           varUI32
-    attribute_connectivity_decoders_buffer[i]                                         size * UI8
+    sz = attribute_connectivity_decoders_size[i]                                      varUI32
+    attribute_connectivity_decoders_buffer[i]                                         UI8[sz]
   }
 }
 ~~~~~
