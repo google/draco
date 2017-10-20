@@ -114,9 +114,9 @@ void DecodeSequentialCompressedIndices() {
 ~~~~~
 void DecodeSequentialConnectivityData() {
   ParseSequentialConnectivityData();
-  if (connectivity_method == 0) {
+  if (connectivity_method == SEQUENTIAL_COMPRESSED_INDICES) {
     DecodeSequentialCompressedIndices();
-  } else if (connectivity_method == 1) {
+  } else if (connectivity_method == SEQUENTIAL_UNCOMPRESSED_INDICES) {
     DecodeSequentialIndices();
   }
 }
