@@ -16,47 +16,17 @@ void DecodeSymbols(num_symbols, num_components, out_values) {
 {:.draco-syntax }
 
 
-### ComputeRAnsUnclampedPrecision
-
-~~~~~
-int ComputeRAnsUnclampedPrecision(max_bit_length) {
-  return (3 * max_bit_length) / 2;
-}
-~~~~~
-{:.draco-syntax }
-
-
-### ComputeRAnsPrecisionFromMaxSymbolBitLength
-
-~~~~~
-int ComputeRAnsPrecisionFromMaxSymbolBitLength(max_bit_length) {
-  return ComputeRAnsUnclampedPrecision(max_bit_length) < 12
-      ? 12
-      : ComputeRAnsUnclampedPrecision(max_bit_length) > 20
-          ? 20
-          : ComputeRAnsUnclampedPrecision(max_bit_length);
-}
-~~~~~
-{:.draco-syntax }
-
-
 ### DecodeTaggedSymbols
 
 ~~~~~
 void DecodeTaggedSymbols(num_values, num_components, out_values) {
-  max_symbol_bit_length_t = 5;
-  rans_precision_bits_t =
-      ComputeRAnsPrecisionFromMaxSymbolBitLength(max_symbol_bit_length_t);
-  rans_precision = 1 << rans_precision_bits_t;
-  l_rans_base = rans_precision * 4;
   num_symbols_                                                                        varUI32
   BuildSymbolTables(num_symbols_, lut_table_, probability_table_);
   size                                                                                varUI64
   encoded_data                                                                        UI8[size]
-
   RansInitDecoder(ans_, &encoded_data[0], size, l_rans_base);
   for (i = 0; i < num_values; i += num_components) {
-    RansRead(ans_, l_rans_base, rans_precision,
+    RansRead(ans_, L_RANS_BASE, rans_precision,
              lut_table_, probability_table_, &size);
     for (j = 0; j < num_components; ++j) {
       val                                                                             f[size]
