@@ -12,7 +12,7 @@ void MeshPredictionSchemeConstrainedMultiParallelogramDecoder_ComputeOriginalVal
   }
   out_values = signed_values;
   PredictionSchemeTransform_ComputeOriginalValue(
-      pred_vals[0].data(), &signed_values[0], &out_values[0]);
+      pred_vals[0], &signed_values[0], &out_values[0]);
   is_crease_edge_pos.assign(kMaxNumParallelograms, 0);
   corner_map_size = num_values;
   for (p = 1; p < corner_map_size; ++p) {
@@ -65,7 +65,7 @@ void MeshPredictionSchemeConstrainedMultiParallelogramDecoder_ComputeOriginalVal
       for (c = 0; c < num_components; ++c) {
         multi_pred_vals[c] /= num_used_parallelograms;
       }
-      PredictionSchemeTransform_ComputeOriginalValue(multi_pred_vals.data(), &signed_values[dst_offset], &out_values[dst_offset]);
+      PredictionSchemeTransform_ComputeOriginalValue(multi_pred_vals, &signed_values[dst_offset], &out_values[dst_offset]);
     }
   }
   seq_int_att_dec_original_values[curr_att_dec][curr_att] = out_values;
