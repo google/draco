@@ -140,6 +140,13 @@
   * Standard EdgeBreaker encoded symbol buffer
 * active_corner_stack
   * Array of current working corners used during EdgeBreaker decoding
+* edge_breaker_symbol_to_topology_id
+  * Array of EdgeBreaker symbols
+  * 0: TOPOLOGY_C
+  * 1: TOPOLOGY_S
+  * 2: TOPOLOGY_L
+  * 3: TOPOLOGY_R
+  * 4: TOPOLOGY_E
 
 #### EdgeBreaker Traversal
 * eb_symbol_buffer_size
