@@ -6,9 +6,9 @@
 ~~~~~
 void DecodeSymbols(num_symbols, num_components, out_values) {
   scheme                                                                              UI8
-  if (scheme == 0) {
+  if (scheme == TAGGED_SYMBOLS) {
     DecodeTaggedSymbols(num_symbols, num_components, out_values);
-  } else if (scheme == 1) {
+  } else if (scheme == RAW_SYMBOLS) {
     DecodeRawSymbols(num_symbols, out_values);
   }
 }

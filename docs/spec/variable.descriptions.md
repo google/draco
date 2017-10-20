@@ -15,6 +15,10 @@
   * 2: SEQUENTIAL_ATTRIBUTE_ENCODER_QUANTIZATION
   * 3: SEQUENTIAL_ATTRIBUTE_ENCODER_NORMALS
 
+* Sequential indices encoding methods
+  * 0: SEQUENTIAL_COMPRESSED_INDICES
+  * 1: SEQUENTIAL_UNCOMPRESSED_INDICES
+
 * Prediction encoding methods
   * -2: PREDICTION_NONE
   * 0: PREDICTION_DIFFERENCE
@@ -66,6 +70,9 @@
   * 256: IO_BASE
   * 4096: L_RANS_BASE
 
+* Symbol encoding methods
+  * 0: TAGGED_SYMBOLS
+  * 1: RAW_SYMBOLS
 
 
 ### Variables
