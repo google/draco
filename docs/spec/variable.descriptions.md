@@ -155,6 +155,10 @@
   * 2: TOPOLOGY_L
   * 3: TOPOLOGY_R
   * 4: TOPOLOGY_E
+* topology_split_id
+  * List of decoder split ids encountered during a topology split.
+* split_active_corners
+  * List of corners encountered during a topology split.
 
 #### EdgeBreaker Traversal
 * eb_symbol_buffer_size

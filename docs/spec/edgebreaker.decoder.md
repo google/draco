@@ -180,9 +180,9 @@ void NewActiveCornerReached(new_corner, symbol_id) {
     case TOPOLOGY_S:
       {
         corner_b = active_corner_stack.pop_back();
-        for (i = 0; i < split_active_corners.size(); ++i) {
-          if (split_active_corners[i].decoder_split_symbol_id == symbol_id) {
-            active_corner_stack.push_back(split_active_corners[i].corner);
+        for (i = 0; i < topology_split_id.size(); ++i) {
+          if (topology_split_id[i] == symbol_id) {
+            active_corner_stack.push_back(split_active_corners[i]);
           }
         }
         corner_a = active_corner_stack.back();
@@ -310,7 +310,8 @@ void NewActiveCornerReached(new_corner, symbol_id) {
       }
       // Convert the encoder split symbol id to decoder symbol id.
       dec_split_id = num_encoded_symbols - enc_split_id - 1;
-      topology_edge_list[dec_split_id] = new_active_corner;
+      topology_split_id.push_back(dec_split_id);
+      split_active_corners.push_back(new_active_corner);
     }
   }
 }
