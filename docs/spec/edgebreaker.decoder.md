@@ -37,6 +37,8 @@ void ParseTopologySplitEvents() {
 
 ~~~~~
 void DecodeEdgebreakerConnectivityData() {
+  curr_att_dec = 0;
+  curr_att = 0;
   ParseEdgebreakerConnectivityData();
   DecodeTopologySplitEvents();
   EdgebreakerTraversalStart();
