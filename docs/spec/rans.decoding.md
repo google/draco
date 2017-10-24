@@ -26,7 +26,7 @@ void DecodeTaggedSymbols(num_values, num_components, out_values) {
   encoded_data                                                                        UI8[size]
   RansInitDecoder(ans_, &encoded_data[0], size, l_rans_base);
   for (i = 0; i < num_values; i += num_components) {
-    RansRead(ans_, TAGGED_RANS_BASE, rans_precision,
+    RansRead(ans_, TAGGED_RANS_BASE, TAGGED_RANS_PRECISION,
              lut_table_, probability_table_, &size);
     for (j = 0; j < num_components; ++j) {
       val                                                                             f[size]
