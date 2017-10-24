@@ -16,6 +16,7 @@
 
 #include "draco/core/ans.h"
 #include "draco/core/bit_utils.h"
+#include "draco/core/varint_encoding.h"
 
 namespace draco {
 
@@ -106,7 +107,7 @@ void RAnsBitEncoder::EndEncoding(EncoderBuffer *target_buffer) {
 
   const int size_in_bytes = ans_write_end(&ans_coder);
   target_buffer->Encode(zero_prob);
-  target_buffer->Encode(static_cast<uint32_t>(size_in_bytes));
+  EncodeVarint(static_cast<uint32_t>(size_in_bytes), target_buffer);
   target_buffer->Encode(buffer.data(), size_in_bytes);
 
   Clear();

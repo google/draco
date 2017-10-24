@@ -16,6 +16,8 @@
 
 #include <cstring>  // for memcpy
 
+#include "draco/core/varint_encoding.h"
+
 namespace draco {
 
 EncoderBuffer::EncoderBuffer()
@@ -64,7 +66,21 @@ void EncoderBuffer::EndBitEncoding() {
     char *out_mem = const_cast<char *>(data() + size());
     // Make the out_mem point to the memory reserved for storing the size.
     out_mem = out_mem - (bit_encoder_reserved_bytes_ + sizeof(uint64_t));
-    memcpy(out_mem, &encoded_bytes, sizeof(uint64_t));
+
+    EncoderBuffer var_size_buffer;
+    EncodeVarint(encoded_bytes, &var_size_buffer);
+    const uint32_t size_len = var_size_buffer.size();
+    char *const dst = out_mem + size_len;
+    const char *const src = out_mem + sizeof(uint64_t);
+    memmove(dst, src, encoded_bytes);
+
+    // Store the size of the encoded data.
+    memcpy(out_mem, var_size_buffer.data(), size_len);
+
+    // We need to account for the difference between the preallocated and actual
+    // storage needed for storing the encoded length. This will be used later to
+    // compute the correct size of |buffer_|.
+    bit_encoder_reserved_bytes_ += sizeof(uint64_t) - size_len;
   }
   // Resize the underlying buffer to match the number of encoded bits.
   buffer_.resize(buffer_.size() - bit_encoder_reserved_bytes_ + encoded_bytes);

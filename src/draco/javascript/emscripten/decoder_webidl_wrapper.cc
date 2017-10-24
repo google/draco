@@ -237,8 +237,5 @@ const Metadata *Decoder::GetMetadata(const PointCloud &pc) const {
 
 const Metadata *Decoder::GetAttributeMetadata(const PointCloud &pc,
                                               long att_id) const {
-  if (!pc.GetMetadata()) {
-    return nullptr;
-  }
-  return pc.GetMetadata()->GetAttributeMetadata(att_id);
+  return pc.GetAttributeMetadataByAttributeId(att_id);
 }

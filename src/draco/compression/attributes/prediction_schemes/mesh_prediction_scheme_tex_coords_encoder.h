@@ -18,6 +18,7 @@
 #include <math.h>
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_encoder.h"
 #include "draco/core/bit_coders/rans_bit_encoder.h"
+#include "draco/core/varint_encoding.h"
 #include "draco/core/vector_d.h"
 #include "draco/mesh/corner_table.h"
 
@@ -132,8 +133,8 @@ template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeTexCoordsEncoder<DataTypeT, TransformT, MeshDataT>::
     EncodePredictionData(EncoderBuffer *buffer) {
   // Encode the delta-coded orientations using arithmetic coding.
-  const int32_t num_orientations = orientations_.size();
-  buffer->Encode(num_orientations);
+  const uint32_t num_orientations = orientations_.size();
+  EncodeVarint(num_orientations, buffer);
   bool last_orientation = true;
   RAnsBitEncoder encoder;
   encoder.StartEncoding();

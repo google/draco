@@ -52,6 +52,7 @@ class PointCloud {
 
   // Returns the attribute of a given unique id.
   const PointAttribute *GetAttributeByUniqueId(uint32_t id) const;
+  int32_t GetAttributeIdByUniqueId(uint32_t unique_id) const;
 
   int32_t num_attributes() const { return attributes_.size(); }
   const PointAttribute *attribute(int32_t att_id) const {
@@ -108,27 +109,42 @@ class PointCloud {
   }
 
   // Add metadata for an attribute.
-  void AddAttributeMetadata(std::unique_ptr<AttributeMetadata> metadata) {
+  void AddAttributeMetadata(int32_t att_id,
+                            std::unique_ptr<AttributeMetadata> metadata) {
     if (!metadata_.get()) {
       metadata_ = std::unique_ptr<GeometryMetadata>(new GeometryMetadata());
     }
+    const int32_t att_unique_id = attribute(att_id)->unique_id();
+    metadata->set_att_unique_id(att_unique_id);
     metadata_->AddAttributeMetadata(std::move(metadata));
+  }
+
+  const AttributeMetadata *GetAttributeMetadataByAttributeId(
+      int32_t att_id) const {
+    if (metadata_ == nullptr)
+      return nullptr;
+    const uint32_t unique_id = attribute(att_id)->unique_id();
+    return metadata_->GetAttributeMetadataByUniqueId(unique_id);
   }
 
   // Returns the attribute metadata that has the requested metadata entry.
   const AttributeMetadata *GetAttributeMetadataByStringEntry(
       const std::string &name, const std::string &value) const {
+    if (metadata_ == nullptr)
+      return nullptr;
     return metadata_->GetAttributeMetadataByStringEntry(name, value);
   }
 
   // Returns the first attribute that has the requested metadata entry.
   int GetAttributeIdByMetadataEntry(const std::string &name,
                                     const std::string &value) const {
+    if (metadata_ == nullptr)
+      return -1;
     const AttributeMetadata *att_metadata =
         metadata_->GetAttributeMetadataByStringEntry(name, value);
     if (!att_metadata)
       return -1;
-    return att_metadata->attribute_id();
+    return GetAttributeIdByUniqueId(att_metadata->att_unique_id());
   }
 
   // Get a const pointer of the metadata of the point cloud.

@@ -37,22 +37,16 @@ class MeshEdgeBreakerTraversalValenceEncoder
   MeshEdgeBreakerTraversalValenceEncoder()
       : corner_table_(nullptr),
         prev_symbol_(-1),
-        num_split_symbols_(0),
         last_corner_(kInvalidCornerIndex),
         num_symbols_(0),
         min_valence_(2),
-        max_valence_(7),
-        mode_(EDGEBREAKER_VALENCE_MODE_2_7) {}
+        max_valence_(7) {}
 
   bool Init(MeshEdgeBreakerEncoderImplInterface *encoder) {
     if (!MeshEdgeBreakerTraversalEncoder::Init(encoder))
       return false;
-    if (mode_ == EDGEBREAKER_VALENCE_MODE_2_7) {
-      min_valence_ = 2;
-      max_valence_ = 7;
-    } else {
-      return false;  // Unsupported mode.
-    }
+    min_valence_ = 2;
+    max_valence_ = 7;
     corner_table_ = encoder->GetCornerTable();
 
     // Initialize valences of all vertices.
@@ -145,8 +139,6 @@ class MeshEdgeBreakerTraversalValenceEncoder
             act_c = corner_table_->Opposite(corner_table_->Previous(act_c));
           }
           vertex_valences_.push_back(num_right_faces + 1);
-
-          ++num_split_symbols_;
         }
         break;
       case TOPOLOGY_R:
@@ -189,18 +181,10 @@ class MeshEdgeBreakerTraversalValenceEncoder
   }
 
   void Done() {
-    // We still need to store the last encoded symbol.
-    if (prev_symbol_ != -1) {
-      MeshEdgeBreakerTraversalEncoder::EncodeSymbol(
-          static_cast<EdgeBreakerTopologyBitPattern>(prev_symbol_));
-    }
-    // Store the init face configurations and the explicitly encoded symbols.
-    MeshEdgeBreakerTraversalEncoder::Done();
-    // Encode the number of split symbols (needed to set the correct number of
-    // vertices on the decoder side).
-    EncodeVarint(num_split_symbols_, GetOutputBuffer());
-    // Encode the valance encoder mode.
-    GetOutputBuffer()->Encode(static_cast<int8_t>(mode_));
+    // Store the init face configurations and attribute seam data
+    MeshEdgeBreakerTraversalEncoder::EncodeStartFaces();
+    MeshEdgeBreakerTraversalEncoder::EncodeAttributeSeams();
+
     // Store the contexts.
     for (int i = 0; i < context_symbols_.size(); ++i) {
       EncodeVarint<uint32_t>(context_symbols_[i].size(), GetOutputBuffer());
@@ -222,16 +206,12 @@ class MeshEdgeBreakerTraversalValenceEncoder
   IndexTypeVector<VertexIndex, int> vertex_valences_;
   // Previously encoded symbol.
   int32_t prev_symbol_;
-  // The total number of encoded split symbols.
-  uint32_t num_split_symbols_;
   CornerIndex last_corner_;
   // Explicitly count the number of encoded symbols.
   int num_symbols_;
 
   int min_valence_;
   int max_valence_;
-  EdgeBreakerValenceCodingMode mode_;
-
   std::vector<std::vector<uint32_t>> context_symbols_;
 };
 

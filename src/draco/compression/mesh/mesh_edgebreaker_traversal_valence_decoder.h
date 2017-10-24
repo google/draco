@@ -42,31 +42,45 @@ class MeshEdgeBreakerTraversalValenceDecoder
   void SetNumEncodedVertices(int num_vertices) { num_vertices_ = num_vertices; }
 
   bool Start(DecoderBuffer *out_buffer) {
-    if (!MeshEdgeBreakerTraversalDecoder::Start(out_buffer))
-      return false;
-    uint32_t num_split_symbols;
-    if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 0)) {
-      if (!out_buffer->Decode(&num_split_symbols))
-        return false;
-    } else {
-      if (!DecodeVarint(&num_split_symbols, out_buffer))
+    if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 2)) {
+      if (!MeshEdgeBreakerTraversalDecoder::DecodeTraversalSymbols())
         return false;
     }
-    // Add one extra vertex for each split symbol.
-    num_vertices_ += num_split_symbols;
-    // Set the valences of all initial vertices to 0.
-    vertex_valences_.resize(num_vertices_, 0);
-
-    int8_t mode;
-    if (!out_buffer->Decode(&mode))
+    if (!MeshEdgeBreakerTraversalDecoder::DecodeStartFaces())
       return false;
-    if (mode == EDGEBREAKER_VALENCE_MODE_2_7) {
+    if (!MeshEdgeBreakerTraversalDecoder::DecodeAttributeSeams())
+      return false;
+    *out_buffer = *buffer();
+
+    if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 2)) {
+      uint32_t num_split_symbols;
+      if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 0)) {
+        if (!out_buffer->Decode(&num_split_symbols))
+          return false;
+      } else {
+        if (!DecodeVarint(&num_split_symbols, out_buffer))
+          return false;
+      }
+      // Add one extra vertex for each split symbol.
+      num_vertices_ += num_split_symbols;
+
+      int8_t mode;
+      if (!out_buffer->Decode(&mode))
+        return false;
+      if (mode == EDGEBREAKER_VALENCE_MODE_2_7) {
+        min_valence_ = 2;
+        max_valence_ = 7;
+      } else {
+        // Unsupported mode.
+        return false;
+      }
+    } else {
       min_valence_ = 2;
       max_valence_ = 7;
-    } else {
-      // Unsupported mode.
-      return false;
     }
+
+    // Set the valences of all initial vertices to 0.
+    vertex_valences_.resize(num_vertices_, 0);
 
     const int num_unique_valences = max_valence_ - min_valence_ + 1;
 
@@ -94,9 +108,14 @@ class MeshEdgeBreakerTraversalValenceDecoder
                           [--context_counters_[active_context_]];
       last_symbol_ = edge_breaker_symbol_to_topology_id[symbol_id];
     } else {
-      // We don't have a predicted symbol or the symbol was mis-predicted.
-      // Decode it directly.
-      last_symbol_ = MeshEdgeBreakerTraversalDecoder::DecodeSymbol();
+      if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 2)) {
+        // We don't have a predicted symbol or the symbol was mis-predicted.
+        // Decode it directly.
+        last_symbol_ = MeshEdgeBreakerTraversalDecoder::DecodeSymbol();
+      } else {
+        // The first symbol must be E.
+        last_symbol_ = TOPOLOGY_E;
+      }
     }
     return last_symbol_;
   }

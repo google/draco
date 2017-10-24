@@ -17,17 +17,34 @@
 #include "draco/compression/attributes/linear_sequencer.h"
 #include "draco/compression/attributes/sequential_attribute_decoders_controller.h"
 #include "draco/core/symbol_decoding.h"
+#include "draco/core/varint_decoding.h"
 
 namespace draco {
 
 MeshSequentialDecoder::MeshSequentialDecoder() {}
 
 bool MeshSequentialDecoder::DecodeConnectivity() {
-  int32_t num_faces;
-  if (!buffer()->Decode(&num_faces) || num_faces < 0)
+  uint32_t num_faces;
+  uint32_t num_points;
+  if (bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
+    if (!buffer()->Decode(&num_faces))
+      return false;
+    if (!buffer()->Decode(&num_points))
+      return false;
+  } else {
+    if (!DecodeVarint(&num_faces, buffer()))
+      return false;
+    if (!DecodeVarint(&num_points, buffer()))
+      return false;
+  }
+
+  // Check that num_faces and num_points are valid values.
+  const uint64_t faces_64 = static_cast<uint64_t>(num_faces);
+  const uint64_t points_64 = static_cast<uint64_t>(num_points);
+  // Compressed sequential encoding can only handle 2^31 indices.
+  if (faces_64 > 0x7fffffff)
     return false;
-  int32_t num_points;
-  if (!buffer()->Decode(&num_points) || num_points < 0)
+  if (points_64 > faces_64 * 3)
     return false;
   uint8_t connectivity_method;
   if (!buffer()->Decode(&connectivity_method))
@@ -55,6 +72,19 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
         for (int j = 0; j < 3; ++j) {
           uint16_t val;
           if (!buffer()->Decode(&val))
+            return false;
+          face[j] = val;
+        }
+        mesh()->AddFace(face);
+      }
+    } else if (mesh()->num_points() < (1 << 21) &&
+               bitstream_version() >= DRACO_BITSTREAM_VERSION(2, 2)) {
+      // Decode indices as uint32_t.
+      for (int i = 0; i < num_faces; ++i) {
+        Mesh::Face face;
+        for (int j = 0; j < 3; ++j) {
+          uint32_t val;
+          if (!DecodeVarint(&val, buffer()))
             return false;
           face[j] = val;
         }

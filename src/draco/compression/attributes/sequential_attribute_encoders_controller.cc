@@ -96,6 +96,10 @@ bool SequentialAttributeEncodersController::CreateSequentialEncoders() {
     sequential_encoders_[i] = CreateSequentialEncoder(i);
     if (sequential_encoders_[i] == nullptr)
       return false;
+    if (i < sequential_encoder_marked_as_parent_.size()) {
+      if (sequential_encoder_marked_as_parent_[i])
+        sequential_encoders_[i]->MarkParentAttribute();
+    }
   }
   return true;
 }

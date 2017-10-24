@@ -93,6 +93,7 @@ class ObjDecoder {
   int num_positions_;
   int num_tex_coords_;
   int num_normals_;
+  int num_materials_;
   int last_sub_obj_id_;
 
   int pos_att_id_;

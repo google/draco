@@ -74,10 +74,9 @@ TEST_F(PointCloudSequentialEncodingTest, EncodingPointCloudWithMetadata) {
   const uint32_t pos_att_id =
       pc->GetNamedAttributeId(GeometryAttribute::POSITION);
   std::unique_ptr<AttributeMetadata> pos_metadata =
-      std::unique_ptr<AttributeMetadata>(new AttributeMetadata(pos_att_id));
+      std::unique_ptr<AttributeMetadata>(new AttributeMetadata());
   pos_metadata->AddEntryString("name", "position");
-  metadata->AddAttributeMetadata(std::move(pos_metadata));
-  pc->AddMetadata(std::move(metadata));
+  pc->AddAttributeMetadata(pos_att_id, std::move(pos_metadata));
 
   std::unique_ptr<PointCloud> decoded_pc = EncodeAndDecodePointCloud(pc.get());
   ASSERT_NE(decoded_pc.get(), nullptr);
@@ -85,12 +84,13 @@ TEST_F(PointCloudSequentialEncodingTest, EncodingPointCloudWithMetadata) {
   const GeometryMetadata *const pc_metadata = decoded_pc->GetMetadata();
   ASSERT_NE(pc_metadata, nullptr);
   // Test getting attribute metadata by id.
-  ASSERT_NE(pc_metadata->GetAttributeMetadata(pos_att_id), nullptr);
+  ASSERT_NE(pc->GetAttributeMetadataByAttributeId(pos_att_id), nullptr);
   // Test getting attribute metadata by entry name value pair.
   const AttributeMetadata *const requested_att_metadata =
       pc_metadata->GetAttributeMetadataByStringEntry("name", "position");
   ASSERT_NE(requested_att_metadata, nullptr);
-  ASSERT_EQ(requested_att_metadata->attribute_id(), pos_att_id);
+  ASSERT_EQ(requested_att_metadata->att_unique_id(),
+            pc->attribute(pos_att_id)->unique_id());
 }
 
 // TODO(ostava): Test the reusability of a single instance of the encoder and

@@ -39,10 +39,11 @@ bool MetadataDecoder::DecodeGeometryMetadata(DecoderBuffer *in_buffer,
   DecodeVarint(&num_att_metadata, buffer_);
   // Decode attribute metadata.
   for (int i = 0; i < num_att_metadata; ++i) {
-    uint32_t att_id;
-    DecodeVarint(&att_id, buffer_);
+    uint32_t att_unique_id;
+    DecodeVarint(&att_unique_id, buffer_);
     std::unique_ptr<AttributeMetadata> att_metadata =
-        std::unique_ptr<AttributeMetadata>(new AttributeMetadata(att_id));
+        std::unique_ptr<AttributeMetadata>(new AttributeMetadata());
+    att_metadata->set_att_unique_id(att_unique_id);
     if (!DecodeMetadata(static_cast<Metadata *>(att_metadata.get())))
       return false;
     metadata->AddAttributeMetadata(std::move(att_metadata));

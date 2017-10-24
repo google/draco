@@ -154,10 +154,8 @@ TEST_F(MetadataEncoderTest, TestEncodingNestedMetadata) {
 }
 
 TEST_F(MetadataEncoderTest, TestEncodingGeometryMetadata) {
-  const uint32_t att_id = 1;
   std::unique_ptr<draco::AttributeMetadata> att_metadata =
-      std::unique_ptr<draco::AttributeMetadata>(
-          new draco::AttributeMetadata(att_id));
+      std::unique_ptr<draco::AttributeMetadata>(new draco::AttributeMetadata);
   att_metadata->AddEntryInt("int", 100);
   att_metadata->AddEntryString("name", "pos");
   ASSERT_TRUE(geometry_metadata.AddAttributeMetadata(std::move(att_metadata)));

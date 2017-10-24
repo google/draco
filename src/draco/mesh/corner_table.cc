@@ -75,7 +75,6 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
 
   // First compute the number of outgoing half-edges (corners) attached to each
   // vertex.
-  VertexIndex max_vertex_index(-1);
   std::vector<int> num_corners_on_vertices;
   num_corners_on_vertices.reserve(num_corners());
   for (CornerIndex c(0); c < num_corners(); ++c) {

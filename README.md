@@ -5,19 +5,13 @@
 
 News
 =======
-### Version 1.1.0 release
-The latest version of Draco brings a number of new compression enhancements for
-even smaller models:
-* Improved compression
-  * Up to 40% better compression of normals
-  * Up to 5% better compression for models with multiple attributes
-* Faster decode speeds
-  * 30% faster decoding for models with multiple attributes for lower compression levels 4 and below
-    * Note: Decreases compression by 10%.
-* Encoding of metadata to .obj (e.g. Draco can preserve material or sub-object names)
-* Security fixes
-
-
+### Version 1.2.0 release
+The latest version of Draco brings a number of new compression enhancements and readies Draco for glTF 2.0 assets
+* Improved compression:
+  * 5% improved compression for small assets
+* Enhancements for upcoming Draco glTF2.0 extension
+* Fixed Android build issues
+* New, easier to use DRACOLoader.js
 
 Description
 ===========
@@ -48,7 +42,7 @@ _**Contents**_
     * [CMake Build Configuration](#cmake-build-config)
       * [Debugging and Optimization](#debugging-and-optimization)
       * [Googletest Integration](#googletest-integration)
-      * [Javascript Encoder/Decoder](#javascript-decoder)
+      * [Javascript Encoder/Decoder](#javascript-encoder/decoder)
     * [Android Studio Project Integration](#android-studio-project-integration)
   * [Usage](#usage)
     * [Command Line Applications](#command-line-applications)
@@ -258,7 +252,8 @@ Android Studio Project Integration
 
 To include Draco in an existing or new Android Studio project, reference it
 from the `cmake` file of an existing native project that has a minimum SDK
-version of 18 or higher. To add Draco to your project:
+version of 18 or higher. The project must support C++11.
+To add Draco to your project:
 
   1. Add the following somewhere within the `CMakeLists.txt` for your project
      before the `add_library()` for your project's native-lib:
@@ -288,6 +283,28 @@ version of 18 or higher. To add Draco to your project:
                             # included in the NDK.
                             ${log-lib} )
      ~~~~~
+  3. Add macro to build.gradle for the features you need:
+     ~~~~~ cmake
+     android {
+         ...
+         defaultConfig {
+             ...
+             externalNativeBuild {
+                 cmake {
+                     cppFlags "-std=c++11"
+                     cppFlags "-DDRACO_POINT_CLOUD_COMPRESSION_SUPPORTED"
+                     cppFlags "-DDRACO_MESH_COMPRESSION_SUPPORTED"
+                     cppFlags "-DDRACO_STANDARD_EDGEBREAKER_SUPPORTED"
+                     cppFlags "-DDRACO_PREDICTIVE_EDGEBREAKER_SUPPORTED"
+                 }
+             }
+         }
+         externalNativeBuild {
+             cmake {
+                 path "CMakeLists.txt"
+             }
+         }
+     }
 
 Usage
 ======
@@ -511,9 +528,13 @@ For example, to add metadata in C++:
 
 ~~~~~ cpp
 draco::PointCloud pc;
+// Add metadata for the geometry.
 std::unique_ptr<draco::GeometryMetadata> metadata =
   std::unique_ptr<draco::GeometryMetadata>(new draco::GeometryMetadata());
+metadata->AddEntryString("description", "This is an example.");
+pc.AddMetadata(std::move(metadata));
 
+// Add metadata for attributes.
 draco::GeometryAttribute pos_att;
 pos_att.Init(draco::GeometryAttribute::POSITION, nullptr, 3,
              draco::DT_FLOAT32, false, 12, 0);
@@ -523,27 +544,21 @@ std::unique_ptr<draco::AttributeMetadata> pos_metadata =
     std::unique_ptr<draco::AttributeMetadata>(
         new draco::AttributeMetadata(pos_att_id));
 pos_metadata->AddEntryString("name", "position");
-metadata->AddAttributeMetadata(std::move(pos_metadata));
-pc.AddMetadata(std::move(metadata));
 
 // Directly add attribute metadata to geometry.
-draco::GeometryAttribute material_att;
-material_att.Init(draco::GeometryAttribute::GENERIC, nullptr, 3,
-                  draco::DT_FLOAT32, false, 12, 0);
-const uint32_t material_att_id = pc.AddAttribute(material_att, false, 0);
-std::unique_ptr<draco::AttributeMetadata> material_metadata =
-    std::unique_ptr<draco::AttributeMetadata>(
-        new draco::AttributeMetadata(material_att_id));
-material_metadata->AddEntryString("name", "material");
-pc.AddAttributeMetadata(std::move(material_metadata));
+// You can do this without explicitly add |GeometryMetadata| to mesh.
+pc.AddAttributeMetadata(pos_att_id, std::move(pos_metadata));
 ~~~~~
 
 To read metadata from a geometry in C++:
 
 ~~~~~ cpp
+// Get metadata for the geometry.
 const draco::GeometryMetadata *pc_metadata = pc.GetMetadata();
-const draco::AttributeMetadata *pos_metadata =
-  pc_metadata->GetAttributeMetadata(pos_att_id);
+
+// Request metadata for a specific attribute.
+const draco::AttributeMetadata *requested_pos_metadata =
+  pc.GetAttributeMetadataByStringEntry("name", "position");
 ~~~~~
 
 Please see [src/draco/metadata](src/draco/metadata) and [src/draco/point_cloud](src/draco/point_cloud) for the full API.
@@ -559,7 +574,7 @@ three.js Renderer Example
 Here's an [example] of a geometric compressed with Draco loaded via a
 Javascript decoder using the `three.js` renderer.
 
-Please see the [javascript/example/README](javascript/example/README) file for more information.
+Please see the [javascript/example/README.md](javascript/example/README.md) file for more information.
 
 Support
 =======

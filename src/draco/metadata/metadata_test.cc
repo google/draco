@@ -133,19 +133,21 @@ TEST_F(MetadataTest, TestHardCopyMetadata) {
 }
 
 TEST_F(MetadataTest, TestGeometryMetadata) {
-  const uint32_t att_id = 1;
   std::unique_ptr<draco::AttributeMetadata> att_metadata =
-      std::unique_ptr<draco::AttributeMetadata>(
-          new draco::AttributeMetadata(att_id));
+      std::unique_ptr<draco::AttributeMetadata>(new draco::AttributeMetadata());
+  att_metadata->set_att_unique_id(10);
   att_metadata->AddEntryInt("int", 100);
   att_metadata->AddEntryString("name", "pos");
 
   ASSERT_FALSE(geometry_metadata.AddAttributeMetadata(nullptr));
   ASSERT_TRUE(geometry_metadata.AddAttributeMetadata(std::move(att_metadata)));
+
+  ASSERT_NE(geometry_metadata.GetAttributeMetadataByUniqueId(10), nullptr);
+  ASSERT_EQ(geometry_metadata.GetAttributeMetadataByUniqueId(1), nullptr);
+
   const draco::AttributeMetadata *requested_att_metadata =
       geometry_metadata.GetAttributeMetadataByStringEntry("name", "pos");
   ASSERT_NE(requested_att_metadata, nullptr);
-  ASSERT_EQ(requested_att_metadata->attribute_id(), att_id);
   ASSERT_EQ(
       geometry_metadata.GetAttributeMetadataByStringEntry("name", "not_exists"),
       nullptr);

@@ -59,6 +59,15 @@ class SequentialAttributeEncodersController : public AttributesEncoder {
     const int32_t loc_id = GetLocalIdForPointAttribute(point_attribute_id);
     if (loc_id < 0)
       return false;
+    // Mark the attribute encoder as parent (even when if it is not created
+    // yet).
+    if (sequential_encoder_marked_as_parent_.size() <= loc_id) {
+      sequential_encoder_marked_as_parent_.resize(loc_id + 1, false);
+    }
+    sequential_encoder_marked_as_parent_[loc_id] = true;
+
+    if (sequential_encoders_.size() <= loc_id)
+      return true;  // Sequential encoders not generated yet.
     sequential_encoders_[loc_id]->MarkParentAttribute();
     return true;
   }
@@ -88,6 +97,10 @@ class SequentialAttributeEncodersController : public AttributesEncoder {
 
  private:
   std::vector<std::unique_ptr<SequentialAttributeEncoder>> sequential_encoders_;
+
+  // Flag for each sequential attribute encoder indicating whether it was marked
+  // as parent attribute or not.
+  std::vector<bool> sequential_encoder_marked_as_parent_;
   std::vector<PointIndex> point_ids_;
   std::unique_ptr<PointsSequencer> sequencer_;
 };

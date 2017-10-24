@@ -52,7 +52,7 @@ bool MetadataEncoder::EncodeAttributeMetadata(
   if (!metadata)
     return false;
   // Encode attribute id.
-  EncodeVarint(metadata->attribute_id(), out_buffer);
+  EncodeVarint(metadata->att_unique_id(), out_buffer);
   EncodeMetadata(out_buffer, static_cast<const Metadata *>(metadata));
   return true;
 }

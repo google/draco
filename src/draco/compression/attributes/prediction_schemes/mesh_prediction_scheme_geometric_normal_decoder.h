@@ -136,12 +136,14 @@ bool MeshPredictionSchemeGeometricNormalDecoder<
   if (!this->transform().DecodeTransformData(buffer))
     return false;
 
-  uint8_t prediction_mode;
-  buffer->Decode(&prediction_mode);
+  if (buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
+    uint8_t prediction_mode;
+    buffer->Decode(&prediction_mode);
 
-  if (!predictor_.SetNormalPredictionMode(
-          NormalPredictionMode(prediction_mode)))
-    return false;
+    if (!predictor_.SetNormalPredictionMode(
+            NormalPredictionMode(prediction_mode)))
+      return false;
+  }
 
   // Init normal flips.
   if (!flip_normal_bit_decoder_.StartDecoding(buffer))

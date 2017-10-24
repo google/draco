@@ -110,7 +110,6 @@ struct TopologySplitEventData {
   // We need to use uint32_t instead of EdgeFaceName because the most recent
   // version of gcc does not allow that when optimizations are turned on.
   uint32_t source_edge : 1;
-  uint32_t split_edge : 1;
 };
 
 // Hole event is used to store info about the first symbol that reached a

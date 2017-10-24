@@ -14,7 +14,9 @@
 //
 #include "draco/core/bit_coders/rans_bit_decoder.h"
 
+#include "draco/compression/config/compression_shared.h"
 #include "draco/core/bit_utils.h"
+#include "draco/core/varint_decoding.h"
 
 namespace draco {
 
@@ -29,8 +31,13 @@ bool RAnsBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
     return false;
 
   uint32_t size_in_bytes;
-  if (!source_buffer->Decode(&size_in_bytes))
-    return false;
+  if (source_buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
+    if (!source_buffer->Decode(&size_in_bytes))
+      return false;
+  } else {
+    if (!DecodeVarint(&size_in_bytes, source_buffer))
+      return false;
+  }
 
   if (size_in_bytes > source_buffer->remaining_size())
     return false;

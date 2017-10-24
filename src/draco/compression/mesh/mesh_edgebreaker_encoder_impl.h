@@ -81,6 +81,10 @@ class MeshEdgeBreakerEncoderImpl : public MeshEdgeBreakerEncoderImplInterface {
   // Returns the number of encoded hole vertices.
   int EncodeHole(CornerIndex start_corner_id, bool encode_first_vertex);
 
+  // Encodes topology split data.
+  // Returns nullptr on error.
+  bool EncodeSplitData();
+
   CornerIndex GetRightCorner(CornerIndex corner_id) const;
   CornerIndex GetLeftCorner(CornerIndex corner_id) const;
 

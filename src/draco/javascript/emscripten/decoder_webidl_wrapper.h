@@ -120,7 +120,7 @@ class Decoder {
                                             const char *metadata_name,
                                             const char *metadata_value);
 
-  // Returns an attribute id of an attribute that has the unqiue id.
+  // Returns an attribute id of an attribute that has the unique id.
   static const draco::PointAttribute *GetAttributeByUniqueId(
       const draco::PointCloud &pc, long unique_id);
 

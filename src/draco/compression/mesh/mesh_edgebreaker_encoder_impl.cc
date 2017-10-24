@@ -274,13 +274,6 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
 
   traversal_encoder_.Init(this);
 
-  // Encode the number of new vertices that were added because of non-manifold
-  // edges/vertices in the input mesh. We will encode the actual mapping between
-  // new and original vertices later because their order (and ids) may change
-  // during the encoding.
-  const uint32_t num_new_vertices = corner_table_->NumNewVertices();
-  EncodeVarint(num_new_vertices, encoder_->buffer());
-
   // Also encode the total number of vertices that is going to be encoded.
   // This can be different from the mesh_->num_points() + num_new_vertices,
   // because some of the vertices of the input mesh can be ignored (e.g.
@@ -319,7 +312,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   if (!InitAttributeData())
     return false;
 
-  const int8_t num_attribute_data = attribute_data_.size();
+  const uint8_t num_attribute_data = attribute_data_.size();
   encoder_->buffer()->Encode(num_attribute_data);
   traversal_encoder_.SetNumAttributeData(num_attribute_data);
 
@@ -412,13 +405,16 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   EncodeVarint(num_split_symbols_, encoder_->buffer());
 
   // Append the traversal buffer.
-  const uint32_t traversal_encoder_size =
-      static_cast<uint32_t>(traversal_encoder_.buffer().size());
-  EncodeVarint(traversal_encoder_size, encoder_->buffer());
+  if (!EncodeSplitData())
+    return false;
   encoder_->buffer()->Encode(traversal_encoder_.buffer().data(),
                              traversal_encoder_.buffer().size());
 
-  // Encode topology split events.
+  return true;
+}
+
+template <class TraversalEncoder>
+bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeSplitData() {
   uint32_t num_events = topology_split_event_data_.size();
   EncodeVarint(num_events, encoder_->buffer());
   if (num_events > 0) {
@@ -441,11 +437,11 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
           encoder_->buffer());
       last_source_symbol_id = event_data.source_symbol_id;
     }
-    encoder_->buffer()->StartBitEncoding(num_events * 2, false);
+    encoder_->buffer()->StartBitEncoding(num_events, false);
     for (uint32_t i = 0; i < num_events; ++i) {
       const TopologySplitEventData &event_data = topology_split_event_data_[i];
-      encoder_->buffer()->EncodeLeastSignificantBits32(
-          2, event_data.source_edge | (event_data.split_edge << 1));
+      encoder_->buffer()->EncodeLeastSignificantBits32(1,
+                                                       event_data.source_edge);
     }
     encoder_->buffer()->EndBitEncoding();
   }
@@ -742,10 +738,6 @@ void MeshEdgeBreakerEncoderImpl<
   TopologySplitEventData event_data;
 
   event_data.split_symbol_id = symbol_id;
-  // It's always the left edge for true split symbols (as the right edge is
-  // traversed first).
-  event_data.split_edge = LEFT_FACE_EDGE;
-
   event_data.source_symbol_id = src_symbol_id;
   event_data.source_edge = src_edge;
   topology_split_event_data_.push_back(event_data);

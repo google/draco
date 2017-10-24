@@ -218,15 +218,17 @@ template <class TraversalDecoder>
 bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   num_new_vertices_ = 0;
   new_to_parent_vertex_map_.clear();
-  uint32_t num_new_verts;
-  if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
-    if (!decoder_->buffer()->Decode(&num_new_verts))
-      return false;
-  } else {
-    if (!DecodeVarint(&num_new_verts, decoder_->buffer()))
-      return false;
+  if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
+    uint32_t num_new_verts;
+    if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
+      if (!decoder_->buffer()->Decode(&num_new_verts))
+        return false;
+    } else {
+      if (!DecodeVarint(&num_new_verts, decoder_->buffer()))
+        return false;
+    }
+    num_new_vertices_ = num_new_verts;
   }
-  num_new_vertices_ = num_new_verts;
 
   uint32_t num_encoded_vertices;
   if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
@@ -268,9 +270,8 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   last_face_id_ = -1;
   last_vert_id_ = -1;
 
-  int8_t num_attribute_data;
-  if (!decoder_->buffer()->Decode(&num_attribute_data) ||
-      num_attribute_data < 0)
+  uint8_t num_attribute_data;
+  if (!decoder_->buffer()->Decode(&num_attribute_data))
     return false;
 
   attribute_data_.clear();
@@ -309,27 +310,39 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   // process (these extra vertices are then eliminated during deduplication).
   is_vert_hole_.assign(num_encoded_vertices_ + num_encoded_split_symbols, true);
 
-  uint32_t encoded_connectivity_size;
-  if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
-    if (!decoder_->buffer()->Decode(&encoded_connectivity_size))
+  int32_t topology_split_decoded_bytes = -1;
+  if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
+    uint32_t encoded_connectivity_size;
+    if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
+      if (!decoder_->buffer()->Decode(&encoded_connectivity_size))
+        return false;
+    } else {
+      if (!DecodeVarint(&encoded_connectivity_size, decoder_->buffer()))
+        return false;
+    }
+    DecoderBuffer event_buffer;
+    event_buffer.Init(
+        decoder_->buffer()->data_head() + encoded_connectivity_size,
+        decoder_->buffer()->remaining_size() - encoded_connectivity_size,
+        decoder_->buffer()->bitstream_version());
+    // Decode hole and topology split events.
+    topology_split_decoded_bytes =
+        DecodeHoleAndTopologySplitEvents(&event_buffer);
+    if (topology_split_decoded_bytes == -1)
       return false;
   } else {
-    if (!DecodeVarint(&encoded_connectivity_size, decoder_->buffer()))
+    if (DecodeHoleAndTopologySplitEvents(decoder_->buffer()) == -1)
       return false;
   }
-  DecoderBuffer event_buffer;
-  event_buffer.Init(
-      decoder_->buffer()->data_head() + encoded_connectivity_size,
-      decoder_->buffer()->remaining_size() - encoded_connectivity_size,
-      decoder_->buffer()->bitstream_version());
-  // Decode hole and topology split events.
-  int32_t topology_split_decoded_bytes =
-      DecodeHoleAndTopologySplitEvents(&event_buffer);
-  if (topology_split_decoded_bytes == -1)
-    return false;
 
   traversal_decoder_.Init(this);
-  traversal_decoder_.SetNumEncodedVertices(num_encoded_vertices_);
+  if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
+    traversal_decoder_.SetNumEncodedVertices(num_encoded_vertices_);
+  } else {
+    // Add one extra vertex for each split symbol.
+    traversal_decoder_.SetNumEncodedVertices(num_encoded_vertices_ +
+                                             num_encoded_split_symbols);
+  }
   traversal_decoder_.SetNumAttributeData(num_attribute_data);
 
   DecoderBuffer traversal_end_buffer;
@@ -345,8 +358,10 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
                            traversal_end_buffer.remaining_size(),
                            decoder_->buffer()->bitstream_version());
 
-  // Skip topology split data that was already decoded earlier.
-  decoder_->buffer()->Advance(topology_split_decoded_bytes);
+  if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
+    // Skip topology split data that was already decoded earlier.
+    decoder_->buffer()->Advance(topology_split_decoded_bytes);
+  }
 
   // Decode connectivity of non-position attributes.
   if (attribute_data_.size() > 0) {
@@ -744,10 +759,13 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
       decoder_buffer->StartBitDecoding(false, nullptr);
       for (uint32_t i = 0; i < num_topology_splits; ++i) {
         uint32_t edge_data;
-        decoder_buffer->DecodeLeastSignificantBits32(2, &edge_data);
+        if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
+          decoder_buffer->DecodeLeastSignificantBits32(2, &edge_data);
+        } else {
+          decoder_buffer->DecodeLeastSignificantBits32(1, &edge_data);
+        }
         TopologySplitEventData &event_data = topology_split_data_[i];
         event_data.source_edge = edge_data & 1;
-        event_data.split_edge = (edge_data >> 1) & 1;
       }
       decoder_buffer->EndBitDecoding();
     } else {
@@ -761,7 +779,6 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
         if (!decoder_buffer->Decode(&edge_data))
           return -1;
         event_data.source_edge = edge_data & 1;
-        event_data.split_edge = (edge_data >> 1) & 1;
         topology_split_data_.push_back(event_data);
       }
     }

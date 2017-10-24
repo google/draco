@@ -96,9 +96,9 @@ TEST_F(ObjDecoderTest, SubObjectsWithMetadata) {
 
   // Test material names stored in metadata.
   ASSERT_NE(mesh->GetMetadata(), nullptr);
-  ASSERT_NE(mesh->GetMetadata()->GetAttributeMetadata(3), nullptr);
+  ASSERT_NE(mesh->GetAttributeMetadataByAttributeId(3), nullptr);
   int32_t sub_obj_id = 0;
-  ASSERT_TRUE(mesh->GetMetadata()->GetAttributeMetadata(3)->GetEntryInt(
+  ASSERT_TRUE(mesh->GetAttributeMetadataByAttributeId(3)->GetEntryInt(
       "obj2", &sub_obj_id));
   ASSERT_EQ(sub_obj_id, 2);
 }
@@ -116,7 +116,7 @@ TEST_F(ObjDecoderTest, QuadOBJ) {
 
 TEST_F(ObjDecoderTest, ComplexPolyOBJ) {
   // Tests that we fail to load an obj with complex polygon (expected failure).
-  const std::string file_name = "complex_poly.obj";
+  const std::string file_name = "invalid/complex_poly.obj";
   const std::unique_ptr<Mesh> mesh(DecodeObj<Mesh>(file_name));
   ASSERT_EQ(mesh, nullptr);
 }
@@ -144,6 +144,7 @@ TEST_F(ObjDecoderTest, TestObjDecodingAll) {
   test_decoding("three_faces_312.obj");
   test_decoding("two_faces_123.obj");
   test_decoding("two_faces_312.obj");
+  test_decoding("inf_nan.obj");
 }
 
 }  // namespace draco

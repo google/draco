@@ -122,16 +122,22 @@ bool MeshBuilder::SetMetadataForAttribute(Mesh *mesh, long attribute_id,
   // If empty metadata, just ignore.
   if (!metadata)
     return false;
-  if (attribute_id < 0)
+  if (attribute_id < 0 || attribute_id >= mesh->num_attributes())
     return false;
+
   if (!mesh->metadata()) {
     std::unique_ptr<draco::GeometryMetadata> geometry_metadata =
         std::unique_ptr<draco::GeometryMetadata>(new draco::GeometryMetadata());
     mesh->AddMetadata(std::move(geometry_metadata));
   }
+
+  // Get unique attribute id for the attribute.
+  const long unique_id = mesh->attribute(attribute_id)->unique_id();
+
   std::unique_ptr<draco::AttributeMetadata> att_metadata =
       std::unique_ptr<draco::AttributeMetadata>(
-          new draco::AttributeMetadata(attribute_id, *metadata));
+          new draco::AttributeMetadata(*metadata));
+  att_metadata->set_att_unique_id(unique_id);
   mesh->metadata()->AddAttributeMetadata(std::move(att_metadata));
   return true;
 }

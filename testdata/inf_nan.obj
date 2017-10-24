@@ -1,0 +1,11 @@
+v inf nan +inf
+v nan -nan -Inf
+v 3.00 NaN -NaN
+
+# 3 vertices, 0 vertices normals
+
+f 1 2 3
+
+# 1 faces, 0 coords texture
+
+# End of File

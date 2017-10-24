@@ -58,53 +58,39 @@ class MeshEdgeBreakerTraversalDecoder {
   bool Start(DecoderBuffer *out_buffer) {
     // Decode symbols from the main buffer decoder and face configurations from
     // the start_face_buffer decoder.
-    uint64_t traversal_size;
-    if (!buffer_.StartBitDecoding(true, &traversal_size))
+    if (!DecodeTraversalSymbols())
       return false;
-    start_face_buffer_.Init(buffer_.data_head(), buffer_.remaining_size(),
-                            buffer_.bitstream_version());
-    if (traversal_size > start_face_buffer_.remaining_size())
+
+    if (!DecodeStartFaces())
       return false;
-    start_face_buffer_.Advance(traversal_size);
-    if (!start_face_buffer_.StartBitDecoding(true, &traversal_size))
+
+    if (!DecodeAttributeSeams())
       return false;
-    // Create a decoder that is set to the end of the encoded traversal data.
-    DecoderBuffer ret;
-    ret.Init(start_face_buffer_.data_head(),
-             start_face_buffer_.remaining_size(), buffer_.bitstream_version());
-    if (traversal_size > ret.remaining_size())
-      return false;
-    ret.Advance(traversal_size);
-    // Prepare attribute decoding.
-    if (num_attribute_data_ > 0) {
-      attribute_connectivity_decoders_ = std::unique_ptr<BinaryDecoder[]>(
-          new BinaryDecoder[num_attribute_data_]);
-      for (int i = 0; i < num_attribute_data_; ++i) {
-        if (!attribute_connectivity_decoders_[i].StartDecoding(&ret))
-          return false;
-      }
-    }
-    *out_buffer = ret;
+    *out_buffer = buffer_;
     return true;
   }
 
   // Returns the configuration of a new initial face.
   inline bool DecodeStartFaceConfiguration() {
     uint32_t face_configuration;
-    start_face_buffer_.DecodeLeastSignificantBits32(1, &face_configuration);
+    if (buffer_.bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
+      start_face_buffer_.DecodeLeastSignificantBits32(1, &face_configuration);
+    } else {
+      face_configuration = start_face_decoder_.DecodeNextBit();
+    }
     return face_configuration;
   }
 
   // Returns the next edgebreaker symbol that was reached during the traversal.
   inline uint32_t DecodeSymbol() {
     uint32_t symbol;
-    buffer_.DecodeLeastSignificantBits32(1, &symbol);
+    symbol_buffer_.DecodeLeastSignificantBits32(1, &symbol);
     if (symbol == TOPOLOGY_C) {
       return symbol;
     }
     // Else decode two additional bits.
     uint32_t symbol_suffix;
-    buffer_.DecodeLeastSignificantBits32(2, &symbol_suffix);
+    symbol_buffer_.DecodeLeastSignificantBits32(2, &symbol_suffix);
     symbol |= (symbol_suffix << 1);
     return symbol;
   }
@@ -126,13 +112,65 @@ class MeshEdgeBreakerTraversalDecoder {
 
   // Called when the traversal is finished.
   void Done() {
-    buffer_.EndBitDecoding();
-    start_face_buffer_.EndBitDecoding();
+    if (symbol_buffer_.bit_decoder_active())
+      symbol_buffer_.EndBitDecoding();
+    if (buffer_.bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
+      start_face_buffer_.EndBitDecoding();
+    } else {
+      start_face_decoder_.EndDecoding();
+    }
+  }
+
+ protected:
+  DecoderBuffer *buffer() { return &buffer_; }
+
+  bool DecodeTraversalSymbols() {
+    uint64_t traversal_size;
+    symbol_buffer_ = buffer_;
+    if (!symbol_buffer_.StartBitDecoding(true, &traversal_size))
+      return false;
+    buffer_ = symbol_buffer_;
+    if (traversal_size > buffer_.remaining_size())
+      return false;
+    buffer_.Advance(traversal_size);
+    return true;
+  }
+
+  bool DecodeStartFaces() {
+    // Create a decoder that is set to the end of the encoded traversal data.
+    if (buffer_.bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
+      start_face_buffer_ = buffer_;
+      uint64_t traversal_size;
+      if (!start_face_buffer_.StartBitDecoding(true, &traversal_size))
+        return false;
+      buffer_ = start_face_buffer_;
+      if (traversal_size > buffer_.remaining_size())
+        return false;
+      buffer_.Advance(traversal_size);
+    } else {
+      start_face_decoder_.StartDecoding(&buffer_);
+    }
+    return true;
+  }
+
+  bool DecodeAttributeSeams() {
+    // Prepare attribute decoding.
+    if (num_attribute_data_ > 0) {
+      attribute_connectivity_decoders_ = std::unique_ptr<BinaryDecoder[]>(
+          new BinaryDecoder[num_attribute_data_]);
+      for (int i = 0; i < num_attribute_data_; ++i) {
+        if (!attribute_connectivity_decoders_[i].StartDecoding(&buffer_))
+          return false;
+      }
+    }
+    return true;
   }
 
  private:
   // Buffer that contains the encoded data.
   DecoderBuffer buffer_;
+  DecoderBuffer symbol_buffer_;
+  BinaryDecoder start_face_decoder_;
   DecoderBuffer start_face_buffer_;
   std::unique_ptr<BinaryDecoder[]> attribute_connectivity_decoders_;
   int num_attribute_data_;

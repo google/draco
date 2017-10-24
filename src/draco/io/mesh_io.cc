@@ -22,6 +22,18 @@
 
 namespace draco {
 
+namespace {
+
+// Returns the file extension in lowercase if present, else ""
+inline std::string LowercaseFileExtension(const std::string &filename) {
+  size_t pos = filename.find_last_of('.');
+  if (pos == std::string::npos || pos >= filename.length() - 1)
+    return "";
+  return parser::ToLower(filename.substr(pos + 1));
+}
+
+}  // namespace
+
 std::unique_ptr<Mesh> ReadMeshFromFile(const std::string &file_name) {
   return ReadMeshFromFile(file_name, false);
 }
@@ -30,10 +42,8 @@ std::unique_ptr<Mesh> ReadMeshFromFile(const std::string &file_name,
                                        bool use_metadata) {
   std::unique_ptr<Mesh> mesh(new Mesh());
   // Analyze file extension.
-  const std::string extension = parser::ToLower(
-      file_name.size() >= 4 ? file_name.substr(file_name.size() - 4)
-                            : file_name);
-  if (extension == ".obj") {
+  const std::string extension = LowercaseFileExtension(file_name);
+  if (extension == "obj") {
     // Wavefront OBJ file format.
     ObjDecoder obj_decoder;
     obj_decoder.set_use_metadata(use_metadata);
@@ -41,7 +51,7 @@ std::unique_ptr<Mesh> ReadMeshFromFile(const std::string &file_name,
       return nullptr;
     return mesh;
   }
-  if (extension == ".ply") {
+  if (extension == "ply") {
     // Wavefront PLY file format.
     PlyDecoder ply_decoder;
     if (!ply_decoder.DecodeFromFile(file_name, mesh.get()))

@@ -253,9 +253,6 @@ template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
     DataTypeT, TransformT, MeshDataT>::EncodePredictionData(EncoderBuffer
                                                                 *buffer) {
-  // Encode prediction mode.
-  buffer->Encode(static_cast<uint8_t>(selected_mode_));
-
   // Encode selected edges using separate rans bit coder for each context.
   for (int i = 0; i < kMaxNumParallelograms; ++i) {
     // |i| is the context based on the number of available parallelograms, which

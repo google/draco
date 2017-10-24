@@ -24,22 +24,27 @@ namespace draco {
 // the point cloud it belongs to.
 class AttributeMetadata : public Metadata {
  public:
-  AttributeMetadata(int attribute_id) : attribute_id_(attribute_id) {}
-  AttributeMetadata(int attribute_id, const Metadata &metadata)
-      : Metadata(metadata), attribute_id_(attribute_id) {}
+  AttributeMetadata() : att_unique_id_(0) {}
+  explicit AttributeMetadata(const Metadata &metadata)
+      : Metadata(metadata), att_unique_id_(0) {}
 
-  uint32_t attribute_id() const { return attribute_id_; }
+  void set_att_unique_id(uint32_t att_unique_id) {
+    att_unique_id_ = att_unique_id;
+  }
+  // The unique id of the attribute that this metadata belongs to.
+  uint32_t att_unique_id() const { return att_unique_id_; }
 
  private:
-  uint32_t attribute_id_;
+  uint32_t att_unique_id_;
 
   friend struct AttributeMetadataHasher;
+  friend class PointCloud;
 };
 
 // Functor for computing a hash from data stored in a AttributeMetadata class.
 struct AttributeMetadataHasher {
   size_t operator()(const AttributeMetadata &metadata) const {
-    size_t hash = metadata.attribute_id_;
+    size_t hash = metadata.att_unique_id_;
     MetadataHasher metadata_hasher;
     hash = HashCombine(metadata_hasher(static_cast<const Metadata &>(metadata)),
                        hash);
@@ -57,22 +62,33 @@ class GeometryMetadata : public Metadata {
       const std::string &entry_name, const std::string &entry_value) const;
   bool AddAttributeMetadata(std::unique_ptr<AttributeMetadata> att_metadata);
 
-  const AttributeMetadata *GetAttributeMetadata(int32_t attribute_id) const {
+  void DeleteAttributeMetadataByUniqueId(int32_t att_unique_id) {
+    for (auto itr = att_metadatas_.begin(); itr != att_metadatas_.end();
+         ++itr) {
+      if (itr->get()->att_unique_id() == att_unique_id) {
+        att_metadatas_.erase(itr);
+        return;
+      }
+    }
+  }
+
+  const AttributeMetadata *GetAttributeMetadataByUniqueId(
+      int32_t att_unique_id) const {
     // TODO(zhafang): Consider using unordered_map instead of vector to store
     // attribute metadata.
     for (auto &&att_metadata : att_metadatas_) {
-      if (att_metadata->attribute_id() == attribute_id) {
+      if (att_metadata->att_unique_id() == att_unique_id) {
         return att_metadata.get();
       }
     }
     return nullptr;
   }
 
-  AttributeMetadata *attribute_metadata(int32_t attribute_id) {
+  AttributeMetadata *attribute_metadata(int32_t att_unique_id) {
     // TODO(zhafang): Consider use unordered_map instead of vector to store
     // attribute metadata.
     for (auto &&att_metadata : att_metadatas_) {
-      if (att_metadata->attribute_id() == attribute_id) {
+      if (att_metadata->att_unique_id() == att_unique_id) {
         return att_metadata.get();
       }
     }

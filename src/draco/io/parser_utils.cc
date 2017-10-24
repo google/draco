@@ -104,20 +104,32 @@ bool ParseFloat(DecoderBuffer *buffer, float *value) {
     }
   }
 
-  if (!have_digits)
-    return false;
-
-  // Handle exponent if present.
-  if (ch == 'e' || ch == 'E') {
-    buffer->Advance(1);  // Skip 'e' marker.
-
-    // Parse integer exponent.
-    int32_t exponent = 0;
-    if (!ParseSignedInt(buffer, &exponent))
+  if (!have_digits) {
+    // Check for special constants (inf, nan, ...).
+    std::string text;
+    if (!ParseString(buffer, &text))
       return false;
+    if (text == "inf" || text == "Inf") {
+      v = std::numeric_limits<double>::infinity();
+    } else if (text == "nan" || text == "NaN") {
+      v = nan("");
+    } else {
+      // Invalid string.
+      return false;
+    }
+  } else {
+    // Handle exponent if present.
+    if (ch == 'e' || ch == 'E') {
+      buffer->Advance(1);  // Skip 'e' marker.
 
-    // Apply exponent scaling to value.
-    v *= pow(10.0, exponent);
+      // Parse integer exponent.
+      int32_t exponent = 0;
+      if (!ParseSignedInt(buffer, &exponent))
+        return false;
+
+      // Apply exponent scaling to value.
+      v *= pow(10.0, exponent);
+    }
   }
 
   *value = (sign < 0) ? -v : v;
@@ -188,6 +200,8 @@ void ParseLine(DecoderBuffer *buffer, std::string *out_string) {
     buffer->Advance(1);
     if (c == '\n')
       return;  // Return at the end of line.
+    if (c == '\r')
+      continue;  // Ignore extra line ending characters.
     *out_string += c;
   }
 }

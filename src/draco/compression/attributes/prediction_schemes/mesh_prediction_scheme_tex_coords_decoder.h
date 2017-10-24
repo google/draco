@@ -18,6 +18,7 @@
 #include <math.h>
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
 #include "draco/core/bit_coders/rans_bit_decoder.h"
+#include "draco/core/varint_decoding.h"
 #include "draco/core/vector_d.h"
 #include "draco/mesh/corner_table.h"
 
@@ -133,9 +134,14 @@ template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
     DecodePredictionData(DecoderBuffer *buffer) {
   // Decode the delta coded orientations.
-  int32_t num_orientations = 0;
-  if (!buffer->Decode(&num_orientations) || num_orientations < 0)
-    return false;
+  uint32_t num_orientations = 0;
+  if (buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
+    if (!buffer->Decode(&num_orientations))
+      return false;
+  } else {
+    if (!DecodeVarint(&num_orientations, buffer))
+      return false;
+  }
   orientations_.resize(num_orientations);
   bool last_orientation = true;
   RAnsBitDecoder decoder;

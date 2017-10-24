@@ -15,10 +15,8 @@
 #ifndef DRACO_CORE_SYMBOL_CODING_UTILS_H_
 #define DRACO_CORE_SYMBOL_CODING_UTILS_H_
 
+#include <inttypes.h>
 #include <type_traits>
-
-#include "draco/core/decoder_buffer.h"
-#include "draco/core/encoder_buffer.h"
 
 namespace draco {
 

@@ -72,36 +72,58 @@ TEST_F(PointCloudTest, TestPointCloudWithMetadata) {
   std::unique_ptr<draco::GeometryMetadata> metadata =
       std::unique_ptr<draco::GeometryMetadata>(new draco::GeometryMetadata());
 
+  // Add a position attribute metadata.
   draco::GeometryAttribute pos_att;
   pos_att.Init(draco::GeometryAttribute::POSITION, nullptr, 3,
                draco::DT_FLOAT32, false, 12, 0);
   const uint32_t pos_att_id = pc.AddAttribute(pos_att, false, 0);
-  // Test adding attribute metadata.
+  ASSERT_EQ(pos_att_id, 0);
   std::unique_ptr<draco::AttributeMetadata> pos_metadata =
-      std::unique_ptr<draco::AttributeMetadata>(
-          new draco::AttributeMetadata(pos_att_id));
+      std::unique_ptr<draco::AttributeMetadata>(new draco::AttributeMetadata());
   pos_metadata->AddEntryString("name", "position");
-  metadata->AddAttributeMetadata(std::move(pos_metadata));
-  pc.AddMetadata(std::move(metadata));
-
+  pc.AddAttributeMetadata(pos_att_id, std::move(pos_metadata));
   const draco::GeometryMetadata *pc_metadata = pc.GetMetadata();
   ASSERT_NE(pc_metadata, nullptr);
-  ASSERT_NE(pc_metadata->GetAttributeMetadata(pos_att_id), nullptr);
-
-  // Test direct adding attribute metadata to point cloud.
+  // Add a generic material attribute metadata.
   draco::GeometryAttribute material_att;
   material_att.Init(draco::GeometryAttribute::GENERIC, nullptr, 3,
                     draco::DT_FLOAT32, false, 12, 0);
   const uint32_t material_att_id = pc.AddAttribute(material_att, false, 0);
+  ASSERT_EQ(material_att_id, 1);
   std::unique_ptr<draco::AttributeMetadata> material_metadata =
-      std::unique_ptr<draco::AttributeMetadata>(
-          new draco::AttributeMetadata(material_att_id));
+      std::unique_ptr<draco::AttributeMetadata>(new draco::AttributeMetadata());
   material_metadata->AddEntryString("name", "material");
-  pc.AddAttributeMetadata(std::move(material_metadata));
+  // The material attribute has id of 1 now.
+  pc.AddAttributeMetadata(material_att_id, std::move(material_metadata));
 
-  ASSERT_NE(pc_metadata->GetAttributeMetadata(material_att_id), nullptr);
-  const draco::AttributeMetadata *requested_att_metadata =
-      pc_metadata->GetAttributeMetadataByStringEntry("name", "material");
-  ASSERT_NE(requested_att_metadata, nullptr);
+  // Test if the attribute metadata is correctly added.
+  const draco::AttributeMetadata *requested_pos_metadata =
+      pc.GetAttributeMetadataByStringEntry("name", "position");
+  ASSERT_NE(requested_pos_metadata, nullptr);
+  const draco::AttributeMetadata *requested_mat_metadata =
+      pc.GetAttributeMetadataByStringEntry("name", "material");
+  ASSERT_NE(requested_mat_metadata, nullptr);
+
+  // Attribute id should be preserved.
+  ASSERT_EQ(
+      pc.GetAttributeIdByUniqueId(requested_pos_metadata->att_unique_id()), 0);
+  ASSERT_EQ(
+      pc.GetAttributeIdByUniqueId(requested_mat_metadata->att_unique_id()), 1);
+
+  // Test deleting attribute with metadata.
+  pc.DeleteAttribute(pos_att_id);
+  ASSERT_EQ(pc.GetAttributeMetadataByStringEntry("name", "position"), nullptr);
+
+  requested_mat_metadata =
+      pc.GetAttributeMetadataByStringEntry("name", "material");
+  // The unique id should not be changed.
+  ASSERT_EQ(requested_mat_metadata->att_unique_id(), 1);
+  // Now position attribute is removed, material attribute should have the
+  // attribute id of 0.
+  ASSERT_EQ(
+      pc.GetAttributeIdByUniqueId(requested_mat_metadata->att_unique_id()), 0);
+  // Should be able to get metadata using the current attribute id.
+  // Attribute id of material attribute is changed from 1 to 0.
+  ASSERT_NE(pc.GetAttributeMetadataByAttributeId(0), nullptr);
 }
 }  // namespace

@@ -163,10 +163,6 @@ bool MeshPredictionSchemeGeometricNormalEncoder<
   if (!this->transform().EncodeTransformData(buffer))
     return false;
 
-  const uint8_t prediction_mode = predictor_.GetNormalPredictionMode();
-  if (!buffer->Encode(prediction_mode))
-    return false;
-
   // Encode normal flips.
   flip_normal_bit_encoder_.EndEncoding(buffer);
   return true;

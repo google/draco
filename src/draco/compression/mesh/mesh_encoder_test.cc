@@ -63,7 +63,7 @@ TEST_P(MeshEncoderTest, EncodeGoldenMesh) {
   std::string golden_file_name = file_name;
   golden_file_name += '.';
   golden_file_name += GetParam();
-  golden_file_name += ".1.1.0.drc";
+  golden_file_name += ".1.2.0.drc";
   const std::unique_ptr<Mesh> mesh(DecodeObj(file_name));
   ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
 

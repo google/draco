@@ -14,6 +14,9 @@
 //
 #include "draco/core/decoder_buffer.h"
 
+#include "draco/compression/config/compression_shared.h"
+#include "draco/core/varint_decoding.h"
+
 namespace draco {
 
 DecoderBuffer::DecoderBuffer()
@@ -36,8 +39,13 @@ void DecoderBuffer::Init(const char *data, size_t data_size, uint16_t version) {
 
 bool DecoderBuffer::StartBitDecoding(bool decode_size, uint64_t *out_size) {
   if (decode_size) {
-    if (!Decode(out_size))
-      return false;
+    if (bitstream_version_ < DRACO_BITSTREAM_VERSION(2, 2)) {
+      if (!Decode(out_size))
+        return false;
+    } else {
+      if (!DecodeVarint(out_size, this))
+        return false;
+    }
   }
   bit_mode_ = true;
   bit_decoder_.reset(data_head(), remaining_size());

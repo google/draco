@@ -59,7 +59,6 @@ class PredictionSchemeNormalOctahedronEncodingTransform
 
   bool EncodeTransformData(EncoderBuffer *buffer) {
     buffer->Encode(this->max_quantized_value());
-    buffer->Encode(this->center_value());
     return true;
   }
 

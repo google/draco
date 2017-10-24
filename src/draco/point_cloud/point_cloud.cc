@@ -63,12 +63,20 @@ const PointAttribute *PointCloud::GetNamedAttributeByUniqueId(
   return nullptr;
 }
 
-const PointAttribute *PointCloud::GetAttributeByUniqueId(uint32_t id) const {
+const PointAttribute *PointCloud::GetAttributeByUniqueId(
+    uint32_t unique_id) const {
+  const int32_t att_id = GetAttributeIdByUniqueId(unique_id);
+  if (att_id == -1)
+    return nullptr;
+  return attributes_[att_id].get();
+}
+
+int32_t PointCloud::GetAttributeIdByUniqueId(uint32_t unique_id) const {
   for (size_t att_id = 0; att_id < attributes_.size(); ++att_id) {
-    if (attributes_[att_id]->unique_id() == id)
-      return attributes_[att_id].get();
+    if (attributes_[att_id]->unique_id() == unique_id)
+      return att_id;
   }
-  return nullptr;
+  return -1;
 }
 
 int PointCloud::AddAttribute(std::unique_ptr<PointAttribute> pa) {
@@ -115,7 +123,12 @@ void PointCloud::DeleteAttribute(int att_id) {
     return;  // Attribute does not exist.
   const GeometryAttribute::Type att_type =
       attributes_[att_id]->attribute_type();
+  const uint32_t unique_id = attribute(att_id)->unique_id();
   attributes_.erase(attributes_.begin() + att_id);
+  // Remove metadata if applicable.
+  if (metadata_) {
+    metadata_->DeleteAttributeMetadataByUniqueId(unique_id);
+  }
 
   // Remove the attribute from the named attribute list if applicable.
   if (att_type < GeometryAttribute::NAMED_ATTRIBUTES_COUNT) {

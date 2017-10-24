@@ -189,4 +189,50 @@ TEST_F(MeshEdgebreakerEncodingTest, TestSingleConnectivityEncoding) {
   }
 }
 
+TEST_F(MeshEdgebreakerEncodingTest, TestWrongAttributeOrder) {
+  // Tests whether the edgebreaker method successfully encodes a mesh where the
+  // input attributes are in wrong order (because of their internal
+  // dependencies). In such case the attributes should be rearranged to the
+  // correct order.
+  TriangleSoupMeshBuilder mb;
+  mb.Start(1);
+  const int32_t norm_att_id =
+      mb.AddAttribute(GeometryAttribute::NORMAL, 3, DT_FLOAT32);
+  const int32_t pos_att_id =
+      mb.AddAttribute(GeometryAttribute::POSITION, 3, DT_FLOAT32);
+
+  mb.SetAttributeValuesForFace(
+      pos_att_id, FaceIndex(0), Vector3f(0.f, 0.f, 0.f).data(),
+      Vector3f(1.f, 0.f, 0.f).data(), Vector3f(0.f, 1.f, 0.f).data());
+
+  mb.SetAttributeValuesForFace(
+      norm_att_id, FaceIndex(0), Vector3f(0.f, 0.f, 1.f).data(),
+      Vector3f(0.f, 0.f, 0.f).data(), Vector3f(0.f, 0.f, 1.f).data());
+  std::unique_ptr<Mesh> mesh = mb.Finalize();
+  ASSERT_NE(mesh, nullptr);
+  ASSERT_EQ(mesh->num_attributes(), 2);
+  ASSERT_EQ(mesh->attribute(0)->attribute_type(), GeometryAttribute::NORMAL);
+  ASSERT_EQ(mesh->attribute(1)->attribute_type(), GeometryAttribute::POSITION);
+
+  EncoderBuffer buffer;
+  draco::Encoder encoder;
+  encoder.SetSpeedOptions(3, 3);
+  encoder.SetAttributeQuantization(GeometryAttribute::POSITION, 8);
+  encoder.SetAttributeQuantization(GeometryAttribute::NORMAL, 8);
+  encoder.SetEncodingMethod(MESH_EDGEBREAKER_ENCODING);
+  ASSERT_TRUE(encoder.EncodeMeshToBuffer(*mesh, &buffer).ok());
+
+  DecoderBuffer dec_buffer;
+  dec_buffer.Init(buffer.data(), buffer.size());
+
+  Decoder decoder;
+  auto dec_mesh = decoder.DecodeMeshFromBuffer(&dec_buffer).value();
+  ASSERT_NE(dec_mesh, nullptr);
+  ASSERT_EQ(dec_mesh->num_attributes(), 2);
+  ASSERT_EQ(dec_mesh->attribute(0)->attribute_type(),
+            GeometryAttribute::POSITION);
+  ASSERT_EQ(dec_mesh->attribute(1)->attribute_type(),
+            GeometryAttribute::NORMAL);
+}
+
 }  // namespace draco

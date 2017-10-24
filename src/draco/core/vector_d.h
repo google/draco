@@ -65,6 +65,19 @@ class VectorD {
     CHECK_EQ(dimension_t, 5);
   }
 
+  VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2,
+          const CoeffT &c3, const CoeffT &c4, const CoeffT &c5)
+      : v_({{c0, c1, c2, c3, c4, c5}}) {
+    CHECK_EQ(dimension_t, 6);
+  }
+
+  VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2,
+          const CoeffT &c3, const CoeffT &c4, const CoeffT &c5,
+          const CoeffT &c6)
+      : v_({{c0, c1, c2, c3, c4, c5, c6}}) {
+    CHECK_EQ(dimension_t, 7);
+  }
+
   VectorD(const Self &o) {
     for (int i = 0; i < dimension_t; ++i)
       (*this)[i] = o[i];
@@ -232,11 +245,15 @@ typedef VectorD<float, 2> Vector2f;
 typedef VectorD<float, 3> Vector3f;
 typedef VectorD<float, 4> Vector4f;
 typedef VectorD<float, 5> Vector5f;
+typedef VectorD<float, 6> Vector6f;
+typedef VectorD<float, 7> Vector7f;
 
 typedef VectorD<uint32_t, 2> Vector2ui;
 typedef VectorD<uint32_t, 3> Vector3ui;
 typedef VectorD<uint32_t, 4> Vector4ui;
 typedef VectorD<uint32_t, 5> Vector5ui;
+typedef VectorD<uint32_t, 6> Vector6ui;
+typedef VectorD<uint32_t, 7> Vector7ui;
 
 }  // namespace draco
 

@@ -183,15 +183,17 @@ template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
     DataTypeT, TransformT, MeshDataT>::DecodePredictionData(DecoderBuffer
                                                                 *buffer) {
-  // Decode prediction mode.
-  uint8_t mode;
-  if (!buffer->Decode(&mode)) {
-    return false;
-  }
+  if (buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
+    // Decode prediction mode.
+    uint8_t mode;
+    if (!buffer->Decode(&mode)) {
+      return false;
+    }
 
-  if (mode != Mode::OPTIMAL_MULTI_PARALLELOGRAM) {
-    // Unsupported mode.
-    return false;
+    if (mode != Mode::OPTIMAL_MULTI_PARALLELOGRAM) {
+      // Unsupported mode.
+      return false;
+    }
   }
 
   // Encode selected edges using separate rans bit coder for each context.

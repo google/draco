@@ -19,6 +19,7 @@
 #include "draco/compression/attributes/linear_sequencer.h"
 #include "draco/compression/attributes/sequential_attribute_encoders_controller.h"
 #include "draco/core/symbol_encoding.h"
+#include "draco/core/varint_encoding.h"
 
 namespace draco {
 
@@ -26,9 +27,9 @@ MeshSequentialEncoder::MeshSequentialEncoder() {}
 
 bool MeshSequentialEncoder::EncodeConnectivity() {
   // Serialize indices.
-  const int32_t num_faces = mesh()->num_faces();
-  buffer()->Encode(num_faces);
-  buffer()->Encode(static_cast<int32_t>(mesh()->num_points()));
+  const uint32_t num_faces = mesh()->num_faces();
+  EncodeVarint(num_faces, buffer());
+  EncodeVarint(static_cast<uint32_t>(mesh()->num_points()), buffer());
 
   // We encode all attributes in the original (possibly duplicated) format.
   // TODO(ostava): This may not be optimal if we have only one attribute or if
@@ -59,6 +60,14 @@ bool MeshSequentialEncoder::EncodeConnectivity() {
         buffer()->Encode(static_cast<uint16_t>(face[0].value()));
         buffer()->Encode(static_cast<uint16_t>(face[1].value()));
         buffer()->Encode(static_cast<uint16_t>(face[2].value()));
+      }
+    } else if (mesh()->num_points() < (1 << 21)) {
+      // Serialize indices as varint.
+      for (FaceIndex i(0); i < num_faces; ++i) {
+        const auto &face = mesh()->face(i);
+        EncodeVarint(static_cast<uint32_t>(face[0].value()), buffer());
+        EncodeVarint(static_cast<uint32_t>(face[1].value()), buffer());
+        EncodeVarint(static_cast<uint32_t>(face[2].value()), buffer());
       }
     } else {
       // Serialize faces as uint32_t (default).

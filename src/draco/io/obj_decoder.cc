@@ -29,6 +29,7 @@ ObjDecoder::ObjDecoder()
       num_positions_(0),
       num_tex_coords_(0),
       num_normals_(0),
+      num_materials_(0),
       last_sub_obj_id_(0),
       pos_att_id_(-1),
       tex_att_id_(-1),
@@ -60,7 +61,6 @@ bool ObjDecoder::DecodeFromFile(const std::string &file_name,
   file.seekg(0, std::ios::beg);
   std::vector<char> data(file_size);
   file.read(&data[0], file_size);
-
   buffer_.Init(&data[0], file_size);
 
   out_point_cloud_ = out_point_cloud;
@@ -124,40 +124,39 @@ bool ObjDecoder::DecodeInternal() {
             sizeof(float) * 3, 0);
     norm_att_id_ = out_point_cloud_->AddAttribute(va, false, num_normals_);
   }
-  if (!material_name_to_id_.empty()) {
+  if (num_materials_ > 0) {
     GeometryAttribute va;
-    if (material_name_to_id_.size() < 256) {
+    if (num_materials_ < 256) {
       va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT8, false, 1, 0);
-    } else if (material_name_to_id_.size() < (1 << 16)) {
+    } else if (num_materials_ < (1 << 16)) {
       va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT16, false, 2, 0);
     } else {
       va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT32, false, 4, 0);
     }
     material_att_id_ =
-        out_point_cloud_->AddAttribute(va, false, material_name_to_id_.size());
+        out_point_cloud_->AddAttribute(va, false, num_materials_);
 
     // Fill the material entries.
-    for (const auto &itr : material_name_to_id_) {
-      const AttributeValueIndex i(itr.second);
-      out_point_cloud_->attribute(material_att_id_)->SetAttributeValue(i, &i);
+    for (int i = 0; i < num_materials_; ++i) {
+      const AttributeValueIndex avi(i);
+      out_point_cloud_->attribute(material_att_id_)->SetAttributeValue(avi, &i);
     }
 
     if (use_metadata_) {
       // Use metadata to store the name of materials.
       std::unique_ptr<AttributeMetadata> material_metadata =
-          std::unique_ptr<AttributeMetadata>(
-              new AttributeMetadata(material_att_id_));
+          std::unique_ptr<AttributeMetadata>(new AttributeMetadata());
       material_metadata->AddEntryString("name", "material");
       // Add all material names.
       for (const auto &itr : material_name_to_id_) {
-        const AttributeValueIndex i(itr.second);
         material_metadata->AddEntryInt(itr.first, itr.second);
       }
       if (!material_file_name_.empty()) {
         material_metadata->AddEntryString("file_name", material_file_name_);
       }
 
-      out_point_cloud_->AddAttributeMetadata(std::move(material_metadata));
+      out_point_cloud_->AddAttributeMetadata(material_att_id_,
+                                             std::move(material_metadata));
     }
   }
   if (!obj_name_to_id_.empty()) {
@@ -179,15 +178,15 @@ bool ObjDecoder::DecodeInternal() {
     if (use_metadata_) {
       // Use metadata to store the name of materials.
       std::unique_ptr<AttributeMetadata> sub_obj_metadata =
-          std::unique_ptr<AttributeMetadata>(
-              new AttributeMetadata(sub_obj_att_id_));
+          std::unique_ptr<AttributeMetadata>(new AttributeMetadata());
       sub_obj_metadata->AddEntryString("name", "sub_obj");
       // Add all sub object names.
       for (const auto &itr : obj_name_to_id_) {
         const AttributeValueIndex i(itr.second);
         sub_obj_metadata->AddEntryInt(itr.first, itr.second);
       }
-      out_point_cloud_->AddAttributeMetadata(std::move(sub_obj_metadata));
+      out_point_cloud_->AddAttributeMetadata(sub_obj_att_id_,
+                                             std::move(sub_obj_metadata));
     }
   }
 
@@ -455,15 +454,15 @@ bool ObjDecoder::ParseMaterial(bool * /* error */) {
   buffer()->Advance(6);
   parser::SkipWhitespace(buffer());
   std::string mat_name;
-  if (!parser::ParseString(buffer(), &mat_name))
+  parser::ParseLine(buffer(), &mat_name);
+  if (mat_name.length() == 0)
     return false;
   auto it = material_name_to_id_.find(mat_name);
   if (it == material_name_to_id_.end()) {
     // In first pass, materials found in obj that's not in the .mtl file
     // will be added to the list.
-    const size_t num_mat = material_name_to_id_.size();
-    material_name_to_id_[mat_name] = num_mat;
-    last_material_id_ = num_mat;
+    last_material_id_ = num_materials_;
+    material_name_to_id_[mat_name] = num_materials_++;
     return true;
   }
   last_material_id_ = it->second;
@@ -616,6 +615,7 @@ bool ObjDecoder::ParseMaterialFile(const std::string &file_name, bool *error) {
 
   buffer_.Init(&data[0], file_size);
 
+  num_materials_ = 0;
   while (ParseMaterialFileDefinition(error))
     ;
 
@@ -642,9 +642,10 @@ bool ObjDecoder::ParseMaterialFileDefinition(bool * /* error */) {
   if (str.compare("newmtl") == 0) {
     parser::SkipWhitespace(buffer());
     parser::ParseLine(buffer(), &str);
+    if (str.length() == 0)
+      return false;
     // Add new material to our map.
-    const size_t material_name_id = material_name_to_id_.size();
-    material_name_to_id_[str] = material_name_id;
+    material_name_to_id_[str] = num_materials_++;
   }
   parser::SkipLine(buffer());
   return true;

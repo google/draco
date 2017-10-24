@@ -118,8 +118,8 @@ bool ObjEncoder::GetSubObjects() {
       continue;
     sub_obj_id_to_name_[value] = entry.first;
   }
-  const int sub_obj_att_id = sub_obj_metadata->attribute_id();
-  sub_obj_att_ = in_point_cloud_->attribute(sub_obj_att_id);
+  sub_obj_att_ = in_point_cloud_->GetAttributeByUniqueId(
+      sub_obj_metadata->att_unique_id());
   if (sub_obj_att_ == nullptr || sub_obj_att_->size() == 0)
     return false;
   return true;
@@ -148,8 +148,8 @@ bool ObjEncoder::EncodeMaterialFileName() {
       continue;
     material_id_to_name_[value] = entry.first;
   }
-  const int material_att_id = material_metadata->attribute_id();
-  material_att_ = in_point_cloud_->attribute(material_att_id);
+  material_att_ = in_point_cloud_->GetAttributeByUniqueId(
+      material_metadata->att_unique_id());
   if (material_att_ == nullptr || material_att_->size() == 0)
     return false;
   return true;

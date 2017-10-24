@@ -84,10 +84,10 @@ TEST_F(ObjEncoderTest, HasMaterial) {
   ASSERT_EQ(mesh0->attribute(0)->size(), mesh1->attribute(0)->size());
   // Since |mesh1| is decoded from buffer, it has not material file. So the
   // size of material attribute is the number of materials used in the obj
-  // file which is 6. The size of material attribute of |mesh0| decoded from
+  // file which is 7. The size of material attribute of |mesh0| decoded from
   // the obj file will be the number of materials defined in the .mtl file.
   ASSERT_EQ(mesh0->attribute(1)->size(), 29);
-  ASSERT_EQ(mesh1->attribute(1)->size(), 6);
+  ASSERT_EQ(mesh1->attribute(1)->size(), 7);
 }
 
 TEST_F(ObjEncoderTest, TestObjEncodingAll) {

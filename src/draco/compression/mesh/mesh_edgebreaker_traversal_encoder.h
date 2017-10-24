@@ -45,10 +45,7 @@ class MeshEdgeBreakerTraversalEncoder {
 
   // Called before the traversal encoding is started.
   void Start() {
-    const Mesh *const mesh = encoder_impl_->GetEncoder()->mesh();
-    // Allocate enough storage to store initial face configurations. This can
-    // consume at most 1 bit per face if all faces are isolated.
-    start_face_buffer_.StartBitEncoding(mesh->num_faces(), true);
+    start_face_encoder_.StartEncoding();
     if (num_attribute_data_ > 0) {
       // Init and start arithmetic encoders for storing configuration types
       // of non-position attributes.
@@ -62,7 +59,7 @@ class MeshEdgeBreakerTraversalEncoder {
 
   // Called when a traversal starts from a new initial face.
   inline void EncodeStartFaceConfiguration(bool interior) {
-    start_face_buffer_.EncodeLeastSignificantBits32(1, interior ? 1 : 0);
+    start_face_encoder_.EncodeBit(interior);
   }
 
   // Called when a new corner is reached during the traversal. No-op for the
@@ -84,7 +81,18 @@ class MeshEdgeBreakerTraversalEncoder {
 
   // Called when the traversal is finished.
   void Done() {
-    start_face_buffer_.EndBitEncoding();
+    EncodeTraversalSymbols();
+    EncodeStartFaces();
+    EncodeAttributeSeams();
+  }
+
+  // Returns the number of encoded symbols.
+  int NumEncodedSymbols() const { return symbols_.size(); }
+
+  const EncoderBuffer &buffer() const { return traversal_buffer_; }
+
+ protected:
+  void EncodeTraversalSymbols() {
     // Bit encode the collected symbols.
     // Allocate enough storage for the bit encoder.
     // It's guaranteed that each face will need only up to 3 bits.
@@ -95,8 +103,13 @@ class MeshEdgeBreakerTraversalEncoder {
           edge_breaker_topology_bit_pattern_length[symbols_[i]], symbols_[i]);
     }
     traversal_buffer_.EndBitEncoding();
-    traversal_buffer_.Encode(start_face_buffer_.data(),
-                             start_face_buffer_.size());
+  }
+
+  void EncodeStartFaces() {
+    start_face_encoder_.EndEncoding(&traversal_buffer_);
+  }
+
+  void EncodeAttributeSeams() {
     if (attribute_connectivity_encoders_ != nullptr) {
       for (int i = 0; i < num_attribute_data_; ++i) {
         attribute_connectivity_encoders_[i].EndEncoding(&traversal_buffer_);
@@ -104,20 +117,13 @@ class MeshEdgeBreakerTraversalEncoder {
     }
   }
 
-  // Returns the number of encoded symbols.
-  int NumEncodedSymbols() const { return symbols_.size(); }
-
-  const EncoderBuffer &buffer() const { return traversal_buffer_; }
-
- protected:
   EncoderBuffer *GetOutputBuffer() { return &traversal_buffer_; }
   const MeshEdgeBreakerEncoderImplInterface *encoder_impl() const {
     return encoder_impl_;
   }
 
  private:
-  // Buffers for storing encoded data.
-  EncoderBuffer start_face_buffer_;
+  BinaryEncoder start_face_encoder_;
   EncoderBuffer traversal_buffer_;
   const MeshEdgeBreakerEncoderImplInterface *encoder_impl_;
   // Symbols collected during the traversal.

@@ -6,9 +6,9 @@ newmtl mat1
   Ka 0.61 0.15 0.69
   Kd 0.61 0.15 0.69
 
-newmtl mat2
-  Ka 0.40 0.23 0.72
-  Kd 0.40 0.23 0.72
+newmtl mat1
+  Ka 0.61 0.15 0.69
+  Kd 0.61 0.15 0.69
 
 newmtl mat3
   Ka 0.50 0.87 0.92

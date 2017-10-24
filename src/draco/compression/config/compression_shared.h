@@ -21,7 +21,7 @@ namespace draco {
 
 // Latest Draco bit-stream version.
 static constexpr uint8_t kDracoBitstreamVersionMajor = 2;
-static constexpr uint8_t kDracoBitstreamVersionMinor = 1;
+static constexpr uint8_t kDracoBitstreamVersionMinor = 2;
 
 // Macro that converts the Draco bit-stream into one uint16_t number.
 // Useful mostly when checking version numbers.
