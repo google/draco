@@ -32,6 +32,7 @@ void DecodeTaggedSymbols(num_values, num_components, out_values) {
       val                                                                             f[size]
       out_values.push_back(val);
     }
+    ResetBitReader();
   }
 }
 ~~~~~

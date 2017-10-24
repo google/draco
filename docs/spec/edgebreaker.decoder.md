@@ -28,6 +28,7 @@ void ParseTopologySplitEvents() {
   for (i = 0; i < num_topology_splits; ++i) {
     source_edge_bit[i]                                                                f[1]
   }
+  ResetBitReader();
 }
 ~~~~~
 {:.draco-syntax }
