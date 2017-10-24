@@ -69,6 +69,7 @@
   * 4096: rabs_l_base
   * 256: IO_BASE
   * 4096: L_RANS_BASE
+  * 16384: TAGGED_RANS_BASE
 
 * Symbol encoding methods
   * 0: TAGGED_SYMBOLS
