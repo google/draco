@@ -144,8 +144,6 @@
   * Last EdgeBreaker symbol decoded
 * last_vert_added
   * Id of the last vertex decoded
-* bit_symbol_buffer
-  * Standard EdgeBreaker encoded symbol buffer
 * active_corner_stack
   * Array of current working corners used during EdgeBreaker decoding
 * edge_breaker_symbol_to_topology_id
@@ -163,7 +161,7 @@
 #### EdgeBreaker Traversal
 * eb_symbol_buffer_size
 * eb_symbol_buffer
-  * EdgeBreaker encoded symbol data
+  * Standard EdgeBreaker encoded symbol data
 * eb_start_face_buffer_prob_zero
     * Face configuration encoded probability
 * eb_start_face_buffer_size
