@@ -5,7 +5,7 @@
 
 ~~~~~
 int ConvertSymbolToSignedInt(val) {
-  is_positive = !static_cast<bool>(val & 1);
+  is_positive = !(val & 1);
   val >>= 1;
   if (is_positive) {
     return val;
