@@ -90,7 +90,7 @@ void RecomputeVerticesInternal() {
     c = vertex_corners_[v];
     if (c < 0)
       continue;
-    first_vert_id(num_new_vertices++);
+    first_vert_id = num_new_vertices++;
     first_c = c;
     if (IsVertexOnAttributeSeam(attr, v)) {
       act_c = SwingLeft(curr_att_dec, first_c);
