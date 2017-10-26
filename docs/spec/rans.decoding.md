@@ -24,7 +24,7 @@ void DecodeTaggedSymbols(num_values, num_components, out_values) {
   BuildSymbolTables(num_symbols_, lut_table_, probability_table_);
   size                                                                                varUI64
   encoded_data                                                                        UI8[size]
-  RansInitDecoder(ans_, &encoded_data[0], size, l_rans_base);
+  RansInitDecoder(ans_, &encoded_data[0], size, TAGGED_RANS_BASE);
   for (i = 0; i < num_values; i += num_components) {
     RansRead(ans_, TAGGED_RANS_BASE, TAGGED_RANS_PRECISION,
              lut_table_, probability_table_, &size);
