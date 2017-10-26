@@ -63,8 +63,8 @@ void MeshPredictionSchemeTexCoordsPortablePredictor_ComputePredictedValue(
     GetTexCoordForEntryId(prev_data_id, data, &p_uv);
 
     if (p_uv == n_uv) {
-      (*predicted_value_)[0] = p_uv[0];
-      (*predicted_value_)[1] = p_uv[1];
+      predicted_value_[0] = p_uv[0];
+      predicted_value_[1] = p_uv[1];
       return;
     }
     GetPositionForEntryId(data_id, &tip_pos);

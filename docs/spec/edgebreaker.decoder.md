@@ -98,8 +98,8 @@ bool IsTopologySplit(encoder_symbol_id, out_face_edge,
                      out_encoder_split_symbol_id) {
   if (source_symbol_id.back() != encoder_symbol_id)
     return false;
-  *out_face_edge = source_edge_bit.pop_back();
-  *out_encoder_split_symbol_id = split_symbol_id.pop_back();
+  out_face_edge = source_edge_bit.pop_back();
+  out_encoder_split_symbol_id = split_symbol_id.pop_back();
   source_symbol_id.pop_back();
   return true;
 }
