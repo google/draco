@@ -64,6 +64,7 @@ void ParseWrapTransformData() {
 ~~~~~
 void ParseNormalOctahedronCanonicalizedTransformData() {
   pred_trasnform_normal_max_q_val[curr_att_dec][curr_att]                             I32
+  unused_center_value                                                                 I32
 }
 ~~~~~
 {:.draco-syntax}
@@ -132,7 +133,7 @@ void DecodePredictionData_ConstrainedMulti() {
 
 ~~~~~
 void ParseTexCoordsNumOrientations() {
-  tex_coords_num_orientations                                                         varUI32
+  tex_coords_num_orientations                                                         UI32
 }
 ~~~~~
 {:.draco-syntax}
