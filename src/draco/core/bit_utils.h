@@ -21,6 +21,10 @@
 
 #include <stdint.h>
 
+#if defined(_MSC_VER)
+#include <intrin.h>
+#endif // defined(_MSC_VER)
+
 namespace draco {
 namespace bits {
 
@@ -54,6 +58,10 @@ inline void CopyBits32(uint32_t *dst, int dst_offset, uint32_t src,
 inline int MostSignificantBit(uint32_t n) {
 #if defined(__GNUC__)
   return 31 ^ __builtin_clz(n);
+#elif defined(_MSC_VER)
+  unsigned long where;
+  _BitScanReverse(&where, n);
+  return (int)where;
 #else
   // TODO(fgalligan): Optimize this code.
   int msb = -1;
