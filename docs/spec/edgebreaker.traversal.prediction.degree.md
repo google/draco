@@ -69,7 +69,7 @@ void PredictionDegree_TraverseFromCorner(corner_id) {
     OnNewVertexVisited(tip_vertex, corner_id);
   }
   while ((corner_id = PopNextCornerToTraverse()) >= 0) {
-    face_id(corner_id / 3);
+    face_id = corner_id / 3;
     if (IsFaceVisited(face_id)) {
       continue;
     }
@@ -83,8 +83,8 @@ void PredictionDegree_TraverseFromCorner(corner_id) {
       }
       right_corner_id = GetRightCorner(corner_id);
       left_corner_id = GetLeftCorner(corner_id);
-      right_face_id((right_corner_id < 0 ? -1 : right_corner_id / 3));
-      left_face_id((left_corner_id < 0 ? -1 : left_corner_id / 3));
+      right_face_id = right_corner_id < 0 ? -1 : right_corner_id / 3;
+      left_face_id = left_corner_id < 0 ? -1 : left_corner_id / 3;
       is_right_face_visited = IsFaceVisited(right_face_id);
       is_left_face_visited = IsFaceVisited(left_face_id);
       if (!is_left_face_visited) {

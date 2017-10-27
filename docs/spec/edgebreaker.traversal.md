@@ -134,8 +134,8 @@ void EdgeBreakerTraverser_ProcessCorner(corner_id) {
       }
       right_corner_id = GetRightCorner(corner_id);
       left_corner_id = GetLeftCorner(corner_id);
-      right_face_id((right_corner_id < 0 ? -1 : right_corner_id / 3));
-      left_face_id((left_corner_id < 0 ? -1 : left_corner_id / 3));
+      right_face_id = right_corner_id < 0 ? -1 : right_corner_id / 3;
+      left_face_id = left_corner_id < 0 ? -1 : left_corner_id / 3;
       if (IsFaceVisited(right_face_id)) {
         if (IsFaceVisited(left_face_id)) {
           corner_traversal_stack_.pop_back();
@@ -206,8 +206,8 @@ void EdgeBreakerAttributeTraverser_ProcessCorner(corner_id) {
       prev_c = Previous(corner_id);
       left_seam = IsCornerOppositeToSeamEdge(prev_c);
       left_corner_id = (left_seam) ? -1 : GetLeftCorner(corner_id);
-      right_face_id((right_corner_id < 0 ? -1 : right_corner_id / 3));
-      left_face_id((left_corner_id < 0 ? -1 : left_corner_id / 3));
+      right_face_id = right_corner_id < 0 ? -1 : right_corner_id / 3;
+      left_face_id = left_corner_id < 0 ? -1 : left_corner_id / 3;
         if (IsFaceVisited(left_face_id)) {
           corner_traversal_stack_.pop_back();
           break;
