@@ -170,15 +170,16 @@ void MeshPredictionSchemeGeometricNormalDecoder_ComputeOriginalValues(num_values
   out_values = signed_values;
   for (data_id = 0; data_id < corner_map_size; ++data_id) {
     corner_id = encoded_attribute_value_index_to_corner_map[curr_att_dec][data_id];
-    MeshPredictionSchemeGeometricNormalPredictorArea_ComputePredictedValue(corner_id, &pred_normal_3d);
+    MeshPredictionSchemeGeometricNormalPredictorArea_ComputePredictedValue(
+        corner_id, &pred_normal_3d);
     CanonicalizeIntegerVector(pred_normal_3d, center_value_);
     if (flip_normal_bits[data_id]) {
       for (i = 0; i < pred_normal_3d.size(); ++i) {
         pred_normal_3d[i] = -pred_normal_3d[i];
       }
     }
-    IntegerVectorToQuantizedOctahedralCoords(&pred_normal_3d[0], &pred_normal_oct[0],
-        &pred_normal_oct[1], center_value_, max_value_);
+    IntegerVectorToQuantizedOctahedralCoords(&pred_normal_3d[0],
+        &pred_normal_oct[0], &pred_normal_oct[1], center_value_, max_value_);
     data_offset = data_id * 2;
     PredictionSchemeNormalOctahedronCanonicalizedDecodingTransform_ComputeOriginalValue(
          &pred_normal_oct[0], &out_values[data_offset], &out_values[data_offset]);

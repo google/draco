@@ -60,12 +60,14 @@ void MeshPredictionSchemeConstrainedMultiParallelogramDecoder_ComputeOriginalVal
     dst_offset = p * num_components;
     if (num_used_parallelograms == 0) {
       src_offset = (p - 1) * num_components;
-      PredictionSchemeTransform_ComputeOriginalValue(&out_values[src_offset], &signed_values[dst_offset], &out_values[dst_offset]);
+      PredictionSchemeTransform_ComputeOriginalValue(&out_values[src_offset],
+          &signed_values[dst_offset], &out_values[dst_offset]);
     } else {
       for (c = 0; c < num_components; ++c) {
         multi_pred_vals[c] /= num_used_parallelograms;
       }
-      PredictionSchemeTransform_ComputeOriginalValue(multi_pred_vals, &signed_values[dst_offset], &out_values[dst_offset]);
+      PredictionSchemeTransform_ComputeOriginalValue(multi_pred_vals,
+          &signed_values[dst_offset], &out_values[dst_offset]);
     }
   }
   seq_int_att_dec_original_values[curr_att_dec][curr_att] = out_values;
