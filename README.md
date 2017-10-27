@@ -13,6 +13,8 @@ The latest version of Draco brings a number of new compression enhancements and 
 * Fixed Android build issues
 * New, easier to use DRACOLoader.js
 
+---
+
 Description
 ===========
 
@@ -60,11 +62,14 @@ _**Contents**_
   * [License](#license)
   * [References](#references)
 
+---
 
 Building
 ========
 For all platforms, you must first generate the project/make files and then
 compile the examples.
+
+---
 
 CMake Basics
 ------------
@@ -86,6 +91,8 @@ To control what types of projects are generated, add the `-G` parameter to the
 Running `cmake` with the `--help` argument will list the available
 generators for your system.
 
+---
+
 Mac OS X
 ---------
 
@@ -94,6 +101,8 @@ On Mac OS X, run the following command to generate Xcode projects:
 ~~~~~ bash
 $ cmake path/to/draco -G Xcode
 ~~~~~
+
+---
 
 Windows
 -------
@@ -111,6 +120,8 @@ To generate 64-bit Windows Visual Studio 2015 projects:
 C:\Users\nobody> cmake path/to/draco -G "Visual Studio 14 2015 Win64"
 ~~~~~
 
+
+---
 
 CMake Build Configuration
 -------------------------
@@ -154,6 +165,8 @@ sanitizer type when running CMake:
 $ cmake path/to/draco -DSANITIZE=address
 ~~~~~
 
+---
+
 Googletest Integration
 ----------------------
 
@@ -176,6 +189,7 @@ $ cmake path/to/draco -DENABLE_TESTS=ON -DGTEST_SOURCE_DIR=path/to/googletest
 To run the tests just execute `draco_tests` from your toolchain's build output
 directory.
 
+---
 
 Javascript Encoder/Decoder
 ------------------
@@ -197,6 +211,8 @@ $ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake
 # Build the Javascript encoder and decoder.
 $ make
 ~~~~~
+
+---
 
 WebAssembly Decoder
 -------------------
@@ -226,6 +242,8 @@ $ java -jar closure.jar --compilation_level SIMPLE --js draco_decoder.js --js_ou
 
 ~~~~~
 
+---
+
 WebAssembly Mesh Only Decoder
 -----------------------------
 
@@ -235,6 +253,8 @@ WebAssembly Mesh Only Decoder
 $ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake -DENABLE_WASM=ON -DENABLE_POINT_CLOUD_COMPRESSION=OFF
 
 ~~~~~
+
+---
 
 WebAssembly Point Cloud Only Decoder
 -----------------------------
@@ -246,6 +266,7 @@ $ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake -DENABLE_
 
 ~~~~~
 
+---
 
 Android Studio Project Integration
 ----------------------------------
@@ -306,6 +327,8 @@ To add Draco to your project:
          }
      }
 
+---
+
 Usage
 ======
 
@@ -316,6 +339,8 @@ The default target created from the build files will be the `draco_encoder`
 and `draco_decoder` command line applications. For both applications, if you
 run them without any arguments or `-h`, the applications will output usage and
 options.
+
+---
 
 Encoding Tool
 -------------
@@ -354,6 +379,8 @@ In general, the highest setting, `10`, will have the most compression but
 worst decompression speed. `0` will have the least compression, but best
 decompression speed. The default setting is `5`.
 
+---
+
 Encoding Point Clouds
 ---------------------
 
@@ -371,6 +398,8 @@ input might not produce compression that is representative of other point
 clouds. Specifically, one can expect much better compression rates for larger
 and denser point clouds.
 
+---
+
 Decoding Tool
 -------------
 
@@ -380,6 +409,8 @@ The basic command line looks like this:
 ~~~~~ bash
 ./draco_decoder -i in.drc -o out.obj
 ~~~~~
+
+---
 
 C++ Decoder API
 -------------
@@ -407,6 +438,7 @@ if (geom_type == draco::TRIANGULAR_MESH) {
 Please see [src/draco/mesh/mesh.h](src/draco/mesh/mesh.h) for the full Mesh class interface and
 [src/draco/point_cloud/point_cloud.h](src/draco/point_cloud/point_cloud.h) for the full `PointCloud` class interface.
 
+---
 
 Javascript Encoder API
 ----------------------
@@ -469,6 +501,8 @@ encoderModule.destroy(meshBuilder);
 ~~~~~
 Please see [src/draco/javascript/emscripten/draco_web_encoder.idl](src/draco/javascript/emscripten/draco_web_encoder.idl) for the full API.
 
+---
+
 Javascript Decoder API
 ----------------------
 
@@ -503,6 +537,8 @@ dracoDecoder.destroy(buffer);
 
 Please see [src/draco/javascript/emscripten/draco_web_encoder.idl](src/draco/javascript/emscripten/draco_web_encoder.idl) for the full API.
 
+---
+
 Javascript Decoder Performance
 ------------------------------
 
@@ -511,6 +547,8 @@ work with all of the compressed data. But this option is not the fastest.
 Pre-allocating the memory sees about a 2x decoder speed improvement. If you
 know all of your project's memory requirements, you can turn on static memory
 by changing `Makefile.emcc` and running `make -f Makefile.emcc`.
+
+---
 
 Metadata API
 ------------
@@ -563,10 +601,14 @@ const draco::AttributeMetadata *requested_pos_metadata =
 
 Please see [src/draco/metadata](src/draco/metadata) and [src/draco/point_cloud](src/draco/point_cloud) for the full API.
 
+---
+
 NPM Package
 -----------
 Draco NPM NodeJS package is located in [javascript/npm/draco3d](javascript/npm/draco3d). Please see the
 doc in the folder for detailed usage.
+
+---
 
 three.js Renderer Example
 -------------------------
@@ -587,6 +629,8 @@ If you have found an error in this library, please file an issue at
 Patches are encouraged, and may be submitted by forking this project and
 submitting a pull request through GitHub. See [CONTRIBUTING] for more detail.
 
+---
+
 License
 =======
 Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -601,6 +645,8 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations under
 the License.
 
+---
+
 References
 ==========
 [example]:https://storage.googleapis.com/demos.webmproject.org/draco/draco_loader_throw.html
@@ -610,3 +656,7 @@ References
 [CONTRIBUTING]: https://raw.githubusercontent.com/google/draco/master/CONTRIBUTING.md
 
 Bunny model from Stanford's graphic department <https://graphics.stanford.edu/data/3Dscanrep/>
+
+---
+
+<img src="https://avatars2.githubusercontent.com/u/1342004?s=200&v=4" width="50"></img>
