@@ -17,7 +17,7 @@ void MeshPredictionSchemeConstrainedMultiParallelogramDecoder_ComputeOriginalVal
   corner_map_size = num_values;
   for (p = 1; p < corner_map_size; ++p) {
     start_corner_id = encoded_attribute_value_index_to_corner_map[curr_att_dec][p];
-    corner_id(start_corner_id);
+    corner_id = start_corner_id;
     num_parallelograms = 0;
     first_pass = true;
     while (corner_id >= 0) {
