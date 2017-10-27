@@ -39,7 +39,8 @@ void DecodeDataNeededByPortableTransforms() {
     if (seq_att_dec_decoder_type[curr_att_dec][curr_att] ==
         SEQUENTIAL_ATTRIBUTE_ENCODER_NORMALS) {
       ParseQuantizationBits();
-    } else if (seq_att_dec_decoder_type[curr_att_dec][curr_att] == SEQUENTIAL_ATTRIBUTE_ENCODER_QUANTIZATION) {
+    } else if (seq_att_dec_decoder_type[curr_att_dec][curr_att] ==
+               SEQUENTIAL_ATTRIBUTE_ENCODER_QUANTIZATION) {
       ParseQuantizationData();
     }
   }
@@ -229,7 +230,8 @@ void PredictionSchemeDifference_ComputeOriginalValues(num_values) {
   PredictionSchemeTransform_ComputeOriginalValue(
       &zero_vals[0], &signed_values[0], &out_values[0]);
   for (i = num_components; i < size; i += num_components) {
-    PredictionSchemeTransform_ComputeOriginalValue(&out_values[i - num_components], &signed_values[i], &out_values[i]);
+    PredictionSchemeTransform_ComputeOriginalValue(
+        &out_values[i - num_components], &signed_values[i], &out_values[i]);
   }
   seq_int_att_dec_original_values[curr_att_dec][curr_att] = out_values;
 }

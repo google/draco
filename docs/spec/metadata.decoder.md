@@ -5,7 +5,6 @@
 ~~~~~
 void DecodeMetadata() {
   ParseMetadataCount();
-
   for (i = 0; i < num_att_metadata; ++i) {
     ParseAttributeMetadataId(i);
     DecodeMetadataElement(att_metadata[i]);
