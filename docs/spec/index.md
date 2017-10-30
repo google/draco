@@ -1,8 +1,8 @@
 ---
 layout: spec-page
 title: Draco Bitstream Specification
-version: Version 2,2 (pending)
-version_date: Released 2017-10-02
+version: Version 2,2
+version_date: Released 2017-10-25
 ---
 
 <ol class="breadcrumb">
