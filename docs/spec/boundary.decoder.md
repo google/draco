@@ -5,7 +5,6 @@
 ~~~~~
 void DecodeAttributeSeams() {
   for (a = 0; a < num_attributes_decoders - 1; ++a) {
-    AnsDecoder ans_decoder_;
     RansInitDecoder(ans_decoder_,
         attribute_connectivity_decoders_buffer[a],
         attribute_connectivity_decoders_size[a], L_RANS_BASE);
@@ -24,7 +23,7 @@ void DecodeAttributeSeams() {
       if (!boundary_edge) {
         if (opp_corner >= corner) {
           for (a = 0; a < num_attributes_decoders - 1; ++a) {
-            RabsDescRead(&ans_decoders[a],
+            RabsDescRead(ans_decoders[a],
                          attribute_connectivity_decoders_prob_zero[a], &val);
             if (val) {
               att_connectivity_seam_opp[a].push_back(v);

@@ -128,7 +128,7 @@ void RecomputeVerticesInternal() {
 
 ~~~~~
 void Attribute_AssignPointsToCorners() {
-  num_corners = face_to_vertex[0].size() * 3;
+  point_to_corner_map_count = 0;
   for (v = 0; v < num_encoded_vertices + num_encoded_split_symbols; ++v) {
     c = vertex_corners_[v];
     if (c < 0)
@@ -159,8 +159,7 @@ void Attribute_AssignPointsToCorners() {
     }
 
     c = deduplication_first_corner;
-    corner_to_point_map[c] = point_to_corner_map.size();
-    point_to_corner_map.push_back(c);
+    corner_to_point_map[c] = point_to_corner_map_count++;
     prev_c = c;
     c = SwingRight(0, c);
     while (c >= 0 && c != deduplication_first_corner) {
@@ -174,8 +173,7 @@ void Attribute_AssignPointsToCorners() {
         }
       }
       if (attribute_seam) {
-        corner_to_point_map[c] = point_to_corner_map.size();
-        point_to_corner_map.push_back(c);
+        corner_to_point_map[c] = point_to_corner_map_count++;
       } else {
         corner_to_point_map[c] = corner_to_point_map[prev_c];
       }

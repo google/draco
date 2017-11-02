@@ -71,31 +71,31 @@ void MeshPredictionSchemeTexCoordsPortablePredictor_ComputePredictedValue(
     GetPositionForEntryId(data_id, &tip_pos);
     GetPositionForEntryId(next_data_id, &next_pos);
     GetPositionForEntryId(prev_data_id, &prev_pos);
-    SubtractInt64Vectors(prev_pos, next_pos, &pn);
+    SubtractVectors(prev_pos, next_pos, &pn);
     Dot(pn, pn, &pn_norm2_squared);
 
     if (pn_norm2_squared != 0) {
-      SubtractInt64Vectors(tip_pos, next_pos, &cn);
+      SubtractVectors(tip_pos, next_pos, &cn);
       Dot(cn, pn, &cn_dot_pn);
-      SubtractInt64Vectors(p_uv, n_uv, &pn_uv);
+      SubtractVectors(p_uv, n_uv, &pn_uv);
       MultiplyScalar(pn_uv, cn_dot_pn, &vec_mult_1);
       MultiplyScalar(n_uv, pn_norm2_squared, &vec_mult_2);
       AddVectors(vec_mult_1, vec_mult_2, &x_uv);
       MultiplyScalar(pn, cn_dot_pn, &vec_mult);
       DivideScalar(vec_mult, pn_norm2_squared, &vec_div);
       AddVectors(next_pos, vec_div, &x_pos);
-      SubtractInt64Vectors(tip_pos, x_pos, &vec_sub);
+      SubtractVectors(tip_pos, x_pos, &vec_sub);
       Dot(vec_sub, vec_sub, &cx_norm2_squared);
 
       temp_vec.push_back(pn_uv[1]);
       temp_vec.push_back(-pn_uv[0]);
       norm_squared = IntSqrt(cx_norm2_squared * pn_norm2_squared);
       MultiplyScalar(temp_vec, norm_squared, &cx_uv);
-      orientation = pred_tex_coords_orientaitons[curr_att_dec][curr_att].pop_back();
+      orientation = pred_tex_coords_orientations[curr_att_dec][curr_att].pop_back();
       if (orientation)
         AddVectors(x_uv, cx_uv, &temp_vec);
       else
-        SubtractInt64Vectors(x_uv, cx_uv, &temp_vec);
+        SubtractVectors(x_uv, cx_uv, &temp_vec);
       DivideScalar(temp_vec, pn_norm2_squared, &predicted_uv);
       predicted_value_[0] = predicted_uv[0];
       predicted_value_[1] = predicted_uv[1];
