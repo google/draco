@@ -43,8 +43,8 @@ void MeshPredictionSchemeGeometricNormalPredictorArea_ComputePredictedValue(
     c_prev = Previous(corner);
     GetPositionForCorner(c_next, &pos_next);
     GetPositionForCorner(c_prev, &pos_prev);
-    SubtractInt64Vectors(pos_next, pos_cent, &delta_next);
-    SubtractInt64Vectors(pos_prev, pos_cent, &delta_prev);
+    SubtractVectors(pos_next, pos_cent, &delta_next);
+    SubtractVectors(pos_prev, pos_cent, &delta_prev);
     CrossProduct(delta_next, delta_prev, &cross);
     AddVectors(normal, cross, &temp_norm);
     for (i = 0; i < temp_norm.size(); ++i) {

@@ -230,7 +230,7 @@
 * seq_int_att_dec_compressed
 * pred_cons_multi_is_cease_edge
   * Array for multi parallelogram prediction signifying if the edge is the last edge
-* pred_tex_coords_orientaitons
+* pred_tex_coords_orientations
   * Array signifying orientation for the texture coordinate prediction
 * pred_trasnform_wrap_min
   * Array of minimum clamp values used by the wrap transform
@@ -277,6 +277,8 @@
   * Current rans zero probability
 * prediction_rans_data_size
   * Current size of rans encoded data
+* prediction_rans_data_buffer
+  * Ans encoded prediction data for an attribute
 * tex_coords_num_orientations
   * Current number of orientations for encoded Texture data
 * traversal_stacks_

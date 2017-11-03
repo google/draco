@@ -5,7 +5,6 @@
 ~~~~~
 void ParseEdgebreakerConnectivityData() {
   edgebreaker_traversal_type                                                          UI8
-  num_new_vertices                                                                    varUI32
   num_encoded_vertices                                                                varUI32
   num_faces                                                                           varUI32
   num_attribute_data                                                                  UI8
@@ -354,6 +353,7 @@ void EdgebreakerDecodeSymbol() {
 ~~~~~
 void DecodeEdgeBreakerConnectivity() {
   is_vert_hole_.assign(num_encoded_vertices + num_encoded_split_symbols, true);
+  last_vert_added = -1;
   for (i = 0; i < num_encoded_symbols; ++i) {
     EdgebreakerDecodeSymbol();
     corner = 3 * i;
@@ -369,7 +369,6 @@ void DecodeEdgeBreakerConnectivity() {
 
 ~~~~~
 void ProcessInteriorEdges() {
-  AnsDecoder ans_decoder_;
   RansInitDecoder(ans_decoder_, eb_start_face_buffer,
       eb_start_face_buffer_size, L_RANS_BASE);
 

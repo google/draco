@@ -92,7 +92,8 @@ void DecodeTransformData() {
 ~~~~~
 void ParsePredictionRansData() {
   prediction_rans_prob_zero                                                           UI8
-  prediction_rans_data_size                                                           varUI32
+  sz = prediction_rans_data_size                                                      varUI32
+  prediction_rans_data_buffer                                                         UI8[sz]
 }
 ~~~~~
 {:.draco-syntax}
@@ -116,10 +117,10 @@ void DecodePredictionData_ConstrainedMulti() {
     ParseConstrainedMultiNumFlags();
     if (constrained_multi_num_flags > 0) {
       ParsePredictionRansData();
-      RansInitDecoder(ans_decoder_, data + pos,
+      RansInitDecoder(ans_decoder_, prediction_rans_data_buffer,
                       prediction_rans_data_size, L_RANS_BASE);
       for (j = 0; j < constrained_multi_num_flags; ++j) {
-        RabsDescRead(&ans_decoder_, prediction_rans_prob_zero, &val);
+        RabsDescRead(ans_decoder_, prediction_rans_prob_zero, &val);
         is_crease_edge_[i][j] = val > 0;
       }
     }
@@ -146,16 +147,16 @@ void ParseTexCoordsNumOrientations() {
 void DecodePredictionData_TexCoords() {
   ParseTexCoordsNumOrientations();
   ParsePredictionRansData();
-  RansInitDecoder(ans_decoder_, data + pos,
+  RansInitDecoder(ans_decoder_, prediction_rans_data_buffer,
                   prediction_rans_data_size, L_RANS_BASE);
   last_orientation = true;
   for (i = 0; i < tex_coords_num_orientations; ++i) {
-    RabsDescRead(&ans_decoder_, prediction_rans_prob_zero, &val);
+    RabsDescRead(ans_decoder_, prediction_rans_prob_zero, &val);
     if (val == 0)
       last_orientation = !last_orientation;
-    orientaitons.push_back(last_orientation);
+    orientations.push_back(last_orientation);
   }
-  pred_tex_coords_orientaitons[curr_att_dec][curr_att] = orientaitons;
+  pred_tex_coords_orientations[curr_att_dec][curr_att] = orientations;
 }
 ~~~~~
 {:.draco-syntax}
@@ -166,11 +167,11 @@ void DecodePredictionData_TexCoords() {
 ~~~~~
 void DecodePredictionData_GeometricNormal() {
   ParsePredictionRansData();
-  RansInitDecoder(ans_decoder_, data + pos,
+  RansInitDecoder(ans_decoder_, prediction_rans_data_buffer,
                   prediction_rans_data_size, L_RANS_BASE);
   num_values = att_dec_num_values_to_decode[curr_att_dec][curr_att];
   for (i = 0; i < num_values; ++i) {
-    RabsDescRead(&ans_decoder_, prediction_rans_prob_zero, &val);
+    RabsDescRead(ans_decoder_, prediction_rans_prob_zero, &val);
     flip_normal_bits.push_back(val > 0);
   }
   pred_transform_normal_flip_normal_bits[curr_att_dec][curr_att] = flip_normal_bits;
