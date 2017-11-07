@@ -490,15 +490,15 @@ const decoder = new decoderModule.Decoder();
 const geometryType = decoder.GetEncodedGeometryType(buffer);
 
 let outputGeometry;
-if (geometryType == dracoDecoder.TRIANGULAR_MESH) {
+if (geometryType == decoderModule.TRIANGULAR_MESH) {
   outputGeometry = decoder.DecodeBufferToMesh(buffer);
 } else {
   outputGeometry = decoder.DecodeBufferToPointCloud(buffer);
 }
 
-dracoDecoder.destroy(outputGeometry);
-dracoDecoder.destroy(decoder);
-dracoDecoder.destroy(buffer);
+decoderModule.destroy(outputGeometry);
+decoderModule.destroy(decoder);
+decoderModule.destroy(buffer);
 ~~~~~
 
 Please see [src/draco/javascript/emscripten/draco_web_encoder.idl](src/draco/javascript/emscripten/draco_web_encoder.idl) for the full API.
