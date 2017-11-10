@@ -5,17 +5,13 @@
 
 News
 =======
-### Version 1.1.0 release
-The latest version of Draco brings a number of new compression enhancements for
-even smaller models:
-* Improved compression
-  * Up to 40% better compression of normals
-  * Up to 5% better compression for models with multiple attributes
-* Faster decode speeds
-  * 30% faster decoding for models with multiple attributes for lower compression levels 4 and below
-    * Note: Decreases compression by 10%.
-* Encoding of metadata to .obj (e.g. Draco can preserve material or sub-object names)
-* Security fixes
+### Version 1.2.0 release
+The latest version of Draco brings a number of new compression enhancements and readies Draco for glTF 2.0 assets
+* Improved compression:
+  * 5% improved compression for small assets
+* Enhancements for upcoming Draco glTF2.0 extension
+* Fixed Android build issues
+* New, easier to use DRACOLoader.js
 
 Description
 ===========
