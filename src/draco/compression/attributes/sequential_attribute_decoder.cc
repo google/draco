@@ -75,11 +75,14 @@ bool SequentialAttributeDecoder::InitPredictionScheme(
         ps->GetParentAttributeType(i));
     if (att_id == -1)
       return false;  // Requested attribute does not exist.
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
       if (!ps->SetParentAttribute(decoder_->point_cloud()->attribute(att_id))) {
         return false;
       }
-    } else {
+    } else
+#endif
+    {
       if (!ps->SetParentAttribute(decoder_->GetPortableAttribute(att_id))) {
         return false;
       }

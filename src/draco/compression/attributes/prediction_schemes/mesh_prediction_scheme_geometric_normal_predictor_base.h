@@ -31,7 +31,7 @@ namespace draco {
 template <typename DataTypeT, class TransformT, class MeshDataT>
 class MeshPredictionSchemeGeometricNormalPredictorBase {
  protected:
-  MeshPredictionSchemeGeometricNormalPredictorBase(const MeshDataT &md)
+  explicit MeshPredictionSchemeGeometricNormalPredictorBase(const MeshDataT &md)
       : pos_attribute_(nullptr),
         entry_to_point_id_map_(nullptr),
         mesh_data_(md) {}

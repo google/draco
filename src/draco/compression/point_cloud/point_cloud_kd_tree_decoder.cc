@@ -28,9 +28,9 @@ bool PointCloudKdTreeDecoder::DecodeGeometryData() {
 
 bool PointCloudKdTreeDecoder::CreateAttributesDecoder(int32_t att_decoder_id) {
   // Always create the basic attribute decoder.
-  SetAttributesDecoder(att_decoder_id, std::unique_ptr<AttributesDecoder>(
-                                           new KdTreeAttributesDecoder()));
-  return true;
+  return SetAttributesDecoder(
+      att_decoder_id,
+      std::unique_ptr<AttributesDecoder>(new KdTreeAttributesDecoder()));
 }
 
 }  // namespace draco

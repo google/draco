@@ -80,10 +80,10 @@ void Usage() {
       "  --skip ATTRIBUTE_NAME skip a given attribute (NORMAL, TEX_COORD, "
       "GENERIC)\n");
   printf(
-      "\nUse negative quantization values to skip the specified attribute\n");
-  printf(
       "  --metadata            use metadata to encode extra information in "
       "mesh files.\n");
+  printf(
+      "\nUse negative quantization values to skip the specified attribute\n");
 }
 
 int StringToInt(const std::string &s) {
@@ -192,6 +192,7 @@ int EncodeMeshToFile(const draco::Mesh &mesh, const std::string &file,
 
 int main(int argc, char **argv) {
   Options options;
+  draco::Encoder encoder;
   const int argc_check = argc - 1;
 
   for (int i = 1; i < argc; ++i) {
@@ -312,18 +313,19 @@ int main(int argc, char **argv) {
           pc->GetNamedAttributeId(draco::GeometryAttribute::GENERIC, 0));
     }
   }
+#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
   // If any attribute has been deleted, run deduplication of point indices again
   // as some points can be possibly combined.
   if (options.tex_coords_deleted || options.normals_deleted ||
       options.generic_deleted) {
     pc->DeduplicatePointIds();
   }
+#endif
 
   // Convert compression level to speed (that 0 = slowest, 10 = fastest).
   const int speed = 10 - options.compression_level;
 
   // Setup encoder options.
-  draco::Encoder encoder;
   if (options.pos_quantization_bits > 0) {
     encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION,
                                      options.pos_quantization_bits);

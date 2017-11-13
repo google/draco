@@ -69,6 +69,7 @@ bool PlyDecoder::DecodeInternal() {
   // Decode all attributes.
   if (!DecodeVertexData(ply_reader.GetElementByName("vertex")))
     return false;
+#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
   // In case there are no faces this is just a point cloud which does
   // not require deduplication.
   if (out_mesh_ && out_mesh_->num_faces() != 0) {
@@ -76,6 +77,7 @@ bool PlyDecoder::DecodeInternal() {
       return false;
     out_point_cloud_->DeduplicatePointIds();
   }
+#endif
   return true;
 }
 

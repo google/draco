@@ -58,11 +58,14 @@ bool RAnsSymbolDecoder<max_symbol_bit_length_t>::Create(DecoderBuffer *buffer) {
   // Check that the DecoderBuffer version is set.
   if (buffer->bitstream_version() == 0)
     return false;
-  // Decode the number of alphabet symbols.
+    // Decode the number of alphabet symbols.
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     if (!buffer->Decode(&num_symbols_))
       return false;
-  } else {
+  } else
+#endif
+  {
     if (!DecodeVarint(&num_symbols_, buffer))
       return false;
   }
@@ -114,10 +117,13 @@ bool RAnsSymbolDecoder<max_symbol_bit_length_t>::StartDecoding(
     DecoderBuffer *buffer) {
   uint64_t bytes_encoded;
   // Decode the number of bytes encoded by the encoder.
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     if (!buffer->Decode(&bytes_encoded))
       return false;
-  } else {
+  } else
+#endif
+  {
     if (!DecodeVarint<uint64_t>(&bytes_encoded, buffer))
       return false;
   }

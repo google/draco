@@ -148,6 +148,7 @@ void PointCloud::DeleteAttribute(int att_id) {
   }
 }
 
+#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
 void PointCloud::DeduplicatePointIds() {
   // Hashing function for a single vertex.
   auto point_hash = [this](PointIndex p) {
@@ -225,5 +226,6 @@ bool PointCloud::DeduplicateAttributeValues() {
   }
   return true;
 }
+#endif
 
 }  // namespace draco

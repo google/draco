@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_TEX_COORDS_DECODER_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_TEX_COORDS_DECODER_H_
 
@@ -72,6 +73,8 @@ class MeshPredictionSchemeTexCoordsDecoder
   }
 
   bool SetParentAttribute(const PointAttribute *att) override {
+    if (att == nullptr)
+      return false;
     if (att->attribute_type() != GeometryAttribute::POSITION)
       return false;  // Invalid attribute type.
     if (att->num_components() != 3)
@@ -322,3 +325,4 @@ void MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
 }  // namespace draco
 
 #endif  // DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_TEX_COORDS_DECODER_H_
+#endif

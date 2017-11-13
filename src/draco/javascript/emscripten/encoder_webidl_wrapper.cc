@@ -166,6 +166,13 @@ void Encoder::SetAttributeQuantization(draco_GeometryAttribute_Type type,
   encoder_.SetAttributeQuantization(type, quantization_bits);
 }
 
+void Encoder::SetAttributeExplicitQuantization(
+    draco_GeometryAttribute_Type type, long quantization_bits,
+    long num_components, const float *origin, float range) {
+  encoder_.SetAttributeExplicitQuantization(type, quantization_bits,
+                                            num_components, origin, range);
+}
+
 void Encoder::SetSpeedOptions(long encoding_speed, long decoding_speed) {
   encoder_.SetSpeedOptions(encoding_speed, decoding_speed);
 }

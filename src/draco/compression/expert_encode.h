@@ -34,8 +34,8 @@ class ExpertEncoder : public EncoderBase<EncoderOptions> {
   typedef EncoderBase<EncoderOptions> Base;
   typedef EncoderOptions OptionsType;
 
-  ExpertEncoder(const PointCloud &point_cloud);
-  ExpertEncoder(const Mesh &mesh);
+  explicit ExpertEncoder(const PointCloud &point_cloud);
+  explicit ExpertEncoder(const Mesh &mesh);
 
   // Encodes the geometry provided in the constructor to the target buffer.
   Status EncodeToBuffer(EncoderBuffer *out_buffer);
@@ -66,6 +66,14 @@ class ExpertEncoder : public EncoderBase<EncoderOptions> {
   // of the attribute values. I.e., the actual precision of this option depends
   // on the scale of the attribute values.
   void SetAttributeQuantization(int32_t attribute_id, int quantization_bits);
+
+  // Sets the explicit quantization compression for a named attribute. The
+  // attribute values will be quantized in a coordinate system defined by the
+  // provided origin and range (the input values should be within interval:
+  // <origin, origin + range>).
+  void SetAttributeExplicitQuantization(int32_t attribute_id,
+                                        int quantization_bits, int num_dims,
+                                        const float *origin, float range);
 
   // Enables/disables built in entropy coding of attribute values. Disabling
   // this option may be useful to improve the performance when third party

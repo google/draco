@@ -118,48 +118,63 @@ class GeometryAttribute {
     buffer_->Read(byte_pos, out_data, byte_stride_);
   }
 
+  // DEPRECATED: Use
+  //   ConvertValue(AttributeValueIndex att_id,
+  //               int out_num_components,
+  //               OutT *out_val);
+  //
   // Function for conversion of a attribute to a specific output format.
   // OutT is the desired data type of the attribute.
   // out_att_components_t is the number of components of the output format.
   // Returns false when the conversion failed.
   template <typename OutT, int out_att_components_t>
   bool ConvertValue(AttributeValueIndex att_id, OutT *out_val) const {
+    return ConvertValue(att_id, out_att_components_t, out_val);
+  }
+
+  // Function for conversion of a attribute to a specific output format.
+  // |out_val| needs to be able to store |out_num_components| values.
+  // OutT is the desired data type of the attribute.
+  // Returns false when the conversion failed.
+  template <typename OutT>
+  bool ConvertValue(AttributeValueIndex att_id, int8_t out_num_components,
+                    OutT *out_val) const {
     if (out_val == nullptr)
       return false;
     switch (data_type_) {
       case DT_INT8:
-        return ConvertTypedValue<int8_t, OutT, out_att_components_t>(att_id,
-                                                                     out_val);
+        return ConvertTypedValue<int8_t, OutT>(att_id, out_num_components,
+                                               out_val);
       case DT_UINT8:
-        return ConvertTypedValue<uint8_t, OutT, out_att_components_t>(att_id,
-                                                                      out_val);
+        return ConvertTypedValue<uint8_t, OutT>(att_id, out_num_components,
+                                                out_val);
       case DT_INT16:
-        return ConvertTypedValue<int16_t, OutT, out_att_components_t>(att_id,
-                                                                      out_val);
+        return ConvertTypedValue<int16_t, OutT>(att_id, out_num_components,
+                                                out_val);
       case DT_UINT16:
-        return ConvertTypedValue<uint16_t, OutT, out_att_components_t>(att_id,
-                                                                       out_val);
+        return ConvertTypedValue<uint16_t, OutT>(att_id, out_num_components,
+                                                 out_val);
       case DT_INT32:
-        return ConvertTypedValue<int32_t, OutT, out_att_components_t>(att_id,
-                                                                      out_val);
+        return ConvertTypedValue<int32_t, OutT>(att_id, out_num_components,
+                                                out_val);
       case DT_UINT32:
-        return ConvertTypedValue<uint32_t, OutT, out_att_components_t>(att_id,
-                                                                       out_val);
+        return ConvertTypedValue<uint32_t, OutT>(att_id, out_num_components,
+                                                 out_val);
       case DT_INT64:
-        return ConvertTypedValue<int64_t, OutT, out_att_components_t>(att_id,
-                                                                      out_val);
+        return ConvertTypedValue<int64_t, OutT>(att_id, out_num_components,
+                                                out_val);
       case DT_UINT64:
-        return ConvertTypedValue<uint64_t, OutT, out_att_components_t>(att_id,
-                                                                       out_val);
+        return ConvertTypedValue<uint64_t, OutT>(att_id, out_num_components,
+                                                 out_val);
       case DT_FLOAT32:
-        return ConvertTypedValue<float, OutT, out_att_components_t>(att_id,
-                                                                    out_val);
+        return ConvertTypedValue<float, OutT>(att_id, out_num_components,
+                                              out_val);
       case DT_FLOAT64:
-        return ConvertTypedValue<double, OutT, out_att_components_t>(att_id,
-                                                                     out_val);
+        return ConvertTypedValue<double, OutT>(att_id, out_num_components,
+                                               out_val);
       case DT_BOOL:
-        return ConvertTypedValue<bool, OutT, out_att_components_t>(att_id,
-                                                                   out_val);
+        return ConvertTypedValue<bool, OutT>(att_id, out_num_components,
+                                             out_val);
       default:
         // Wrong attribute type.
         return false;
@@ -173,19 +188,7 @@ class GeometryAttribute {
   // Returns false when the conversion failed.
   template <typename OutT>
   bool ConvertValue(AttributeValueIndex att_index, OutT *out_value) const {
-    switch (num_components_) {
-      case 1:
-        return ConvertValue<OutT, 1>(att_index, out_value);
-      case 2:
-        return ConvertValue<OutT, 2>(att_index, out_value);
-      case 3:
-        return ConvertValue<OutT, 3>(att_index, out_value);
-      case 4:
-        return ConvertValue<OutT, 4>(att_index, out_value);
-      default:
-        break;
-    }
-    return false;
+    return ConvertValue<OutT>(att_index, num_components_, out_value);
   }
 
   bool operator==(const GeometryAttribute &va) const;
@@ -223,18 +226,16 @@ class GeometryAttribute {
   // Function for conversion of an attribute to a specific output format given a
   // format of the stored attribute.
   // T is the stored attribute data type.
-  // att_components_t is the number of the stored attribute components.
   // OutT is the desired data type of the attribute.
-  // out_att_components_t is the number of components of the output format.
-  template <typename T, int att_components_t, typename OutT,
-            int out_att_components_t>
-  bool ConvertTypedValue(AttributeValueIndex att_id, OutT *out_value) const {
-    std::array<T, att_components_t> att_value;
-    if (!GetValue<T, att_components_t>(att_id, &att_value))
-      return false;
+  template <typename T, typename OutT>
+  bool ConvertTypedValue(AttributeValueIndex att_id, int8_t out_num_components,
+                         OutT *out_value) const {
+    const uint8_t *src_address = GetAddress(att_id);
+
     // Convert all components available in both the original and output formats.
-    for (int i = 0; i < std::min(att_components_t, out_att_components_t); ++i) {
-      out_value[i] = static_cast<OutT>(att_value[i]);
+    for (int i = 0; i < std::min(num_components_, out_num_components); ++i) {
+      const T in_value = *reinterpret_cast<const T *>(src_address);
+      out_value[i] = static_cast<OutT>(in_value);
       // When converting integer to floating point, normalize the value if
       // necessary.
       if (std::is_integral<T>::value && std::is_floating_point<OutT>::value &&
@@ -246,37 +247,13 @@ class GeometryAttribute {
       // normalized, integer values should be converted as if they represent 0-1
       // range. E.g. when we convert uint16 to uint8, the range <0, 2^16 - 1>
       // should be converted to range <0, 2^8 - 1>.
+      src_address += sizeof(T);
     }
     // Fill empty data for unused output components if needed.
-    for (int i = att_components_t; i < out_att_components_t; ++i) {
+    for (int i = num_components_; i < out_num_components; ++i) {
       out_value[i] = static_cast<OutT>(0);
     }
     return true;
-  }
-
-  // The same as above but without a component specifier for input attribute.
-  template <typename T, typename OutT, int OUT_CMPS>
-  bool ConvertTypedValue(AttributeValueIndex att_index, OutT *out_value) const {
-    bool rv = false;
-    // Select the right method to call based on the number of attribute
-    // components.
-    switch (num_components_) {
-      case 1:
-        rv = ConvertTypedValue<T, 1, OutT, OUT_CMPS>(att_index, out_value);
-        break;
-      case 2:
-        rv = ConvertTypedValue<T, 2, OutT, OUT_CMPS>(att_index, out_value);
-        break;
-      case 3:
-        rv = ConvertTypedValue<T, 3, OutT, OUT_CMPS>(att_index, out_value);
-        break;
-      case 4:
-        rv = ConvertTypedValue<T, 4, OutT, OUT_CMPS>(att_index, out_value);
-        break;
-      default:
-        return false;  // This shouldn't happen.
-    }
-    return rv;
   }
 
   DataBuffer *buffer_;

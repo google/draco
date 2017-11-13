@@ -21,7 +21,7 @@ namespace draco {
 
 // Decodes an array of symbols that was previously encoded with an entropy code.
 // Returns false on error.
-bool DecodeSymbols(int num_values, int num_components,
+bool DecodeSymbols(uint32_t num_values, int num_components,
                    DecoderBuffer *src_buffer, uint32_t *out_values);
 
 }  // namespace draco

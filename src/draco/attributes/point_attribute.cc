@@ -64,6 +64,7 @@ bool PointAttribute::Reset(size_t num_attribute_values) {
   return true;
 }
 
+#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
 AttributeValueIndex::ValueType PointAttribute::DeduplicateValues(
     const GeometryAttribute &in_att) {
   return DeduplicateValues(in_att, AttributeValueIndex(0));
@@ -199,5 +200,6 @@ AttributeValueIndex::ValueType PointAttribute::DeduplicateFormattedValues(
   num_unique_entries_ = unique_vals.value();
   return num_unique_entries_;
 }
+#endif
 
 }  // namespace draco

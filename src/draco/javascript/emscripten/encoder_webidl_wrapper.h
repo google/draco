@@ -92,6 +92,10 @@ class Encoder {
   void SetEncodingMethod(draco_MeshEncoderMethod method);
   void SetAttributeQuantization(draco_GeometryAttribute_Type type,
                                 long quantization_bits);
+  void SetAttributeExplicitQuantization(draco_GeometryAttribute_Type type,
+                                        long quantization_bits,
+                                        long num_components,
+                                        const float *origin, float range);
   void SetSpeedOptions(long encoding_speed, long decoding_speed);
   int EncodeMeshToDracoBuffer(draco::Mesh *mesh, DracoInt8Array *buffer);
 

@@ -31,15 +31,16 @@ bool SequentialIntegerAttributeDecoder::Initialize(PointCloudDecoder *decoder,
 
 bool SequentialIntegerAttributeDecoder::TransformAttributeToOriginalFormat(
     const std::vector<PointIndex> &point_ids) {
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder() &&
       decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0))
     return true;  // Don't revert the transform here for older files.
+#endif
   return StoreValues(point_ids.size());
 }
 
 bool SequentialIntegerAttributeDecoder::DecodeValues(
     const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
-  const int32_t num_values = point_ids.size();
   // Decode prediction scheme.
   int8_t prediction_scheme_method;
   in_buffer->Decode(&prediction_scheme_method);
@@ -59,12 +60,15 @@ bool SequentialIntegerAttributeDecoder::DecodeValues(
   if (!DecodeIntegerValues(point_ids, in_buffer))
     return false;
 
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
+  const int32_t num_values = point_ids.size();
   if (decoder() &&
       decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     // For older files, revert the transform right after we decode the data.
     if (!StoreValues(num_values))
       return false;
   }
+#endif
   return true;
 }
 
@@ -84,8 +88,8 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
   const int num_components = GetNumValueComponents();
   if (num_components <= 0)
     return false;
-  const int32_t num_entries = point_ids.size();
-  const int32_t num_values = num_entries * num_components;
+  const size_t num_entries = point_ids.size();
+  const size_t num_values = num_entries * num_components;
   PreparePortableAttribute(num_entries, num_components);
   int32_t *const portable_attribute_data = GetPortableAttributeData();
   uint8_t compressed;
@@ -114,7 +118,7 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
         return false;
       if (in_buffer->remaining_size() < num_bytes * num_values)
         return false;
-      for (uint32_t i = 0; i < num_values; ++i) {
+      for (size_t i = 0; i < num_values; ++i) {
         in_buffer->Decode(portable_attribute_data + i, num_bytes);
       }
     }

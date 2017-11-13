@@ -36,9 +36,11 @@ bool SequentialQuantizationAttributeDecoder::Initialize(
 
 bool SequentialQuantizationAttributeDecoder::DecodeIntegerValues(
     const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0) &&
       !DecodeQuantizedDataInfo())
     return false;
+#endif
   return SequentialIntegerAttributeDecoder::DecodeIntegerValues(point_ids,
                                                                 in_buffer);
 }
@@ -82,14 +84,16 @@ bool SequentialQuantizationAttributeDecoder::DecodeQuantizedDataInfo() {
 bool SequentialQuantizationAttributeDecoder::DequantizeValues(
     uint32_t num_values) {
   // Convert all quantized values back to floats.
-  const int32_t max_quantized_value = (1 << (quantization_bits_)) - 1;
+  const int32_t max_quantized_value =
+      (1u << static_cast<uint32_t>(quantization_bits_)) - 1;
   const int num_components = attribute()->num_components();
   const int entry_size = sizeof(float) * num_components;
   const std::unique_ptr<float[]> att_val(new float[num_components]);
   int quant_val_id = 0;
   int out_byte_pos = 0;
   Dequantizer dequantizer;
-  dequantizer.Init(max_value_dif_, max_quantized_value);
+  if (!dequantizer.Init(max_value_dif_, max_quantized_value))
+    return false;
   const int32_t *const portable_attribute_data = GetPortableAttributeData();
   for (uint32_t i = 0; i < num_values; ++i) {
     for (int c = 0; c < num_components; ++c) {

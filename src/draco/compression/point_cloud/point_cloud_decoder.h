@@ -40,11 +40,14 @@ class PointCloudDecoder {
   Status Decode(const DecoderOptions &options, DecoderBuffer *in_buffer,
                 PointCloud *out_point_cloud);
 
-  void SetAttributesDecoder(
+  bool SetAttributesDecoder(
       int att_decoder_id, std::unique_ptr<AttributesDecoderInterface> decoder) {
+    if (att_decoder_id < 0)
+      return false;
     if (att_decoder_id >= static_cast<int>(attributes_decoders_.size()))
       attributes_decoders_.resize(att_decoder_id + 1);
     attributes_decoders_[att_decoder_id] = std::move(decoder);
+    return true;
   }
 
   // Returns an attribute containing decoded data in their portable form that

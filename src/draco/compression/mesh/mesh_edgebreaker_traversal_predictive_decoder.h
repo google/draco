@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
 #ifndef DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_TRAVERSAL_PREDICTIVE_DECODER_H_
 #define DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_TRAVERSAL_PREDICTIVE_DECODER_H_
 
@@ -126,3 +127,4 @@ class MeshEdgeBreakerTraversalPredictiveDecoder
 }  // namespace draco
 
 #endif  // DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_TRAVERSAL_PREDICTIVE_DECODER_H_
+#endif

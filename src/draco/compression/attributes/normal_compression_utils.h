@@ -54,7 +54,7 @@ class OctahedronToolBox {
         max_value_(-1),
         center_value_(-1) {}
 
-  OctahedronToolBox(int32_t q) { this->SetQuantizationBits(q); }
+  explicit OctahedronToolBox(int32_t q) { this->SetQuantizationBits(q); }
 
   void SetQuantizationBits(int32_t q) {
     DCHECK_GE(q, 2);

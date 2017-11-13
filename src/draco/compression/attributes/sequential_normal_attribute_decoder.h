@@ -48,6 +48,7 @@ class SequentialNormalAttributeDecoder
       PredictionSchemeMethod method,
       PredictionSchemeTransformType transform_type) override {
     switch (transform_type) {
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
       case PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON: {
         typedef PredictionSchemeNormalOctahedronDecodingTransform<int32_t>
             Transform;
@@ -57,6 +58,7 @@ class SequentialNormalAttributeDecoder
         return CreatePredictionSchemeForDecoder<int32_t, Transform>(
             method, attribute_id(), decoder());
       }
+#endif
       case PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON_CANONICALIZED: {
         typedef PredictionSchemeNormalOctahedronCanonicalizedDecodingTransform<
             int32_t>

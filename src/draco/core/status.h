@@ -36,7 +36,7 @@ class Status {
   Status() : code_(OK) {}
   Status(const Status &status) = default;
   Status(Status &&status) = default;
-  Status(Code code) : code_(code) {}
+  explicit Status(Code code) : code_(code) {}
   Status(Code code, const std::string &error_msg)
       : code_(code), error_msg_(error_msg) {}
 

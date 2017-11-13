@@ -36,8 +36,25 @@ bool SequentialQuantizationAttributeEncoder::Initialize(
       attribute_id, "quantization_bits", -1);
   if (quantization_bits < 1)
     return false;
-  attribute_quantization_transform_.ComputeParameters(*attribute,
-                                                      quantization_bits);
+  if (encoder->options()->IsAttributeOptionSet(attribute_id,
+                                               "quantization_origin") &&
+      encoder->options()->IsAttributeOptionSet(attribute_id,
+                                               "quantization_range")) {
+    // Quantization settings are explicitly specified in the provided options.
+    std::vector<float> quantization_origin(attribute->num_components());
+    encoder->options()->GetAttributeVector(attribute_id, "quantization_origin",
+                                           attribute->num_components(),
+                                           &quantization_origin[0]);
+    const float range = encoder->options()->GetAttributeFloat(
+        attribute_id, "quantization_range", 1.f);
+    attribute_quantization_transform_.SetParameters(
+        quantization_bits, quantization_origin.data(),
+        attribute->num_components(), range);
+  } else {
+    // Compute quantization settings from the attribute values.
+    attribute_quantization_transform_.ComputeParameters(*attribute,
+                                                        quantization_bits);
+  }
   return true;
 }
 

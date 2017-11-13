@@ -210,14 +210,15 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::CreateAttributesDecoder(
   std::unique_ptr<SequentialAttributeDecodersController> att_controller(
       new SequentialAttributeDecodersController(std::move(sequencer)));
 
-  decoder_->SetAttributesDecoder(att_decoder_id, std::move(att_controller));
-  return true;
+  return decoder_->SetAttributesDecoder(att_decoder_id,
+                                        std::move(att_controller));
 }
 
 template <class TraversalDecoder>
 bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   num_new_vertices_ = 0;
   new_to_parent_vertex_map_.clear();
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
     uint32_t num_new_verts;
     if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
@@ -229,22 +230,29 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
     }
     num_new_vertices_ = num_new_verts;
   }
+#endif
 
   uint32_t num_encoded_vertices;
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     if (!decoder_->buffer()->Decode(&num_encoded_vertices))
       return false;
-  } else {
+  } else
+#endif
+  {
     if (!DecodeVarint(&num_encoded_vertices, decoder_->buffer()))
       return false;
   }
   num_encoded_vertices_ = num_encoded_vertices;
 
   uint32_t num_faces;
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     if (!decoder_->buffer()->Decode(&num_faces))
       return false;
-  } else {
+  } else
+#endif
+  {
     if (!DecodeVarint(&num_faces, decoder_->buffer()))
       return false;
   }
@@ -279,10 +287,13 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   attribute_data_.resize(num_attribute_data);
 
   uint32_t num_encoded_symbols;
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     if (!decoder_->buffer()->Decode(&num_encoded_symbols))
       return false;
-  } else {
+  } else
+#endif
+  {
     if (!DecodeVarint(&num_encoded_symbols, decoder_->buffer()))
       return false;
   }
@@ -295,10 +306,13 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   }
 
   uint32_t num_encoded_split_symbols;
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     if (!decoder_->buffer()->Decode(&num_encoded_split_symbols))
       return false;
-  } else {
+  } else
+#endif
+  {
     if (!DecodeVarint(&num_encoded_split_symbols, decoder_->buffer()))
       return false;
   }
@@ -310,6 +324,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   // process (these extra vertices are then eliminated during deduplication).
   is_vert_hole_.assign(num_encoded_vertices_ + num_encoded_split_symbols, true);
 
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   int32_t topology_split_decoded_bytes = -1;
   if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
     uint32_t encoded_connectivity_size;
@@ -330,15 +345,20 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
         DecodeHoleAndTopologySplitEvents(&event_buffer);
     if (topology_split_decoded_bytes == -1)
       return false;
-  } else {
+  } else
+#endif
+  {
     if (DecodeHoleAndTopologySplitEvents(decoder_->buffer()) == -1)
       return false;
   }
 
   traversal_decoder_.Init(this);
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
     traversal_decoder_.SetNumEncodedVertices(num_encoded_vertices_);
-  } else {
+  } else
+#endif
+  {
     // Add one extra vertex for each split symbol.
     traversal_decoder_.SetNumEncodedVertices(num_encoded_vertices_ +
                                              num_encoded_split_symbols);
@@ -358,19 +378,24 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
                            traversal_end_buffer.remaining_size(),
                            decoder_->buffer()->bitstream_version());
 
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
     // Skip topology split data that was already decoded earlier.
     decoder_->buffer()->Advance(topology_split_decoded_bytes);
   }
+#endif
 
   // Decode connectivity of non-position attributes.
   if (attribute_data_.size() > 0) {
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 1)) {
       for (CornerIndex ci(0); ci < corner_table_->num_corners(); ci += 3) {
         if (!DecodeAttributeConnectivitiesOnFaceLegacy(ci))
           return false;
       }
-    } else {
+    } else
+#endif
+    {
       for (CornerIndex ci(0); ci < corner_table_->num_corners(); ci += 3) {
         if (!DecodeAttributeConnectivitiesOnFace(ci))
           return false;
@@ -680,6 +705,11 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       //      \ /     \b/     \ /
       //       *-------*-------*
       //
+
+      if (num_faces >= corner_table_->num_faces()) {
+        return -1;  // More faces than expected added to the mesh.
+      }
+
       // TODO(ostava): The circulation below should be replaced by functions
       // that can be reused elsewhere.
       CornerIndex corner_b = corner_table_->Previous(corner);
@@ -732,15 +762,34 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
     DecoderBuffer *decoder_buffer) {
   // Prepare a new decoder from the provided buffer offset.
   uint32_t num_topology_splits;
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     if (!decoder_buffer->Decode(&num_topology_splits))
       return -1;
-  } else {
+  } else
+#endif
+  {
     if (!DecodeVarint(&num_topology_splits, decoder_buffer))
       return -1;
   }
   if (num_topology_splits > 0) {
-    if (decoder_->bitstream_version() >= DRACO_BITSTREAM_VERSION(1, 2)) {
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
+    if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(1, 2)) {
+      for (uint32_t i = 0; i < num_topology_splits; ++i) {
+        TopologySplitEventData event_data;
+        if (!decoder_buffer->Decode(&event_data.split_symbol_id))
+          return -1;
+        if (!decoder_buffer->Decode(&event_data.source_symbol_id))
+          return -1;
+        uint8_t edge_data;
+        if (!decoder_buffer->Decode(&edge_data))
+          return -1;
+        event_data.source_edge = edge_data & 1;
+        topology_split_data_.push_back(event_data);
+      }
+    } else
+#endif
+    {
       // Decode source and split symbol ids using delta and varint coding. See
       // description in mesh_edgebreaker_encoder_impl.cc for more details.
       int last_source_symbol_id = 0;
@@ -750,6 +799,8 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
         DecodeVarint<uint32_t>(&delta, decoder_buffer);
         event_data.source_symbol_id = delta + last_source_symbol_id;
         DecodeVarint<uint32_t>(&delta, decoder_buffer);
+        if (delta > event_data.source_symbol_id)
+          return -1;
         event_data.split_symbol_id =
             event_data.source_symbol_id - static_cast<int32_t>(delta);
         last_source_symbol_id = event_data.source_symbol_id;
@@ -768,22 +819,10 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
         event_data.source_edge = edge_data & 1;
       }
       decoder_buffer->EndBitDecoding();
-    } else {
-      for (uint32_t i = 0; i < num_topology_splits; ++i) {
-        TopologySplitEventData event_data;
-        if (!decoder_buffer->Decode(&event_data.split_symbol_id))
-          return -1;
-        if (!decoder_buffer->Decode(&event_data.source_symbol_id))
-          return -1;
-        uint8_t edge_data;
-        if (!decoder_buffer->Decode(&edge_data))
-          return -1;
-        event_data.source_edge = edge_data & 1;
-        topology_split_data_.push_back(event_data);
-      }
     }
   }
   uint32_t num_hole_events = 0;
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     if (!decoder_buffer->Decode(&num_hole_events))
       return -1;
@@ -791,8 +830,19 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
     if (!DecodeVarint(&num_hole_events, decoder_buffer))
       return -1;
   }
+#endif
   if (num_hole_events > 0) {
-    if (decoder_->bitstream_version() >= DRACO_BITSTREAM_VERSION(1, 2)) {
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
+    if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(1, 2)) {
+      for (uint32_t i = 0; i < num_hole_events; ++i) {
+        HoleEventData event_data;
+        if (!decoder_buffer->Decode(&event_data))
+          return -1;
+        hole_event_data_.push_back(event_data);
+      }
+    } else
+#endif
+    {
       // Decode hole symbol ids using delta and varint coding.
       int last_symbol_id = 0;
       for (uint32_t i = 0; i < num_hole_events; ++i) {
@@ -803,18 +853,12 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
         last_symbol_id = event_data.symbol_id;
         hole_event_data_.push_back(event_data);
       }
-    } else {
-      for (uint32_t i = 0; i < num_hole_events; ++i) {
-        HoleEventData event_data;
-        if (!decoder_buffer->Decode(&event_data))
-          return -1;
-        hole_event_data_.push_back(event_data);
-      }
     }
   }
   return decoder_buffer->decoded_size();
 }
 
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
 template <class TraversalDecoder>
 bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::
     DecodeAttributeConnectivitiesOnFaceLegacy(CornerIndex corner) {
@@ -841,6 +885,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::
   }
   return true;
 }
+#endif
 
 template <class TraversalDecoder>
 bool MeshEdgeBreakerDecoderImpl<
@@ -996,8 +1041,10 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners() {
 }
 
 template class MeshEdgeBreakerDecoderImpl<MeshEdgeBreakerTraversalDecoder>;
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
 template class MeshEdgeBreakerDecoderImpl<
     MeshEdgeBreakerTraversalPredictiveDecoder>;
+#endif
 template class MeshEdgeBreakerDecoderImpl<
     MeshEdgeBreakerTraversalValenceDecoder>;
 }  // namespace draco

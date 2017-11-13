@@ -36,12 +36,14 @@ bool SequentialNormalAttributeDecoder::Initialize(PointCloudDecoder *decoder,
 
 bool SequentialNormalAttributeDecoder::DecodeIntegerValues(
     const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     uint8_t quantization_bits;
     if (!in_buffer->Decode(&quantization_bits))
       return false;
     quantization_bits_ = quantization_bits;
   }
+#endif
   return SequentialIntegerAttributeDecoder::DecodeIntegerValues(point_ids,
                                                                 in_buffer);
 }

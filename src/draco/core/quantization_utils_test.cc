@@ -41,11 +41,16 @@ TEST_F(QuantizationUtilsTest, TestQuantizer) {
 
 TEST_F(QuantizationUtilsTest, TestDequantizer) {
   Dequantizer dequantizer;
-  dequantizer.Init(10.f, 255);
+  ASSERT_TRUE(dequantizer.Init(10.f, 255));
   EXPECT_EQ(dequantizer.DequantizeFloat(0), 0.f);
   EXPECT_EQ(dequantizer.DequantizeFloat(255), 10.f);
   EXPECT_EQ(dequantizer.DequantizeFloat(-255), -10.f);
   EXPECT_EQ(dequantizer.DequantizeFloat(128), 10.f * (128.f / 255.f));
+
+  // Test that the dequantizer fails to initialize with invalid input
+  // parameters.
+  ASSERT_FALSE(dequantizer.Init(1.f, 0));
+  ASSERT_FALSE(dequantizer.Init(1.f, -4));
 }
 
 }  // namespace draco

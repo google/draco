@@ -5,13 +5,10 @@
 
 News
 =======
-### Version 1.2.0 release
-The latest version of Draco brings a number of new compression enhancements and readies Draco for glTF 2.0 assets
-* Improved compression:
-  * 5% improved compression for small assets
-* Enhancements for upcoming Draco glTF2.0 extension
-* Fixed Android build issues
-* New, easier to use DRACOLoader.js
+### Version 1.2.1 release
+The latest version of Draco brings a number of enhancements to reduce decoder size and various other fixes
+* Javascript and WebAssembly decoder size reduced by 35%
+* Added specialized Javascript and Webassembly decoders for GLTF (size reduction about 50% compared to the previous version)
 
 Description
 ===========

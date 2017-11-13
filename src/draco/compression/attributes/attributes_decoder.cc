@@ -30,11 +30,14 @@ bool AttributesDecoder::Initialize(PointCloudDecoder *decoder, PointCloud *pc) {
 bool AttributesDecoder::DecodeAttributesDecoderData(DecoderBuffer *in_buffer) {
   // Decode and create attributes.
   uint32_t num_attributes;
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (point_cloud_decoder_->bitstream_version() <
       DRACO_BITSTREAM_VERSION(2, 0)) {
     if (!in_buffer->Decode(&num_attributes))
       return false;
-  } else {
+  } else
+#endif
+  {
     if (!DecodeVarint(&num_attributes, in_buffer))
       return false;
   }
@@ -63,16 +66,19 @@ bool AttributesDecoder::DecodeAttributesDecoderData(DecoderBuffer *in_buffer) {
             num_components, draco_dt, normalized > 0,
             DataTypeLength(draco_dt) * num_components, 0);
     uint32_t unique_id;
-    if (point_cloud_decoder_->bitstream_version() >=
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
+    if (point_cloud_decoder_->bitstream_version() <
         DRACO_BITSTREAM_VERSION(1, 3)) {
-      DecodeVarint(&unique_id, in_buffer);
-      ga.set_unique_id(unique_id);
-    } else {
       uint16_t custom_id;
       if (!in_buffer->Decode(&custom_id))
         return false;
       // TODO(zhafang): Add "custom_id" to attribute metadata.
       unique_id = static_cast<uint32_t>(custom_id);
+      ga.set_unique_id(unique_id);
+    } else
+#endif
+    {
+      DecodeVarint(&unique_id, in_buffer);
       ga.set_unique_id(unique_id);
     }
     const int att_id = pc->AddAttribute(

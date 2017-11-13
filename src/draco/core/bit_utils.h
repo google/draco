@@ -23,7 +23,7 @@
 
 #if defined(_MSC_VER)
 #include <intrin.h>
-#endif // defined(_MSC_VER)
+#endif  // defined(_MSC_VER)
 
 namespace draco {
 namespace bits {

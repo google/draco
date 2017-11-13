@@ -51,7 +51,7 @@ class PredictionSchemeNormalOctahedronEncodingTransform
   typedef DataTypeT DataType;
 
   // We expect the mod value to be of the form 2^b-1.
-  PredictionSchemeNormalOctahedronEncodingTransform(
+  explicit PredictionSchemeNormalOctahedronEncodingTransform(
       DataType max_quantized_value)
       : Base(max_quantized_value) {}
 

@@ -209,10 +209,12 @@ bool ObjDecoder::DecodeInternal() {
       out_mesh_->SetFace(i, face);
     }
   }
+#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
   if (deduplicate_input_values_) {
     out_point_cloud_->DeduplicateAttributeValues();
   }
   out_point_cloud_->DeduplicatePointIds();
+#endif
   return true;
 }
 

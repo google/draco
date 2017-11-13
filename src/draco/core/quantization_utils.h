@@ -62,7 +62,8 @@ class Dequantizer {
 
   // Initializes the dequantizer. Both parameters must correspond to the values
   // provided to the initializer of the Quantizer class.
-  void Init(float range, int32_t max_quantized_value);
+  // Returns false when the initialization fails.
+  bool Init(float range, int32_t max_quantized_value);
   inline float DequantizeFloat(int32_t val) const {
     const bool neg = (val < 0);
     if (neg) {

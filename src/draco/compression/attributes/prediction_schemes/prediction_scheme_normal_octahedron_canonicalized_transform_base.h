@@ -39,10 +39,11 @@ class PredictionSchemeNormalOctahedronCanonicalizedTransformBase
 
   PredictionSchemeNormalOctahedronCanonicalizedTransformBase() : Base() {}
   // We expect the mod value to be of the form 2^b-1.
-  PredictionSchemeNormalOctahedronCanonicalizedTransformBase(DataType mod_value)
+  explicit PredictionSchemeNormalOctahedronCanonicalizedTransformBase(
+      DataType mod_value)
       : Base(mod_value) {}
 
-  PredictionSchemeTransformType GetType() const override {
+  static constexpr PredictionSchemeTransformType GetType() {
     return PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON_CANONICALIZED;
   }
 

@@ -27,6 +27,7 @@ using conditional_t = typename std::conditional<B, T, F>::type;
 
 Mesh::Mesh() {}
 
+#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
 void Mesh::ApplyPointIdDeduplication(
     const IndexTypeVector<PointIndex, PointIndex> &id_map,
     const std::vector<PointIndex> &unique_point_ids) {
@@ -37,5 +38,6 @@ void Mesh::ApplyPointIdDeduplication(
     }
   }
 }
+#endif
 
 }  // namespace draco

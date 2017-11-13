@@ -73,9 +73,12 @@ class MeshEdgeBreakerTraversalDecoder {
   // Returns the configuration of a new initial face.
   inline bool DecodeStartFaceConfiguration() {
     uint32_t face_configuration;
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (buffer_.bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
       start_face_buffer_.DecodeLeastSignificantBits32(1, &face_configuration);
-    } else {
+    } else
+#endif
+    {
       face_configuration = start_face_decoder_.DecodeNextBit();
     }
     return face_configuration;
@@ -114,9 +117,12 @@ class MeshEdgeBreakerTraversalDecoder {
   void Done() {
     if (symbol_buffer_.bit_decoder_active())
       symbol_buffer_.EndBitDecoding();
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (buffer_.bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
       start_face_buffer_.EndBitDecoding();
-    } else {
+    } else
+#endif
+    {
       start_face_decoder_.EndDecoding();
     }
   }
@@ -138,6 +144,7 @@ class MeshEdgeBreakerTraversalDecoder {
 
   bool DecodeStartFaces() {
     // Create a decoder that is set to the end of the encoded traversal data.
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (buffer_.bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
       start_face_buffer_ = buffer_;
       uint64_t traversal_size;
@@ -147,7 +154,9 @@ class MeshEdgeBreakerTraversalDecoder {
       if (traversal_size > buffer_.remaining_size())
         return false;
       buffer_.Advance(traversal_size);
-    } else {
+    } else
+#endif
+    {
       start_face_decoder_.StartDecoding(&buffer_);
     }
     return true;

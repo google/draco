@@ -78,7 +78,10 @@ bool MetadataDecoder::DecodeEntry(Metadata *metadata) {
   if (!DecodeName(&entry_name))
     return false;
   uint32_t data_size = 0;
-  DecodeVarint(&data_size, buffer_);
+  if (!DecodeVarint(&data_size, buffer_))
+    return false;
+  if (data_size == 0)
+    return false;
   std::vector<uint8_t> entry_value(data_size);
   if (!buffer_->Decode(&entry_value[0], data_size))
     return false;

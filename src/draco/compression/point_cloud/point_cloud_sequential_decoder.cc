@@ -30,13 +30,12 @@ bool PointCloudSequentialDecoder::DecodeGeometryData() {
 bool PointCloudSequentialDecoder::CreateAttributesDecoder(
     int32_t att_decoder_id) {
   // Always create the basic attribute decoder.
-  SetAttributesDecoder(
+  return SetAttributesDecoder(
       att_decoder_id,
       std::unique_ptr<AttributesDecoder>(
           new SequentialAttributeDecodersController(
               std::unique_ptr<PointsSequencer>(
                   new LinearSequencer(point_cloud()->num_points())))));
-  return true;
 }
 
 }  // namespace draco

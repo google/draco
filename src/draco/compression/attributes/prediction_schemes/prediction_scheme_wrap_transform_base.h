@@ -47,7 +47,7 @@ class PredictionSchemeWrapTransformBase {
         max_correction_(0),
         min_correction_(0) {}
 
-  PredictionSchemeTransformType GetType() const {
+  static constexpr PredictionSchemeTransformType GetType() {
     return PREDICTION_TRANSFORM_WRAP;
   }
 

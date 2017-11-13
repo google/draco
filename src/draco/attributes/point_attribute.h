@@ -103,6 +103,7 @@ class PointAttribute : public GeometryAttribute {
     return GetValue(mapped_index(point_index), out_data);
   }
 
+#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
   // Deduplicate |in_att| values into |this| attribute. |in_att| can be equal
   // to |this|.
   // Returns -1 if the deduplication failed.
@@ -113,6 +114,7 @@ class PointAttribute : public GeometryAttribute {
   // provided offset |in_att_offset|.
   AttributeValueIndex::ValueType DeduplicateValues(
       const GeometryAttribute &in_att, AttributeValueIndex in_att_offset);
+#endif
 
   // Set attribute transform data for the attribute. The data is used to store
   // the type and parameters of the transform that is applied on the attribute
@@ -126,12 +128,14 @@ class PointAttribute : public GeometryAttribute {
   }
 
  private:
+#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
   template <typename T>
   AttributeValueIndex::ValueType DeduplicateTypedValues(
       const GeometryAttribute &in_att, AttributeValueIndex in_att_offset);
   template <typename T, int COMPONENTS_COUNT>
   AttributeValueIndex::ValueType DeduplicateFormattedValues(
       const GeometryAttribute &in_att, AttributeValueIndex in_att_offset);
+#endif
 
   // Data storage for attribute values. GeometryAttribute itself doesn't own its
   // buffer so we need to allocate it here.

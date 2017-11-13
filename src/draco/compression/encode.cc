@@ -65,6 +65,16 @@ void Encoder::SetAttributeQuantization(GeometryAttribute::Type type,
   options().SetAttributeInt(type, "quantization_bits", quantization_bits);
 }
 
+void Encoder::SetAttributeExplicitQuantization(GeometryAttribute::Type type,
+                                               int quantization_bits,
+                                               int num_dims,
+                                               const float *origin,
+                                               float range) {
+  options().SetAttributeInt(type, "quantization_bits", quantization_bits);
+  options().SetAttributeVector(type, "quantization_origin", num_dims, origin);
+  options().SetAttributeFloat(type, "quantization_range", range);
+}
+
 void Encoder::SetEncodingMethod(int encoding_method) {
   Base::SetEncodingMethod(encoding_method);
 }

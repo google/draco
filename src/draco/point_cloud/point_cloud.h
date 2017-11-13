@@ -95,6 +95,7 @@ class PointCloud {
   // attribute ids of all subsequent attributes.
   virtual void DeleteAttribute(int att_id);
 
+#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
   // Deduplicates all attribute values (all attribute entries with the same
   // value are merged into a single entry).
   virtual bool DeduplicateAttributeValues();
@@ -102,6 +103,7 @@ class PointCloud {
   // Removes duplicate point ids (two point ids are duplicate when all of their
   // attributes are mapped to the same entry ids).
   virtual void DeduplicatePointIds();
+#endif
 
   // Add metadata.
   void AddMetadata(std::unique_ptr<GeometryMetadata> metadata) {
@@ -162,10 +164,12 @@ class PointCloud {
   void set_num_points(PointIndex::ValueType num) { num_points_ = num; }
 
  protected:
+#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
   // Applies id mapping of deduplicated points (called by DeduplicatePointIds).
   virtual void ApplyPointIdDeduplication(
       const IndexTypeVector<PointIndex, PointIndex> &id_map,
       const std::vector<PointIndex> &unique_point_ids);
+#endif
 
  private:
   // Metadata for the point cloud.

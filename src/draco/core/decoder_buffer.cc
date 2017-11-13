@@ -39,10 +39,13 @@ void DecoderBuffer::Init(const char *data, size_t data_size, uint16_t version) {
 
 bool DecoderBuffer::StartBitDecoding(bool decode_size, uint64_t *out_size) {
   if (decode_size) {
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (bitstream_version_ < DRACO_BITSTREAM_VERSION(2, 2)) {
       if (!Decode(out_size))
         return false;
-    } else {
+    } else
+#endif
+    {
       if (!DecodeVarint(out_size, this))
         return false;
     }

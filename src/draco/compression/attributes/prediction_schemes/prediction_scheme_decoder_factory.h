@@ -31,10 +31,19 @@
 
 namespace draco {
 
-// Factory class for creating mesh prediction schemes.
+// Factory class for creating mesh prediction schemes. The factory implements
+// operator() that is used to create an appropriate mesh prediction scheme in
+// CreateMeshPredictionScheme() function in prediction_scheme_factory.h
 template <typename DataTypeT>
 struct MeshPredictionSchemeDecoderFactory {
-  template <class TransformT, class MeshDataT>
+  // Operator () specialized for the wrap transform. Wrap transform can be used
+  // for all mesh prediction schemes. The specialization is done in compile time
+  // to prevent instantiations of unneeded combinations of prediction schemes +
+  // prediction transforms.
+  template <
+      class TransformT, class MeshDataT,
+      typename std::enable_if<
+          TransformT::GetType() == PREDICTION_TRANSFORM_WRAP, int>::type = 0>
   std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>> operator()(
       PredictionSchemeMethod method, const PointAttribute *attribute,
       const TransformT &transform, const MeshDataT &mesh_data,
@@ -44,27 +53,59 @@ struct MeshPredictionSchemeDecoderFactory {
           new MeshPredictionSchemeParallelogramDecoder<DataTypeT, TransformT,
                                                        MeshDataT>(
               attribute, transform, mesh_data));
-    } else if (method == MESH_PREDICTION_MULTI_PARALLELOGRAM) {
+    }
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
+    else if (method == MESH_PREDICTION_MULTI_PARALLELOGRAM) {
       return std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>(
           new MeshPredictionSchemeMultiParallelogramDecoder<
               DataTypeT, TransformT, MeshDataT>(attribute, transform,
                                                 mesh_data));
-    } else if (method == MESH_PREDICTION_CONSTRAINED_MULTI_PARALLELOGRAM) {
+    }
+#endif
+    else if (method == MESH_PREDICTION_CONSTRAINED_MULTI_PARALLELOGRAM) {
       return std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>(
           new MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
               DataTypeT, TransformT, MeshDataT>(attribute, transform,
                                                 mesh_data));
-    } else if (method == MESH_PREDICTION_TEX_COORDS) {
+    }
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
+    else if (method == MESH_PREDICTION_TEX_COORDS) {
       return std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>(
           new MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT,
                                                    MeshDataT>(
               attribute, transform, mesh_data, bitstream_version));
-    } else if (method == MESH_PREDICTION_TEX_COORDS_PORTABLE) {
+    }
+#endif
+    else if (method == MESH_PREDICTION_TEX_COORDS_PORTABLE) {
       return std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>(
           new MeshPredictionSchemeTexCoordsPortableDecoder<
               DataTypeT, TransformT, MeshDataT>(attribute, transform,
                                                 mesh_data));
     } else if (method == MESH_PREDICTION_GEOMETRIC_NORMAL) {
+      return std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>(
+          new MeshPredictionSchemeGeometricNormalDecoder<DataTypeT, TransformT,
+                                                         MeshDataT>(
+              attribute, transform, mesh_data));
+    }
+    return nullptr;
+  }
+
+  // Operator () specialized for normal octahedron transforms. These transforms
+  // are currently used only by the geometric normal prediction scheme (the
+  // transform is also used by delta coding, but delta predictor is not
+  // constructed in this function).
+  template <
+      class TransformT, class MeshDataT,
+      typename std::enable_if<
+          TransformT::GetType() ==
+                  PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON_CANONICALIZED ||
+              TransformT::GetType() == PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON,
+          int>::type = 0>
+  std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>> operator()(
+      PredictionSchemeMethod method, const PointAttribute *attribute,
+      const TransformT &transform, const MeshDataT &mesh_data,
+      uint16_t bitstream_version) {
+    if (method == MESH_PREDICTION_GEOMETRIC_NORMAL) {
       return std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>(
           new MeshPredictionSchemeGeometricNormalDecoder<DataTypeT, TransformT,
                                                          MeshDataT>(

@@ -75,6 +75,14 @@ class Encoder
   void SetAttributeQuantization(GeometryAttribute::Type type,
                                 int quantization_bits);
 
+  // Sets the explicit quantization compression for a named attribute. The
+  // attribute values will be quantized in a coordinate system defined by the
+  // provided origin and range (the input values should be within interval:
+  // <origin, origin + range>).
+  void SetAttributeExplicitQuantization(GeometryAttribute::Type type,
+                                        int quantization_bits, int num_dims,
+                                        const float *origin, float range);
+
   // Sets the desired prediction method for a given attribute. By default,
   // prediction scheme is selected automatically by the encoder using other
   // provided options (such as speed) and input geometry type (mesh, point

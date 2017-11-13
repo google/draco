@@ -17,24 +17,20 @@
 #include <cstdlib>
 #include <string>
 
-namespace {
-std::string ValToString(int val) {
-  char temp[64];
-  sprintf(temp, "%d", val);
-  return temp;
-}
-}  // namespace
-
 namespace draco {
 
 Options::Options() {}
 
 void Options::SetInt(const std::string &name, int val) {
-  options_[name] = ValToString(val);
+  options_[name] = std::to_string(val);
+}
+
+void Options::SetFloat(const std::string &name, float val) {
+  options_[name] = std::to_string(val);
 }
 
 void Options::SetBool(const std::string &name, bool val) {
-  options_[name] = ValToString(val ? 1 : 0);
+  options_[name] = std::to_string(val ? 1 : 0);
 }
 
 void Options::SetString(const std::string &name, const std::string &val) {
@@ -48,6 +44,17 @@ int Options::GetInt(const std::string &name, int default_val) const {
   if (it == options_.end())
     return default_val;
   return std::atoi(it->second.c_str());
+}
+
+float Options::GetFloat(const std::string &name) const {
+  return GetFloat(name, -1);
+}
+
+float Options::GetFloat(const std::string &name, float default_val) const {
+  const auto it = options_.find(name);
+  if (it == options_.end())
+    return default_val;
+  return std::atof(it->second.c_str());
 }
 
 bool Options::GetBool(const std::string &name) const {

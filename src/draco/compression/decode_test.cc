@@ -28,6 +28,7 @@ class DecodeTest : public ::testing::Test {
   DecodeTest() {}
 };
 
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
 TEST_F(DecodeTest, TestSkipAttributeTransform) {
   const std::string file_name = "test_nm_quant.0.9.0.drc";
   // Tests that decoders can successfully skip attribute transform.
@@ -73,5 +74,6 @@ TEST_F(DecodeTest, TestSkipAttributeTransform) {
   ASSERT_EQ(norm_att->data_type(), draco::DT_FLOAT32);
   ASSERT_EQ(norm_att->GetAttributeTransformData(), nullptr);
 }
+#endif
 
 }  // namespace

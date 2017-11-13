@@ -110,6 +110,14 @@ enum MeshTraversalMethod {
   MESH_TRAVERSAL_RESERVED_2 = 3,
 };
 
+// List of all variant of the edgebreaker method that is used for compression
+// of mesh connectivity.
+enum MeshEdgeBreakerConnectivityEncodingMethod {
+  MESH_EDGEBREAKER_STANDARD_ENCODING = 0,
+  MESH_EDGEBREAKER_PREDICTIVE_ENCODING = 1,  // Deprecated.
+  MESH_EDGEBREAKER_VALENCE_ENCODING = 2,
+};
+
 // Draco header V1
 struct DracoHeader {
   int8_t draco_string[5];

@@ -99,7 +99,7 @@ class DynamicIntegerPointsKdTreeEncoder {
   typedef std::vector<uint32_t> VectorUint32;
 
  public:
-  DynamicIntegerPointsKdTreeEncoder(uint32_t dimension)
+  explicit DynamicIntegerPointsKdTreeEncoder(uint32_t dimension)
       : bit_length_(0),
         dimension_(dimension),
         deviations_(dimension, 0),

@@ -28,6 +28,7 @@ class EncoderBase {
   EncoderBase() : options_(EncoderOptionsT::CreateDefaultOptions()) {}
 
   const EncoderOptionsT &options() const { return options_; }
+  EncoderOptionsT &options() { return options_; }
 
  protected:
   void Reset(const EncoderOptionsT &options) { options_ = options; }
@@ -41,8 +42,6 @@ class EncoderBase {
   void SetEncodingMethod(int encoding_method) {
     options_.SetGlobalInt("encoding_method", encoding_method);
   }
-
-  EncoderOptionsT &options() { return options_; }
 
  private:
   EncoderOptionsT options_;

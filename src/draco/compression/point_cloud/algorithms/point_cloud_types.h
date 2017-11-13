@@ -28,6 +28,8 @@ typedef Vector4f Point4f;
 typedef Vector3ui Point3ui;
 typedef Vector4ui Point4ui;
 typedef Vector5ui Point5ui;
+typedef Vector6ui Point6ui;
+typedef Vector7ui Point7ui;
 
 typedef std::vector<Point3f> PointCloud3f;
 

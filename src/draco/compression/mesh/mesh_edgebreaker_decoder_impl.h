@@ -111,7 +111,9 @@ class MeshEdgeBreakerDecoderImpl : public MeshEdgeBreakerDecoderImplInterface {
 
   // Decodes all non-position attribute connectivity on the currently
   // processed face.
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   bool DecodeAttributeConnectivitiesOnFaceLegacy(CornerIndex corner);
+#endif
   bool DecodeAttributeConnectivitiesOnFace(CornerIndex corner);
 
   // Initializes mapping between corners and point ids.

@@ -22,17 +22,15 @@
 namespace draco {
 
 template <template <int> class SymbolDecoderT>
-bool DecodeTaggedSymbols(int num_values, int num_components,
+bool DecodeTaggedSymbols(uint32_t num_values, int num_components,
                          DecoderBuffer *src_buffer, uint32_t *out_values);
 
 template <template <int> class SymbolDecoderT>
-bool DecodeRawSymbols(int num_values, DecoderBuffer *src_buffer,
+bool DecodeRawSymbols(uint32_t num_values, DecoderBuffer *src_buffer,
                       uint32_t *out_values);
 
-bool DecodeSymbols(int num_values, int num_components,
+bool DecodeSymbols(uint32_t num_values, int num_components,
                    DecoderBuffer *src_buffer, uint32_t *out_values) {
-  if (num_values < 0)
-    return false;
   if (num_values == 0)
     return true;
   // Decode which scheme to use.
@@ -50,7 +48,7 @@ bool DecodeSymbols(int num_values, int num_components,
 }
 
 template <template <int> class SymbolDecoderT>
-bool DecodeTaggedSymbols(int num_values, int num_components,
+bool DecodeTaggedSymbols(uint32_t num_values, int num_components,
                          DecoderBuffer *src_buffer, uint32_t *out_values) {
   // Decode the encoded data.
   SymbolDecoderT<5> tag_decoder;
@@ -84,7 +82,7 @@ bool DecodeTaggedSymbols(int num_values, int num_components,
 }
 
 template <class SymbolDecoderT>
-bool DecodeRawSymbolsInternal(int num_values, DecoderBuffer *src_buffer,
+bool DecodeRawSymbolsInternal(uint32_t num_values, DecoderBuffer *src_buffer,
                               uint32_t *out_values) {
   SymbolDecoderT decoder;
   if (!decoder.Create(src_buffer))
@@ -95,7 +93,7 @@ bool DecodeRawSymbolsInternal(int num_values, DecoderBuffer *src_buffer,
 
   if (!decoder.StartDecoding(src_buffer))
     return false;
-  for (int i = 0; i < num_values; ++i) {
+  for (uint32_t i = 0; i < num_values; ++i) {
     // Decode a symbol into the value.
     const uint32_t value = decoder.DecodeSymbol();
     out_values[i] = value;
@@ -105,7 +103,7 @@ bool DecodeRawSymbolsInternal(int num_values, DecoderBuffer *src_buffer,
 }
 
 template <template <int> class SymbolDecoderT>
-bool DecodeRawSymbols(int num_values, DecoderBuffer *src_buffer,
+bool DecodeRawSymbols(uint32_t num_values, DecoderBuffer *src_buffer,
                       uint32_t *out_values) {
   uint8_t max_bit_length;
   if (!src_buffer->Decode(&max_bit_length))

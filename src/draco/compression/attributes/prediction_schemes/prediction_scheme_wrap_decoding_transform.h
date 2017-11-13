@@ -52,6 +52,8 @@ class PredictionSchemeWrapDecodingTransform
       return false;
     if (!buffer->Decode(&max_value))
       return false;
+    if (min_value > max_value)
+      return false;
     this->set_min_value(min_value);
     this->set_max_value(max_value);
     this->InitCorrectionBounds();

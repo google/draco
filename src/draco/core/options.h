@@ -29,6 +29,7 @@ class Options {
  public:
   Options();
   void SetInt(const std::string &name, int val);
+  void SetFloat(const std::string &name, float val);
   void SetBool(const std::string &name, bool val);
   void SetString(const std::string &name, const std::string &val);
   template <class VectorT>
@@ -42,18 +43,21 @@ class Options {
   // value can be specified in the overloaded version of each function.
   int GetInt(const std::string &name) const;
   int GetInt(const std::string &name, int default_val) const;
+  float GetFloat(const std::string &name) const;
+  float GetFloat(const std::string &name, float default_val) const;
   bool GetBool(const std::string &name) const;
   bool GetBool(const std::string &name, bool default_val) const;
   std::string GetString(const std::string &name) const;
   std::string GetString(const std::string &name,
                         const std::string &default_val) const;
   template <class VectorT>
-  VectorT GetVector(const std::string &name, const VectorT &default_val);
+  VectorT GetVector(const std::string &name, const VectorT &default_val) const;
   // Unlike other Get functions, this function returns false if the option does
   // not exist, otherwise it fills |out_val| with the vector values. If a
   // default value is needed, it can be set in |out_val|.
   template <typename DataTypeT>
-  bool GetVector(const std::string &name, int num_dims, DataTypeT *out_val);
+  bool GetVector(const std::string &name, int num_dims,
+                 DataTypeT *out_val) const;
 
   bool IsOptionSet(const std::string &name) const {
     return options_.count(name) > 0;
@@ -74,14 +78,18 @@ void Options::SetVector(const std::string &name, const DataTypeT *vec,
   for (int i = 0; i < num_dims; ++i) {
     if (i > 0)
       out += " ";
+#ifdef ANDROID
+    out += to_string(vec[i]);
+#else
     out += std::to_string(vec[i]);
+#endif
   }
   options_[name] = out;
 }
 
 template <class VectorT>
 VectorT Options::GetVector(const std::string &name,
-                           const VectorT &default_val) {
+                           const VectorT &default_val) const {
   VectorT ret = default_val;
   GetVector(name, VectorT::dimension, &ret[0]);
   return ret;
@@ -89,23 +97,32 @@ VectorT Options::GetVector(const std::string &name,
 
 template <typename DataTypeT>
 bool Options::GetVector(const std::string &name, int num_dims,
-                        DataTypeT *out_val) {
-  if (!IsOptionSet(name))
+                        DataTypeT *out_val) const {
+  const auto it = options_.find(name);
+  if (it == options_.end())
     return false;
-  std::string value = options_[name];
+  const std::string value = it->second;
   if (value.length() == 0)
     return true;  // Option set but no data is present
   const char *act_str = value.c_str();
   char *next_str;
   for (int i = 0; i < num_dims; ++i) {
     if (std::is_integral<DataTypeT>::value) {
+#ifdef ANDROID
+      const int val = strtol(act_str, &next_str, 10);
+#else
       const int val = std::strtol(act_str, &next_str, 10);
+#endif
       if (act_str == next_str)
         return true;  // End reached.
       act_str = next_str;
       out_val[i] = static_cast<DataTypeT>(val);
     } else {
+#ifdef ANDROID
+      const float val = strtof(act_str, &next_str);
+#else
       const float val = std::strtof(act_str, &next_str);
+#endif
       if (act_str == next_str)
         return true;  // End reached.
       act_str = next_str;

@@ -31,7 +31,7 @@ class MeshSequentialDecoder : public MeshDecoder {
  private:
   // Decodes face indices that were compressed with an entropy code.
   // Returns false on error.
-  bool DecodeAndDecompressIndices(int32_t num_faces);
+  bool DecodeAndDecompressIndices(uint32_t num_faces);
 };
 
 }  // namespace draco

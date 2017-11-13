@@ -42,16 +42,19 @@ class MeshEdgeBreakerTraversalValenceDecoder
   void SetNumEncodedVertices(int num_vertices) { num_vertices_ = num_vertices; }
 
   bool Start(DecoderBuffer *out_buffer) {
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 2)) {
       if (!MeshEdgeBreakerTraversalDecoder::DecodeTraversalSymbols())
         return false;
     }
+#endif
     if (!MeshEdgeBreakerTraversalDecoder::DecodeStartFaces())
       return false;
     if (!MeshEdgeBreakerTraversalDecoder::DecodeAttributeSeams())
       return false;
     *out_buffer = *buffer();
 
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 2)) {
       uint32_t num_split_symbols;
       if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 0)) {
@@ -74,11 +77,15 @@ class MeshEdgeBreakerTraversalValenceDecoder
         // Unsupported mode.
         return false;
       }
-    } else {
+    } else
+#endif
+    {
       min_valence_ = 2;
       max_valence_ = 7;
     }
 
+    if (num_vertices_ < 0)
+      return false;
     // Set the valences of all initial vertices to 0.
     vertex_valences_.resize(num_vertices_, 0);
 
@@ -103,16 +110,20 @@ class MeshEdgeBreakerTraversalValenceDecoder
   inline uint32_t DecodeSymbol() {
     // First check if we have a valid context.
     if (active_context_ != -1) {
-      const int symbol_id =
-          context_symbols_[active_context_]
-                          [--context_counters_[active_context_]];
+      const int context_counter = --context_counters_[active_context_];
+      if (context_counter < 0)
+        return TOPOLOGY_INVALID;
+      const int symbol_id = context_symbols_[active_context_][context_counter];
       last_symbol_ = edge_breaker_symbol_to_topology_id[symbol_id];
     } else {
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
       if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 2)) {
         // We don't have a predicted symbol or the symbol was mis-predicted.
         // Decode it directly.
         last_symbol_ = MeshEdgeBreakerTraversalDecoder::DecodeSymbol();
-      } else {
+      } else
+#endif
+      {
         // The first symbol must be E.
         last_symbol_ = TOPOLOGY_E;
       }

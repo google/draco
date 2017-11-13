@@ -30,7 +30,7 @@ class MeshPredictionSchemeGeometricNormalPredictorArea
       Base;
 
  public:
-  MeshPredictionSchemeGeometricNormalPredictorArea(const MeshDataT &md)
+  explicit MeshPredictionSchemeGeometricNormalPredictorArea(const MeshDataT &md)
       : Base(md) {
     this->SetNormalPredictionMode(TRIANGLE_AREA);
   };

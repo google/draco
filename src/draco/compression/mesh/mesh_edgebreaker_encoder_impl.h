@@ -34,7 +34,8 @@ template <class TraversalEncoderT>
 class MeshEdgeBreakerEncoderImpl : public MeshEdgeBreakerEncoderImplInterface {
  public:
   MeshEdgeBreakerEncoderImpl();
-  MeshEdgeBreakerEncoderImpl(const TraversalEncoderT &traversal_encoder);
+  explicit MeshEdgeBreakerEncoderImpl(
+      const TraversalEncoderT &traversal_encoder);
   bool Init(MeshEdgeBreakerEncoder *encoder) override;
 
   const MeshAttributeCornerTable *GetAttributeCornerTable(

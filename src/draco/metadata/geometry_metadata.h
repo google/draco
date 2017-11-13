@@ -56,7 +56,7 @@ struct AttributeMetadataHasher {
 class GeometryMetadata : public Metadata {
  public:
   GeometryMetadata(){};
-  GeometryMetadata(const Metadata &metadata) : Metadata(metadata) {}
+  explicit GeometryMetadata(const Metadata &metadata) : Metadata(metadata) {}
 
   const AttributeMetadata *GetAttributeMetadataByStringEntry(
       const std::string &entry_name, const std::string &entry_value) const;

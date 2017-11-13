@@ -29,23 +29,36 @@ option(ENABLE_MESH_COMPRESSION "" ON)
 option(ENABLE_POINT_CLOUD_COMPRESSION "" ON)
 option(ENABLE_PREDICTIVE_EDGEBREAKER "" ON)
 option(ENABLE_STANDARD_EDGEBREAKER "" ON)
+option(ENABLE_BACKWARDS_COMPATIBILITY "" ON)
+option(ENABLE_DECODER_ATTRIBUTE_DEDUPLICATION "" OFF)
 option(ENABLE_TESTS "Enables tests." OFF)
 option(ENABLE_WASM "" OFF)
 option(ENABLE_WERROR "" OFF)
 option(ENABLE_WEXTRA "" OFF)
 option(IGNORE_EMPTY_BUILD_TYPE "" OFF)
+option(BUILD_FOR_GLTF "" OFF)
 
-if (ENABLE_POINT_CLOUD_COMPRESSION)
-  add_cxx_preproc_definition("DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED")
-endif ()
-if (ENABLE_MESH_COMPRESSION)
-  add_cxx_preproc_definition("DRACO_MESH_COMPRESSION_SUPPORTED")
-
-  if (ENABLE_STANDARD_EDGEBREAKER)
-    add_cxx_preproc_definition("DRACO_STANDARD_EDGEBREAKER_SUPPORTED")
+if (BUILD_FOR_GLTF)
+# Override settings when building for GLTF.
+add_cxx_preproc_definition("DRACO_MESH_COMPRESSION_SUPPORTED")
+add_cxx_preproc_definition("DRACO_STANDARD_EDGEBREAKER_SUPPORTED")
+else ()
+  if (ENABLE_POINT_CLOUD_COMPRESSION)
+    add_cxx_preproc_definition("DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED")
   endif ()
-  if (ENABLE_PREDICTIVE_EDGEBREAKER)
-    add_cxx_preproc_definition("DRACO_PREDICTIVE_EDGEBREAKER_SUPPORTED")
+  if (ENABLE_MESH_COMPRESSION)
+    add_cxx_preproc_definition("DRACO_MESH_COMPRESSION_SUPPORTED")
+
+    if (ENABLE_STANDARD_EDGEBREAKER)
+      add_cxx_preproc_definition("DRACO_STANDARD_EDGEBREAKER_SUPPORTED")
+    endif ()
+    if (ENABLE_PREDICTIVE_EDGEBREAKER)
+      add_cxx_preproc_definition("DRACO_PREDICTIVE_EDGEBREAKER_SUPPORTED")
+    endif ()
+  endif ()
+
+  if (ENABLE_BACKWARDS_COMPATIBILITY)
+    add_cxx_preproc_definition("DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED")
   endif ()
 endif ()
 
@@ -669,6 +682,13 @@ if (EMSCRIPTEN)
   append_link_flag_to_target(draco_encoder
                              "-s EXPORT_NAME=\"'DracoEncoderModule'\"")
 
+  target_compile_definitions(draco_encoder PRIVATE
+                             DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED)
+  if (ENABLE_DECODER_ATTRIBUTE_DEDUPLICATION)
+    target_compile_definitions(draco_decoder PRIVATE
+                               DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED)
+  endif ()
+
   # Make $draco_js_sources source files depend on glue_decoder.cpp.
   set_property(SOURCE ${draco_js_sources} APPEND PROPERTY OBJECT_DEPENDS
                ${draco_build_dir}/glue_decoder.cpp)
@@ -793,6 +813,11 @@ else ()
       draco_compression_attributes_pred_schemes_dec
       draco_dec_config
       draco_enc_config)
+
+  # For now, enable deduplication for both encoder and decoder.
+  # TODO(ostava): Support for disabling attribute deduplication for the C++
+  # decoder is planned in future releases.
+  add_preproc_definition(DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED)
 
   if (BUILD_SHARED_LIBS)
     set_target_properties(dracodec PROPERTIES SOVERSION 1)

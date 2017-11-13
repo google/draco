@@ -80,7 +80,7 @@ class DynamicIntegerPointsKdTreeDecoder {
   typedef std::vector<uint32_t> VectorUint32;
 
  public:
-  DynamicIntegerPointsKdTreeDecoder(uint32_t dimension)
+  explicit DynamicIntegerPointsKdTreeDecoder(uint32_t dimension)
       : bit_length_(0),
         dimension_(dimension),
         p_(dimension, 0),

@@ -36,13 +36,12 @@ class PredictionSchemeNormalOctahedronTransformBase {
 
   PredictionSchemeNormalOctahedronTransformBase() {}
   // We expect the mod value to be of the form 2^b-1.
-  PredictionSchemeNormalOctahedronTransformBase(DataType max_quantized_value) {
+  explicit PredictionSchemeNormalOctahedronTransformBase(
+      DataType max_quantized_value) {
     this->set_max_quantized_value(max_quantized_value);
   }
 
-  virtual ~PredictionSchemeNormalOctahedronTransformBase() {}
-
-  virtual PredictionSchemeTransformType GetType() const {
+  static constexpr PredictionSchemeTransformType GetType() {
     return PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON;
   }
 

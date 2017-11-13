@@ -47,7 +47,7 @@ namespace draco {
 // TODO(hemmer): Remove class because it duplicates quantization code.
 class FloatPointsTreeEncoder {
  public:
-  FloatPointsTreeEncoder(PointCloudCompressionMethod method);
+  explicit FloatPointsTreeEncoder(PointCloudCompressionMethod method);
   explicit FloatPointsTreeEncoder(PointCloudCompressionMethod method,
                                   uint32_t quantization_bits,
                                   uint32_t compression_level);

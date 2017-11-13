@@ -93,12 +93,14 @@ class Mesh : public PointCloud {
   };
 
  protected:
+#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
   // Extends the point deduplication to face corners. This method is called from
   // the PointCloud::DeduplicatePointIds() and it remaps all point ids stored in
   // |faces_| to the new deduplicated point ids using the map |id_map|.
   void ApplyPointIdDeduplication(
       const IndexTypeVector<PointIndex, PointIndex> &id_map,
       const std::vector<PointIndex> &unique_point_ids) override;
+#endif
 
  private:
   // Mesh specific per-attribute data.

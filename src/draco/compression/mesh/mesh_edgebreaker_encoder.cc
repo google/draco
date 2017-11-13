@@ -23,9 +23,9 @@ namespace draco {
 MeshEdgeBreakerEncoder::MeshEdgeBreakerEncoder() {}
 
 bool MeshEdgeBreakerEncoder::InitializeEncoder() {
-  const bool is_standard_edgebreaker_avaialable =
+  const bool is_standard_edgebreaker_available =
       options()->IsFeatureSupported(features::kEdgebreaker);
-  const bool is_predictive_edgebreaker_avaialable =
+  const bool is_predictive_edgebreaker_available =
       options()->IsFeatureSupported(features::kPredictiveEdgebreaker);
 
   impl_ = nullptr;
@@ -36,14 +36,27 @@ bool MeshEdgeBreakerEncoder::InitializeEncoder() {
   // needed.
   const bool is_tiny_mesh = mesh()->num_faces() < 1000;
 
-  if (is_standard_edgebreaker_avaialable &&
-      (options()->GetSpeed() >= 5 || !is_predictive_edgebreaker_avaialable ||
-       is_tiny_mesh)) {
-    buffer()->Encode(static_cast<uint8_t>(0));
-    impl_ = std::unique_ptr<MeshEdgeBreakerEncoderImplInterface>(
-        new MeshEdgeBreakerEncoderImpl<MeshEdgeBreakerTraversalEncoder>());
-  } else if (is_predictive_edgebreaker_avaialable) {
-    buffer()->Encode(static_cast<uint8_t>(2));
+  int selected_edgebreaker_method =
+      options()->GetGlobalInt("edgebreaker_method", -1);
+  if (selected_edgebreaker_method == -1) {
+    if (is_standard_edgebreaker_available &&
+        (options()->GetSpeed() >= 5 || !is_predictive_edgebreaker_available ||
+         is_tiny_mesh)) {
+      selected_edgebreaker_method = MESH_EDGEBREAKER_STANDARD_ENCODING;
+    } else {
+      selected_edgebreaker_method = MESH_EDGEBREAKER_VALENCE_ENCODING;
+    }
+  }
+
+  if (selected_edgebreaker_method == MESH_EDGEBREAKER_STANDARD_ENCODING) {
+    if (is_standard_edgebreaker_available) {
+      buffer()->Encode(
+          static_cast<uint8_t>(MESH_EDGEBREAKER_STANDARD_ENCODING));
+      impl_ = std::unique_ptr<MeshEdgeBreakerEncoderImplInterface>(
+          new MeshEdgeBreakerEncoderImpl<MeshEdgeBreakerTraversalEncoder>());
+    }
+  } else if (selected_edgebreaker_method == MESH_EDGEBREAKER_VALENCE_ENCODING) {
+    buffer()->Encode(static_cast<uint8_t>(MESH_EDGEBREAKER_VALENCE_ENCODING));
     impl_ = std::unique_ptr<MeshEdgeBreakerEncoderImplInterface>(
         new MeshEdgeBreakerEncoderImpl<
             MeshEdgeBreakerTraversalValenceEncoder>());

@@ -53,7 +53,8 @@ class MeshAreEquivalent {
   // Less compare functor for two faces (represented by their indices)
   // with respect to their lex order.
   struct FaceIndexLess {
-    FaceIndexLess(const MeshInfo &in_mesh_info) : mesh_info(in_mesh_info) {}
+    explicit FaceIndexLess(const MeshInfo &in_mesh_info)
+        : mesh_info(in_mesh_info) {}
     bool operator()(FaceIndex f0, FaceIndex f1) const;
     const MeshInfo &mesh_info;
   };

@@ -17,6 +17,7 @@
 
 #include <memory>
 
+#include "draco/compression/config/compression_shared.h"
 #include "draco/compression/point_cloud/algorithms/point_cloud_compression_method.h"
 #include "draco/compression/point_cloud/algorithms/point_cloud_types.h"
 #include "draco/compression/point_cloud/algorithms/quantize_points_3.h"
@@ -41,6 +42,7 @@ class FloatPointsTreeDecoder {
 
     DecoderBuffer buffer;
     buffer.Init(data, data_size);
+    buffer.set_bitstream_version(kDracoBitstreamVersion);
     return DecodePointCloud(&buffer, out);
   }
 

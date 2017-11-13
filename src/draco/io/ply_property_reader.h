@@ -26,7 +26,8 @@ namespace draco {
 template <typename ReadTypeT>
 class PlyPropertyReader {
  public:
-  PlyPropertyReader(const PlyProperty *property) : property_(property) {
+  explicit PlyPropertyReader(const PlyProperty *property)
+      : property_(property) {
     // Find the suitable function for converting values.
     switch (property->data_type()) {
       case DT_UINT8:

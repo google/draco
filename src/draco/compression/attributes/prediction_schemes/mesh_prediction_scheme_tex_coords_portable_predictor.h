@@ -28,7 +28,7 @@ namespace draco {
 template <typename DataTypeT, class MeshDataT>
 class MeshPredictionSchemeTexCoordsPortablePredictor {
  public:
-  MeshPredictionSchemeTexCoordsPortablePredictor(const MeshDataT &md)
+  explicit MeshPredictionSchemeTexCoordsPortablePredictor(const MeshDataT &md)
       : pos_attribute_(nullptr),
         entry_to_point_id_map_(nullptr),
         mesh_data_(md) {}

@@ -136,6 +136,7 @@ bool MeshPredictionSchemeGeometricNormalDecoder<
   if (!this->transform().DecodeTransformData(buffer))
     return false;
 
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
     uint8_t prediction_mode;
     buffer->Decode(&prediction_mode);
@@ -144,6 +145,7 @@ bool MeshPredictionSchemeGeometricNormalDecoder<
             NormalPredictionMode(prediction_mode)))
       return false;
   }
+#endif
 
   // Init normal flips.
   if (!flip_normal_bit_decoder_.StartDecoding(buffer))

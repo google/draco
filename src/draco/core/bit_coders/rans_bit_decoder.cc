@@ -31,10 +31,13 @@ bool RAnsBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
     return false;
 
   uint32_t size_in_bytes;
+#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (source_buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
     if (!source_buffer->Decode(&size_in_bytes))
       return false;
-  } else {
+  } else
+#endif
+  {
     if (!DecodeVarint(&size_in_bytes, source_buffer))
       return false;
   }

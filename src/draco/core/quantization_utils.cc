@@ -25,9 +25,12 @@ void Quantizer::Init(float range, int32_t max_quantized_value) {
 
 Dequantizer::Dequantizer() : range_(1.f), max_quantized_value_factor_(1.f) {}
 
-void Dequantizer::Init(float range, int32_t max_quantized_value) {
+bool Dequantizer::Init(float range, int32_t max_quantized_value) {
+  if (max_quantized_value <= 0)
+    return false;
   max_quantized_value_factor_ = 1.f / static_cast<float>(max_quantized_value);
   range_ = range;
+  return true;
 }
 
 }  // namespace draco

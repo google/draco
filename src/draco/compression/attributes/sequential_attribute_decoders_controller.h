@@ -29,7 +29,7 @@ namespace draco {
 // encoded by the encoder.
 class SequentialAttributeDecodersController : public AttributesDecoder {
  public:
-  SequentialAttributeDecodersController(
+  explicit SequentialAttributeDecodersController(
       std::unique_ptr<PointsSequencer> sequencer);
 
   bool DecodeAttributesDecoderData(DecoderBuffer *buffer) override;

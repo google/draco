@@ -31,21 +31,21 @@ namespace draco {
 class EntryValue {
  public:
   template <typename DataTypeT>
-  EntryValue(const DataTypeT &data) {
+  explicit EntryValue(const DataTypeT &data) {
     const size_t data_type_size = sizeof(DataTypeT);
     data_.resize(data_type_size);
     memcpy(&data_[0], &data, data_type_size);
   }
 
   template <typename DataTypeT>
-  EntryValue(const std::vector<DataTypeT> &data) {
+  explicit EntryValue(const std::vector<DataTypeT> &data) {
     const size_t total_size = sizeof(DataTypeT) * data.size();
     data_.resize(total_size);
     memcpy(&data_[0], &data[0], total_size);
   }
 
   EntryValue(const EntryValue &value);
-  EntryValue(const std::string &value);
+  explicit EntryValue(const std::string &value);
 
   template <typename DataTypeT>
   bool GetValue(DataTypeT *value) const {
@@ -147,7 +147,7 @@ class Metadata {
     const auto itr = entries_.find(entry_name);
     if (itr != entries_.end())
       entries_.erase(itr);
-    entries_.insert(std::make_pair(entry_name, entry_value));
+    entries_.insert(std::make_pair(entry_name, EntryValue(entry_value)));
   }
 
   // Make this function private to avoid adding undefined data types.

@@ -85,9 +85,8 @@ TEST_P(MeshEncoderTest, EncodeGoldenMesh) {
     EXPECT_TRUE(
         CompareGoldenFile(golden_file_name, buffer.data(), buffer.size()))
         << "Encoded data is different from the golden file. Please verify that "
-           "the"
-           " encoding works as expected and update the golden file if necessary"
-           " (run the test with --update_golden_files flag).";
+           "the encoding works as expected and update the golden file if "
+           "necessary (run the test with --update_golden_files flag).";
   } else {
     // Save the files into the local folder.
     EXPECT_TRUE(

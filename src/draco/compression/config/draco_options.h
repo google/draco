@@ -64,10 +64,21 @@ class DracoOptions {
   void SetAttributeInt(const AttributeKey &att_key, const std::string &name,
                        int val);
 
+  float GetAttributeFloat(const AttributeKey &att_key, const std::string &name,
+                          float default_val) const;
+  void SetAttributeFloat(const AttributeKey &att_key, const std::string &name,
+                         float val);
   bool GetAttributeBool(const AttributeKey &att_key, const std::string &name,
                         bool default_val) const;
   void SetAttributeBool(const AttributeKey &att_key, const std::string &name,
                         bool val);
+  template <typename DataTypeT>
+  bool GetAttributeVector(const AttributeKey &att_key, const std::string &name,
+                          int num_dims, DataTypeT *val) const;
+  template <typename DataTypeT>
+  void SetAttributeVector(const AttributeKey &att_key, const std::string &name,
+                          int num_dims, const DataTypeT *val);
+
   bool IsAttributeOptionSet(const AttributeKey &att_key,
                             const std::string &name) const;
 
@@ -78,11 +89,27 @@ class DracoOptions {
   void SetGlobalInt(const std::string &name, int val) {
     global_options_.SetInt(name, val);
   }
+  float GetGlobalFloat(const std::string &name, float default_val) const {
+    return global_options_.GetFloat(name, default_val);
+  }
+  void SetGlobalFloat(const std::string &name, float val) {
+    global_options_.SetFloat(name, val);
+  }
   bool GetGlobalBool(const std::string &name, bool default_val) const {
     return global_options_.GetBool(name, default_val);
   }
   void SetGlobalBool(const std::string &name, bool val) {
     global_options_.SetBool(name, val);
+  }
+  template <typename DataTypeT>
+  bool GetGlobalVector(const std::string &name, int num_dims,
+                       DataTypeT *val) const {
+    return global_options_.GetVector(name, num_dims, val);
+  }
+  template <typename DataTypeT>
+  void SetGlobalVector(const std::string &name, int num_dims,
+                       const DataTypeT *val) {
+    global_options_.SetVector(name, val, num_dims);
   }
   bool IsGlobalOptionSet(const std::string &name) const {
     return global_options_.IsOptionSet(name);
@@ -145,6 +172,22 @@ void DracoOptions<AttributeKeyT>::SetAttributeInt(const AttributeKeyT &att_key,
 }
 
 template <typename AttributeKeyT>
+float DracoOptions<AttributeKeyT>::GetAttributeFloat(
+    const AttributeKeyT &att_key, const std::string &name,
+    float default_val) const {
+  const Options *const att_options = FindAttributeOptions(att_key);
+  if (att_options && att_options->IsOptionSet(name))
+    return att_options->GetFloat(name, default_val);
+  return global_options_.GetFloat(name, default_val);
+}
+
+template <typename AttributeKeyT>
+void DracoOptions<AttributeKeyT>::SetAttributeFloat(
+    const AttributeKeyT &att_key, const std::string &name, float val) {
+  GetAttributeOptions(att_key)->SetFloat(name, val);
+}
+
+template <typename AttributeKeyT>
 bool DracoOptions<AttributeKeyT>::GetAttributeBool(const AttributeKeyT &att_key,
                                                    const std::string &name,
                                                    bool default_val) const {
@@ -159,6 +202,25 @@ void DracoOptions<AttributeKeyT>::SetAttributeBool(const AttributeKeyT &att_key,
                                                    const std::string &name,
                                                    bool val) {
   GetAttributeOptions(att_key)->SetBool(name, val);
+}
+
+template <typename AttributeKeyT>
+template <typename DataTypeT>
+bool DracoOptions<AttributeKeyT>::GetAttributeVector(
+    const AttributeKey &att_key, const std::string &name, int num_dims,
+    DataTypeT *val) const {
+  const Options *const att_options = FindAttributeOptions(att_key);
+  if (att_options && att_options->IsOptionSet(name))
+    return att_options->GetVector(name, num_dims, val);
+  return global_options_.GetVector(name, num_dims, val);
+}
+
+template <typename AttributeKeyT>
+template <typename DataTypeT>
+void DracoOptions<AttributeKeyT>::SetAttributeVector(
+    const AttributeKey &att_key, const std::string &name, int num_dims,
+    const DataTypeT *val) {
+  GetAttributeOptions(att_key)->SetVector(name, val, num_dims);
 }
 
 template <typename AttributeKeyT>
