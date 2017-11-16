@@ -71,6 +71,8 @@ bool FloatPointsTreeDecoder::DecodePointCloudKdTreeInternal(
     DecoderBuffer *buffer, std::vector<Point3ui> *qpoints) {
   if (!buffer->Decode(&qinfo_.quantization_bits))
     return false;
+  if (qinfo_.quantization_bits > 31)
+    return false;
   if (!buffer->Decode(&qinfo_.range))
     return false;
   if (!buffer->Decode(&num_points_))

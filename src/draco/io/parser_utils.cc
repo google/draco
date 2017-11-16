@@ -206,6 +206,22 @@ void ParseLine(DecoderBuffer *buffer, std::string *out_string) {
   }
 }
 
+DecoderBuffer ParseLineIntoDecoderBuffer(DecoderBuffer *buffer) {
+  const char *const head = buffer->data_head();
+  char c;
+  while (buffer->Peek(&c)) {
+    // Skip the character.
+    buffer->Advance(1);
+    if (c == '\n')
+      break;  // End of the line reached.
+    if (c == '\r')
+      continue;  // Ignore extra line ending characters.
+  }
+  DecoderBuffer out_buffer;
+  out_buffer.Init(head, buffer->data_head() - head);
+  return out_buffer;
+}
+
 std::string ToLower(const std::string &str) {
   std::string out;
   std::transform(str.begin(), str.end(), std::back_inserter(out), tolower);

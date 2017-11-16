@@ -5,8 +5,12 @@
 
 News
 =======
+### Version 1.2.2 release
+The latest version of Draco brings a number of small bug fixes
+* Fixed issues when parsing ill-formatted .obj files
+
 ### Version 1.2.1 release
-The latest version of Draco brings a number of enhancements to reduce decoder size and various other fixes
+The 1.2.1 version of Draco brings a number of enhancements to reduce decoder size and various other fixes
 * Javascript and WebAssembly decoder size reduced by 35%
 * Added specialized Javascript and Webassembly decoders for GLTF (size reduction about 50% compared to the previous version)
 

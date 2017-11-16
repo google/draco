@@ -52,6 +52,9 @@ bool ParseString(DecoderBuffer *buffer, std::string *out_string);
 // Parses the entire line into the buffer (excluding the new line character).
 void ParseLine(DecoderBuffer *buffer, std::string *out_string);
 
+// Parses line and stores into a new decoder buffer.
+DecoderBuffer ParseLineIntoDecoderBuffer(DecoderBuffer *buffer);
+
 // Returns a string with all characters converted to lower case.
 std::string ToLower(const std::string &str);
 

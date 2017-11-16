@@ -121,6 +121,17 @@ TEST_F(ObjDecoderTest, ComplexPolyOBJ) {
   ASSERT_EQ(mesh, nullptr);
 }
 
+TEST_F(ObjDecoderTest, EmptyNameOBJ) {
+  // Tests that we load an obj file that has an sub-object defined with an empty
+  // name.
+  const std::string file_name = "empty_name.obj";
+  const std::unique_ptr<Mesh> mesh(DecodeObj<Mesh>(file_name));
+  ASSERT_NE(mesh, nullptr);
+  ASSERT_EQ(mesh->num_attributes(), 1);
+  // Three valid entries in the attribute are expected.
+  ASSERT_EQ(mesh->attribute(0)->size(), 3);
+}
+
 TEST_F(ObjDecoderTest, TestObjDecodingAll) {
   // test if we can read all obj that are currently in test folder.
   test_decoding("bunny_norm.obj");

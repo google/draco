@@ -335,6 +335,9 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
       if (!DecodeVarint(&encoded_connectivity_size, decoder_->buffer()))
         return false;
     }
+    if (encoded_connectivity_size == 0 ||
+        encoded_connectivity_size > decoder_->buffer()->remaining_size())
+      return false;
     DecoderBuffer event_buffer;
     event_buffer.Init(
         decoder_->buffer()->data_head() + encoded_connectivity_size,
@@ -773,6 +776,8 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
       return -1;
   }
   if (num_topology_splits > 0) {
+    if (num_topology_splits > corner_table_->num_faces())
+      return -1;
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(1, 2)) {
       for (uint32_t i = 0; i < num_topology_splits; ++i) {

@@ -105,8 +105,8 @@ enum EdgeFaceName : uint8_t { LEFT_FACE_EDGE = 0, RIGHT_FACE_EDGE = 1 };
 // exactly two occurrences of this event for every topological handle on the
 // traversed mesh and one occurrence for a hole.
 struct TopologySplitEventData {
-  int32_t split_symbol_id;
-  int32_t source_symbol_id;
+  uint32_t split_symbol_id;
+  uint32_t source_symbol_id;
   // We need to use uint32_t instead of EdgeFaceName because the most recent
   // version of gcc does not allow that when optimizations are turned on.
   uint32_t source_edge : 1;

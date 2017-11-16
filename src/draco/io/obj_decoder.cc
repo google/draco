@@ -426,13 +426,14 @@ bool ObjDecoder::ParseMaterialLib(bool *error) {
   if (std::memcmp(&c[0], "mtllib", 6) != 0)
     return false;
   buffer()->Advance(6);
-  parser::SkipWhitespace(buffer());
+  DecoderBuffer line_buffer = parser::ParseLineIntoDecoderBuffer(buffer());
+  parser::SkipWhitespace(&line_buffer);
   material_file_name_.clear();
-  if (!parser::ParseString(buffer(), &material_file_name_)) {
+  if (!parser::ParseString(&line_buffer, &material_file_name_)) {
     *error = true;
     return true;
   }
-  parser::SkipLine(buffer());
+  parser::SkipLine(&line_buffer);
 
   if (material_file_name_.size() > 0) {
     if (!ParseMaterialFile(material_file_name_, error)) {
@@ -454,9 +455,10 @@ bool ObjDecoder::ParseMaterial(bool * /* error */) {
   if (std::memcmp(&c[0], "usemtl", 6) != 0)
     return false;
   buffer()->Advance(6);
-  parser::SkipWhitespace(buffer());
+  DecoderBuffer line_buffer = parser::ParseLineIntoDecoderBuffer(buffer());
+  parser::SkipWhitespace(&line_buffer);
   std::string mat_name;
-  parser::ParseLine(buffer(), &mat_name);
+  parser::ParseLine(&line_buffer, &mat_name);
   if (mat_name.length() == 0)
     return false;
   auto it = material_name_to_id_.find(mat_name);
@@ -479,10 +481,13 @@ bool ObjDecoder::ParseObject(bool *error) {
   if (std::memcmp(&c[0], "o ", 2) != 0)
     return false;
   buffer()->Advance(1);
-  parser::SkipWhitespace(buffer());
+  DecoderBuffer line_buffer = parser::ParseLineIntoDecoderBuffer(buffer());
+  parser::SkipWhitespace(&line_buffer);
   std::string obj_name;
-  if (!parser::ParseString(buffer(), &obj_name))
+  if (!parser::ParseString(&line_buffer, &obj_name))
     return false;
+  if (obj_name.length() == 0)
+    return true;  // Ignore empty name entries.
   auto it = obj_name_to_id_.find(obj_name);
   if (it == obj_name_to_id_.end()) {
     const int num_obj = obj_name_to_id_.size();
