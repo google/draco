@@ -102,14 +102,14 @@ if (ENABLE_GOMA)
 endif ()
 
 if(ENABLE_EXTRA_SPEED)
-	if(MSVC)
-		#enable parallel builds
-		add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/Qpar>")
-		#maximum optimization in Release mode
-		add_compile_options("$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:RELEASE>>:/Ox>")
-	else()
-		add_compiler_flag_if_supported("-O3")
-	endif()
+  if(MSVC)
+    #maximum optimization in Release mode
+    add_compile_options("$<$<CONFIG:RELEASE>:/Ox>")
+	#add_compile_options("$<$<CONFIG:MinSizeRel>:/Ox>") #uncomment if consistent compiler settings are more important then binary size
+	#add_compile_options("$<$<CONFIG:RelWithDebInfo>:/Ox>") #uncomment if consistent compiler settings are more important then binary size
+  else()
+    add_compiler_flag_if_supported("-O3")
+  endif()
 endif()
 
 # Generate a version file containing repository info.
