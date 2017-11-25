@@ -5,6 +5,9 @@
 
 News
 =======
+### Version 1.2.3 release
+* Fixed Visual Studio building issue
+
 ### Version 1.2.2 release
 The latest version of Draco brings a number of small bug fixes
 * Fixed issues when parsing ill-formatted .obj files

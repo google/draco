@@ -33,6 +33,7 @@ static constexpr uint16_t kDracoBitstreamVersion = DRACO_BITSTREAM_VERSION(
     kDracoBitstreamVersionMajor, kDracoBitstreamVersionMinor);
 
 // Currently, we support point cloud and triangular mesh encoding.
+// TODO(scottgodfrey) convert enum to enum class (safety, not performance).
 enum EncodedGeometryType {
   INVALID_GEOMETRY_TYPE = -1,
   POINT_CLOUD = 0,

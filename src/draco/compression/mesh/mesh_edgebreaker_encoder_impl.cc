@@ -28,7 +28,7 @@
 #include "draco/mesh/prediction_degree_traverser.h"
 
 namespace draco {
-
+// TODO(scottgodfrey) consider converting 'typedef' to 'using' and deduplicate.
 typedef CornerIndex CornerIndex;
 typedef FaceIndex FaceIndex;
 typedef VertexIndex VertexIndex;

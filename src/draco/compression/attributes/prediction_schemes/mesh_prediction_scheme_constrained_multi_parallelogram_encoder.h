@@ -77,6 +77,7 @@ class MeshPredictionSchemeConstrainedMultiParallelogramEncoder
   // the edges are processed. For better compression, the flags are stored in
   // in separate contexts based on the number of available parallelograms at a
   // given vertex.
+  // TODO(scottgodfrey) reconsider std::vector<bool> (performance/space).
   std::vector<bool> is_crease_edge_[kMaxNumParallelograms];
   Mode selected_mode_;
 };
@@ -190,6 +191,7 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
       // Mark all parallelograms as excluded.
       std::fill(exluded_parallelograms,
                 exluded_parallelograms + num_parallelograms, true);
+      // TODO(scottgodfrey) maybe this should be another std::fill.
       // Mark the first |num_used_parallelograms| as not excluded.
       for (int j = 0; j < num_used_parallelograms; ++j) {
         exluded_parallelograms[j] = false;

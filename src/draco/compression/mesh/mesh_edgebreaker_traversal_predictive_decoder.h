@@ -44,8 +44,8 @@ class MeshEdgeBreakerTraversalPredictiveDecoder
     int32_t num_split_symbols;
     if (!out_buffer->Decode(&num_split_symbols) || num_split_symbols < 0)
       return false;
-    // Add one vertex for each split symbol.
-    num_vertices_ += num_split_symbols;
+    if (num_split_symbols >= num_vertices_)
+      return false;
     // Set the valences of all initial vertices to 0.
     vertex_valences_.resize(num_vertices_, 0);
     if (!prediction_decoder_.StartDecoding(out_buffer))

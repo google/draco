@@ -623,8 +623,8 @@ bool ObjDecoder::ParseMaterialFile(const std::string &file_name, bool *error) {
   buffer_.Init(&data[0], file_size);
 
   num_materials_ = 0;
-  while (ParseMaterialFileDefinition(error))
-    ;
+  while (ParseMaterialFileDefinition(error)) {
+  }
 
   // Restore the original buffer.
   buffer_ = old_buffer;

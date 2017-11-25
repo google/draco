@@ -356,16 +356,9 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   }
 
   traversal_decoder_.Init(this);
-#ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
-  if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
-    traversal_decoder_.SetNumEncodedVertices(num_encoded_vertices_);
-  } else
-#endif
-  {
-    // Add one extra vertex for each split symbol.
-    traversal_decoder_.SetNumEncodedVertices(num_encoded_vertices_ +
-                                             num_encoded_split_symbols);
-  }
+  // Add one extra vertex for each split symbol.
+  traversal_decoder_.SetNumEncodedVertices(num_encoded_vertices_ +
+                                           num_encoded_split_symbols);
   traversal_decoder_.SetNumAttributeData(num_attribute_data);
 
   DecoderBuffer traversal_end_buffer;

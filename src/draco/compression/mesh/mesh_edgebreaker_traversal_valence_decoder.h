@@ -64,8 +64,8 @@ class MeshEdgeBreakerTraversalValenceDecoder
         if (!DecodeVarint(&num_split_symbols, out_buffer))
           return false;
       }
-      // Add one extra vertex for each split symbol.
-      num_vertices_ += num_split_symbols;
+      if (num_split_symbols >= num_vertices_)
+        return false;
 
       int8_t mode;
       if (!out_buffer->Decode(&mode))

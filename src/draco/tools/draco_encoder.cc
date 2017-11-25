@@ -49,7 +49,8 @@ Options::Options()
       normals_deleted(false),
       generic_quantization_bits(8),
       generic_deleted(false),
-      compression_level(7) {}
+      compression_level(7),
+      use_metadata(false) {}
 
 void Usage() {
   printf("Usage: draco_encoder [options] -i input\n");

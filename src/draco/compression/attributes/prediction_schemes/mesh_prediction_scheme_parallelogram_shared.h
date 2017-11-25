@@ -22,6 +22,8 @@
 
 namespace draco {
 
+// TODO(scottgodfrey) consolidate Vertex/next/previous queries to one call
+// (performance).
 template <class CornerTableT>
 inline void GetParallelogramEntries(
     const CornerIndex ci, const CornerTableT *table,
