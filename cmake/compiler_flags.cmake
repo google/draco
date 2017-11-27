@@ -152,8 +152,7 @@ function (add_cxx_preproc_definition preproc_def)
   string(FIND "${CMAKE_CXX_FLAGS}" "${preproc_def}" PREPROC_DEF_FOUND)
 
   if (${PREPROC_DEF_FOUND} EQUAL -1)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D${preproc_def}" CACHE STRING ""
-        FORCE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D${preproc_def}" PARENT_SCOPE)
   endif ()
 endfunction ()
 
