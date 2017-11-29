@@ -101,6 +101,15 @@ if (ENABLE_GOMA)
   set_compiler_launcher(ENABLE_GOMA gomacc)
 endif ()
 
+if(ENABLE_EXTRA_SPEED)
+  if(MSVC)
+    # Maximum optimization in Release mode.
+    add_compile_options("$<$<CONFIG:RELEASE>:/Ox>")
+  else()
+    add_compiler_flag_if_supported("-O3")
+  endif()
+endif()
+
 # Generate a version file containing repository info.
 include(FindGit)
 find_package(Git)
