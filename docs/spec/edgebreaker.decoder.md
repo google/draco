@@ -245,13 +245,13 @@ void NewActiveCornerReached(new_corner, symbol_id) {
         active_corner_stack.back() = new_corner;
       }
       check_topology_split = true;
-      vert = CornerToVert(curr_att_dec, Previous(corner_a));
-      next = CornerToVert(curr_att_dec, Next(corner_a));
-      prev = ++last_vert_added;
+      vert = CornerToVert(curr_att_dec, Next(corner_a));
+      next = ++last_vert_added;
+      prev = CornerToVert(curr_att_dec, Previous(corner_a));
       if (edgebreaker_traversal_type == VALENCE_EDGEBREAKER) {
         vertex_valences_[vert] += 1;
-        vertex_valences_[next] += 1;
-        vertex_valences_[prev] += 2;
+        vertex_valences_[next] += 2;
+        vertex_valences_[prev] += 1;
       }
 
       face_to_vertex[0].push_back(vert);
