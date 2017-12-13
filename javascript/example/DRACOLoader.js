@@ -118,7 +118,7 @@ THREE.DRACOLoader.prototype = {
       var scope = this;
       this.attributeUniqueIdMap = (attributeUniqueIdMap !== undefined) ?
           attributeUniqueIdMap : {};
-      THREE.DRACOLoader.getDecoder(this,
+      THREE.DRACOLoader.getDecoderModule(
           function(dracoDecoder) {
             scope.decodeDracoFileInternal(rawBuffer, dracoDecoder, callback);
       });
@@ -333,7 +333,7 @@ THREE.DRACOLoader.prototype = {
     },
 
     isVersionSupported: function(version, callback) {
-        THREE.DRACOLoader.getDecoder(this,
+        THREE.DRACOLoader.getDecoderModule(
             function(decoder) {
               callback(decoder.isVersionSupported(version));
             });
@@ -405,21 +405,20 @@ THREE.DRACOLoader.loadDracoDecoder = function(dracoDecoder) {
   }
 }
 
+THREE.DRACOLoader.decoderCreationCalled = false;
+
 /**
  * Creates and returns a singleton instance of the DracoDecoderModule.
  * The module loading is done asynchronously for WebAssembly. Initialized module
  * can be accessed through the callback function
  * |onDracoDecoderModuleLoadedCallback|.
  */
-THREE.DRACOLoader.getDecoder = (function() {
-    var decoder;
-    var decoderCreationCalled = false;
-
-    return function(dracoDecoder, onDracoDecoderModuleLoadedCallback) {
-        if (typeof decoder !== 'undefined') {
+THREE.DRACOLoader.getDecoderModule = (function() {
+    return function(onDracoDecoderModuleLoadedCallback) {
+        if (typeof THREE.DRACOLoader.decoderModule !== 'undefined') {
           // Module already initialized.
           if (typeof onDracoDecoderModuleLoadedCallback !== 'undefined') {
-            onDracoDecoderModuleLoadedCallback(decoder);
+            onDracoDecoderModuleLoadedCallback(THREE.DRACOLoader.decoderModule);
           }
         } else {
           if (typeof DracoDecoderModule === 'undefined') {
@@ -438,23 +437,40 @@ THREE.DRACOLoader.getDecoder = (function() {
               }
             }
           } else {
-            if (!decoderCreationCalled) {
-              decoderCreationCalled = true;
+            if (!THREE.DRACOLoader.decoderCreationCalled) {
+              THREE.DRACOLoader.decoderCreationCalled = true;
               THREE.DRACOLoader.dracoDecoderType['onModuleLoaded'] =
                   function(module) {
-                    decoder = module;
+                    THREE.DRACOLoader.decoderModule = module;
                   };
               DracoDecoderModule(THREE.DRACOLoader.dracoDecoderType);
             }
           }
 
           // Either the DracoDecoderModule has not been defined or the decoder
-          // has not been created yet. Call getDecoder() again.
+          // has not been created yet. Call getDecoderModule() again.
           setTimeout(function() {
-            THREE.DRACOLoader.getDecoder(dracoDecoder,
+            THREE.DRACOLoader.getDecoderModule(
                 onDracoDecoderModuleLoadedCallback);
           }, 10);
         }
     };
 
 })();
+
+// Releases the DracoDecoderModule instance associated with the draco loader.
+// The module will be automatically re-created the next time a new geometry is
+// loaded by THREE.DRACOLoader.
+THREE.DRACOLoader.releaseDecoderModule = function() {
+  THREE.DRACOLoader.decoderModule = undefined;
+  THREE.DRACOLoader.decoderCreationCalled = false;
+  if (THREE.DRACOLoader.dracoDecoderType !== undefined &&
+      THREE.DRACOLoader.dracoDecoderType.wasmBinary !== undefined) {
+    // For WASM build we need to preserve the wasmBinary for future use.
+    var wasmBinary = THREE.DRACOLoader.dracoDecoderType.wasmBinary;
+    THREE.DRACOLoader.dracoDecoderType = {};
+    THREE.DRACOLoader.dracoDecoderType.wasmBinary = wasmBinary;
+  } else {
+    THREE.DRACOLoader.dracoDecoderType = {};
+  }
+}

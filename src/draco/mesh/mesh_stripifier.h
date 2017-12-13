@@ -73,7 +73,7 @@ class MeshStripifier {
     num_encoded_faces_ = 0;
     // TODO(ostava): We may be able to avoid computing the corner table if we
     // already have it stored somewhere.
-    corner_table_ = CreateCornerTable(mesh_);
+    corner_table_ = CreateCornerTableFromPositionAttribute(mesh_);
     if (corner_table_ == nullptr)
       return false;
 
@@ -137,7 +137,7 @@ class MeshStripifier {
   }
 
   PointIndex CornerToPointIndex(CornerIndex ci) const {
-    return CornerToPointId(ci, corner_table_.get(), mesh_);
+    return mesh_->CornerToPointId(ci);
   }
 
   // Returns the opposite corner in case the opposite triangle does not lie

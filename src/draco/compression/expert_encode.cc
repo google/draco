@@ -49,7 +49,6 @@ Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud &pc,
     encoder.reset(new PointCloudSequentialEncoder());
   } else {
     // Speed < 10, use POINT_CLOUD_KD_TREE_ENCODING if possible.
-    const PointAttribute *const att = pc.attribute(0);
     bool kd_tree_possible = true;
     // Kd-Tree encoder can be currently used only under following conditions:
     //   - Point cloud has one attribute describing positions
@@ -57,6 +56,10 @@ Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud &pc,
     //   - Position data type is one of the following:
     //         -float32 and quantization is enabled
     //         -uint32
+    const PointAttribute *const att =
+        pc.GetNamedAttribute(GeometryAttribute::POSITION);
+    if (att == nullptr || pc.num_attributes() != 1)
+      kd_tree_possible = false;
     if (kd_tree_possible &&
         att->attribute_type() != GeometryAttribute::POSITION)
       kd_tree_possible = false;

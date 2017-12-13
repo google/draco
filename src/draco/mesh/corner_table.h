@@ -15,10 +15,11 @@
 #ifndef DRACO_MESH_CORNER_TABLE_H_
 #define DRACO_MESH_CORNER_TABLE_H_
 
+#include <array>
 #include <memory>
 
+#include "draco/attributes/geometry_indices.h"
 #include "draco/core/draco_index_type_vector.h"
-#include "draco/mesh/corner_table_indices.h"
 
 namespace draco {
 
@@ -48,6 +49,10 @@ namespace draco {
 // non-manifold edges and vertices are automatically split.
 class CornerTable {
  public:
+  // TODO(hemmer): rename to Face.
+  // Corner table face type.
+  typedef std::array<VertexIndex, 3> FaceType;
+
   CornerTable();
   static std::unique_ptr<CornerTable> Create(
       const IndexTypeVector<FaceIndex, FaceType> &faces);
@@ -59,6 +64,9 @@ class CornerTable {
 
   // Resets the corner table to the given number of invalid faces.
   bool Reset(int num_faces);
+
+  // Resets the corner table to the given number of invalid faces and vertices.
+  bool Reset(int num_faces, int num_vertices);
 
   inline int num_vertices() const { return vertex_corners_.size(); }
   inline int num_corners() const { return corner_to_vertex_map_.size(); }
@@ -222,11 +230,6 @@ class CornerTable {
   // Updates mapping between a corner and a vertex.
   inline void MapCornerToVertex(CornerIndex corner_id, VertexIndex vert_id) {
     corner_to_vertex_map_[corner_id] = vert_id;
-    if (vert_id >= 0) {
-      if (vertex_corners_.size() <= static_cast<size_t>(vert_id.value()))
-        vertex_corners_.resize(vert_id.value() + 1);
-      vertex_corners_[vert_id] = corner_id;
-    }
   }
 
   VertexIndex AddNewVertex() {
@@ -476,6 +479,10 @@ class FaceAdjacencyIterator
   // The last processed corner.
   CornerIndex corner_;
 };
+
+// A special case to denote an invalid corner table triangle.
+static constexpr CornerTable::FaceType kInvalidFace(
+    {{kInvalidVertexIndex, kInvalidVertexIndex, kInvalidVertexIndex}});
 
 }  // namespace draco
 

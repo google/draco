@@ -23,17 +23,6 @@ namespace draco {
 
 class ObjEncoderTest : public ::testing::Test {
  protected:
-  template <class Geometry>
-  std::unique_ptr<Mesh> DecodeFromObjFile(const std::string &file_name) const {
-    const std::string path = GetTestFileFullPath(file_name);
-    std::unique_ptr<Mesh> mesh(new Mesh());
-    ObjDecoder decoder;
-    decoder.set_use_metadata(true);
-    if (!decoder.DecodeFromFile(path, mesh.get()))
-      return nullptr;
-    return mesh;
-  }
-
   void CompareMeshes(const Mesh *mesh0, const Mesh *mesh1) {
     ASSERT_EQ(mesh0->num_faces(), mesh1->num_faces());
     ASSERT_EQ(mesh0->num_attributes(), mesh1->num_attributes());
@@ -55,13 +44,13 @@ class ObjEncoderTest : public ::testing::Test {
     std::unique_ptr<Mesh> decoded_mesh(new Mesh());
     ObjDecoder decoder;
     decoder.set_use_metadata(true);
-    if (!decoder.DecodeFromBuffer(&decoder_buffer, decoded_mesh.get()))
+    if (!decoder.DecodeFromBuffer(&decoder_buffer, decoded_mesh.get()).ok())
       return nullptr;
     return decoded_mesh;
   }
 
   void test_encoding(const std::string &file_name) {
-    const std::unique_ptr<Mesh> mesh(DecodeFromObjFile<Mesh>(file_name));
+    const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name, true));
 
     ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
     ASSERT_GT(mesh->num_faces(), 0);
@@ -74,7 +63,7 @@ class ObjEncoderTest : public ::testing::Test {
 TEST_F(ObjEncoderTest, HasSubObject) { test_encoding("cube_att_sub_o.obj"); }
 
 TEST_F(ObjEncoderTest, HasMaterial) {
-  const std::unique_ptr<Mesh> mesh0(DecodeFromObjFile<Mesh>("mat_test.obj"));
+  const std::unique_ptr<Mesh> mesh0(ReadMeshFromTestFile("mat_test.obj", true));
   ASSERT_NE(mesh0, nullptr);
   const std::unique_ptr<Mesh> mesh1 = EncodeAndDecodeMesh(mesh0.get());
   ASSERT_NE(mesh1, nullptr);

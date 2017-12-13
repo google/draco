@@ -42,22 +42,23 @@ ObjDecoder::ObjDecoder()
       out_mesh_(nullptr),
       out_point_cloud_(nullptr) {}
 
-bool ObjDecoder::DecodeFromFile(const std::string &file_name, Mesh *out_mesh) {
+Status ObjDecoder::DecodeFromFile(const std::string &file_name,
+                                  Mesh *out_mesh) {
   out_mesh_ = out_mesh;
   return DecodeFromFile(file_name, static_cast<PointCloud *>(out_mesh));
 }
 
-bool ObjDecoder::DecodeFromFile(const std::string &file_name,
-                                PointCloud *out_point_cloud) {
+Status ObjDecoder::DecodeFromFile(const std::string &file_name,
+                                  PointCloud *out_point_cloud) {
   std::ifstream file(file_name, std::ios::binary);
   if (!file)
-    return false;
+    return Status(Status::IO_ERROR);
   // Read the whole file into a buffer.
   int64_t file_size = file.tellg();
   file.seekg(0, std::ios::end);
   file_size = file.tellg() - file_size;
   if (file_size == 0)
-    return false;
+    return Status(Status::IO_ERROR);
   file.seekg(0, std::ios::beg);
   std::vector<char> data(file_size);
   file.read(&data[0], file_size);
@@ -68,19 +69,19 @@ bool ObjDecoder::DecodeFromFile(const std::string &file_name,
   return DecodeInternal();
 }
 
-bool ObjDecoder::DecodeFromBuffer(DecoderBuffer *buffer, Mesh *out_mesh) {
+Status ObjDecoder::DecodeFromBuffer(DecoderBuffer *buffer, Mesh *out_mesh) {
   out_mesh_ = out_mesh;
   return DecodeFromBuffer(buffer, static_cast<PointCloud *>(out_mesh));
 }
 
-bool ObjDecoder::DecodeFromBuffer(DecoderBuffer *buffer,
-                                  PointCloud *out_point_cloud) {
+Status ObjDecoder::DecodeFromBuffer(DecoderBuffer *buffer,
+                                    PointCloud *out_point_cloud) {
   out_point_cloud_ = out_point_cloud;
   buffer_.Init(buffer->data_head(), buffer->remaining_size());
   return DecodeInternal();
 }
 
-bool ObjDecoder::DecodeInternal() {
+Status ObjDecoder::DecodeInternal() {
   // In the first pass, count the number of different elements in the geometry.
   // In case the desired output is just a point cloud (i.e., when
   // out_mesh_ == nullptr) the decoder will ignore all information about the
@@ -90,13 +91,29 @@ bool ObjDecoder::DecodeInternal() {
   material_name_to_id_.clear();
   last_sub_obj_id_ = 0;
   // Parse all lines.
-  bool error = false;
-  while (ParseDefinition(&error) && !error) {
+  Status status(Status::OK);
+  while (ParseDefinition(&status) && status.ok()) {
   }
-  if (error)
-    return false;
-  if (num_obj_faces_ == 0)
-    return true;  // Point cloud is OK.
+  if (!status.ok())
+    return status;
+  bool use_identity_mapping = false;
+  if (num_obj_faces_ == 0) {
+    // Mesh has no faces. In this case we try to read the geometry as a point
+    // cloud where every attribute entry is a point.
+
+    // Ensure the number of all entries is same for all attributes.
+    if (num_positions_ == 0)
+      return Status(Status::ERROR, "No position attribute");
+    if (num_tex_coords_ > 0 && num_tex_coords_ != num_positions_)
+      return Status(Status::ERROR,
+                    "Invalid number of texture coordinates for a point cloud");
+    if (num_normals_ > 0 && num_normals_ != num_positions_)
+      return Status(Status::ERROR,
+                    "Invalid number of normals for a point cloud");
+
+    out_mesh_ = nullptr;  // Treat the output geometry as a point cloud.
+    use_identity_mapping = true;
+  }
 
   // Initialize point cloud and mesh properties.
   if (out_mesh_) {
@@ -104,27 +121,35 @@ bool ObjDecoder::DecodeInternal() {
     // silently ignore all data about the mesh connectivity.
     out_mesh_->SetNumFaces(num_obj_faces_);
   }
-  out_point_cloud_->set_num_points(3 * num_obj_faces_);
+  if (num_obj_faces_ > 0) {
+    out_point_cloud_->set_num_points(3 * num_obj_faces_);
+  } else {
+    out_point_cloud_->set_num_points(num_positions_);
+  }
+
   // Add attributes if they are present in the input data.
   if (num_positions_ > 0) {
     GeometryAttribute va;
     va.Init(GeometryAttribute::POSITION, nullptr, 3, DT_FLOAT32, false,
             sizeof(float) * 3, 0);
-    pos_att_id_ = out_point_cloud_->AddAttribute(va, false, num_positions_);
+    pos_att_id_ = out_point_cloud_->AddAttribute(va, use_identity_mapping,
+                                                 num_positions_);
   }
   if (num_tex_coords_ > 0) {
     GeometryAttribute va;
     va.Init(GeometryAttribute::TEX_COORD, nullptr, 2, DT_FLOAT32, false,
             sizeof(float) * 2, 0);
-    tex_att_id_ = out_point_cloud_->AddAttribute(va, false, num_tex_coords_);
+    tex_att_id_ = out_point_cloud_->AddAttribute(va, use_identity_mapping,
+                                                 num_tex_coords_);
   }
   if (num_normals_ > 0) {
     GeometryAttribute va;
     va.Init(GeometryAttribute::NORMAL, nullptr, 3, DT_FLOAT32, false,
             sizeof(float) * 3, 0);
-    norm_att_id_ = out_point_cloud_->AddAttribute(va, false, num_normals_);
+    norm_att_id_ =
+        out_point_cloud_->AddAttribute(va, use_identity_mapping, num_normals_);
   }
-  if (num_materials_ > 0) {
+  if (num_materials_ > 0 && num_obj_faces_ > 0) {
     GeometryAttribute va;
     if (num_materials_ < 256) {
       va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT8, false, 1, 0);
@@ -159,7 +184,7 @@ bool ObjDecoder::DecodeInternal() {
                                              std::move(material_metadata));
     }
   }
-  if (!obj_name_to_id_.empty()) {
+  if (!obj_name_to_id_.empty() && num_obj_faces_ > 0) {
     GeometryAttribute va;
     if (obj_name_to_id_.size() < 256) {
       va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT8, false, 1, 0);
@@ -195,10 +220,10 @@ bool ObjDecoder::DecodeInternal() {
   ResetCounters();
   // Start parsing from the beginning of the buffer again.
   buffer()->StartDecodingFrom(0);
-  while (ParseDefinition(&error) && !error) {
+  while (ParseDefinition(&status) && status.ok()) {
   }
-  if (error)
-    return false;
+  if (!status.ok())
+    return status;
   if (out_mesh_) {
     // Add faces with identity mapping between vertex and corner indices.
     // Duplicate vertices will get removed later.
@@ -215,7 +240,7 @@ bool ObjDecoder::DecodeInternal() {
   }
   out_point_cloud_->DeduplicatePointIds();
 #endif
-  return true;
+  return status;
 }
 
 void ObjDecoder::ResetCounters() {
@@ -227,7 +252,7 @@ void ObjDecoder::ResetCounters() {
   last_sub_obj_id_ = 0;
 }
 
-bool ObjDecoder::ParseDefinition(bool *error) {
+bool ObjDecoder::ParseDefinition(Status *status) {
   char c;
   parser::SkipWhitespace(buffer());
   if (!buffer()->Peek(&c)) {
@@ -239,26 +264,26 @@ bool ObjDecoder::ParseDefinition(bool *error) {
     parser::SkipLine(buffer());
     return true;
   }
-  if (ParseVertexPosition(error))
+  if (ParseVertexPosition(status))
     return true;
-  if (ParseNormal(error))
+  if (ParseNormal(status))
     return true;
-  if (ParseTexCoord(error))
+  if (ParseTexCoord(status))
     return true;
-  if (ParseFace(error))
+  if (ParseFace(status))
     return true;
-  if (ParseMaterial(error))
+  if (ParseMaterial(status))
     return true;
-  if (ParseMaterialLib(error))
+  if (ParseMaterialLib(status))
     return true;
-  if (ParseObject(error))
+  if (ParseObject(status))
     return true;
   // No known definition was found. Ignore the line.
   parser::SkipLine(buffer());
   return true;
 }
 
-bool ObjDecoder::ParseVertexPosition(bool *error) {
+bool ObjDecoder::ParseVertexPosition(Status *status) {
   std::array<char, 2> c;
   if (!buffer()->Peek(&c)) {
     return false;
@@ -273,7 +298,7 @@ bool ObjDecoder::ParseVertexPosition(bool *error) {
     for (int i = 0; i < 3; ++i) {
       parser::SkipWhitespace(buffer());
       if (!parser::ParseFloat(buffer(), val + i)) {
-        *error = true;
+        *status = Status(Status::ERROR, "Failed to parse a float number");
         // The definition is processed so return true.
         return true;
       }
@@ -286,7 +311,7 @@ bool ObjDecoder::ParseVertexPosition(bool *error) {
   return true;
 }
 
-bool ObjDecoder::ParseNormal(bool *error) {
+bool ObjDecoder::ParseNormal(Status *status) {
   std::array<char, 2> c;
   if (!buffer()->Peek(&c)) {
     return false;
@@ -301,7 +326,7 @@ bool ObjDecoder::ParseNormal(bool *error) {
     for (int i = 0; i < 3; ++i) {
       parser::SkipWhitespace(buffer());
       if (!parser::ParseFloat(buffer(), val + i)) {
-        *error = true;
+        *status = Status(Status::ERROR, "Failed to parse a float number");
         // The definition is processed so return true.
         return true;
       }
@@ -314,7 +339,7 @@ bool ObjDecoder::ParseNormal(bool *error) {
   return true;
 }
 
-bool ObjDecoder::ParseTexCoord(bool *error) {
+bool ObjDecoder::ParseTexCoord(Status *status) {
   std::array<char, 2> c;
   if (!buffer()->Peek(&c)) {
     return false;
@@ -329,7 +354,7 @@ bool ObjDecoder::ParseTexCoord(bool *error) {
     for (int i = 0; i < 2; ++i) {
       parser::SkipWhitespace(buffer());
       if (!parser::ParseFloat(buffer(), val + i)) {
-        *error = true;
+        *status = Status(Status::ERROR, "Failed to parse a float number");
         // The definition is processed so return true.
         return true;
       }
@@ -342,7 +367,7 @@ bool ObjDecoder::ParseTexCoord(bool *error) {
   return true;
 }
 
-bool ObjDecoder::ParseFace(bool *error) {
+bool ObjDecoder::ParseFace(Status *status) {
   char c;
   if (!buffer()->Peek(&c)) {
     return false;
@@ -360,7 +385,7 @@ bool ObjDecoder::ParseFace(bool *error) {
         if (i == 3) {
           break;  // It's OK if there is no fourth vertex index.
         }
-        *error = true;
+        *status = Status(Status::ERROR, "Failed to parse vertex indices");
         return true;
       }
       ++num_valid_indices;
@@ -405,7 +430,7 @@ bool ObjDecoder::ParseFace(bool *error) {
       }
     }
     if (num_indices < 3 || num_indices > 4) {
-      *error = true;
+      *status = Status(Status::ERROR, "Invalid number of indices on a face");
       return false;
     }
     // Either one or two new triangles.
@@ -415,7 +440,7 @@ bool ObjDecoder::ParseFace(bool *error) {
   return true;
 }
 
-bool ObjDecoder::ParseMaterialLib(bool *error) {
+bool ObjDecoder::ParseMaterialLib(Status *status) {
   // Allow only one material library per file for now.
   if (material_name_to_id_.size() > 0)
     return false;
@@ -430,13 +455,13 @@ bool ObjDecoder::ParseMaterialLib(bool *error) {
   parser::SkipWhitespace(&line_buffer);
   material_file_name_.clear();
   if (!parser::ParseString(&line_buffer, &material_file_name_)) {
-    *error = true;
+    *status = Status(Status::ERROR, "Failed to parse material file name");
     return true;
   }
   parser::SkipLine(&line_buffer);
 
   if (material_file_name_.size() > 0) {
-    if (!ParseMaterialFile(material_file_name_, error)) {
+    if (!ParseMaterialFile(material_file_name_, status)) {
       // Silently ignore problems with material files for now.
       return true;
     }
@@ -444,7 +469,7 @@ bool ObjDecoder::ParseMaterialLib(bool *error) {
   return true;
 }
 
-bool ObjDecoder::ParseMaterial(bool * /* error */) {
+bool ObjDecoder::ParseMaterial(Status * /* status */) {
   // In second pass, skip when we don't use materials.
   if (!counting_mode_ && material_att_id_ < 0)
     return false;
@@ -473,7 +498,7 @@ bool ObjDecoder::ParseMaterial(bool * /* error */) {
   return true;
 }
 
-bool ObjDecoder::ParseObject(bool *error) {
+bool ObjDecoder::ParseObject(Status *status) {
   std::array<char, 2> c;
   if (!buffer()->Peek(&c)) {
     return false;
@@ -554,32 +579,36 @@ void ObjDecoder::MapPointToVertexIndices(
                            AttributeValueIndex(num_positions_ + indices[0]));
   }
 
-  if (indices[1] > 0) {
-    out_point_cloud_->attribute(tex_att_id_)
-        ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[1] - 1));
-  } else if (indices[1] < 0) {
-    out_point_cloud_->attribute(tex_att_id_)
-        ->SetPointMapEntry(vert_id,
-                           AttributeValueIndex(num_tex_coords_ + indices[1]));
-  } else if (tex_att_id_ >= 0) {
-    // Texture index not provided but expected. Insert 0 entry as the
-    // default value.
-    out_point_cloud_->attribute(tex_att_id_)
-        ->SetPointMapEntry(vert_id, AttributeValueIndex(0));
+  if (tex_att_id_ >= 0) {
+    if (indices[1] > 0) {
+      out_point_cloud_->attribute(tex_att_id_)
+          ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[1] - 1));
+    } else if (indices[1] < 0) {
+      out_point_cloud_->attribute(tex_att_id_)
+          ->SetPointMapEntry(vert_id,
+                             AttributeValueIndex(num_tex_coords_ + indices[1]));
+    } else {
+      // Texture index not provided but expected. Insert 0 entry as the
+      // default value.
+      out_point_cloud_->attribute(tex_att_id_)
+          ->SetPointMapEntry(vert_id, AttributeValueIndex(0));
+    }
   }
 
-  if (indices[2] > 0) {
-    out_point_cloud_->attribute(norm_att_id_)
-        ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[2] - 1));
-  } else if (indices[2] < 0) {
-    out_point_cloud_->attribute(norm_att_id_)
-        ->SetPointMapEntry(vert_id,
-                           AttributeValueIndex(num_normals_ + indices[2]));
-  } else if (norm_att_id_ >= 0) {
-    // Normal index not provided but expected. Insert 0 entry as the default
-    // value.
-    out_point_cloud_->attribute(norm_att_id_)
-        ->SetPointMapEntry(vert_id, AttributeValueIndex(0));
+  if (norm_att_id_ >= 0) {
+    if (indices[2] > 0) {
+      out_point_cloud_->attribute(norm_att_id_)
+          ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[2] - 1));
+    } else if (indices[2] < 0) {
+      out_point_cloud_->attribute(norm_att_id_)
+          ->SetPointMapEntry(vert_id,
+                             AttributeValueIndex(num_normals_ + indices[2]));
+    } else {
+      // Normal index not provided but expected. Insert 0 entry as the default
+      // value.
+      out_point_cloud_->attribute(norm_att_id_)
+          ->SetPointMapEntry(vert_id, AttributeValueIndex(0));
+    }
   }
 
   // Assign material index to the point if it is available.
@@ -595,7 +624,8 @@ void ObjDecoder::MapPointToVertexIndices(
   }
 }
 
-bool ObjDecoder::ParseMaterialFile(const std::string &file_name, bool *error) {
+bool ObjDecoder::ParseMaterialFile(const std::string &file_name,
+                                   Status *status) {
   // Get the correct path to the |file_name| using the folder from
   // |input_file_name_| as the root folder.
   const auto pos = input_file_name_.find_last_of("/\\");
@@ -623,7 +653,7 @@ bool ObjDecoder::ParseMaterialFile(const std::string &file_name, bool *error) {
   buffer_.Init(&data[0], file_size);
 
   num_materials_ = 0;
-  while (ParseMaterialFileDefinition(error)) {
+  while (ParseMaterialFileDefinition(status)) {
   }
 
   // Restore the original buffer.
@@ -631,7 +661,7 @@ bool ObjDecoder::ParseMaterialFile(const std::string &file_name, bool *error) {
   return true;
 }
 
-bool ObjDecoder::ParseMaterialFileDefinition(bool * /* error */) {
+bool ObjDecoder::ParseMaterialFileDefinition(Status * /* status */) {
   char c;
   parser::SkipWhitespace(buffer());
   if (!buffer()->Peek(&c)) {

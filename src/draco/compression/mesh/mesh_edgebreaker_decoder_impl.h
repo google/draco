@@ -117,7 +117,7 @@ class MeshEdgeBreakerDecoderImpl : public MeshEdgeBreakerDecoderImplInterface {
   bool DecodeAttributeConnectivitiesOnFace(CornerIndex corner);
 
   // Initializes mapping between corners and point ids.
-  bool AssignPointsToCorners();
+  bool AssignPointsToCorners(int num_connectivity_verts);
 
   bool IsFaceVisited(CornerIndex corner_id) const {
     if (corner_id < 0)
@@ -157,10 +157,6 @@ class MeshEdgeBreakerDecoderImpl : public MeshEdgeBreakerDecoderImplInterface {
 
   // Initial corner for each traversal.
   std::vector<CornerIndex> init_corners_;
-
-  // Mapping between vertex ids assigned during connectivity decoding and vertex
-  // ids that were used during encoding.
-  std::vector<VertexIndex> vertex_id_map_;
 
   // Id of the last processed input symbol.
   int last_symbol_id_;

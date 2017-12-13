@@ -5,6 +5,13 @@
 
 News
 =======
+### Version 1.2.4 release
+* Up to 20% faster decoding
+* Added support for integer attributes to our Javascript Encoder
+* Fixed issues with THREE.DracoLoader not releasing memory associated with the Draco module
+* OBJ decoder can now be used to parse pure point clouds
+* Added Unity plugins to support runtime loading and design-time importing of encoded Draco files
+
 ### Version 1.2.3 release
 * Fixed Visual Studio building issue
 

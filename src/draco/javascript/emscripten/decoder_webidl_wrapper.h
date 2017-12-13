@@ -74,15 +74,15 @@ class DracoInt32Array {
  public:
   DracoInt32Array();
 
-  int GetValue(int index) const;
+  int32_t GetValue(int index) const;
   bool SetValues(const int *values, int count);
 
-  void SetValue(int index, int val) { values_[index] = val; }
+  void SetValue(int index, int32_t val) { values_[index] = val; }
 
   int size() const { return values_.size(); }
 
  private:
-  std::vector<int> values_;
+  std::vector<int32_t> values_;
 };
 
 // Class used by emscripten WebIDL Binder [1] to wrap calls to decode Draco
@@ -152,6 +152,11 @@ class Decoder {
 
   // Returns integer attribute values for all point ids of the point cloud.
   // I.e., the |out_values| is going to contain m.num_points() entries.
+  static bool GetAttributeInt32ForAllPoints(const draco::PointCloud &pc,
+                                            const draco::PointAttribute &pa,
+                                            DracoInt32Array *out_values);
+
+  // Deprecated: Use GetAttributeInt32ForAllPoints() instead.
   static bool GetAttributeIntForAllPoints(const draco::PointCloud &pc,
                                           const draco::PointAttribute &pa,
                                           DracoInt32Array *out_values);

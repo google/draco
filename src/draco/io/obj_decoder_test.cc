@@ -24,10 +24,17 @@ class ObjDecoderTest : public ::testing::Test {
  protected:
   template <class Geometry>
   std::unique_ptr<Geometry> DecodeObj(const std::string &file_name) const {
+    return DecodeObj<Geometry>(file_name, false);
+  }
+
+  template <class Geometry>
+  std::unique_ptr<Geometry> DecodeObj(const std::string &file_name,
+                                      bool deduplicate_input_values) const {
     const std::string path = GetTestFileFullPath(file_name);
     ObjDecoder decoder;
+    decoder.set_deduplicate_input_values(deduplicate_input_values);
     std::unique_ptr<Geometry> geometry(new Geometry());
-    if (!decoder.DecodeFromFile(path, geometry.get()))
+    if (!decoder.DecodeFromFile(path, geometry.get()).ok())
       return nullptr;
     return geometry;
   }
@@ -39,7 +46,7 @@ class ObjDecoderTest : public ::testing::Test {
     ObjDecoder decoder;
     decoder.set_use_metadata(true);
     std::unique_ptr<Geometry> geometry(new Geometry());
-    if (!decoder.DecodeFromFile(path, geometry.get()))
+    if (!decoder.DecodeFromFile(path, geometry.get()).ok())
       return nullptr;
     return geometry;
   }
@@ -129,6 +136,28 @@ TEST_F(ObjDecoderTest, EmptyNameOBJ) {
   ASSERT_NE(mesh, nullptr);
   ASSERT_EQ(mesh->num_attributes(), 1);
   // Three valid entries in the attribute are expected.
+  ASSERT_EQ(mesh->attribute(0)->size(), 3);
+}
+
+TEST_F(ObjDecoderTest, PointCloudOBJ) {
+  // Tests that we load an obj file that does not contain any faces.
+  const std::string file_name = "test_lines.obj";
+  const std::unique_ptr<Mesh> mesh(DecodeObj<Mesh>(file_name, false));
+  ASSERT_NE(mesh, nullptr);
+  ASSERT_EQ(mesh->num_faces(), 0);
+  ASSERT_EQ(mesh->num_attributes(), 1);
+  ASSERT_EQ(mesh->attribute(0)->size(), 484);
+}
+
+TEST_F(ObjDecoderTest, WrongAttributeMapping) {
+  // Tests that we load an obj file that contains invalid mapping between
+  // attribute indices and values. In such case the invalid indices should be
+  // ignored.
+  const std::string file_name = "test_wrong_attribute_mapping.obj";
+  const std::unique_ptr<Mesh> mesh(DecodeObj<Mesh>(file_name, false));
+  ASSERT_NE(mesh, nullptr);
+  ASSERT_EQ(mesh->num_faces(), 1);
+  ASSERT_EQ(mesh->num_attributes(), 1);
   ASSERT_EQ(mesh->attribute(0)->size(), 3);
 }
 

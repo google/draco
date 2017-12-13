@@ -17,22 +17,9 @@
 #include "draco/compression/encode.h"
 #include "draco/mesh/mesh.h"
 
-DracoFloat32Array::DracoFloat32Array() {}
-
-float DracoFloat32Array::GetValue(int index) const { return values_[index]; }
-
-bool DracoFloat32Array::SetValues(const float *values, int count) {
-  if (values) {
-    values_.assign(values, values + count);
-  } else {
-    values_.resize(count);
-  }
-  return true;
-}
-
 DracoInt8Array::DracoInt8Array() {}
 
-int DracoInt8Array::GetValue(int index) const { return values_[index]; }
+int8_t DracoInt8Array::GetValue(int index) const { return values_[index]; }
 
 bool DracoInt8Array::SetValues(const char *values, int count) {
   values_.assign(values, values + count);
@@ -93,26 +80,16 @@ int MeshBuilder::AddFloatAttributeToMesh(Mesh *mesh,
                                          draco_GeometryAttribute_Type type,
                                          long num_vertices, long num_components,
                                          const float *att_values) {
-  if (!mesh)
-    return -1;
-  draco::PointAttribute att;
-  att.Init(type, NULL, num_components, draco::DT_FLOAT32,
-           /* normalized */ false,
-           /* stride */ sizeof(float) * num_components, /* byte_offset */ 0);
-  const int att_id =
-      mesh->AddAttribute(att, /* identity_mapping */ true, num_vertices);
-  draco::PointAttribute *const att_ptr = mesh->attribute(att_id);
+  return AddAttributeToMesh(mesh, type, num_vertices, num_components,
+                            att_values, draco::DT_FLOAT32);
+}
 
-  for (draco::PointIndex i(0); i < num_vertices; ++i) {
-    att_ptr->SetAttributeValue(att_ptr->mapped_index(i),
-                               &att_values[i.value() * num_components]);
-  }
-  if (mesh->num_points() == 0) {
-    mesh->set_num_points(num_vertices);
-  } else if (mesh->num_points() != num_vertices) {
-    return -1;
-  }
-  return att_id;
+int MeshBuilder::AddInt32AttributeToMesh(draco::Mesh *mesh,
+                                         draco_GeometryAttribute_Type type,
+                                         long num_vertices, long num_components,
+                                         const int32_t *att_values) {
+  return AddAttributeToMesh(mesh, type, num_vertices, num_components,
+                            att_values, draco::DT_INT32);
 }
 
 bool MeshBuilder::SetMetadataForAttribute(Mesh *mesh, long attribute_id,

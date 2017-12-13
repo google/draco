@@ -21,6 +21,7 @@
 #include "draco/compression/mesh/mesh_edgebreaker_decoder.h"
 #include "draco/compression/mesh/mesh_edgebreaker_traversal_predictive_decoder.h"
 #include "draco/compression/mesh/mesh_edgebreaker_traversal_valence_decoder.h"
+#include "draco/mesh/corner_table_iterators.h"
 #include "draco/mesh/corner_table_traversal_processor.h"
 #include "draco/mesh/edgebreaker_traverser.h"
 #include "draco/mesh/prediction_degree_traverser.h"
@@ -256,13 +257,13 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
     if (!DecodeVarint(&num_faces, decoder_->buffer()))
       return false;
   }
+  if (num_faces > std::numeric_limits<CornerIndex::ValueType>::max() / 3)
+    return false;  // Draco cannot handle this many faces.
 
   // Decode topology (connectivity).
   vertex_traversal_length_.clear();
   corner_table_ = std::unique_ptr<CornerTable>(new CornerTable());
   if (corner_table_ == nullptr)
-    return false;
-  if (!corner_table_->Reset(num_faces))
     return false;
   processed_corner_ids_.clear();
   processed_corner_ids_.reserve(num_faces);
@@ -316,6 +317,10 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
     if (!DecodeVarint(&num_encoded_split_symbols, decoder_->buffer()))
       return false;
   }
+
+  if (!corner_table_->Reset(num_faces,
+                            num_encoded_vertices_ + num_encoded_split_symbols))
+    return false;
 
   // Start with all vertices marked as holes (boundaries).
   // Only vertices decoded with TOPOLOGY_C symbol (and the initial face) will
@@ -400,14 +405,6 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   }
   traversal_decoder_.Done();
 
-  // Update vertex to corner mapping on boundary vertices as it was not set
-  // correctly in the previous steps.
-  for (int i = 0; i < corner_table_->num_vertices(); ++i) {
-    if (is_vert_hole_[i]) {
-      corner_table_->UpdateVertexToCornerMap(VertexIndex(i));
-    }
-  }
-
   // Decode attribute connectivity.
   // Prepare data structure for decoding non-position attribute connectivity.
   for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
@@ -420,8 +417,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
     attribute_data_[i].connectivity_data.RecomputeVertices(nullptr, nullptr);
   }
 
-  pos_encoding_data_.vertex_to_encoded_attribute_value_index_map.resize(
-      corner_table_->num_vertices());
+  pos_encoding_data_.Initialize(corner_table_->num_vertices());
   for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
     // For non-position attributes, preallocate the vertex to value mapping
     // using the maximum number of vertices from the base corner table and the
@@ -431,11 +427,9 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
         attribute_data_[i].connectivity_data.num_vertices();
     if (att_connectivity_verts < corner_table_->num_vertices())
       att_connectivity_verts = corner_table_->num_vertices();
-    attribute_data_[i]
-        .encoding_data.vertex_to_encoded_attribute_value_index_map.resize(
-            att_connectivity_verts);
+    attribute_data_[i].encoding_data.Initialize(att_connectivity_verts);
   }
-  if (!AssignPointsToCorners())
+  if (!AssignPointsToCorners(num_connectivity_verts))
     return false;
   return true;
 }
@@ -465,7 +459,12 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
   // id they belong to, so we can address them using this symbol id.
   std::unordered_map<int, CornerIndex> topology_split_active_corners;
 
-  int num_vertices = 0;
+  // Vector used for storing vertices that were marked as isolated during the
+  // decoding process. Currently used only when the mesh doesn't contain any
+  // non-position connectivity data.
+  std::vector<VertexIndex> invalid_vertices;
+  const bool remove_invalid_vertices = attribute_data_.empty();
+
   int max_num_vertices = is_vert_hole_.size();
   int num_faces = 0;
   for (int symbol_id = 0; symbol_id < num_symbols; ++symbol_id) {
@@ -495,25 +494,28 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       // top of the active stack.
       if (active_corner_stack.empty())
         return -1;
+
       const CornerIndex corner_a = active_corner_stack.back();
-      CornerIndex corner_b = corner_table_->Previous(corner_a);
-      while (corner_table_->Opposite(corner_b) >= 0) {
-        corner_b = corner_table_->Previous(corner_table_->Opposite(corner_b));
-      }
+      const VertexIndex vertex_x =
+          corner_table_->Vertex(corner_table_->Next(corner_a));
+      const CornerIndex corner_b =
+          corner_table_->Next(corner_table_->LeftMostCorner(vertex_x));
+
       // New tip corner.
       const CornerIndex corner(3 * face.value());
       // Update opposite corner mappings.
       SetOppositeCorners(corner_a, corner + 1);
       SetOppositeCorners(corner_b, corner + 2);
-      const VertexIndex vertex_x =
-          corner_table_->Vertex(corner_table_->Next(corner_a));
+
       // Update vertex mapping.
       corner_table_->MapCornerToVertex(corner, vertex_x);
       corner_table_->MapCornerToVertex(
           corner + 1, corner_table_->Vertex(corner_table_->Next(corner_b)));
-      corner_table_->MapCornerToVertex(
-          corner + 2, corner_table_->Vertex(corner_table_->Previous(corner_a)));
-      if (num_vertices > max_num_vertices)
+      const VertexIndex vert_a_prev =
+          corner_table_->Vertex(corner_table_->Previous(corner_a));
+      corner_table_->MapCornerToVertex(corner + 2, vert_a_prev);
+      corner_table_->SetLeftMostCorner(vert_a_prev, corner + 2);
+      if (corner_table_->num_vertices() > max_num_vertices)
         return -1;  // Unexpected number of decoded vertices.
       // Mark the vertex |x| as interior.
       is_vert_hole_[vertex_x.value()] = false;
@@ -540,23 +542,32 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
 
       // First corner on the new face is either corner "l" or "r".
       const CornerIndex corner(3 * face.value());
-      CornerIndex opp_corner;
+      CornerIndex opp_corner, corner_l, corner_r;
       if (symbol == TOPOLOGY_R) {
         // "r" is the new first corner.
         opp_corner = corner + 2;
+        corner_l = corner + 1;
+        corner_r = corner;
       } else {
         // "l" is the new first corner.
         opp_corner = corner + 1;
+        corner_l = corner;
+        corner_r = corner + 2;
       }
       SetOppositeCorners(opp_corner, corner_a);
       // Update vertex mapping.
-      corner_table_->MapCornerToVertex(opp_corner, VertexIndex(num_vertices++));
+      const VertexIndex new_vert_index = corner_table_->AddNewVertex();
+      corner_table_->MapCornerToVertex(opp_corner, new_vert_index);
+      corner_table_->SetLeftMostCorner(new_vert_index, opp_corner);
+
+      const VertexIndex vertex_r =
+          corner_table_->Vertex(corner_table_->Previous(corner_a));
+      corner_table_->MapCornerToVertex(corner_r, vertex_r);
+      // Update left-most corner on the vertex on the |corner_r|.
+      corner_table_->SetLeftMostCorner(vertex_r, corner_r);
+
       corner_table_->MapCornerToVertex(
-          corner_table_->Next(opp_corner),
-          corner_table_->Vertex(corner_table_->Previous(corner_a)));
-      corner_table_->MapCornerToVertex(
-          corner_table_->Previous(opp_corner),
-          corner_table_->Vertex(corner_table_->Next(corner_a)));
+          corner_l, corner_table_->Vertex(corner_table_->Next(corner_a)));
       active_corner_stack.back() = corner;
       check_topology_split = true;
     } else if (symbol == TOPOLOGY_S) {
@@ -597,13 +608,19 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       corner_table_->MapCornerToVertex(corner, vertex_p);
       corner_table_->MapCornerToVertex(
           corner + 1, corner_table_->Vertex(corner_table_->Next(corner_a)));
-      corner_table_->MapCornerToVertex(
-          corner + 2, corner_table_->Vertex(corner_table_->Previous(corner_b)));
-      // Also update the vertex id at corner "n" and all corners that are
-      // connected to it in the CCW direction.
+      const VertexIndex vert_b_prev =
+          corner_table_->Vertex(corner_table_->Previous(corner_b));
+      corner_table_->MapCornerToVertex(corner + 2, vert_b_prev);
+      corner_table_->SetLeftMostCorner(vert_b_prev, corner + 2);
       CornerIndex corner_n = corner_table_->Next(corner_b);
       const VertexIndex vertex_n = corner_table_->Vertex(corner_n);
       traversal_decoder_.MergeVertices(vertex_p, vertex_n);
+      // Update the left most corner on the newly merged vertex.
+      corner_table_->SetLeftMostCorner(vertex_p,
+                                       corner_table_->LeftMostCorner(vertex_n));
+
+      // Also update the vertex id at corner "n" and all corners that are
+      // connected to it in the CCW direction.
       while (corner_n >= 0) {
         corner_table_->MapCornerToVertex(corner_n, vertex_p);
         corner_n = corner_table_->SwingLeft(corner_n);
@@ -611,13 +628,21 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       // Make sure the old vertex n is now mapped to an invalid corner (make it
       // isolated).
       corner_table_->MakeVertexIsolated(vertex_n);
+      if (remove_invalid_vertices)
+        invalid_vertices.push_back(vertex_n);
       active_corner_stack.back() = corner;
     } else if (symbol == TOPOLOGY_E) {
       const CornerIndex corner(3 * face.value());
+      const VertexIndex first_vert_index = corner_table_->AddNewVertex();
       // Create three new vertices at the corners of the new face.
-      corner_table_->MapCornerToVertex(corner, VertexIndex(num_vertices++));
-      corner_table_->MapCornerToVertex(corner + 1, VertexIndex(num_vertices++));
-      corner_table_->MapCornerToVertex(corner + 2, VertexIndex(num_vertices++));
+      corner_table_->MapCornerToVertex(corner, first_vert_index);
+      corner_table_->MapCornerToVertex(corner + 1,
+                                       corner_table_->AddNewVertex());
+      corner_table_->MapCornerToVertex(corner + 2,
+                                       corner_table_->AddNewVertex());
+      corner_table_->SetLeftMostCorner(first_vert_index, corner);
+      corner_table_->SetLeftMostCorner(first_vert_index + 1, corner + 1);
+      corner_table_->SetLeftMostCorner(first_vert_index + 2, corner + 2);
       // Add the tip corner to the active stack.
       active_corner_stack.push_back(corner);
       check_topology_split = true;
@@ -672,7 +697,7 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       }
     }
   }
-  if (num_vertices > max_num_vertices)
+  if (corner_table_->num_vertices() > max_num_vertices)
     return -1;  // Unexpected number of decoded vertices.
   // Decode start faces and connect them to the faces from the active stack.
   while (active_corner_stack.size() > 0) {
@@ -684,8 +709,8 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       // The start face is interior, we need to find three corners that are
       // opposite to it. The first opposite corner "a" is the corner from the
       // top of the active corner stack and the remaining two corners "b" and
-      // "c" can be obtained by circulating around vertices "n" and "p" in CW
-      // and CCW directions respectively.
+      // "c" are then the next corners from the left-most corners of vertices
+      // "n" and "x" respectively.
       //
       //           *-------*
       //          / \     / \
@@ -695,7 +720,7 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       //      / \a    . .    c/ \
       //     /   \   .   .   /   \
       //    /     \ .  I  . /     \
-      //   *-------n.......*------*
+      //   *-------n.......x------*
       //    \     / \     / \     /
       //     \   /   \   /   \   /
       //      \ /     \b/     \ /
@@ -706,16 +731,20 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
         return -1;  // More faces than expected added to the mesh.
       }
 
-      // TODO(ostava): The circulation below should be replaced by functions
-      // that can be reused elsewhere.
-      CornerIndex corner_b = corner_table_->Previous(corner);
-      while (corner_table_->Opposite(corner_b) >= 0) {
-        corner_b = corner_table_->Previous(corner_table_->Opposite(corner_b));
-      }
-      CornerIndex corner_c = corner_table_->Next(corner);
-      while (corner_table_->Opposite(corner_c) >= 0) {
-        corner_c = corner_table_->Next(corner_table_->Opposite(corner_c));
-      }
+      const CornerIndex corner_a = corner;
+      const VertexIndex vert_n =
+          corner_table_->Vertex(corner_table_->Next(corner_a));
+      const CornerIndex corner_b =
+          corner_table_->Next(corner_table_->LeftMostCorner(vert_n));
+
+      const VertexIndex vert_x =
+          corner_table_->Vertex(corner_table_->Next(corner_b));
+      const CornerIndex corner_c =
+          corner_table_->Next(corner_table_->LeftMostCorner(vert_x));
+
+      const VertexIndex vert_p =
+          corner_table_->Vertex(corner_table_->Next(corner_c));
+
       const FaceIndex face(num_faces++);
       // The first corner of the initial face is the corner opposite to "a".
       const CornerIndex new_corner(3 * face.value());
@@ -724,12 +753,9 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       SetOppositeCorners(new_corner + 2, corner_c);
 
       // Map new corners to existing vertices.
-      corner_table_->MapCornerToVertex(
-          new_corner, corner_table_->Vertex(corner_table_->Next(corner_b)));
-      corner_table_->MapCornerToVertex(
-          new_corner + 1, corner_table_->Vertex(corner_table_->Next(corner_c)));
-      corner_table_->MapCornerToVertex(
-          new_corner + 2, corner_table_->Vertex(corner_table_->Next(corner)));
+      corner_table_->MapCornerToVertex(new_corner, vert_x);
+      corner_table_->MapCornerToVertex(new_corner + 1, vert_p);
+      corner_table_->MapCornerToVertex(new_corner + 2, vert_n);
 
       // Mark all three vertices as interior.
       for (int ci = 0; ci < 3; ++ci) {
@@ -748,7 +774,37 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
   }
   if (num_faces != corner_table_->num_faces())
     return -1;  // Unexpected number of decoded faces.
-  vertex_id_map_.resize(num_vertices);
+
+  int num_vertices = corner_table_->num_vertices();
+  // If any vertex was marked as isolated, we want to remove it from the corner
+  // table to ensure that all vertices in range <0, num_vertices> are valid.
+  for (const VertexIndex invalid_vert : invalid_vertices) {
+    // Find the last valid vertex and swap it with the isolated vertex.
+    VertexIndex src_vert(num_vertices - 1);
+    while (corner_table_->LeftMostCorner(src_vert) < 0) {
+      // The last vertex is invalid, proceed to the previous one.
+      src_vert = VertexIndex(--num_vertices - 1);
+    }
+    if (src_vert < invalid_vert)
+      continue;  // No need to swap anything.
+
+    // Remap all corners mapped to |src_vert| to |invalid_vert|.
+    VertexCornersIterator<CornerTable> vcit(corner_table_.get(), src_vert);
+    for (; !vcit.End(); ++vcit) {
+      const CornerIndex cid = vcit.Corner();
+      corner_table_->MapCornerToVertex(cid, invalid_vert);
+    }
+    corner_table_->SetLeftMostCorner(invalid_vert,
+                                     corner_table_->LeftMostCorner(src_vert));
+
+    // Make the |src_vert| invalid.
+    corner_table_->MakeVertexIsolated(src_vert);
+    is_vert_hole_[invalid_vert.value()] = is_vert_hole_[src_vert.value()];
+    is_vert_hole_[src_vert.value()] = false;
+
+    // The last vertex is now invalid.
+    num_vertices--;
+  }
   return num_vertices;
 }
 
@@ -918,34 +974,27 @@ bool MeshEdgeBreakerDecoderImpl<
 }
 
 template <class TraversalDecoder>
-bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners() {
+bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners(
+    int num_connectivity_verts) {
   // Map between the existing and deduplicated point ids.
   // Note that at this point we have one point id for each corner of the
   // mesh so there is corner_table_->num_corners() point ids.
   decoder_->mesh()->SetNumFaces(corner_table_->num_faces());
 
-  if (attribute_data_.size() == 0) {
-    // We have position only. In this case we can simplify the deduplication
-    // because the only thing we need to do is to remove isolated vertices that
-    // were introduced during the decoding.
-
-    int32_t num_points = 0;
-    std::vector<int32_t> vertex_to_point_map(corner_table_->num_vertices(), -1);
-    // Add faces.
+  if (attribute_data_.empty()) {
+    // We have connectivity for position only. In this case all vertex indices
+    // are equal to point indices.
     for (FaceIndex f(0); f < decoder_->mesh()->num_faces(); ++f) {
       Mesh::Face face;
+      const CornerIndex start_corner(3 * f.value());
       for (int c = 0; c < 3; ++c) {
-        // Remap old points to the new ones.
-        const int32_t vert_id =
-            corner_table_->Vertex(CornerIndex(3 * f.value() + c)).value();
-        int32_t &point_id = vertex_to_point_map[vert_id];
-        if (point_id == -1)
-          point_id = num_points++;
-        face[c] = point_id;
+        // Get the vertex index on the corner and use it as a point index.
+        const int32_t vert_id = corner_table_->Vertex(start_corner + c).value();
+        face[c] = vert_id;
       }
       decoder_->mesh()->SetFace(f, face);
     }
-    decoder_->point_cloud()->set_num_points(num_points);
+    decoder_->point_cloud()->set_num_points(num_connectivity_verts);
     return true;
   }
   // Else we need to deduplicate multiple attributes.
@@ -995,7 +1044,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners() {
     // Do a deduplication pass over the corners on the processed vertex.
     // At this point each corner corresponds to one point id and our goal is to
     // merge similar points into a single point id.
-    // We do one one pass in a clockwise direction over the corners and we add
+    // We do a single pass in a clockwise direction over the corners and we add
     // a new point id whenever one of the attributes change.
     c = deduplication_first_corner;
     // Create a new point.

@@ -264,20 +264,23 @@ int main(int argc, char **argv) {
   std::unique_ptr<draco::PointCloud> pc;
   draco::Mesh *mesh = nullptr;
   if (!options.is_point_cloud) {
-    std::unique_ptr<draco::Mesh> in_mesh =
+    auto maybe_mesh =
         draco::ReadMeshFromFile(options.input, options.use_metadata);
-    if (!in_mesh) {
-      printf("Failed loading the input mesh.\n");
+    if (!maybe_mesh.ok()) {
+      printf("Failed loading the input mesh: %s.\n",
+             maybe_mesh.status().error_msg());
       return -1;
     }
-    mesh = in_mesh.get();
-    pc = std::move(in_mesh);
+    mesh = maybe_mesh.value().get();
+    pc = std::move(maybe_mesh).value();
   } else {
-    pc = draco::ReadPointCloudFromFile(options.input);
-    if (!pc) {
-      printf("Failed loading the input point cloud.\n");
+    auto maybe_pc = draco::ReadPointCloudFromFile(options.input);
+    if (!maybe_pc.ok()) {
+      printf("Failed loading the input point cloud: %s.\n",
+             maybe_pc.status().error_msg());
       return -1;
     }
+    pc = std::move(maybe_pc).value();
   }
 
   if (options.pos_quantization_bits < 0) {

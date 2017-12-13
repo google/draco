@@ -50,13 +50,17 @@ bool CornerTable::Initialize(
 }
 
 bool CornerTable::Reset(int num_faces) {
-  if (num_faces < 0)
+  return Reset(num_faces, num_faces * 3);
+}
+
+bool CornerTable::Reset(int num_faces, int num_vertices) {
+  if (num_faces < 0 || num_vertices < 0)
     return false;
   if (num_faces > std::numeric_limits<CornerIndex::ValueType>::max() / 3)
     return false;
   corner_to_vertex_map_.assign(num_faces * 3, kInvalidVertexIndex);
   opposite_corners_.assign(num_faces * 3, kInvalidCornerIndex);
-  vertex_corners_.reserve(num_faces * 3);
+  vertex_corners_.reserve(num_vertices);
   return true;
 }
 

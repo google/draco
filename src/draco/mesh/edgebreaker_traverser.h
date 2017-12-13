@@ -146,8 +146,8 @@ class EdgeBreakerTraverser {
         processor_.MarkFaceVisited(face_id);
         traversal_observer_.OnNewFaceVisited(face_id);
         const VertexIndex vert_id = corner_table_->Vertex(corner_id);
-        const bool on_boundary = corner_table_->IsOnBoundary(vert_id);
         if (!processor_.IsVertexVisited(vert_id)) {
+          const bool on_boundary = corner_table_->IsOnBoundary(vert_id);
           processor_.MarkVertexVisited(vert_id);
           traversal_observer_.OnNewVertexVisited(vert_id, corner_id);
           if (!on_boundary) {

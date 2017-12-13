@@ -36,6 +36,7 @@ option(ENABLE_WASM "" OFF)
 option(ENABLE_WERROR "" OFF)
 option(ENABLE_WEXTRA "" OFF)
 option(IGNORE_EMPTY_BUILD_TYPE "" OFF)
+option(BUILD_UNITY_PLUGIN "Build plugin library for Unity" OFF)
 option(BUILD_FOR_GLTF "" OFF)
 
 if (BUILD_FOR_GLTF)
@@ -99,6 +100,10 @@ if (ENABLE_DISTCC)
 endif ()
 if (ENABLE_GOMA)
   set_compiler_launcher(ENABLE_GOMA gomacc)
+endif ()
+if (BUILD_UNITY_PLUGIN)
+  set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared library for unity plugin.")
+  add_cxx_preproc_definition("BUILD_UNITY_PLUGIN")
 endif ()
 
 if(ENABLE_EXTRA_SPEED)
@@ -467,7 +472,6 @@ set(draco_io_sources
 set(draco_mesh_sources
     "${draco_src_root}/mesh/corner_table.cc"
     "${draco_src_root}/mesh/corner_table.h"
-    "${draco_src_root}/mesh/corner_table_indices.h"
     "${draco_src_root}/mesh/corner_table_iterators.h"
     "${draco_src_root}/mesh/corner_table_traversal_processor.h"
     "${draco_src_root}/mesh/edgebreaker_observer.h"
@@ -480,7 +484,6 @@ set(draco_mesh_sources
     "${draco_src_root}/mesh/mesh_attribute_corner_table.h"
     "${draco_src_root}/mesh/mesh_cleanup.cc"
     "${draco_src_root}/mesh/mesh_cleanup.h"
-    "${draco_src_root}/mesh/mesh_indices.h"
     "${draco_src_root}/mesh/mesh_misc_functions.cc"
     "${draco_src_root}/mesh/mesh_misc_functions.h"
     "${draco_src_root}/mesh/mesh_stripifier.cc"
@@ -572,6 +575,10 @@ set(draco_test_sources
 set(draco_version_sources
     "${draco_build_dir}/draco_version.cc"
     "${draco_build_dir}/draco_version.h")
+
+set(draco_unity_plug_sources
+    "${draco_src_root}/unity/draco_unity_plugin.cc"
+    "${draco_src_root}/unity/draco_unity_plugin.h")
 
 include_directories("${draco_root}/src")
 
@@ -758,6 +765,8 @@ else ()
   add_library(draco_points_enc OBJECT
               ${draco_points_common_sources}
               ${draco_points_enc_sources})
+  add_library(draco_unity_plugin OBJECT
+              ${draco_unity_plug_sources})
 
   # Library targets that consume the object collections.
   add_library(dracodec
@@ -817,7 +826,30 @@ else ()
               $<TARGET_OBJECTS:draco_point_cloud>
               $<TARGET_OBJECTS:draco_points_dec>
               $<TARGET_OBJECTS:draco_points_enc>)
-
+  if (BUILD_UNITY_PLUGIN)
+    add_library(dracodec_unity
+                MODULE
+                ${draco_version_sources}
+                $<TARGET_OBJECTS:draco_unity_plugin>
+                $<TARGET_OBJECTS:draco_attributes>
+                $<TARGET_OBJECTS:draco_compression_attributes_dec>
+                $<TARGET_OBJECTS:draco_compression_decode>
+                $<TARGET_OBJECTS:draco_compression_mesh_dec>
+                $<TARGET_OBJECTS:draco_compression_point_cloud_dec>
+                $<TARGET_OBJECTS:draco_core>
+                $<TARGET_OBJECTS:draco_core_bit_coders>
+                $<TARGET_OBJECTS:draco_dec_config>
+                $<TARGET_OBJECTS:draco_io>
+                $<TARGET_OBJECTS:draco_mesh>
+                $<TARGET_OBJECTS:draco_metadata>
+                $<TARGET_OBJECTS:draco_metadata_dec>
+                $<TARGET_OBJECTS:draco_point_cloud>
+                $<TARGET_OBJECTS:draco_points_dec>)
+    # For Mac, we need to build a .bundle for plugin.
+    if (APPLE)
+      set_target_properties(dracodec_unity PROPERTIES BUNDLE true)
+    endif ()
+  endif ()
   set(draco_header_only_targets
       draco_compression_attributes_pred_schemes_dec
       draco_dec_config
@@ -832,6 +864,9 @@ else ()
     set_target_properties(dracodec PROPERTIES SOVERSION 1)
     set_target_properties(dracoenc PROPERTIES SOVERSION 1)
     set_target_properties(draco PROPERTIES SOVERSION 1)
+    if (BUILD_UNITY_PLUGIN)
+      set_target_properties(dracodec_unity PROPERTIES SOVERSION 1)
+    endif ()
   endif ()
 
   extract_version_string("${draco_src_root}/core/draco_version.h" draco_version)
@@ -886,6 +921,10 @@ else ()
   # Add install rules for lib and executable targets.
   install(TARGETS dracodec dracoenc draco
           DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+  if (BUILD_UNITY_PLUGIN)
+    install(TARGETS dracodec_unity
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+  endif ()
   install(TARGETS draco_decoder draco_encoder DESTINATION
           "${CMAKE_INSTALL_PREFIX}/bin")
 

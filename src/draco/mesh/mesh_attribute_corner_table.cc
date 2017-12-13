@@ -68,9 +68,9 @@ bool MeshAttributeCornerTable::InitFromAttribute(const Mesh *mesh,
       // vertex but divided by the seam edge.
       act_c = corner_table_->Next(act_c);
       act_sibling_c = corner_table_->Previous(act_sibling_c);
-      const PointIndex point_id = CornerToPointId(act_c.value(), mesh);
+      const PointIndex point_id = mesh->CornerToPointId(act_c.value());
       const PointIndex sibling_point_id =
-          CornerToPointId(act_sibling_c.value(), mesh);
+          mesh->CornerToPointId(act_sibling_c.value());
       if (att->mapped_index(point_id) != att->mapped_index(sibling_point_id)) {
         no_interior_seams_ = false;
         is_edge_on_seam_[c] = true;
@@ -135,7 +135,7 @@ void MeshAttributeCornerTable::RecomputeVerticesInternal(
       continue;  // Isolated vertex?
     AttributeValueIndex first_vert_id(num_new_vertices++);
     if (init_vertex_to_attribute_entry_map) {
-      const PointIndex point_id = CornerToPointId(c.value(), mesh);
+      const PointIndex point_id = mesh->CornerToPointId(c.value());
       vertex_to_attribute_entry_id_map_.push_back(att->mapped_index(point_id));
     } else {
       // Identity mapping
@@ -161,7 +161,7 @@ void MeshAttributeCornerTable::RecomputeVerticesInternal(
       if (IsCornerOppositeToSeamEdge(corner_table_->Next(act_c))) {
         first_vert_id = AttributeValueIndex(num_new_vertices++);
         if (init_vertex_to_attribute_entry_map) {
-          const PointIndex point_id = CornerToPointId(act_c.value(), mesh);
+          const PointIndex point_id = mesh->CornerToPointId(act_c.value());
           vertex_to_attribute_entry_id_map_.push_back(
               att->mapped_index(point_id));
         } else {

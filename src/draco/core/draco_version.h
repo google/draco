@@ -18,7 +18,7 @@
 namespace draco {
 
 // Draco version is comprised of <major>.<minor>.<revision>.
-static const char kDracoVersion[] = "1.2.3";
+static const char kDracoVersion[] = "1.2.4";
 
 const char *Version() { return kDracoVersion; }
 

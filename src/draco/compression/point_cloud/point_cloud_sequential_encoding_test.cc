@@ -22,15 +22,6 @@ namespace draco {
 
 class PointCloudSequentialEncodingTest : public ::testing::Test {
  protected:
-  std::unique_ptr<PointCloud> DecodeObj(const std::string &file_name) const {
-    const std::string path = GetTestFileFullPath(file_name);
-    ObjDecoder decoder;
-    std::unique_ptr<PointCloud> pc(new PointCloud());
-    if (!decoder.DecodeFromFile(path, pc.get()))
-      return nullptr;
-    return pc;
-  }
-
   std::unique_ptr<PointCloud> EncodeAndDecodePointCloud(const PointCloud *pc) {
     EncoderBuffer buffer;
     PointCloudSequentialEncoder encoder;
@@ -51,7 +42,7 @@ class PointCloudSequentialEncodingTest : public ::testing::Test {
   }
 
   void TestEncoding(const std::string &file_name) {
-    std::unique_ptr<PointCloud> pc = DecodeObj(file_name);
+    std::unique_ptr<PointCloud> pc = ReadPointCloudFromTestFile(file_name);
     ASSERT_NE(pc, nullptr);
 
     std::unique_ptr<PointCloud> decoded_pc =
@@ -66,7 +57,7 @@ TEST_F(PointCloudSequentialEncodingTest, DoesEncodeAndDecode) {
 }
 
 TEST_F(PointCloudSequentialEncodingTest, EncodingPointCloudWithMetadata) {
-  std::unique_ptr<PointCloud> pc = DecodeObj("test_nm.obj");
+  std::unique_ptr<PointCloud> pc = ReadPointCloudFromTestFile("test_nm.obj");
   ASSERT_NE(pc, nullptr);
   // Add metadata to point cloud.
   std::unique_ptr<GeometryMetadata> metadata =

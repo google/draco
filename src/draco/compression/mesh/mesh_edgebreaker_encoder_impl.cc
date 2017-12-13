@@ -265,7 +265,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   if (use_single_connectivity_) {
     corner_table_ = CreateCornerTableFromAllAttributes(mesh_);
   } else {
-    corner_table_ = CreateCornerTable(mesh_);
+    corner_table_ = CreateCornerTableFromPositionAttribute(mesh_);
   }
   if (corner_table_ == nullptr) {
     // Failed to construct the corner table.

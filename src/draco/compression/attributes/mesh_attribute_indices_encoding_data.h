@@ -19,13 +19,20 @@
 
 #include <vector>
 
-#include "draco/mesh/corner_table_indices.h"
+#include "draco/attributes/geometry_indices.h"
 
 namespace draco {
 
 // Data used for encoding and decoding of mesh attributes.
 struct MeshAttributeIndicesEncodingData {
   MeshAttributeIndicesEncodingData() : num_values(0) {}
+
+  void Initialize(int num_vertices) {
+    vertex_to_encoded_attribute_value_index_map.resize(num_vertices);
+
+    // We expect to store one value for each vertex.
+    encoded_attribute_value_index_to_corner_map.reserve(num_vertices);
+  }
 
   // Array for storing the corner ids in the order their associated attribute
   // entries were encoded/decoded. For every encoded attribute value entry we

@@ -64,15 +64,6 @@ interface Metadata {
   void Metadata();
 };
 
-// TODO(zhafang): Move DracoTypedArray to be shared between encoder and decoder
-// Draco version of typed arrays. The memory of these arrays is allocated on the
-// emscripten heap.
-interface DracoFloat32Array {
-  void DracoFloat32Array();
-  float GetValue(long index);
-  long size();
-};
-
 interface DracoInt8Array {
   void DracoInt8Array();
   long GetValue(long index);
@@ -100,6 +91,9 @@ interface MeshBuilder {
   long AddFloatAttributeToMesh(Mesh mesh, draco_GeometryAttribute_Type type,
                                long num_vertices, long num_components,
                                [Const] float[] att_values);
+  long AddInt32AttributeToMesh(Mesh mesh, draco_GeometryAttribute_Type type,
+                               long num_vertices, long num_components,
+                               [Const] long[] att_values);
   boolean SetMetadataForAttribute(Mesh mesh, long attribute_id,
                                   [Const] Metadata metadata);
   boolean AddMetadataToMesh(Mesh mesh, [Const] Metadata metadata);

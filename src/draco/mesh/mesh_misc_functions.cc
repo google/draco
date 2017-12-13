@@ -16,8 +16,9 @@
 
 namespace draco {
 
-std::unique_ptr<CornerTable> CreateCornerTable(const Mesh *mesh) {
-  typedef CornerTable CT;
+std::unique_ptr<CornerTable> CreateCornerTableFromPositionAttribute(
+    const Mesh *mesh) {
+  typedef CornerTable::FaceType FaceType;
 
   const PointAttribute *const att =
       mesh->GetNamedAttribute(GeometryAttribute::POSITION);
@@ -34,11 +35,12 @@ std::unique_ptr<CornerTable> CreateCornerTable(const Mesh *mesh) {
     faces[FaceIndex(i)] = new_face;
   }
   // Build the corner table.
-  return CT::Create(faces);
+  return CornerTable::Create(faces);
 }
 
 std::unique_ptr<CornerTable> CreateCornerTableFromAllAttributes(
     const Mesh *mesh) {
+  typedef CornerTable::FaceType FaceType;
   IndexTypeVector<FaceIndex, FaceType> faces(mesh->num_faces());
   FaceType new_face;
   for (FaceIndex i(0); i < mesh->num_faces(); ++i) {
@@ -53,21 +55,4 @@ std::unique_ptr<CornerTable> CreateCornerTableFromAllAttributes(
   // Build the corner table.
   return CornerTable::Create(faces);
 }
-
-PointIndex CornerToPointId(CornerIndex ci, const CornerTable *ct,
-                           const Mesh *mesh) {
-  if (!ct->IsValid(ci))
-    return kInvalidPointIndex;
-
-  // Get Face index and local corner index for corner.
-  const FaceIndex fi = ct->Face(ci);
-  const int lci = ct->LocalIndex(ci);
-  // Get the point id.
-  return mesh->face(fi)[lci];
-}
-
-PointIndex CornerToPointId(int c, const CornerTable *ct, const Mesh *mesh) {
-  return CornerToPointId(CornerIndex(c), ct, mesh);
-}
-
 }  // namespace draco

@@ -39,14 +39,6 @@ class MeshEncoderTest : public ::testing::TestWithParam<const char *> {
     }
     return false;
   }
-  std::unique_ptr<Mesh> DecodeObj(const std::string &file_name) const {
-    const std::string path = GetTestFileFullPath(file_name);
-    std::unique_ptr<Mesh> mesh(new Mesh());
-    ObjDecoder decoder;
-    if (!decoder.DecodeFromFile(path, mesh.get()))
-      return nullptr;
-    return mesh;
-  }
 };
 
 TEST_P(MeshEncoderTest, EncodeGoldenMesh) {
@@ -64,7 +56,7 @@ TEST_P(MeshEncoderTest, EncodeGoldenMesh) {
   golden_file_name += '.';
   golden_file_name += GetParam();
   golden_file_name += ".1.2.0.drc";
-  const std::unique_ptr<Mesh> mesh(DecodeObj(file_name));
+  const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name));
   ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
 
   ExpertEncoder encoder(*mesh.get());

@@ -202,9 +202,9 @@ bool Decoder::GetAttributeFloatForAllPoints(const PointCloud &pc,
   return true;
 }
 
-bool Decoder::GetAttributeIntForAllPoints(const PointCloud &pc,
-                                          const PointAttribute &pa,
-                                          DracoInt32Array *out_values) {
+bool Decoder::GetAttributeInt32ForAllPoints(const PointCloud &pc,
+                                            const PointAttribute &pa,
+                                            DracoInt32Array *out_values) {
   const int components = pa.num_components();
   const int num_points = pc.num_points();
   const int num_entries = num_points * components;
@@ -222,6 +222,12 @@ bool Decoder::GetAttributeIntForAllPoints(const PointCloud &pc,
     }
   }
   return true;
+}
+
+bool Decoder::GetAttributeIntForAllPoints(const PointCloud &pc,
+                                          const PointAttribute &pa,
+                                          DracoInt32Array *out_values) {
+  return GetAttributeInt32ForAllPoints(pc, pa, out_values);
 }
 
 void Decoder::SkipAttributeTransform(draco_GeometryAttribute_Type att_type) {
