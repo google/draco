@@ -54,7 +54,7 @@ Status ObjDecoder::DecodeFromFile(const std::string &file_name,
   if (!file)
     return Status(Status::IO_ERROR);
   // Read the whole file into a buffer.
-  int64_t file_size = file.tellg();
+  auto file_size = file.tellg();
   file.seekg(0, std::ios::end);
   file_size = file.tellg() - file_size;
   if (file_size == 0)
