@@ -168,12 +168,15 @@ else ()
     endif ()
   endif ()
 
-  if (ENABLE_TESTS)
-    if (MSVC)
-      # Default runtime selected by cmake collides with Googletest settings,
-      # just force all Draco builds to be static (instead of dll/msvcrt).
-      include("${draco_root}/cmake/msvc_runtime.cmake")
+  if (MSVC)
+    # Default runtime selected by cmake collides with Googletest settings,
+    # just force all Draco builds to be static (instead of dll/msvcrt).
+    if (NOT DEFINED MSVC_RUNTIME AND NOT ENABLE_TESTS)
+       set(MSVC_RUNTIME "dll")
     endif ()
+    include("${draco_root}/cmake/msvc_runtime.cmake")
+  endif ()
+  if (ENABLE_TESTS)
     # Googletest defaults.
     set(GTEST_SOURCE_DIR
         "${draco_root}/../googletest" CACHE STRING
