@@ -49,6 +49,12 @@ THREE.DRACOLoader.getDecoderModule();
 
 var dracoLoader = new THREE.DRACOLoader();
 
-// (Optional) Release the cached decoder module.
-THREE.DRACOLoader.releaseDecoderModule();
+dracoLoader.load( 'model.drc', function ( geometry ) {
+
+  scene.add( new THREE.Mesh( geometry ) );
+
+  // (Optional) Release the cached decoder module.
+  THREE.DRACOLoader.releaseDecoderModule();
+
+} );
 ~~~~~
