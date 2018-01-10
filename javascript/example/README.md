@@ -48,4 +48,7 @@ THREE.DRACOLoader.setDecoderConfig({type: 'js'});
 THREE.DRACOLoader.getDecoderModule();
 
 var dracoLoader = new THREE.DRACOLoader();
+
+// (Optional) Release the cached decoder module.
+THREE.DRACOLoader.releaseDecoderModule();
 ~~~~~
