@@ -33,14 +33,12 @@
     <script>
       'use strict';
 
-      // Global Draco decoder type.
-      var dracoLoader;
+      // Configure decoder and create loader.
+      THREE.DRACOLoader.setDecoderPath( '../' );
+      var dracoLoader = new THREE.DRACOLoader();
 
-      createDracoDecoder();
-
-      function createDracoDecoder() {
-        dracoLoader = new THREE.DRACOLoader('../');
-      }
+      // (Optional) Pre-fetch decoder source files.
+      THREE.DRACOLoader.getDecoderModule();
 
       var camera, cameraTarget, scene, renderer;
 

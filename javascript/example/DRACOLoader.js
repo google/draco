@@ -14,26 +14,16 @@
 //
 'use strict';
 
-// |dracoPath| sets the path for the Draco decoder source files. The default
-// path is "./". If |dracoDecoderType|.type is set to "js", then DRACOLoader
-// will load the Draco JavaScript decoder.
-THREE.DRACOLoader = function(dracoPath, dracoDecoderType, manager) {
+/**
+ * @param {THREE.LoadingManager} manager
+ */
+THREE.DRACOLoader = function(manager) {
     this.timeLoaded = 0;
-    this.manager = (manager !== undefined) ? manager :
-        THREE.DefaultLoadingManager;
+    this.manager = manager || THREE.DefaultLoadingManager;
     this.materials = null;
     this.verbosity = 0;
     this.attributeOptions = {};
-    if (dracoDecoderType !== undefined) {
-      THREE.DRACOLoader.dracoDecoderType = dracoDecoderType;
-    }
     this.drawMode = THREE.TrianglesDrawMode;
-    this.dracoSrcPath = (dracoPath !== undefined) ? dracoPath : './';
-    // If draco_decoder.js or wasm code is already loaded/included, then do
-    // not dynamically load the decoder.
-    if (typeof DracoDecoderModule === 'undefined') {
-      THREE.DRACOLoader.loadDracoDecoder(this);
-    }
     // User defined unique id for attributes.
     this.attributeUniqueIdMap = {};
     // Native Draco attribute type to Three.JS attribute type.
@@ -44,8 +34,6 @@ THREE.DRACOLoader = function(dracoPath, dracoDecoderType, manager) {
       'uv' : 'TEX_COORD'
     };
 };
-
-THREE.DRACOLoader.dracoDecoderType = {};
 
 THREE.DRACOLoader.prototype = {
 
@@ -116,12 +104,11 @@ THREE.DRACOLoader.prototype = {
      */
     decodeDracoFile: function(rawBuffer, callback, attributeUniqueIdMap) {
       var scope = this;
-      this.attributeUniqueIdMap = (attributeUniqueIdMap !== undefined) ?
-          attributeUniqueIdMap : {};
-      THREE.DRACOLoader.getDecoderModule(
-          function(dracoDecoder) {
-            scope.decodeDracoFileInternal(rawBuffer, dracoDecoder, callback);
-      });
+      this.attributeUniqueIdMap = attributeUniqueIdMap || {};
+      THREE.DRACOLoader.getDecoderModule()
+          .then( function ( module ) {
+            scope.decodeDracoFileInternal( rawBuffer, module.decoder, callback );
+          });
     },
 
     decodeDracoFileInternal: function(rawBuffer, dracoDecoder, callback) {
@@ -333,9 +320,9 @@ THREE.DRACOLoader.prototype = {
     },
 
     isVersionSupported: function(version, callback) {
-        THREE.DRACOLoader.getDecoderModule(
-            function(decoder) {
-              callback(decoder.isVersionSupported(version));
+        THREE.DRACOLoader.getDecoderModule()
+            .then( function ( module ) {
+              callback( module.decoder.isVersionSupported( version ) );
             });
     },
 
@@ -346,131 +333,117 @@ THREE.DRACOLoader.prototype = {
     }
 };
 
-// This function loads a JavaScript file and adds it to the page. "path"
-// is the path to the JavaScript file. "onLoadFunc" is the function to be
-// called when the JavaScript file has been loaded.
-THREE.DRACOLoader.loadJavaScriptFile = function(path, onLoadFunc,
-    dracoDecoder) {
-  var previous_decoder_script = document.getElementById("decoder_script");
-  if (previous_decoder_script !== null) {
-    return;
-  }
-  var head = document.getElementsByTagName('head')[0];
-  var element = document.createElement('script');
-  element.id = "decoder_script";
-  element.type = 'text/javascript';
-  element.src = path;
-  if (onLoadFunc !== null) {
-    element.onload = onLoadFunc(dracoDecoder);
-  } else {
-    element.onload = function(dracoDecoder) {
-      THREE.DRACOLoader.timeLoaded = performance.now();
-    };
-  }
-  head.appendChild(element);
-}
-
-THREE.DRACOLoader.loadWebAssemblyDecoder = function(dracoDecoder) {
-  THREE.DRACOLoader.dracoDecoderType['wasmBinaryFile'] =
-      dracoDecoder.dracoSrcPath + 'draco_decoder.wasm';
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', dracoDecoder.dracoSrcPath + 'draco_decoder.wasm', true);
-  xhr.responseType = 'arraybuffer';
-  xhr.onload = function() {
-    // draco_wasm_wrapper.js must be loaded before DracoDecoderModule is
-    // created. The object passed into DracoDecoderModule() must contain a
-    // property with the name of wasmBinary and the value must be an
-    // ArrayBuffer containing the contents of the .wasm file.
-    THREE.DRACOLoader.dracoDecoderType['wasmBinary'] = xhr.response;
-    THREE.DRACOLoader.timeLoaded = performance.now();
-  };
-  xhr.send(null)
-}
-
-// This function will test if the browser has support for WebAssembly. If
-// it does it will download the WebAssembly Draco decoder, if not it will
-// download the asmjs Draco decoder.
-THREE.DRACOLoader.loadDracoDecoder = function(dracoDecoder) {
-  if (typeof WebAssembly !== 'object' ||
-      THREE.DRACOLoader.dracoDecoderType.type === 'js') {
-    // No WebAssembly support
-    THREE.DRACOLoader.loadJavaScriptFile(dracoDecoder.dracoSrcPath +
-        'draco_decoder.js', null, dracoDecoder);
-  } else {
-    THREE.DRACOLoader.loadJavaScriptFile(dracoDecoder.dracoSrcPath +
-        'draco_wasm_wrapper.js',
-        function (dracoDecoder) {
-          THREE.DRACOLoader.loadWebAssemblyDecoder(dracoDecoder);
-        }, dracoDecoder);
-  }
-}
-
-THREE.DRACOLoader.decoderCreationCalled = false;
+THREE.DRACOLoader.decoderPath = './';
+THREE.DRACOLoader.decoderConfig = {};
+THREE.DRACOLoader.decoderModulePromise = null;
 
 /**
- * Creates and returns a singleton instance of the DracoDecoderModule.
- * The module loading is done asynchronously for WebAssembly. Initialized module
- * can be accessed through the callback function
- * |onDracoDecoderModuleLoadedCallback|.
+ * Sets the base path for decoder source files.
+ * @param {string} path
  */
-THREE.DRACOLoader.getDecoderModule = (function() {
-    return function(onDracoDecoderModuleLoadedCallback) {
-        if (typeof THREE.DRACOLoader.decoderModule !== 'undefined') {
-          // Module already initialized.
-          if (typeof onDracoDecoderModuleLoadedCallback !== 'undefined') {
-            onDracoDecoderModuleLoadedCallback(THREE.DRACOLoader.decoderModule);
-          }
-        } else {
-          if (typeof DracoDecoderModule === 'undefined') {
-            // Wait until the Draco decoder is loaded before starting the error
-            // timer.
-            if (THREE.DRACOLoader.timeLoaded > 0) {
-              var waitMs = performance.now() - THREE.DRACOLoader.timeLoaded;
+THREE.DRACOLoader.setDecoderPath = function ( path ) {
+  THREE.DRACOLoader.decoderPath = path;
+};
 
-              // After loading the Draco JavaScript decoder file, there is still
-              // some time before the DracoDecoderModule is defined. So start a
-              // loop to check when the DracoDecoderModule gets defined. If the
-              // time is hit throw an error.
-              if (waitMs > 5000) {
-                throw new Error(
-                    'THREE.DRACOLoader: DracoDecoderModule not found.');
-              }
-            }
-          } else {
-            if (!THREE.DRACOLoader.decoderCreationCalled) {
-              THREE.DRACOLoader.decoderCreationCalled = true;
-              THREE.DRACOLoader.dracoDecoderType['onModuleLoaded'] =
-                  function(module) {
-                    THREE.DRACOLoader.decoderModule = module;
-                  };
-              DracoDecoderModule(THREE.DRACOLoader.dracoDecoderType);
-            }
-          }
+/**
+ * Sets decoder configuration and releases singleton decoder module. Module
+ * will be recreated with the next decoding call.
+ * @param {Object} config
+ */
+THREE.DRACOLoader.setDecoderConfig = function ( config ) {
+  var wasmBinary = THREE.DRACOLoader.decoderConfig.wasmBinary;
+  THREE.DRACOLoader.decoderConfig = config || {};
+  THREE.DRACOLoader.releaseDecoderModule();
 
-          // Either the DracoDecoderModule has not been defined or the decoder
-          // has not been created yet. Call getDecoderModule() again.
-          setTimeout(function() {
-            THREE.DRACOLoader.getDecoderModule(
-                onDracoDecoderModuleLoadedCallback);
-          }, 10);
-        }
-    };
+  // Reuse WASM binary.
+  if ( wasmBinary ) THREE.DRACOLoader.decoderConfig.wasmBinary = wasmBinary;
+};
 
-})();
+/**
+ * Releases the singleton DracoDecoderModule instance. Module will be recreated
+ * with the next decoding call.
+ */
+THREE.DRACOLoader.releaseDecoderModule = function () {
+  THREE.DRACOLoader.decoderModulePromise = null;
+};
 
-// Releases the DracoDecoderModule instance associated with the draco loader.
-// The module will be automatically re-created the next time a new geometry is
-// loaded by THREE.DRACOLoader.
-THREE.DRACOLoader.releaseDecoderModule = function() {
-  THREE.DRACOLoader.decoderModule = undefined;
-  THREE.DRACOLoader.decoderCreationCalled = false;
-  if (THREE.DRACOLoader.dracoDecoderType !== undefined &&
-      THREE.DRACOLoader.dracoDecoderType.wasmBinary !== undefined) {
-    // For WASM build we need to preserve the wasmBinary for future use.
-    var wasmBinary = THREE.DRACOLoader.dracoDecoderType.wasmBinary;
-    THREE.DRACOLoader.dracoDecoderType = {};
-    THREE.DRACOLoader.dracoDecoderType.wasmBinary = wasmBinary;
+/**
+ * Gets WebAssembly or asm.js singleton instance of DracoDecoderModule
+ * after testing for browser support. Returns Promise that resolves when
+ * module is available.
+ * @return {Promise<{decoder: DracoDecoderModule}>}
+ */
+THREE.DRACOLoader.getDecoderModule = function () {
+  var scope = this;
+  var path = THREE.DRACOLoader.decoderPath;
+  var config = THREE.DRACOLoader.decoderConfig;
+  var promise = THREE.DRACOLoader.decoderModulePromise;
+
+  if ( promise ) return promise;
+
+  // Load source files.
+  if ( typeof DracoDecoderModule !== 'undefined' ) {
+    // Loaded externally.
+    promise = Promise.resolve();
+  } else if ( typeof WebAssembly !== 'object' || config.type === 'js' ) {
+    // Load with asm.js.
+    promise = THREE.DRACOLoader._loadScript( path + 'draco_decoder.js' );
   } else {
-    THREE.DRACOLoader.dracoDecoderType = {};
+    // Load with WebAssembly.
+    config.wasmBinaryFile = path + 'draco_decoder.wasm';
+    promise = THREE.DRACOLoader._loadScript( path + 'draco_wasm_wrapper.js' )
+        .then( function () {
+          return THREE.DRACOLoader._loadArrayBuffer( config.wasmBinaryFile );
+        } )
+        .then( function ( wasmBinary ) {
+          config.wasmBinary = wasmBinary;
+        } );
   }
-}
+
+  // Wait for source files, then create and return a decoder.
+  promise = promise.then( function () {
+    return new Promise( function ( resolve ) {
+      config.onModuleLoaded = function ( decoder ) {
+        scope.timeLoaded = performance.now();
+        // Module is Promise-like. Wrap before resolving to avoid loop.
+        resolve( { decoder: decoder } );
+      };
+      DracoDecoderModule( config );
+    } );
+  } );
+
+  THREE.DRACOLoader.decoderModulePromise = promise;
+  return promise;
+};
+
+/**
+ * @param {string} src
+ * @return {Promise}
+ */
+THREE.DRACOLoader._loadScript = function ( src ) {
+  var prevScript = document.getElementById( 'decoder_script' );
+  if ( prevScript !== null ) {
+    prevScript.parentNode.removeChild( prevScript );
+  }
+  var head = document.getElementsByTagName( 'head' )[ 0 ];
+  var script = document.createElement( 'script' );
+  script.id = 'decoder_script';
+  script.type = 'text/javascript';
+  script.src = src;
+  return new Promise( function ( resolve ) {
+    script.onload = resolve;
+    head.appendChild( script );
+  });
+};
+
+/**
+ * @param {string} src
+ * @return {Promise}
+ */
+THREE.DRACOLoader._loadArrayBuffer = function ( src ) {
+  var loader = new THREE.FileLoader();
+  loader.setResponseType( 'arraybuffer' );
+  return new Promise( function( resolve, reject ) {
+    loader.load( src, resolve, undefined, reject );
+  });
+};

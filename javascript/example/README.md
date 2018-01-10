@@ -38,7 +38,23 @@ Include Javascript decoder:
 
 Create DracoLoader by setting the decoder type:
 ~~~~~ js
-var dracoDecoderType = {};
-dracoDecoderType.type = 'js';
-var dracoLoader = new THREE.DRACOLoader('path_to_decoder', dracoDecoderType);
+// (Optional) Change decoder source directory (defaults to './').
+THREE.DRACOLoader.setDecoderPath('./path/to/decoder/');
+
+// (Optional) Use JS decoder (defaults to WebAssembly if supported).
+THREE.DRACOLoader.setDecoderConfig({type: 'js'});
+
+// (Optional) Pre-fetch decoder source files (defaults to load on demand).
+THREE.DRACOLoader.getDecoderModule();
+
+var dracoLoader = new THREE.DRACOLoader();
+
+dracoLoader.load( 'model.drc', function ( geometry ) {
+
+  scene.add( new THREE.Mesh( geometry ) );
+
+  // (Optional) Release the cached decoder module.
+  THREE.DRACOLoader.releaseDecoderModule();
+
+} );
 ~~~~~
