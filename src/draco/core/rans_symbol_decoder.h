@@ -24,9 +24,9 @@ namespace draco {
 
 // A helper class for decoding symbols using the rANS algorithm (see ans.h).
 // The class can be used to decode the probability table and the data encoded
-// by the RAnsSymbolEncoder. |max_symbol_bit_length_t| must be the same as the
-// one used for the corresponding RAnsSymbolEncoder.
-template <int max_symbol_bit_length_t>
+// by the RAnsSymbolEncoder. |unique_symbols_bit_length_t| must be the same as
+// the one used for the corresponding RAnsSymbolEncoder.
+template <int unique_symbols_bit_length_t>
 class RAnsSymbolDecoder {
  public:
   RAnsSymbolDecoder() : num_symbols_(0) {}
@@ -43,9 +43,9 @@ class RAnsSymbolDecoder {
   void EndDecoding();
 
  private:
-  static constexpr int max_symbols_ = 1 << max_symbol_bit_length_t;
   static constexpr int rans_precision_bits_ =
-      ComputeRAnsPrecisionFromMaxSymbolBitLength(max_symbol_bit_length_t);
+      ComputeRAnsPrecisionFromUniqueSymbolsBitLength(
+          unique_symbols_bit_length_t);
   static constexpr int rans_precision_ = 1 << rans_precision_bits_;
 
   std::vector<uint32_t> probability_table_;
@@ -53,8 +53,9 @@ class RAnsSymbolDecoder {
   RAnsDecoder<rans_precision_bits_> ans_;
 };
 
-template <int max_symbol_bit_length_t>
-bool RAnsSymbolDecoder<max_symbol_bit_length_t>::Create(DecoderBuffer *buffer) {
+template <int unique_symbols_bit_length_t>
+bool RAnsSymbolDecoder<unique_symbols_bit_length_t>::Create(
+    DecoderBuffer *buffer) {
   // Check that the DecoderBuffer version is set.
   if (buffer->bitstream_version() == 0)
     return false;
@@ -112,8 +113,8 @@ bool RAnsSymbolDecoder<max_symbol_bit_length_t>::Create(DecoderBuffer *buffer) {
   return true;
 }
 
-template <int max_symbol_bit_length_t>
-bool RAnsSymbolDecoder<max_symbol_bit_length_t>::StartDecoding(
+template <int unique_symbols_bit_length_t>
+bool RAnsSymbolDecoder<unique_symbols_bit_length_t>::StartDecoding(
     DecoderBuffer *buffer) {
   uint64_t bytes_encoded;
   // Decode the number of bytes encoded by the encoder.
@@ -138,8 +139,8 @@ bool RAnsSymbolDecoder<max_symbol_bit_length_t>::StartDecoding(
   return true;
 }
 
-template <int max_symbol_bit_length_t>
-void RAnsSymbolDecoder<max_symbol_bit_length_t>::EndDecoding() {
+template <int unique_symbols_bit_length_t>
+void RAnsSymbolDecoder<unique_symbols_bit_length_t>::EndDecoding() {
   ans_.read_end();
 }
 

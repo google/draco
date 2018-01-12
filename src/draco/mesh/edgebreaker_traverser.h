@@ -136,13 +136,13 @@ class EdgeBreakerTraverser {
       corner_id = corner_traversal_stack_.back();
       FaceIndex face_id(corner_id.value() / 3);
       // Make sure the face hasn't been visited yet.
-      if (corner_id < 0 || processor_.IsFaceVisited(face_id)) {
+      if (corner_id == kInvalidCornerIndex ||
+          processor_.IsFaceVisited(face_id)) {
         // This face has been already traversed.
         corner_traversal_stack_.pop_back();
         continue;
       }
       while (true) {
-        face_id = FaceIndex(corner_id.value() / 3);
         processor_.MarkFaceVisited(face_id);
         traversal_observer_.OnNewFaceVisited(face_id);
         const VertexIndex vert_id = corner_table_->Vertex(corner_id);
@@ -153,6 +153,7 @@ class EdgeBreakerTraverser {
           if (!on_boundary) {
             edgebreaker_observer_.OnSymbolC();
             corner_id = corner_table_->GetRightCorner(corner_id);
+            face_id = FaceIndex(corner_id.value() / 3);
             continue;
           }
         }
@@ -164,9 +165,13 @@ class EdgeBreakerTraverser {
         const CornerIndex left_corner_id =
             corner_table_->GetLeftCorner(corner_id);
         const FaceIndex right_face_id(
-            (right_corner_id < 0 ? -1 : right_corner_id.value() / 3));
+            (right_corner_id == kInvalidCornerIndex
+                 ? kInvalidFaceIndex
+                 : FaceIndex(right_corner_id.value() / 3)));
         const FaceIndex left_face_id(
-            (left_corner_id < 0 ? -1 : left_corner_id.value() / 3));
+            (left_corner_id == kInvalidCornerIndex
+                 ? kInvalidFaceIndex
+                 : FaceIndex(left_corner_id.value() / 3)));
         if (processor_.IsFaceVisited(right_face_id)) {
           // Right face has been already visited.
           if (processor_.IsFaceVisited(left_face_id)) {
@@ -178,6 +183,7 @@ class EdgeBreakerTraverser {
             edgebreaker_observer_.OnSymbolR();
             // Go to the left face.
             corner_id = left_corner_id;
+            face_id = left_face_id;
           }
         } else {
           // Right face was not visited.
@@ -185,6 +191,7 @@ class EdgeBreakerTraverser {
             edgebreaker_observer_.OnSymbolL();
             // Left face visited, go to the right one.
             corner_id = right_corner_id;
+            face_id = right_face_id;
           } else {
             edgebreaker_observer_.OnSymbolS();
             // Both neighboring faces are unvisited, we need to visit both of

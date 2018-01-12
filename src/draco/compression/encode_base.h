@@ -15,6 +15,10 @@
 #ifndef DRACO_SRC_DRACO_COMPRESSION_ENCODE_BASE_H_
 #define DRACO_SRC_DRACO_COMPRESSION_ENCODE_BASE_H_
 
+#include "draco/attributes/geometry_attribute.h"
+#include "draco/compression/config/compression_shared.h"
+#include "draco/core/status.h"
+
 namespace draco {
 
 // Base class for our geometry encoder classes. |EncoderOptionsT| specifies
@@ -41,6 +45,28 @@ class EncoderBase {
 
   void SetEncodingMethod(int encoding_method) {
     options_.SetGlobalInt("encoding_method", encoding_method);
+  }
+
+  Status CheckPredictionScheme(GeometryAttribute::Type att_type,
+                               int prediction_scheme) {
+    if (prediction_scheme < 0)
+      return Status(Status::ERROR, "Invalid prediction scheme requested.");
+    if (prediction_scheme >= NUM_PREDICTION_SCHEMES)
+      return Status(Status::ERROR, "Invalid prediction scheme requested.");
+    if (prediction_scheme == MESH_PREDICTION_TEX_COORDS_DEPRECATED)
+      return Status(Status::ERROR,
+                    "MESH_PREDICTION_TEX_COORDS_DEPRECATED is deprecated.");
+    if (prediction_scheme == MESH_PREDICTION_TEX_COORDS_PORTABLE) {
+      if (att_type != GeometryAttribute::TEX_COORD)
+        return Status(Status::ERROR,
+                      "Invalid prediction scheme for attribute type.");
+    }
+    if (prediction_scheme == MESH_PREDICTION_GEOMETRIC_NORMAL) {
+      if (att_type != GeometryAttribute::NORMAL)
+        return Status(Status::ERROR,
+                      "Invalid prediction scheme for attribute type.");
+    }
+    return Status();
   }
 
  private:

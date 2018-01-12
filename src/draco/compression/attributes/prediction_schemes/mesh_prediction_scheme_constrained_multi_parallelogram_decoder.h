@@ -111,7 +111,7 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
     CornerIndex corner_id(start_corner_id);
     int num_parallelograms = 0;
     bool first_pass = true;
-    while (corner_id >= 0) {
+    while (corner_id != kInvalidCornerIndex) {
       if (ComputeParallelogramPrediction(
               p, corner_id, table, *vertex_to_data_map, out_data,
               num_components, &(pred_vals[num_parallelograms][0]))) {
@@ -134,7 +134,7 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
       if (corner_id == start_corner_id) {
         break;
       }
-      if (corner_id < 0 && first_pass) {
+      if (corner_id == kInvalidCornerIndex && first_pass) {
         first_pass = false;
         corner_id = table->SwingRight(start_corner_id);
       }

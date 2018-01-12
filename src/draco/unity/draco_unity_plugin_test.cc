@@ -52,24 +52,11 @@ class DracoUnityPluginTest : public ::testing::Test {
     ASSERT_EQ(num_faces, expected_num_faces);
     ASSERT_EQ(unity_mesh_->num_faces, expected_num_faces);
     ASSERT_EQ(unity_mesh_->num_vertices, expected_num_vertices);
+    ASSERT_TRUE(unity_mesh_->has_normal);
+    ASSERT_NE(unity_mesh_->normal, nullptr);
+    // TODO(fgalligan): Also test color and tex_coord attributes.
 
-    DestroyUnityMesh();
-  }
-
-  // TODO(zhafang): Consider move to draco_unity_plugin.h.
-  void DestroyUnityMesh() {
-    if (unity_mesh_ != nullptr) {
-      if (unity_mesh_->indices != nullptr) {
-        delete[] unity_mesh_->indices;
-        unity_mesh_->indices = nullptr;
-      }
-      if (unity_mesh_->position != nullptr) {
-        delete[] unity_mesh_->position;
-        unity_mesh_->position = nullptr;
-      }
-    }
-    delete unity_mesh_;
-    unity_mesh_ = nullptr;
+    draco::ReleaseUnityMesh(&unity_mesh_);
   }
 
   draco::DracoToUnityMesh *unity_mesh_;
@@ -78,5 +65,4 @@ class DracoUnityPluginTest : public ::testing::Test {
 TEST_F(DracoUnityPluginTest, TestDecodingToDracoUnityMesh) {
   TestDecodingToDracoUnityMesh("test_nm.obj.edgebreaker.1.0.0.drc", 170, 99);
 }
-
 }  // namespace

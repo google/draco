@@ -29,7 +29,7 @@ namespace draco {
 // A helper class for encoding symbols using the rANS algorithm (see ans.h).
 // The class can be used to initialize and encode probability table needed by
 // rANS, and to perform encoding of symbols into the provided EncoderBuffer.
-template <int max_symbol_bit_length_t>
+template <int unique_symbols_bit_length_t>
 class RAnsSymbolEncoder {
  public:
   RAnsSymbolEncoder()
@@ -67,9 +67,9 @@ class RAnsSymbolEncoder {
   // Encodes the probability table into the output buffer.
   bool EncodeTable(EncoderBuffer *buffer);
 
-  static constexpr int max_symbols_ = 1 << max_symbol_bit_length_t;
   static constexpr int rans_precision_bits_ =
-      ComputeRAnsPrecisionFromMaxSymbolBitLength(max_symbol_bit_length_t);
+      ComputeRAnsPrecisionFromUniqueSymbolsBitLength(
+          unique_symbols_bit_length_t);
   static constexpr int rans_precision_ = 1 << rans_precision_bits_;
 
   std::vector<rans_sym> probability_table_;
@@ -83,11 +83,9 @@ class RAnsSymbolEncoder {
   uint64_t buffer_offset_;
 };
 
-template <int max_symbol_bit_length_t>
-bool RAnsSymbolEncoder<max_symbol_bit_length_t>::Create(
+template <int unique_symbols_bit_length_t>
+bool RAnsSymbolEncoder<unique_symbols_bit_length_t>::Create(
     const uint64_t *frequencies, int num_symbols, EncoderBuffer *buffer) {
-  if (num_symbols > max_symbols_)
-    return false;
   // Compute the total of the input frequencies.
   uint64_t total_freq = 0;
   int max_valid_symbol = 0;
@@ -194,8 +192,8 @@ bool RAnsSymbolEncoder<max_symbol_bit_length_t>::Create(
   return true;
 }
 
-template <int max_symbol_bit_length_t>
-bool RAnsSymbolEncoder<max_symbol_bit_length_t>::EncodeTable(
+template <int unique_symbols_bit_length_t>
+bool RAnsSymbolEncoder<unique_symbols_bit_length_t>::EncodeTable(
     EncoderBuffer *buffer) {
   EncodeVarint(num_symbols_, buffer);
   // Use varint encoding for the probabilities (first two bits represent the
@@ -242,8 +240,8 @@ bool RAnsSymbolEncoder<max_symbol_bit_length_t>::EncodeTable(
   return true;
 }
 
-template <int max_symbol_bit_length_t>
-void RAnsSymbolEncoder<max_symbol_bit_length_t>::StartEncoding(
+template <int unique_symbols_bit_length_t>
+void RAnsSymbolEncoder<unique_symbols_bit_length_t>::StartEncoding(
     EncoderBuffer *buffer) {
   // Allocate extra storage just in case.
   const uint64_t required_bits = 2 * num_expected_bits_ + 32;
@@ -256,8 +254,8 @@ void RAnsSymbolEncoder<max_symbol_bit_length_t>::StartEncoding(
   ans_.write_init(data + buffer_offset_);
 }
 
-template <int max_symbol_bit_length_t>
-void RAnsSymbolEncoder<max_symbol_bit_length_t>::EndEncoding(
+template <int unique_symbols_bit_length_t>
+void RAnsSymbolEncoder<unique_symbols_bit_length_t>::EndEncoding(
     EncoderBuffer *buffer) {
   char *const src = const_cast<char *>(buffer->data()) + buffer_offset_;
 

@@ -18,6 +18,37 @@
 
 namespace draco {
 
+void ReleaseUnityMesh(DracoToUnityMesh **mesh_ptr) {
+  DracoToUnityMesh *mesh = *mesh_ptr;
+  if (!mesh)
+    return;
+  if (mesh->indices) {
+    delete[] mesh->indices;
+    mesh->indices = nullptr;
+  }
+  if (mesh->position) {
+    delete[] mesh->position;
+    mesh->position = nullptr;
+  }
+  if (mesh->has_normal && mesh->normal) {
+    delete[] mesh->normal;
+    mesh->has_normal = false;
+    mesh->normal = nullptr;
+  }
+  if (mesh->has_texcoord && mesh->texcoord) {
+    delete[] mesh->texcoord;
+    mesh->has_texcoord = false;
+    mesh->texcoord = nullptr;
+  }
+  if (mesh->has_color && mesh->color) {
+    delete[] mesh->color;
+    mesh->has_color = false;
+    mesh->color = nullptr;
+  }
+  delete mesh;
+  *mesh_ptr = nullptr;
+}
+
 int DecodeMeshForUnity(char *data, unsigned int length,
                        DracoToUnityMesh **tmp_mesh) {
   draco::DecoderBuffer buffer;
@@ -59,10 +90,54 @@ int DecodeMeshForUnity(char *data, unsigned int length,
     const draco::AttributeValueIndex val_index = pos_att->mapped_index(i);
     if (!pos_att->ConvertValue<float, 3>(
             val_index, unity_mesh->position + i.value() * 3)) {
-      delete[] unity_mesh->indices;
-      delete[] unity_mesh->position;
-      delete unity_mesh;
+      ReleaseUnityMesh(&unity_mesh);
       return -8;
+    }
+  }
+  // Get normal attributes.
+  const auto normal_att =
+      in_mesh->GetNamedAttribute(draco::GeometryAttribute::NORMAL);
+  if (normal_att != nullptr) {
+    unity_mesh->normal = new float[in_mesh->num_points() * 3];
+    unity_mesh->has_normal = true;
+    for (draco::PointIndex i(0); i < in_mesh->num_points(); ++i) {
+      const draco::AttributeValueIndex val_index = normal_att->mapped_index(i);
+      if (!normal_att->ConvertValue<float, 3>(
+              val_index, unity_mesh->normal + i.value() * 3)) {
+        ReleaseUnityMesh(&unity_mesh);
+        return -8;
+      }
+    }
+  }
+  // Get color attributes.
+  const auto color_att =
+      in_mesh->GetNamedAttribute(draco::GeometryAttribute::COLOR);
+  if (color_att != nullptr) {
+    unity_mesh->color = new float[in_mesh->num_points() * 3];
+    unity_mesh->has_color = true;
+    for (draco::PointIndex i(0); i < in_mesh->num_points(); ++i) {
+      const draco::AttributeValueIndex val_index = color_att->mapped_index(i);
+      if (!color_att->ConvertValue<float, 3>(
+              val_index, unity_mesh->color + i.value() * 3)) {
+        ReleaseUnityMesh(&unity_mesh);
+        return -8;
+      }
+    }
+  }
+  // Get texture coordinates attributes.
+  const auto texcoord_att =
+      in_mesh->GetNamedAttribute(draco::GeometryAttribute::TEX_COORD);
+  if (texcoord_att != nullptr) {
+    unity_mesh->texcoord = new float[in_mesh->num_points() * 2];
+    unity_mesh->has_texcoord = true;
+    for (draco::PointIndex i(0); i < in_mesh->num_points(); ++i) {
+      const draco::AttributeValueIndex val_index =
+          texcoord_att->mapped_index(i);
+      if (!texcoord_att->ConvertValue<float, 3>(
+              val_index, unity_mesh->texcoord + i.value() * 3)) {
+        ReleaseUnityMesh(&unity_mesh);
+        return -8;
+      }
     }
   }
 

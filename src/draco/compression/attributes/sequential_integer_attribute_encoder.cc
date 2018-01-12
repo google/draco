@@ -146,9 +146,14 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
   if (encoder() == nullptr || encoder()->options()->GetGlobalBool(
                                   "use_built_in_attribute_compression", true)) {
     out_buffer->Encode(static_cast<uint8_t>(1));
+    Options symbol_encoding_options;
+    if (encoder() != nullptr) {
+      SetSymbolEncodingCompressionLevel(&symbol_encoding_options,
+                                        10 - encoder()->options()->GetSpeed());
+    }
     if (!EncodeSymbols(reinterpret_cast<uint32_t *>(encoded_data.data()),
                        point_ids.size() * num_components, num_components,
-                       out_buffer)) {
+                       &symbol_encoding_options, out_buffer)) {
       return false;
     }
   } else {

@@ -100,7 +100,7 @@ class PredictionDegreeTraverser {
       traversal_observer_.OnNewVertexVisited(tip_vertex, corner_id);
     }
     // Start the actual traversal.
-    while ((corner_id = PopNextCornerToTraverse()) >= 0) {
+    while ((corner_id = PopNextCornerToTraverse()) != kInvalidCornerIndex) {
       FaceIndex face_id(corner_id.value() / 3);
       // Make sure the face hasn't been visited yet.
       if (processor_.IsFaceVisited(face_id)) {
@@ -128,9 +128,13 @@ class PredictionDegreeTraverser {
         const CornerIndex left_corner_id =
             corner_table_->GetLeftCorner(corner_id);
         const FaceIndex right_face_id(
-            (right_corner_id < 0 ? -1 : right_corner_id.value() / 3));
+            (right_corner_id == kInvalidCornerIndex
+                 ? kInvalidFaceIndex
+                 : FaceIndex(right_corner_id.value() / 3)));
         const FaceIndex left_face_id(
-            (left_corner_id < 0 ? -1 : left_corner_id.value() / 3));
+            (left_corner_id == kInvalidCornerIndex
+                 ? kInvalidFaceIndex
+                 : FaceIndex(left_corner_id.value() / 3)));
         const bool is_right_face_visited =
             processor_.IsFaceVisited(right_face_id);
         const bool is_left_face_visited =

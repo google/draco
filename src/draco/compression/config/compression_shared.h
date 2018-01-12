@@ -80,7 +80,7 @@ enum PredictionSchemeMethod {
   PREDICTION_DIFFERENCE = 0,
   MESH_PREDICTION_PARALLELOGRAM = 1,
   MESH_PREDICTION_MULTI_PARALLELOGRAM = 2,
-  MESH_PREDICTION_TEX_COORDS = 3,
+  MESH_PREDICTION_TEX_COORDS_DEPRECATED = 3,
   MESH_PREDICTION_CONSTRAINED_MULTI_PARALLELOGRAM = 4,
   MESH_PREDICTION_TEX_COORDS_PORTABLE = 5,
   MESH_PREDICTION_GEOMETRIC_NORMAL = 6,
@@ -132,6 +132,13 @@ struct DracoHeader {
 enum NormalPredictionMode {
   ONE_TRIANGLE = 0,  // To be deprecated.
   TRIANGLE_AREA = 1,
+};
+
+// Different methods used for symbol entropy encoding.
+enum SymbolCodingMethod {
+  SYMBOL_CODING_TAGGED = 0,
+  SYMBOL_CODING_RAW = 1,
+  NUM_SYMBOL_CODING_METHODS,
 };
 
 // Mask for setting and getting the bit for metadata in |flags| of header.

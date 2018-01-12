@@ -38,6 +38,7 @@ class MetadataQuerier {
  public:
   MetadataQuerier();
 
+  bool HasEntry(const draco::Metadata &metadata, const char *entry_name) const;
   bool HasIntEntry(const draco::Metadata &metadata,
                    const char *entry_name) const;
   long GetIntEntry(const draco::Metadata &metadata,
@@ -50,6 +51,14 @@ class MetadataQuerier {
                       const char *entry_name) const;
   const char *GetStringEntry(const draco::Metadata &metadata,
                              const char *entry_name) const;
+
+  long NumEntries(const draco::Metadata &metadata) const;
+  const char *GetEntryName(const draco::Metadata &metadata, int entry_id);
+
+ private:
+  // Cached values for metadata entries.
+  std::vector<std::string> entry_names_;
+  const draco::Metadata *entry_names_metadata_;
 };
 
 class DracoFloat32Array {

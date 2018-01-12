@@ -68,7 +68,7 @@ struct MeshPredictionSchemeDecoderFactory {
                                                   mesh_data));
       }
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
-      else if (method == MESH_PREDICTION_TEX_COORDS) {
+      else if (method == MESH_PREDICTION_TEX_COORDS_DEPRECATED) {
         return std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>(
             new MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT,
                                                      MeshDataT>(

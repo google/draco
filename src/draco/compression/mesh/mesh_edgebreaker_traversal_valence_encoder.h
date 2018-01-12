@@ -115,7 +115,7 @@ class MeshEdgeBreakerTraversalValenceEncoder
           // update the valence on the "left vertex".
           int num_left_faces = 0;
           CornerIndex act_c = corner_table_->Opposite(prev);
-          while (act_c >= 0) {
+          while (act_c != kInvalidCornerIndex) {
             if (encoder_impl()->IsFaceEncoded(corner_table_->Face(act_c)))
               break;  // Stop when we reach the first visited face.
             ++num_left_faces;
@@ -130,7 +130,7 @@ class MeshEdgeBreakerTraversalValenceEncoder
           int num_right_faces = 0;
 
           act_c = corner_table_->Opposite(next);
-          while (act_c >= 0) {
+          while (act_c != kInvalidCornerIndex) {
             if (encoder_impl()->IsFaceEncoded(corner_table_->Face(act_c)))
               break;  // Stop when we reach the first visited face.
             ++num_right_faces;
@@ -190,7 +190,7 @@ class MeshEdgeBreakerTraversalValenceEncoder
       EncodeVarint<uint32_t>(context_symbols_[i].size(), GetOutputBuffer());
       if (context_symbols_[i].size() > 0) {
         EncodeSymbols(context_symbols_[i].data(), context_symbols_[i].size(), 1,
-                      GetOutputBuffer());
+                      nullptr, GetOutputBuffer());
       }
     }
   }

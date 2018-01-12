@@ -5,6 +5,11 @@
 
 News
 =======
+### Version 1.2.5 release
+* On average 10% faster decoding
+* Improved Javascript metadata API
+* Bug fixes
+
 ### Version 1.2.4 release
 * Up to 20% faster decoding
 * Added support for integer attributes to our Javascript Encoder

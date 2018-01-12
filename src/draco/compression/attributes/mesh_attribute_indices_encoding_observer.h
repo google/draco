@@ -46,7 +46,7 @@ class MeshAttributeIndicesEncodingObserver {
 
   void OnNewFaceVisited(FaceIndex /* face */) {}
 
-  void OnNewVertexVisited(VertexIndex vertex, CornerIndex corner) {
+  inline void OnNewVertexVisited(VertexIndex vertex, CornerIndex corner) {
     const PointIndex point_id =
         mesh_->face(FaceIndex(corner.value() / 3))[corner.value() % 3];
     // Append the visited attribute to the encoding order.

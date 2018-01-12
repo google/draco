@@ -463,7 +463,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::FindInitFaceConfiguration(
       // Boundary vertex found. Find the first boundary edge attached to the
       // point and return the corner opposite to it.
       CornerIndex right_corner = corner_index;
-      while (right_corner >= 0) {
+      while (right_corner != kInvalidCornerIndex) {
         corner_index = right_corner;
         right_corner = corner_table_->SwingRight(right_corner);
       }
@@ -489,7 +489,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivityFromCorner(
     // Currently processed corner.
     corner_id = corner_traversal_stack_.back();
     // Make sure the face hasn't been visited yet.
-    if (corner_id < 0 ||
+    if (corner_id == kInvalidCornerIndex ||
         visited_faces_[corner_table_->Face(corner_id).value()]) {
       // This face has been already traversed.
       corner_traversal_stack_.pop_back();
@@ -793,7 +793,7 @@ bool MeshEdgeBreakerEncoderImpl<
   visited_faces_[src_face_id.value()] = true;
   for (int c = 0; c < 3; ++c) {
     const CornerIndex opp_corner = corner_table_->Opposite(corners[c]);
-    if (opp_corner < 0)
+    if (opp_corner == kInvalidCornerIndex)
       continue;  // Don't encode attribute seams on boundary edges.
     const FaceIndex opp_face_id = corner_table_->Face(opp_corner);
     // Don't encode edges when the opposite face has been already processed.

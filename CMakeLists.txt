@@ -529,6 +529,7 @@ set(draco_metadata_dec_sources
     "${draco_src_root}/metadata/metadata_decoder.cc"
     "${draco_src_root}/metadata/metadata_decoder.h")
 
+
 set(draco_js_dec_sources
     "${draco_src_root}/javascript/emscripten/decoder_webidl_wrapper.cc"
     "${draco_src_root}/javascript/emscripten/draco_decoder_glue_wrapper.cc")
@@ -536,6 +537,7 @@ set(draco_js_dec_sources
 set(draco_js_enc_sources
     "${draco_src_root}/javascript/emscripten/draco_encoder_glue_wrapper.cc"
     "${draco_src_root}/javascript/emscripten/encoder_webidl_wrapper.cc")
+
 
 set(draco_test_sources
     "${draco_src_root}/attributes/point_attribute_test.cc"
@@ -631,6 +633,7 @@ if (EMSCRIPTEN)
     message(FATAL_ERROR "Glue generation failed.")
   endif ()
 
+
   # Add a custom rule depending on the IDL to regenerate
   # ${draco_build_dir}/glue_decoder.cpp as needed.
   add_custom_command(OUTPUT ${draco_build_dir}/glue_decoder.cpp
@@ -653,48 +656,55 @@ if (EMSCRIPTEN)
                      WORKING_DIRECTORY ${draco_build_dir}
                      VERBATIM)
 
+
   # Add path to glue_decoder.cpp to draco include paths.
   include_directories("${draco_build_dir}")
 
+  set(draco_decoder_src
+      ${draco_attributes_sources}
+      ${draco_compression_attributes_dec_sources}
+      ${draco_compression_attributes_pred_schemes_dec_sources}
+      ${draco_compression_decode_sources}
+      ${draco_compression_mesh_dec_sources}
+      ${draco_compression_point_cloud_dec_sources}
+      ${draco_core_sources}
+      ${draco_core_bit_coders_sources}
+      ${draco_dec_config_sources}
+      ${draco_io_sources}
+      ${draco_mesh_sources}
+      ${draco_metadata_dec_sources}
+      ${draco_metadata_sources}
+      ${draco_point_cloud_sources}
+      ${draco_points_dec_sources}
+      ${draco_version_sources})
+  set(draco_encoder_src
+      ${draco_attributes_sources}
+      ${draco_compression_attributes_enc_sources}
+      ${draco_compression_attributes_pred_schemes_enc_sources}
+      ${draco_compression_encode_sources}
+      ${draco_compression_mesh_enc_sources}
+      ${draco_compression_point_cloud_enc_sources}
+      ${draco_core_sources}
+      ${draco_core_bit_coders_sources}
+      ${draco_enc_config_sources}
+      ${draco_io_sources}
+      ${draco_mesh_sources}
+      ${draco_metadata_enc_sources}
+      ${draco_metadata_sources}
+      ${draco_point_cloud_sources}
+      ${draco_points_enc_sources}
+      ${draco_version_sources})
+
+
   add_executable(draco_decoder
-                 ${draco_attributes_sources}
-                 ${draco_compression_attributes_dec_sources}
-                 ${draco_compression_attributes_pred_schemes_dec_sources}
-                 ${draco_compression_decode_sources}
-                 ${draco_compression_mesh_dec_sources}
-                 ${draco_compression_point_cloud_dec_sources}
-                 ${draco_core_sources}
-                 ${draco_core_bit_coders_sources}
-                 ${draco_dec_config_sources}
-                 ${draco_io_sources}
-                 ${draco_mesh_sources}
-                 ${draco_metadata_dec_sources}
-                 ${draco_metadata_sources}
-                 ${draco_point_cloud_sources}
-                 ${draco_points_dec_sources}
                  ${draco_js_dec_sources}
-                 ${draco_version_sources})
+                 ${draco_decoder_src})
   append_link_flag_to_target(draco_decoder
                              "-s EXPORT_NAME=\"'DracoDecoderModule'\"")
 
   add_executable(draco_encoder
-                 ${draco_attributes_sources}
-                 ${draco_compression_attributes_enc_sources}
-                 ${draco_compression_attributes_pred_schemes_enc_sources}
-                 ${draco_compression_encode_sources}
-                 ${draco_compression_mesh_enc_sources}
-                 ${draco_compression_point_cloud_enc_sources}
-                 ${draco_core_sources}
-                 ${draco_core_bit_coders_sources}
-                 ${draco_enc_config_sources}
-                 ${draco_io_sources}
-                 ${draco_mesh_sources}
-                 ${draco_metadata_enc_sources}
-                 ${draco_metadata_sources}
-                 ${draco_point_cloud_sources}
-                 ${draco_points_enc_sources}
                  ${draco_js_enc_sources}
-                 ${draco_version_sources})
+                 ${draco_encoder_src})
   append_link_flag_to_target(draco_encoder
                              "-s EXPORT_NAME=\"'DracoEncoderModule'\"")
 
@@ -723,6 +733,7 @@ if (EMSCRIPTEN)
   em_link_post_js(draco_encoder
                   "${draco_build_dir}/glue_encoder.js"
                   "${draco_src_root}/javascript/emscripten/finalize.js")
+
 else ()
   # Standard Draco libs, encoder and decoder.
   # Object collections that mirror the Draco directory structure.

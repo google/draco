@@ -105,8 +105,8 @@ class Encoder
   //
   // Note that in case the desired prediction cannot be used, the default
   // prediction will be automatically used instead.
-  void SetAttributePredictionScheme(GeometryAttribute::Type type,
-                                    int prediction_scheme_method);
+  Status SetAttributePredictionScheme(GeometryAttribute::Type type,
+                                      int prediction_scheme_method);
 
   // Sets the desired encoding method for a given geometry. By default, encoding
   // method is selected based on the properties of the input geometry and based

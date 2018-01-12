@@ -114,6 +114,8 @@ interface Status {
 interface MetadataQuerier {
   void MetadataQuerier();
 
+  boolean HasEntry([Ref, Const] Metadata metadata,
+                   [Const] DOMString entry_name);
   boolean HasIntEntry([Ref, Const] Metadata metadata,
                       [Const] DOMString entry_name);
   long GetIntEntry([Ref, Const] Metadata metadata,
@@ -123,9 +125,12 @@ interface MetadataQuerier {
   double GetDoubleEntry([Ref, Const] Metadata metadata,
                         [Const] DOMString entry_name);
   boolean HasStringEntry([Ref, Const] Metadata metadata,
-                      [Const] DOMString entry_name);
+                         [Const] DOMString entry_name);
   [Const] DOMString GetStringEntry([Ref, Const] Metadata metadata,
                                    [Const] DOMString entry_name);
+
+  long NumEntries([Ref, Const] Metadata metadata);
+  [Const] DOMString GetEntryName([Ref, Const] Metadata metadata, long entry_id);
 };
 
 // Draco version of typed arrays. The memory of these arrays is allocated on the
@@ -151,7 +156,7 @@ interface Decoder {
   [Const] Status DecodeBufferToMesh(DecoderBuffer in_buffer, Mesh out_mesh);
 
   long GetAttributeId([Ref, Const] PointCloud pc,
-                               draco_GeometryAttribute_Type type);
+                      draco_GeometryAttribute_Type type);
   long GetAttributeIdByName([Ref, Const] PointCloud pc, [Const] DOMString name);
   long GetAttributeIdByMetadataEntry([Ref, Const] PointCloud pc,
                                      [Const] DOMString name,

@@ -79,7 +79,8 @@ void Options::SetVector(const std::string &name, const DataTypeT *vec,
     if (i > 0)
       out += " ";
 
-// GNU STL on android doesn't include a proper std::to_string, but the libc++ version does
+// GNU STL on android doesn't include a proper std::to_string, but the libc++
+// version does
 #if defined(ANDROID) && !defined(_LIBCPP_VERSION)
     out += to_string(vec[i]);
 #else

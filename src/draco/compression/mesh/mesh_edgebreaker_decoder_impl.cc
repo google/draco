@@ -621,7 +621,7 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
 
       // Also update the vertex id at corner "n" and all corners that are
       // connected to it in the CCW direction.
-      while (corner_n >= 0) {
+      while (corner_n != kInvalidCornerIndex) {
         corner_table_->MapCornerToVertex(corner_n, vertex_p);
         corner_n = corner_table_->SwingLeft(corner_n);
       }
@@ -781,7 +781,7 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
   for (const VertexIndex invalid_vert : invalid_vertices) {
     // Find the last valid vertex and swap it with the isolated vertex.
     VertexIndex src_vert(num_vertices - 1);
-    while (corner_table_->LeftMostCorner(src_vert) < 0) {
+    while (corner_table_->LeftMostCorner(src_vert) == kInvalidCornerIndex) {
       // The last vertex is invalid, proceed to the previous one.
       src_vert = VertexIndex(--num_vertices - 1);
     }
@@ -922,7 +922,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::
 
   for (int c = 0; c < 3; ++c) {
     const CornerIndex opp_corner = corner_table_->Opposite(corners[c]);
-    if (opp_corner < 0) {
+    if (opp_corner == kInvalidCornerIndex) {
       // Don't decode attribute seams on boundary edges (every boundary edge
       // is automatically an attribute seam).
       for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
@@ -951,7 +951,7 @@ bool MeshEdgeBreakerDecoderImpl<
   const FaceIndex src_face_id = corner_table_->Face(corner);
   for (int c = 0; c < 3; ++c) {
     const CornerIndex opp_corner = corner_table_->Opposite(corners[c]);
-    if (opp_corner < 0) {
+    if (opp_corner == kInvalidCornerIndex) {
       // Don't decode attribute seams on boundary edges (every boundary edge
       // is automatically an attribute seam).
       for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
@@ -1007,7 +1007,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners(
   std::vector<int32_t> corner_to_point_map(corner_table_->num_corners());
   for (int v = 0; v < corner_table_->num_vertices(); ++v) {
     CornerIndex c = corner_table_->LeftMostCorner(VertexIndex(v));
-    if (c < 0)
+    if (c == kInvalidCornerIndex)
       continue;  // Isolated vertex.
     CornerIndex deduplication_first_corner = c;
     if (is_vert_hole_[v]) {
@@ -1053,7 +1053,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners(
     // Traverse in CW direction.
     CornerIndex prev_c = c;
     c = corner_table_->SwingRight(c);
-    while (c >= 0 && c != deduplication_first_corner) {
+    while (c != kInvalidCornerIndex && c != deduplication_first_corner) {
       bool attribute_seam = false;
       for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
         if (attribute_data_[i].connectivity_data.Vertex(c) !=

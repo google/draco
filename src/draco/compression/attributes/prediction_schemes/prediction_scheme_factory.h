@@ -42,7 +42,7 @@ std::unique_ptr<PredictionSchemeT> CreateMeshPredictionScheme(
        method == MESH_PREDICTION_CONSTRAINED_MULTI_PARALLELOGRAM ||
        method == MESH_PREDICTION_TEX_COORDS_PORTABLE ||
        method == MESH_PREDICTION_GEOMETRIC_NORMAL ||
-       method == MESH_PREDICTION_TEX_COORDS)) {
+       method == MESH_PREDICTION_TEX_COORDS_DEPRECATED)) {
     const CornerTable *const ct = source->GetCornerTable();
     const MeshAttributeIndicesEncodingData *const encoding_data =
         source->GetAttributeEncodingData(att_id);

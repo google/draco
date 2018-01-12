@@ -26,8 +26,21 @@ namespace draco {
 
 constexpr int32_t kMaxTagSymbolBitLength = 32;
 constexpr int kMaxRawEncodingBitLength = 18;
+constexpr int kDefaultSymbolCodingCompressionLevel = 7;
 
 typedef uint64_t TaggedBitLengthFrequencies[kMaxTagSymbolBitLength];
+
+void SetSymbolEncodingMethod(Options *options, SymbolCodingMethod method) {
+  options->SetInt("symbol_encoding_method", method);
+}
+
+bool SetSymbolEncodingCompressionLevel(Options *options,
+                                       int compression_level) {
+  if (compression_level < 0 || compression_level > 10)
+    return false;
+  options->SetInt("symbol_encoding_compression_level", compression_level);
+  return true;
+}
 
 // Computes bit lengths of the input values. If num_components > 1, the values
 // are processed in "num_components" sized chunks and the bit length is always
@@ -75,12 +88,14 @@ static int64_t ApproximateTaggedSchemeBits(
 }
 
 static int64_t ApproximateRawSchemeBits(const uint32_t *symbols,
-                                        int num_symbols, uint32_t max_value) {
+                                        int num_symbols, uint32_t max_value,
+                                        int *out_num_unique_symbols) {
   int num_unique_symbols;
   const int64_t data_bits = ComputeShannonEntropy(
       symbols, num_symbols, max_value, &num_unique_symbols);
   const int64_t table_bits =
       ApproximateRAnsFrequencyTableBits(max_value, num_unique_symbols);
+  *out_num_unique_symbols = num_unique_symbols;
   return table_bits + data_bits;
 }
 
@@ -92,10 +107,11 @@ bool EncodeTaggedSymbols(const uint32_t *symbols, int num_values,
 
 template <template <int> class SymbolEncoderT>
 bool EncodeRawSymbols(const uint32_t *symbols, int num_values,
-                      const uint32_t *max_value, EncoderBuffer *target_buffer);
+                      uint32_t max_entry_value, int32_t num_unique_symbols,
+                      const Options *options, EncoderBuffer *target_buffer);
 
 bool EncodeSymbols(const uint32_t *symbols, int num_values, int num_components,
-                   EncoderBuffer *target_buffer) {
+                   const Options *options, EncoderBuffer *target_buffer) {
   if (num_values < 0)
     return false;
   if (num_values == 0)
@@ -114,25 +130,39 @@ bool EncodeSymbols(const uint32_t *symbols, int num_values, int num_components,
 
   // Approximate number of bits needed for storing the symbols using the raw
   // scheme.
-  const int64_t raw_scheme_total_bits =
-      ApproximateRawSchemeBits(symbols, num_values, max_value);
+  int num_unique_symbols = 0;
+  const int64_t raw_scheme_total_bits = ApproximateRawSchemeBits(
+      symbols, num_values, max_value, &num_unique_symbols);
 
   // The maximum bit length of a single entry value that we can encode using
   // the raw scheme.
   const int max_value_bit_length =
       bits::MostSignificantBit(std::max(1u, max_value)) + 1;
 
-  if (tagged_scheme_total_bits < raw_scheme_total_bits ||
-      max_value_bit_length > kMaxRawEncodingBitLength) {
-    // Use the tagged scheme.
-    target_buffer->Encode(static_cast<uint8_t>(0));
+  int method = -1;
+  if (options != nullptr && options->IsOptionSet("symbol_encoding_method")) {
+    method = options->GetInt("symbol_encoding_method");
+  } else {
+    if (tagged_scheme_total_bits < raw_scheme_total_bits ||
+        max_value_bit_length > kMaxRawEncodingBitLength) {
+      method = SYMBOL_CODING_TAGGED;
+    } else {
+      method = SYMBOL_CODING_RAW;
+    }
+  }
+  // Use the tagged scheme.
+  target_buffer->Encode(static_cast<uint8_t>(method));
+  if (method == SYMBOL_CODING_TAGGED) {
     return EncodeTaggedSymbols<RAnsSymbolEncoder>(
         symbols, num_values, num_components, bit_lengths, target_buffer);
   }
-  // Else use the raw scheme.
-  target_buffer->Encode(static_cast<uint8_t>(1));
-  return EncodeRawSymbols<RAnsSymbolEncoder>(symbols, num_values, &max_value,
-                                             target_buffer);
+  if (method == SYMBOL_CODING_RAW) {
+    return EncodeRawSymbols<RAnsSymbolEncoder>(symbols, num_values, max_value,
+                                               num_unique_symbols, options,
+                                               target_buffer);
+  }
+  // Unknown method selected.
+  return false;
 }
 
 template <template <int> class SymbolEncoderT>
@@ -160,7 +190,8 @@ bool EncodeTaggedSymbols(const uint32_t *symbols, int num_values,
   EncoderBuffer value_buffer;
   // Number of expected bits we need to store the values (can be optimized if
   // needed).
-  const uint64_t value_bits = kMaxTagSymbolBitLength * num_values;
+  const uint64_t value_bits =
+      kMaxTagSymbolBitLength * static_cast<uint64_t>(num_values);
 
   // Create encoder for encoding the bit tags.
   SymbolEncoderT<5> tag_encoder;
@@ -207,7 +238,7 @@ bool EncodeTaggedSymbols(const uint32_t *symbols, int num_values,
 
 template <class SymbolEncoderT>
 bool EncodeRawSymbolsInternal(const uint32_t *symbols, int num_values,
-                              const uint32_t &max_entry_value,
+                              uint32_t max_entry_value,
                               EncoderBuffer *target_buffer) {
   // Count the frequency of each entry value.
   std::vector<uint64_t> frequencies(max_entry_value + 1, 0);
@@ -217,7 +248,6 @@ bool EncodeRawSymbolsInternal(const uint32_t *symbols, int num_values,
 
   SymbolEncoderT encoder;
   encoder.Create(frequencies.data(), frequencies.size(), target_buffer);
-
   encoder.StartEncoding(target_buffer);
   // Encode all values.
   if (SymbolEncoderT::needs_reverse_encoding()) {
@@ -235,29 +265,45 @@ bool EncodeRawSymbolsInternal(const uint32_t *symbols, int num_values,
 
 template <template <int> class SymbolEncoderT>
 bool EncodeRawSymbols(const uint32_t *symbols, int num_values,
-                      const uint32_t *max_value, EncoderBuffer *target_buffer) {
-  uint32_t max_entry_value = 0;
-  // If the max_value is not provided, find it.
-  if (max_value != nullptr) {
-    max_entry_value = *max_value;
-  } else {
-    for (int i = 0; i < num_values; ++i) {
-      if (symbols[i] > max_entry_value) {
-        max_entry_value = symbols[i];
-      }
-    }
+                      uint32_t max_entry_value, int32_t num_unique_symbols,
+                      const Options *options, EncoderBuffer *target_buffer) {
+  int symbol_bits = 0;
+  if (num_unique_symbols > 0) {
+    symbol_bits = bits::MostSignificantBit(num_unique_symbols);
   }
-  int max_value_bits = 0;
-  if (max_entry_value > 0) {
-    max_value_bits = bits::MostSignificantBit(max_entry_value);
-  }
-  const int max_value_bit_length = max_value_bits + 1;
-  // Currently, we don't support encoding of values larger than 2^18.
-  if (max_value_bit_length > kMaxRawEncodingBitLength)
+  int unique_symbols_bit_length = symbol_bits + 1;
+  // Currently, we don't support encoding of more than 2^18 unique symbols.
+  if (unique_symbols_bit_length > kMaxRawEncodingBitLength)
     return false;
-  target_buffer->Encode(static_cast<uint8_t>(max_value_bit_length));
+  int compression_level = kDefaultSymbolCodingCompressionLevel;
+  if (options != nullptr &&
+      options->IsOptionSet("symbol_encoding_compression_level")) {
+    compression_level = options->GetInt("symbol_encoding_compression_level");
+  }
+
+  // Adjust the bit_length based on compression level. Lower compression levels
+  // will use fewer bits while higher compression levels use more bits. Note
+  // that this is going to work for all valid bit_lengths because the actual
+  // number of bits allocated for rANS encoding is hard coded as:
+  // std::max(12, 3 * bit_length / 2) , therefore there will be always a
+  // sufficient number of bits available for all symbols.
+  // See ComputeRAnsPrecisionFromUniqueSymbolsBitLength() for the formula.
+  // This hardcoded equation cannot be changed without changing the bitstream.
+  if (compression_level < 4) {
+    unique_symbols_bit_length -= 2;
+  } else if (compression_level < 6) {
+    unique_symbols_bit_length -= 1;
+  } else if (compression_level > 9) {
+    unique_symbols_bit_length += 2;
+  } else if (compression_level > 7) {
+    unique_symbols_bit_length += 1;
+  }
+  // Clamp the bit_length to a valid range.
+  unique_symbols_bit_length = std::min(std::max(1, unique_symbols_bit_length),
+                                       kMaxRawEncodingBitLength);
+  target_buffer->Encode(static_cast<uint8_t>(unique_symbols_bit_length));
   // Use appropriate symbol encoder based on the maximum symbol bit length.
-  switch (max_value_bit_length) {
+  switch (unique_symbols_bit_length) {
     case 0:
       FALLTHROUGH_INTENDED;
     case 1:

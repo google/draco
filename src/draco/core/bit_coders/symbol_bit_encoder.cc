@@ -17,7 +17,7 @@ void SymbolBitEncoder::EncodeLeastSignificantBits32(int nbits, uint32_t value) {
 
 void SymbolBitEncoder::EndEncoding(EncoderBuffer *target_buffer) {
   target_buffer->Encode(static_cast<uint32_t>(symbols_.size()));
-  EncodeSymbols(symbols_.data(), symbols_.size(), 1, target_buffer);
+  EncodeSymbols(symbols_.data(), symbols_.size(), 1, nullptr, target_buffer);
   Clear();
 }
 

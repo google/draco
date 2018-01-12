@@ -40,7 +40,7 @@ inline bool IsCornerOppositeToAttributeSeam(CornerIndex ci,
                                             const Mesh &mesh,
                                             const CornerTable &ct) {
   const CornerIndex opp_ci = ct.Opposite(ci);
-  if (opp_ci < 0)
+  if (opp_ci == kInvalidCornerIndex)
     return false;  // No opposite corner == no attribute seam.
   // Compare attribute value indices on both ends of the opposite edge.
   CornerIndex c0 = ct.Next(ci);

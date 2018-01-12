@@ -147,10 +147,16 @@ void ExpertEncoder::SetEncodingMethod(int encoding_method) {
   Base::SetEncodingMethod(encoding_method);
 }
 
-void ExpertEncoder::SetAttributePredictionScheme(int32_t attribute_id,
-                                                 int prediction_scheme_method) {
+Status ExpertEncoder::SetAttributePredictionScheme(
+    int32_t attribute_id, int prediction_scheme_method) {
+  auto att = point_cloud_->GetAttributeByUniqueId(attribute_id);
+  auto att_type = att->attribute_type();
+  Status status = CheckPredictionScheme(att_type, prediction_scheme_method);
+  if (!status.ok())
+    return status;
   options().SetAttributeInt(attribute_id, "prediction_scheme",
                             prediction_scheme_method);
+  return status;
 }
 
 }  // namespace draco

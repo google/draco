@@ -115,7 +115,8 @@ bool MeshSequentialEncoder::CompressAndEncodeIndices() {
       last_index_value = index_value;
     }
   }
-  EncodeSymbols(indices_buffer.data(), indices_buffer.size(), 1, buffer());
+  EncodeSymbols(indices_buffer.data(), indices_buffer.size(), 1, nullptr,
+                buffer());
   return true;
 }
 

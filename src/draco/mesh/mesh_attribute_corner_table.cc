@@ -43,19 +43,19 @@ bool MeshAttributeCornerTable::InitFromAttribute(const Mesh *mesh,
   // Find all necessary data for encoding attributes. For now we check which of
   // the mesh vertices is part of an attribute seam, because seams require
   // special handling.
-  for (int c = 0; c < corner_table_->num_corners(); ++c) {
-    const FaceIndex f = corner_table_->Face(CornerIndex(c));
+  for (CornerIndex c(0); c < corner_table_->num_corners(); ++c) {
+    const FaceIndex f = corner_table_->Face(c);
     if (corner_table_->IsDegenerated(f))
       continue;  // Ignore corners on degenerated faces.
-    const CornerIndex opp_corner = corner_table_->Opposite(CornerIndex(c));
-    if (opp_corner < 0) {
+    const CornerIndex opp_corner = corner_table_->Opposite(c);
+    if (opp_corner == kInvalidCornerIndex) {
       // Boundary. Mark it as seam edge.
-      is_edge_on_seam_[c] = true;
+      is_edge_on_seam_[c.value()] = true;
       // Mark seam vertices.
       VertexIndex v;
-      v = corner_table_->Vertex(corner_table_->Next(CornerIndex(c)));
+      v = corner_table_->Vertex(corner_table_->Next(c));
       is_vertex_on_seam_[v.value()] = true;
-      v = corner_table_->Vertex(corner_table_->Previous(CornerIndex(c)));
+      v = corner_table_->Vertex(corner_table_->Previous(c));
       is_vertex_on_seam_[v.value()] = true;
       continue;
     }
@@ -73,7 +73,7 @@ bool MeshAttributeCornerTable::InitFromAttribute(const Mesh *mesh,
           mesh->CornerToPointId(act_sibling_c.value());
       if (att->mapped_index(point_id) != att->mapped_index(sibling_point_id)) {
         no_interior_seams_ = false;
-        is_edge_on_seam_[c] = true;
+        is_edge_on_seam_[c.value()] = true;
         is_edge_on_seam_[opp_corner.value()] = true;
         // Mark seam vertices.
         is_vertex_on_seam_[corner_table_
@@ -105,7 +105,7 @@ void MeshAttributeCornerTable::AddSeamEdge(CornerIndex c) {
                          .value()] = true;
 
   const CornerIndex opp_corner = corner_table_->Opposite(c);
-  if (opp_corner >= 0) {
+  if (opp_corner != kInvalidCornerIndex) {
     no_interior_seams_ = false;
     is_edge_on_seam_[opp_corner.value()] = true;
     is_vertex_on_seam_[corner_table_->Vertex(corner_table_->Next(opp_corner))
@@ -131,7 +131,7 @@ void MeshAttributeCornerTable::RecomputeVerticesInternal(
   int num_new_vertices = 0;
   for (VertexIndex v(0); v < corner_table_->num_vertices(); ++v) {
     const CornerIndex c = corner_table_->LeftMostCorner(v);
-    if (c < 0)
+    if (c == kInvalidCornerIndex)
       continue;  // Isolated vertex?
     AttributeValueIndex first_vert_id(num_new_vertices++);
     if (init_vertex_to_attribute_entry_map) {
@@ -149,7 +149,7 @@ void MeshAttributeCornerTable::RecomputeVerticesInternal(
       // Try to swing left on the modified corner table. We need to get the
       // first corner that defines an attribute seam.
       act_c = SwingLeft(first_c);
-      while (act_c >= 0) {
+      while (act_c != kInvalidCornerIndex) {
         first_c = act_c;
         act_c = SwingLeft(act_c);
       }
@@ -157,7 +157,7 @@ void MeshAttributeCornerTable::RecomputeVerticesInternal(
     corner_to_vertex_map_[first_c.value()] = VertexIndex(first_vert_id.value());
     vertex_to_left_most_corner_map_.push_back(first_c);
     act_c = corner_table_->SwingRight(first_c);
-    while (act_c >= 0 && act_c != first_c) {
+    while (act_c != kInvalidCornerIndex && act_c != first_c) {
       if (IsCornerOppositeToSeamEdge(corner_table_->Next(act_c))) {
         first_vert_id = AttributeValueIndex(num_new_vertices++);
         if (init_vertex_to_attribute_entry_map) {
