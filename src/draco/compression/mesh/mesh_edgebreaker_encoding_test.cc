@@ -32,8 +32,7 @@ class MeshEdgebreakerEncodingTest : public ::testing::Test {
   void TestFile(const std::string &file_name) { TestFile(file_name, -1); }
 
   void TestFile(const std::string &file_name, int compression_level) {
-    const std::string path = GetTestFileFullPath(file_name);
-    const std::unique_ptr<Mesh> mesh(ReadMeshFromFile(path));
+    const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name));
     ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
 
     TestMesh(mesh.get(), compression_level);
@@ -96,8 +95,7 @@ TEST_F(MeshEdgebreakerEncodingTest, TestEncoderReuse) {
   // Tests whether the edgebreaker encoder can be reused multiple times to
   // encode a given mesh.
   const std::string file_name = "test_pos_color.ply";
-  const std::string path = GetTestFileFullPath(file_name);
-  const std::unique_ptr<Mesh> mesh(ReadMeshFromFile(path));
+  const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name));
   ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
 
   MeshEdgeBreakerEncoder encoder;
@@ -118,8 +116,7 @@ TEST_F(MeshEdgebreakerEncodingTest, TestDecoderReuse) {
   // Tests whether the edgebreaker decoder can be reused multiple times to
   // decode a given mesh.
   const std::string file_name = "test_pos_color.ply";
-  const std::string path = GetTestFileFullPath(file_name);
-  const std::unique_ptr<Mesh> mesh(ReadMeshFromFile(path));
+  const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name));
   ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
 
   MeshEdgeBreakerEncoder encoder;
@@ -155,8 +152,7 @@ TEST_F(MeshEdgebreakerEncodingTest, TestSingleConnectivityEncoding) {
   // multiple attributes using single connectivity by breaking the mesh along
   // attribute seams.
   const std::string file_name = "cube_att.obj";
-  const std::string path = GetTestFileFullPath(file_name);
-  const std::unique_ptr<Mesh> mesh(ReadMeshFromFile(path));
+  const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name));
   ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
 
   for (int i = 0; i < 2; ++i) {

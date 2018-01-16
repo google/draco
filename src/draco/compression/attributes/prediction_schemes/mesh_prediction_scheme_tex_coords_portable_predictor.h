@@ -134,7 +134,7 @@ void MeshPredictionSchemeTexCoordsPortablePredictor<
     // position of predicted coordinate (C).
     //
     const VectorD<int64_t, 3> pn = prev_pos - next_pos;
-    const int64_t pn_norm2_squared = pn.SquaredNorm();
+    const uint64_t pn_norm2_squared = pn.SquaredNorm();
     if (pn_norm2_squared != 0) {
       // Compute the projection of C onto PN by computing dot product of CN with
       // PN and normalizing it by length of PN. This gives us a factor |s| where
@@ -157,7 +157,7 @@ void MeshPredictionSchemeTexCoordsPortablePredictor<
       // Compute squared length of vector CX in position coordinate system:
       const VectorD<int64_t, 3> x_pos =
           next_pos + (cn_dot_pn * pn) / pn_norm2_squared;
-      const int64_t cx_norm2_squared = (tip_pos - x_pos).SquaredNorm();
+      const uint64_t cx_norm2_squared = (tip_pos - x_pos).SquaredNorm();
 
       // Compute vector CX_UV in the uv space by rotating vector PN_UV by 90
       // degrees and scaling it with factor CX.Norm2() / PN.Norm2():
@@ -175,9 +175,10 @@ void MeshPredictionSchemeTexCoordsPortablePredictor<
       //
       VectorD<int64_t, 2> cx_uv(pn_uv[1], -pn_uv[0]);  // Rotated PN_UV.
       // Compute CX.Norm2() * PN.Norm2()
-      const int64_t norm_squared = IntSqrt(cx_norm2_squared * pn_norm2_squared);
+      const uint64_t norm_squared =
+          IntSqrt(cx_norm2_squared * pn_norm2_squared);
       // Final cx_uv in the scaled coordinate space.
-      cx_uv = norm_squared * cx_uv;
+      cx_uv = cx_uv * norm_squared;
 
       // Predicted uv coordinate is then computed by either adding or
       // subtracting CX_UV to/from X_UV.

@@ -94,6 +94,8 @@ bool MetadataDecoder::DecodeName(std::string *name) {
   if (!buffer_->Decode(&name_len))
     return false;
   name->resize(name_len);
+  if (name_len == 0)
+    return true;
   if (!buffer_->Decode(&name->at(0), name_len))
     return false;
   return true;

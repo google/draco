@@ -122,8 +122,8 @@ class ExpertEncoder : public EncoderBase<EncoderOptions> {
   //
   // Note that in case the desired prediction cannot be used, the default
   // prediction will be automatically used instead.
-  void SetAttributePredictionScheme(int32_t attribute_id,
-                                    int prediction_scheme_method);
+  Status SetAttributePredictionScheme(int32_t attribute_id,
+                                      int prediction_scheme_method);
 
  private:
   Status EncodePointCloudToBuffer(const PointCloud &pc,

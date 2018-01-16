@@ -25,7 +25,12 @@ using draco::PointAttribute;
 using draco::PointCloud;
 using draco::Status;
 
-MetadataQuerier::MetadataQuerier() {}
+MetadataQuerier::MetadataQuerier() : entry_names_metadata_(nullptr) {}
+
+bool MetadataQuerier::HasEntry(const Metadata &metadata,
+                               const char *entry_name) const {
+  return metadata.entries().count(entry_name) > 0;
+}
 
 bool MetadataQuerier::HasIntEntry(const Metadata &metadata,
                                   const char *entry_name) const {
@@ -77,6 +82,25 @@ const char *MetadataQuerier::GetStringEntry(const Metadata &metadata,
   metadata.GetEntryString(name, &return_value);
   const char *value = return_value.c_str();
   return value;
+}
+
+long MetadataQuerier::NumEntries(const Metadata &metadata) const {
+  return metadata.num_entries();
+}
+
+const char *MetadataQuerier::GetEntryName(const Metadata &metadata,
+                                          int entry_id) {
+  if (entry_names_metadata_ != &metadata) {
+    entry_names_.clear();
+    entry_names_metadata_ = &metadata;
+    // Initialize the list of entry names.
+    for (auto &&entry : metadata.entries()) {
+      entry_names_.push_back(entry.first);
+    }
+  }
+  if (entry_id < 0 || entry_id >= entry_names_.size())
+    return nullptr;
+  return entry_names_[entry_id].c_str();
 }
 
 DracoFloat32Array::DracoFloat32Array() {}
@@ -202,9 +226,9 @@ bool Decoder::GetAttributeFloatForAllPoints(const PointCloud &pc,
   return true;
 }
 
-bool Decoder::GetAttributeIntForAllPoints(const PointCloud &pc,
-                                          const PointAttribute &pa,
-                                          DracoInt32Array *out_values) {
+bool Decoder::GetAttributeInt32ForAllPoints(const PointCloud &pc,
+                                            const PointAttribute &pa,
+                                            DracoInt32Array *out_values) {
   const int components = pa.num_components();
   const int num_points = pc.num_points();
   const int num_entries = num_points * components;
@@ -222,6 +246,12 @@ bool Decoder::GetAttributeIntForAllPoints(const PointCloud &pc,
     }
   }
   return true;
+}
+
+bool Decoder::GetAttributeIntForAllPoints(const PointCloud &pc,
+                                          const PointAttribute &pa,
+                                          DracoInt32Array *out_values) {
+  return GetAttributeInt32ForAllPoints(pc, pa, out_values);
 }
 
 void Decoder::SkipAttributeTransform(draco_GeometryAttribute_Type att_type) {

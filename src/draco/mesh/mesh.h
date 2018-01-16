@@ -17,9 +17,9 @@
 
 #include <memory>
 
+#include "draco/attributes/geometry_indices.h"
 #include "draco/core/hash_utils.h"
 #include "draco/core/macros.h"
-#include "draco/mesh/mesh_indices.h"
 #include "draco/point_cloud/point_cloud.h"
 
 namespace draco {
@@ -85,6 +85,18 @@ class Mesh : public PointCloud {
 
   void SetAttributeElementType(int att_id, MeshAttributeElementType et) {
     attribute_data_[att_id].element_type = et;
+  }
+
+  // Returns the point id of for a corner |ci|.
+  inline PointIndex CornerToPointId(int ci) const {
+    if (ci == kInvalidCornerIndex.value())
+      return kInvalidPointIndex;
+    return this->face(FaceIndex(ci / 3))[ci % 3];
+  }
+
+  // Returns the point id of a corner |ci|.
+  inline PointIndex CornerToPointId(CornerIndex ci) const {
+    return this->CornerToPointId(ci.value());
   }
 
   struct AttributeData {

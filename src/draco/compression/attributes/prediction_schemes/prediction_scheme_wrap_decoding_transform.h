@@ -56,7 +56,8 @@ class PredictionSchemeWrapDecodingTransform
       return false;
     this->set_min_value(min_value);
     this->set_max_value(max_value);
-    this->InitCorrectionBounds();
+    if (!this->InitCorrectionBounds())
+      return false;
     return true;
   }
 };

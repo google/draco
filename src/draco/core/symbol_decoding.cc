@@ -37,10 +37,10 @@ bool DecodeSymbols(uint32_t num_values, int num_components,
   uint8_t scheme;
   if (!src_buffer->Decode(&scheme))
     return false;
-  if (scheme == 0) {
+  if (scheme == SYMBOL_CODING_TAGGED) {
     return DecodeTaggedSymbols<RAnsSymbolDecoder>(num_values, num_components,
                                                   src_buffer, out_values);
-  } else if (scheme == 1) {
+  } else if (scheme == SYMBOL_CODING_RAW) {
     return DecodeRawSymbols<RAnsSymbolDecoder>(num_values, src_buffer,
                                                out_values);
   }

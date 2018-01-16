@@ -75,7 +75,7 @@ bool MeshCleanup::operator()(Mesh *mesh, const MeshCleanupOptions &options) {
         if (is_point_used[i.value()]) {
           point_map[i] = num_new_points++;
         } else {
-          point_map[i] = -1;
+          point_map[i] = kInvalidPointIndex;
         }
       }
       // Go over faces and update their points.
@@ -107,7 +107,7 @@ bool MeshCleanup::operator()(Mesh *mesh, const MeshCleanupOptions &options) {
       att_index_map.clear();
       AttributeValueIndex::ValueType num_used_entries = 0;
       for (PointIndex i(0); i < num_original_points; ++i) {
-        if (point_map[i] != -1) {
+        if (point_map[i] != kInvalidPointIndex) {
           const AttributeValueIndex entry_id = att->mapped_index(i);
           if (!is_att_index_used[entry_id]) {
             is_att_index_used[entry_id] = 1;
@@ -160,7 +160,7 @@ bool MeshCleanup::operator()(Mesh *mesh, const MeshCleanupOptions &options) {
             // The new point id that maps to the currently processed attribute
             // entry.
             const PointIndex new_point_id = point_map[i];
-            if (new_point_id < 0)
+            if (new_point_id == kInvalidPointIndex)
               continue;
             // Index of the currently processed attribute entry in the original
             // mesh.

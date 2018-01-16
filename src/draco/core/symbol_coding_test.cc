@@ -43,7 +43,7 @@ TEST_F(SymbolCodingTest, TestLargeNumbers) {
   const uint32_t in[] = {12345678, 1223333, 111, 5};
   const int num_values = sizeof(in) / sizeof(uint32_t);
   EncoderBuffer eb;
-  ASSERT_TRUE(EncodeSymbols(in, num_values, 1, &eb));
+  ASSERT_TRUE(EncodeSymbols(in, num_values, 1, nullptr, &eb));
 
   std::vector<uint32_t> out;
   out.resize(num_values);
@@ -70,23 +70,30 @@ TEST_F(SymbolCodingTest, TestManyNumbers) {
   for (int i = 0; i < num_pairs; ++i) {
     in_values.insert(in_values.end(), in[i].second, in[i].first);
   }
-  EncoderBuffer eb;
-  ASSERT_TRUE(EncodeSymbols(in_values.data(), in_values.size(), 1, &eb));
-  std::vector<uint32_t> out_values;
-  out_values.resize(in_values.size());
-  DecoderBuffer db;
-  db.Init(eb.data(), eb.size());
-  db.set_bitstream_version(bitstream_version_);
-  ASSERT_TRUE(DecodeSymbols(in_values.size(), 1, &db, &out_values[0]));
-  for (uint32_t i = 0; i < in_values.size(); ++i) {
-    ASSERT_EQ(in_values[i], out_values[i]);
+  for (int method = 0; method < NUM_SYMBOL_CODING_METHODS; ++method) {
+    // Test the encoding using all available symbol coding methods.
+    Options options;
+    SetSymbolEncodingMethod(&options, static_cast<SymbolCodingMethod>(method));
+
+    EncoderBuffer eb;
+    ASSERT_TRUE(
+        EncodeSymbols(in_values.data(), in_values.size(), 1, &options, &eb));
+    std::vector<uint32_t> out_values;
+    out_values.resize(in_values.size());
+    DecoderBuffer db;
+    db.Init(eb.data(), eb.size());
+    db.set_bitstream_version(bitstream_version_);
+    ASSERT_TRUE(DecodeSymbols(in_values.size(), 1, &db, &out_values[0]));
+    for (uint32_t i = 0; i < in_values.size(); ++i) {
+      ASSERT_EQ(in_values[i], out_values[i]);
+    }
   }
 }
 
 TEST_F(SymbolCodingTest, TestEmpty) {
   // This test verifies that SymbolCoding successfully encodes an empty array.
   EncoderBuffer eb;
-  ASSERT_TRUE(EncodeSymbols(nullptr, 0, 1, &eb));
+  ASSERT_TRUE(EncodeSymbols(nullptr, 0, 1, nullptr, &eb));
   DecoderBuffer db;
   db.Init(eb.data(), eb.size());
   db.set_bitstream_version(bitstream_version_);
@@ -98,7 +105,7 @@ TEST_F(SymbolCodingTest, TestOneSymbol) {
   // symbol.
   EncoderBuffer eb;
   const std::vector<uint32_t> in(1200, 0);
-  ASSERT_TRUE(EncodeSymbols(in.data(), in.size(), 1, &eb));
+  ASSERT_TRUE(EncodeSymbols(in.data(), in.size(), 1, nullptr, &eb));
 
   std::vector<uint32_t> out(in.size());
   DecoderBuffer db;
@@ -122,7 +129,7 @@ TEST_F(SymbolCodingTest, TestBitLengths) {
   std::vector<uint32_t> out(in.size());
   for (int i = 0; i < bit_lengths; ++i) {
     eb.Clear();
-    ASSERT_TRUE(EncodeSymbols(in.data(), i + 1, 1, &eb));
+    ASSERT_TRUE(EncodeSymbols(in.data(), i + 1, 1, nullptr, &eb));
     DecoderBuffer db;
     db.Init(eb.data(), eb.size());
     db.set_bitstream_version(bitstream_version_);
@@ -139,7 +146,7 @@ TEST_F(SymbolCodingTest, TestLargeNumberCondition) {
   EncoderBuffer eb;
   constexpr int num_symbols = 1000000;
   const std::vector<uint32_t> in(num_symbols, 1 << 18);
-  ASSERT_TRUE(EncodeSymbols(in.data(), in.size(), 1, &eb));
+  ASSERT_TRUE(EncodeSymbols(in.data(), in.size(), 1, nullptr, &eb));
 
   std::vector<uint32_t> out(in.size());
   DecoderBuffer db;

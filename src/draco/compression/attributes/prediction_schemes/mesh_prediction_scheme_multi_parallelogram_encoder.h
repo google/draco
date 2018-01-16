@@ -85,7 +85,7 @@ bool MeshPredictionSchemeMultiParallelogramEncoder<DataTypeT, TransformT,
     for (int i = 0; i < num_components; ++i) {
       pred_vals[i] = static_cast<DataTypeT>(0);
     }
-    while (corner_id >= 0) {
+    while (corner_id != kInvalidCornerIndex) {
       if (ComputeParallelogramPrediction(
               p, corner_id, table, *vertex_to_data_map, in_data, num_components,
               parallelogram_pred_vals.get())) {

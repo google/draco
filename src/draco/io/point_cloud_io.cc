@@ -22,7 +22,7 @@
 
 namespace draco {
 
-std::unique_ptr<PointCloud> ReadPointCloudFromFile(
+StatusOr<std::unique_ptr<PointCloud>> ReadPointCloudFromFile(
     const std::string &file_name) {
   std::unique_ptr<PointCloud> pc(new PointCloud());
   // Analyze file extension.
@@ -32,26 +32,28 @@ std::unique_ptr<PointCloud> ReadPointCloudFromFile(
   if (extension == ".obj") {
     // Wavefront OBJ file format.
     ObjDecoder obj_decoder;
-    if (!obj_decoder.DecodeFromFile(file_name, pc.get()))
-      return nullptr;
-    return pc;
+    const Status obj_status = obj_decoder.DecodeFromFile(file_name, pc.get());
+    if (!obj_status.ok())
+      return obj_status;
+    return std::move(pc);
   }
   if (extension == ".ply") {
     // Wavefront PLY file format.
     PlyDecoder ply_decoder;
     if (!ply_decoder.DecodeFromFile(file_name, pc.get()))
-      return nullptr;
-    return pc;
+      return Status(Status::ERROR, "Unknown error.");
+    return std::move(pc);
   }
 
   // Otherwise not an obj file. Assume the file was encoded with one of the
   // draco encoding methods.
   std::ifstream is(file_name.c_str(), std::ios::binary);
   if (!is)
-    return nullptr;
+    return Status(Status::ERROR, "Invalid input stream.");
   if (!ReadPointCloudFromStream(&pc, is).good())
-    return nullptr;  // Error reading the stream.
-  return pc;
+    return Status(Status::ERROR,
+                  "Unknown error.");  // Error reading the stream.
+  return std::move(pc);
 }
 
 }  // namespace draco

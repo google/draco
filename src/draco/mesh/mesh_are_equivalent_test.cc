@@ -24,21 +24,11 @@
 
 namespace draco {
 
-class MeshAreEquivalentTest : public ::testing::Test {
- protected:
-  std::unique_ptr<Mesh> DecodeObj(const std::string &file_name) const {
-    const std::string path = GetTestFileFullPath(file_name);
-    std::unique_ptr<Mesh> mesh(new Mesh());
-    ObjDecoder decoder;
-    if (!decoder.DecodeFromFile(path, mesh.get()))
-      return nullptr;
-    return mesh;
-  }
-};
+class MeshAreEquivalentTest : public ::testing::Test {};
 
 TEST_F(MeshAreEquivalentTest, TestOnIndenticalMesh) {
   const std::string file_name = "test_nm.obj";
-  const std::unique_ptr<Mesh> mesh(DecodeObj(file_name));
+  const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name));
   ASSERT_NE(mesh, nullptr) << "Failed to load test model." << file_name;
   MeshAreEquivalent equiv;
   ASSERT_TRUE(equiv(*mesh, *mesh));
@@ -48,9 +38,9 @@ TEST_F(MeshAreEquivalentTest, TestPermutedOneFace) {
   const std::string file_name_0 = "one_face_123.obj";
   const std::string file_name_1 = "one_face_312.obj";
   const std::string file_name_2 = "one_face_321.obj";
-  const std::unique_ptr<Mesh> mesh_0(DecodeObj(file_name_0));
-  const std::unique_ptr<Mesh> mesh_1(DecodeObj(file_name_1));
-  const std::unique_ptr<Mesh> mesh_2(DecodeObj(file_name_2));
+  const std::unique_ptr<Mesh> mesh_0(ReadMeshFromTestFile(file_name_0));
+  const std::unique_ptr<Mesh> mesh_1(ReadMeshFromTestFile(file_name_1));
+  const std::unique_ptr<Mesh> mesh_2(ReadMeshFromTestFile(file_name_2));
   ASSERT_NE(mesh_0, nullptr) << "Failed to load test model." << file_name_0;
   ASSERT_NE(mesh_1, nullptr) << "Failed to load test model." << file_name_1;
   ASSERT_NE(mesh_2, nullptr) << "Failed to load test model." << file_name_2;
@@ -63,8 +53,8 @@ TEST_F(MeshAreEquivalentTest, TestPermutedOneFace) {
 TEST_F(MeshAreEquivalentTest, TestPermutedTwoFaces) {
   const std::string file_name_0 = "two_faces_123.obj";
   const std::string file_name_1 = "two_faces_312.obj";
-  const std::unique_ptr<Mesh> mesh_0(DecodeObj(file_name_0));
-  const std::unique_ptr<Mesh> mesh_1(DecodeObj(file_name_1));
+  const std::unique_ptr<Mesh> mesh_0(ReadMeshFromTestFile(file_name_0));
+  const std::unique_ptr<Mesh> mesh_1(ReadMeshFromTestFile(file_name_1));
   ASSERT_NE(mesh_0, nullptr) << "Failed to load test model." << file_name_0;
   ASSERT_NE(mesh_1, nullptr) << "Failed to load test model." << file_name_1;
   MeshAreEquivalent equiv;
@@ -77,8 +67,8 @@ TEST_F(MeshAreEquivalentTest, TestPermutedTwoFaces) {
 TEST_F(MeshAreEquivalentTest, TestPermutedThreeFaces) {
   const std::string file_name_0 = "three_faces_123.obj";
   const std::string file_name_1 = "three_faces_312.obj";
-  const std::unique_ptr<Mesh> mesh_0(DecodeObj(file_name_0));
-  const std::unique_ptr<Mesh> mesh_1(DecodeObj(file_name_1));
+  const std::unique_ptr<Mesh> mesh_0(ReadMeshFromTestFile(file_name_0));
+  const std::unique_ptr<Mesh> mesh_1(ReadMeshFromTestFile(file_name_1));
   ASSERT_NE(mesh_0, nullptr) << "Failed to load test model." << file_name_0;
   ASSERT_NE(mesh_1, nullptr) << "Failed to load test model." << file_name_1;
   MeshAreEquivalent equiv;
@@ -91,7 +81,7 @@ TEST_F(MeshAreEquivalentTest, TestPermutedThreeFaces) {
 // to the order of faces and vertices.
 TEST_F(MeshAreEquivalentTest, TestOnBigMesh) {
   const std::string file_name = "test_nm.obj";
-  const std::unique_ptr<Mesh> mesh0(DecodeObj(file_name));
+  const std::unique_ptr<Mesh> mesh0(ReadMeshFromTestFile(file_name));
   ASSERT_NE(mesh0, nullptr) << "Failed to load test model." << file_name;
 
   std::unique_ptr<Mesh> mesh1;

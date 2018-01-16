@@ -34,12 +34,12 @@ inline std::string LowercaseFileExtension(const std::string &filename) {
 
 }  // namespace
 
-std::unique_ptr<Mesh> ReadMeshFromFile(const std::string &file_name) {
+StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name) {
   return ReadMeshFromFile(file_name, false);
 }
 
-std::unique_ptr<Mesh> ReadMeshFromFile(const std::string &file_name,
-                                       bool use_metadata) {
+StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
+                                                 bool use_metadata) {
   std::unique_ptr<Mesh> mesh(new Mesh());
   // Analyze file extension.
   const std::string extension = LowercaseFileExtension(file_name);
@@ -47,26 +47,28 @@ std::unique_ptr<Mesh> ReadMeshFromFile(const std::string &file_name,
     // Wavefront OBJ file format.
     ObjDecoder obj_decoder;
     obj_decoder.set_use_metadata(use_metadata);
-    if (!obj_decoder.DecodeFromFile(file_name, mesh.get()))
-      return nullptr;
-    return mesh;
+    const Status obj_status = obj_decoder.DecodeFromFile(file_name, mesh.get());
+    if (!obj_status.ok())
+      return obj_status;
+    return std::move(mesh);
   }
   if (extension == "ply") {
     // Wavefront PLY file format.
     PlyDecoder ply_decoder;
     if (!ply_decoder.DecodeFromFile(file_name, mesh.get()))
-      return nullptr;
-    return mesh;
+      return Status(Status::ERROR, "Unknown error.");
+    return std::move(mesh);
   }
 
   // Otherwise not an obj file. Assume the file was encoded with one of the
   // draco encoding methods.
   std::ifstream is(file_name.c_str(), std::ios::binary);
   if (!is)
-    return nullptr;
+    return Status(Status::ERROR, "Invalid input stream.");
   if (!ReadMeshFromStream(&mesh, is).good())
-    return nullptr;  // Error reading the stream.
-  return mesh;
+    return Status(Status::ERROR,
+                  "Unknown error.");  // Error reading the stream.
+  return std::move(mesh);
 }
 
 }  // namespace draco

@@ -51,13 +51,13 @@ class VertexCornersIterator
   CornerIndex Corner() const { return corner_; }
 
   // Returns true when all ring vertices have been visited.
-  bool End() const { return corner_ < 0; }
+  bool End() const { return corner_ == kInvalidCornerIndex; }
 
   // Proceeds to the next corner if possible.
   void Next() {
     if (left_traversal_) {
       corner_ = corner_table_->SwingLeft(corner_);
-      if (corner_ < 0) {
+      if (corner_ == kInvalidCornerIndex) {
         // Open boundary reached.
         corner_ = corner_table_->SwingRight(start_corner_);
         left_traversal_ = false;

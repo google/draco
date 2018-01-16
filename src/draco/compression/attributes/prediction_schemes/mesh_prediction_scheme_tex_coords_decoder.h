@@ -53,7 +53,7 @@ class MeshPredictionSchemeTexCoordsDecoder
   bool DecodePredictionData(DecoderBuffer *buffer) override;
 
   PredictionSchemeMethod GetPredictionMethod() const override {
-    return MESH_PREDICTION_TEX_COORDS;
+    return MESH_PREDICTION_TEX_COORDS_DEPRECATED;
   }
 
   bool IsInitialized() const override {

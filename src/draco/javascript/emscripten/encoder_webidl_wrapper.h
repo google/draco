@@ -28,34 +28,16 @@ typedef draco::GeometryAttribute::Type draco_GeometryAttribute_Type;
 typedef draco::EncodedGeometryType draco_EncodedGeometryType;
 typedef draco::MeshEncoderMethod draco_MeshEncoderMethod;
 
-class DracoFloat32Array {
- public:
-  DracoFloat32Array();
-  float GetValue(int index) const;
-
-  // In case |values| is nullptr, the data is allocated but not initialized.
-  bool SetValues(const float *values, int count);
-
-  // Directly sets a value for a specific index. The array has to be already
-  // allocated at this point (using SetValues() method).
-  void SetValue(int index, float val) { values_[index] = val; }
-
-  size_t size() { return values_.size(); }
-
- private:
-  std::vector<float> values_;
-};
-
 class DracoInt8Array {
  public:
   DracoInt8Array();
-  int GetValue(int index) const;
+  int8_t GetValue(int index) const;
   bool SetValues(const char *values, int count);
 
   size_t size() { return values_.size(); }
 
  private:
-  std::vector<int> values_;
+  std::vector<int8_t> values_;
 };
 
 class MetadataBuilder {
@@ -80,9 +62,42 @@ class MeshBuilder {
                               draco_GeometryAttribute_Type type,
                               long num_vertices, long num_components,
                               const float *att_values);
+  int AddInt32AttributeToMesh(draco::Mesh *mesh,
+                              draco_GeometryAttribute_Type type,
+                              long num_vertices, long num_components,
+                              const int32_t *att_values);
   bool SetMetadataForAttribute(draco::Mesh *mesh, long attribute_id,
                                const draco::Metadata *metadata);
   bool AddMetadataToMesh(draco::Mesh *mesh, const draco::Metadata *metadata);
+
+ private:
+  template <typename DataTypeT>
+  int AddAttributeToMesh(draco::Mesh *mesh, draco_GeometryAttribute_Type type,
+                         long num_vertices, long num_components,
+                         const DataTypeT *att_values,
+                         draco::DataType draco_data_type) {
+    if (!mesh)
+      return -1;
+    draco::PointAttribute att;
+    att.Init(type, NULL, num_components, draco_data_type,
+             /* normalized */ false,
+             /* stride */ sizeof(DataTypeT) * num_components,
+             /* byte_offset */ 0);
+    const int att_id =
+        mesh->AddAttribute(att, /* identity_mapping */ true, num_vertices);
+    draco::PointAttribute *const att_ptr = mesh->attribute(att_id);
+
+    for (draco::PointIndex i(0); i < num_vertices; ++i) {
+      att_ptr->SetAttributeValue(att_ptr->mapped_index(i),
+                                 &att_values[i.value() * num_components]);
+    }
+    if (mesh->num_points() == 0) {
+      mesh->set_num_points(num_vertices);
+    } else if (mesh->num_points() != num_vertices) {
+      return -1;
+    }
+    return att_id;
+  }
 };
 
 class Encoder {

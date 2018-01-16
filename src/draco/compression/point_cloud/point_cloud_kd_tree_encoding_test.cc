@@ -24,15 +24,6 @@ namespace draco {
 
 class PointCloudKdTreeEncodingTest : public ::testing::Test {
  protected:
-  std::unique_ptr<PointCloud> DecodeObj(const std::string &file_name) const {
-    const std::string path = GetTestFileFullPath(file_name);
-    ObjDecoder decoder;
-    std::unique_ptr<PointCloud> pc(new PointCloud());
-    if (!decoder.DecodeFromFile(path, pc.get()))
-      return nullptr;
-    return pc;
-  }
-
   void ComparePointClouds(const PointCloud &p0, const PointCloud &p1) const {
     ASSERT_EQ(p0.num_points(), p1.num_points());
     ASSERT_EQ(p0.num_attributes(), p1.num_attributes());
@@ -80,7 +71,7 @@ class PointCloudKdTreeEncodingTest : public ::testing::Test {
   }
 
   void TestFloatEncoding(const std::string &file_name) {
-    std::unique_ptr<PointCloud> pc = DecodeObj(file_name);
+    std::unique_ptr<PointCloud> pc = ReadPointCloudFromTestFile(file_name);
     ASSERT_NE(pc, nullptr);
 
     TestKdTreeEncoding(*pc.get());

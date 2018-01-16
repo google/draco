@@ -24,6 +24,7 @@
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 #include "draco/core/vector_d.h"
+#include "draco/io/obj_decoder.h"
 #include "draco/mesh/triangle_soup_mesh_builder.h"
 
 namespace {
@@ -122,6 +123,24 @@ TEST_F(EncodeTest, TestEncoderQuantization) {
   draco::EncoderBuffer buffer;
   encoder.EncodeMeshToBuffer(*mesh.get(), &buffer);
   VerifyNumQuantizationBits(buffer, 16, 15, 15);
+}
+
+TEST_F(EncodeTest, TestLinesObj) {
+  // This test verifies that Encoder can encode file that contains only line
+  // segments (that are ignored).
+  std::unique_ptr<draco::Mesh> mesh(
+      draco::ReadMeshFromTestFile("test_lines.obj"));
+  ASSERT_NE(mesh, nullptr);
+  ASSERT_EQ(mesh->num_faces(), 0);
+  std::unique_ptr<draco::PointCloud> pc(
+      draco::ReadPointCloudFromTestFile("test_lines.obj"));
+  ASSERT_NE(pc, nullptr);
+
+  draco::Encoder encoder;
+  encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 16);
+
+  draco::EncoderBuffer buffer;
+  ASSERT_TRUE(encoder.EncodePointCloudToBuffer(*pc, &buffer).ok());
 }
 
 }  // namespace

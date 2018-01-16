@@ -78,12 +78,17 @@ class PredictionSchemeWrapTransformBase {
   }
 
  protected:
-  void InitCorrectionBounds() {
-    max_dif_ = 1 + max_value_ - min_value_;
+  bool InitCorrectionBounds() {
+    const int64_t dif =
+        static_cast<int64_t>(max_value_) - static_cast<int64_t>(min_value_);
+    if (dif < 0 || dif >= std::numeric_limits<DataTypeT>::max())
+      return false;
+    max_dif_ = 1 + static_cast<DataTypeT>(dif);
     max_correction_ = max_dif_ / 2;
     min_correction_ = -max_correction_;
     if ((max_dif_ & 1) == 0)
       max_correction_ -= 1;
+    return true;
   }
 
   inline int num_components() const { return num_components_; }

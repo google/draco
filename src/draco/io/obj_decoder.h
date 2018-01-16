@@ -19,6 +19,7 @@
 #include <unordered_map>
 
 #include "draco/core/decoder_buffer.h"
+#include "draco/core/status.h"
 #include "draco/mesh/mesh.h"
 
 namespace draco {
@@ -33,12 +34,12 @@ class ObjDecoder {
 
   // Decodes an obj file stored in the input file.
   // Returns nullptr if the decoding failed.
-  bool DecodeFromFile(const std::string &file_name, Mesh *out_mesh);
-  bool DecodeFromFile(const std::string &file_name,
-                      PointCloud *out_point_cloud);
+  Status DecodeFromFile(const std::string &file_name, Mesh *out_mesh);
+  Status DecodeFromFile(const std::string &file_name,
+                        PointCloud *out_point_cloud);
 
-  bool DecodeFromBuffer(DecoderBuffer *buffer, Mesh *out_mesh);
-  bool DecodeFromBuffer(DecoderBuffer *buffer, PointCloud *out_point_cloud);
+  Status DecodeFromBuffer(DecoderBuffer *buffer, Mesh *out_mesh);
+  Status DecodeFromBuffer(DecoderBuffer *buffer, PointCloud *out_point_cloud);
 
   // Flag that can be used to turn on/off deduplication of input values.
   // This should be disabled only when we are sure that the input data does not
@@ -50,7 +51,7 @@ class ObjDecoder {
   void set_use_metadata(bool flag) { use_metadata_ = flag; }
 
  protected:
-  bool DecodeInternal();
+  Status DecodeInternal();
   DecoderBuffer *buffer() { return &buffer_; }
 
  private:
@@ -60,18 +61,18 @@ class ObjDecoder {
   // Parses the next mesh property definition (position, tex coord, normal, or
   // face). If the parsed data is unrecognized, it will be skipped.
   // Returns false when the end of file was reached.
-  bool ParseDefinition(bool *error);
+  bool ParseDefinition(Status *status);
 
   // Attempts to parse definition of position, normal, tex coord, or face
   // respectively.
   // Returns false when the parsed data didn't contain the given definition.
-  bool ParseVertexPosition(bool *error);
-  bool ParseNormal(bool *error);
-  bool ParseTexCoord(bool *error);
-  bool ParseFace(bool *error);
-  bool ParseMaterialLib(bool *error);
-  bool ParseMaterial(bool *error);
-  bool ParseObject(bool *error);
+  bool ParseVertexPosition(Status *status);
+  bool ParseNormal(Status *status);
+  bool ParseTexCoord(Status *status);
+  bool ParseFace(Status *status);
+  bool ParseMaterialLib(Status *status);
+  bool ParseMaterial(Status *status);
+  bool ParseObject(Status *status);
 
   // Parses triplet of position, tex coords and normal indices.
   // Returns false on error.
@@ -83,8 +84,8 @@ class ObjDecoder {
                                const std::array<int32_t, 3> &indices);
 
   // Parses material file definitions from a separate file.
-  bool ParseMaterialFile(const std::string &file_name, bool *error);
-  bool ParseMaterialFileDefinition(bool *error);
+  bool ParseMaterialFile(const std::string &file_name, Status *status);
+  bool ParseMaterialFileDefinition(Status *status);
 
   // If set to true, the parser will count the number of various definitions
   // but it will not parse the actual data or add any new entries to the mesh.

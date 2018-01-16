@@ -21,20 +21,21 @@
 
 namespace draco {
 
-// Computes the desired precision of the rANS method for the specified maximal
-// symbol bit length of the input data.
-constexpr int ComputeRAnsUnclampedPrecision(int max_bit_length) {
-  return (3 * max_bit_length) / 2;
+// Computes the desired precision of the rANS method for the specified number of
+// unique symbols the input data (defined by their bit_length).
+constexpr int ComputeRAnsUnclampedPrecision(int symbols_bit_length) {
+  return (3 * symbols_bit_length) / 2;
 }
 
 // Computes the desired precision clamped to guarantee a valid functionality of
 // our rANS library (which is between 12 to 20 bits).
-constexpr int ComputeRAnsPrecisionFromMaxSymbolBitLength(int max_bit_length) {
-  return ComputeRAnsUnclampedPrecision(max_bit_length) < 12
+constexpr int ComputeRAnsPrecisionFromUniqueSymbolsBitLength(
+    int symbols_bit_length) {
+  return ComputeRAnsUnclampedPrecision(symbols_bit_length) < 12
              ? 12
-             : ComputeRAnsUnclampedPrecision(max_bit_length) > 20
+             : ComputeRAnsUnclampedPrecision(symbols_bit_length) > 20
                    ? 20
-                   : ComputeRAnsUnclampedPrecision(max_bit_length);
+                   : ComputeRAnsUnclampedPrecision(symbols_bit_length);
 }
 
 // Compute approximate frequency table size needed for storing the provided

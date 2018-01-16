@@ -16,6 +16,8 @@
 #define DRACO_CORE_DRACO_TEST_UTILS_H_
 
 #include "draco/core/draco_test_base.h"
+#include "draco/io/mesh_io.h"
+#include "draco/io/point_cloud_io.h"
 
 namespace draco {
 
@@ -32,6 +34,26 @@ bool GenerateGoldenFile(const std::string &golden_file_name, const void *data,
 // Returns false if there are any differences.
 bool CompareGoldenFile(const std::string &golden_file_name, const void *data,
                        int data_size);
+
+// Loads a mesh / point cloud specified by a |file_name| that is going to be
+// automatically converted to the correct path available to the testing
+// instance.
+inline std::unique_ptr<Mesh> ReadMeshFromTestFile(
+    const std::string &file_name) {
+  const std::string path = GetTestFileFullPath(file_name);
+  return ReadMeshFromFile(path).value();
+}
+inline std::unique_ptr<Mesh> ReadMeshFromTestFile(const std::string &file_name,
+                                                  bool use_metadata) {
+  const std::string path = GetTestFileFullPath(file_name);
+  return ReadMeshFromFile(path, use_metadata).value();
+}
+
+inline std::unique_ptr<PointCloud> ReadPointCloudFromTestFile(
+    const std::string &file_name) {
+  const std::string path = GetTestFileFullPath(file_name);
+  return ReadPointCloudFromFile(path).value();
+}
 
 }  // namespace draco
 

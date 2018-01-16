@@ -59,7 +59,7 @@ struct MeshPredictionSchemeEncoderFactory {
           new MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
               DataTypeT, TransformT, MeshDataT>(attribute, transform,
                                                 mesh_data));
-    } else if (method == MESH_PREDICTION_TEX_COORDS) {
+    } else if (method == MESH_PREDICTION_TEX_COORDS_DEPRECATED) {
       return std::unique_ptr<PredictionSchemeEncoder<DataTypeT, TransformT>>(
           new MeshPredictionSchemeTexCoordsEncoder<DataTypeT, TransformT,
                                                    MeshDataT>(

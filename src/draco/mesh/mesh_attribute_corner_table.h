@@ -100,7 +100,7 @@ class MeshAttributeCornerTable {
 
   inline bool IsOnBoundary(VertexIndex vert) const {
     const CornerIndex corner = LeftMostCorner(vert);
-    if (corner < 0)
+    if (corner == kInvalidCornerIndex)
       return true;
     return IsCornerOnSeam(corner);
   }

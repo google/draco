@@ -28,7 +28,7 @@ class IoPointCloudIoTest : public ::testing::Test {
                                int expected_num_attributes,
                                const std::string &file_name) {
     const std::unique_ptr<PointCloud> encoded_pc =
-        ReadPointCloudFromFile(GetTestFileFullPath(file_name));
+        ReadPointCloudFromTestFile(file_name);
     ASSERT_NE(encoded_pc, nullptr) << "Failed to load test model " << file_name;
     ASSERT_GE(encoded_pc->num_attributes(), expected_num_attributes)
         << "Failed to load test model: " << file_name
@@ -90,7 +90,7 @@ TEST_F(IoPointCloudIoTest, EncodeKdTreePointCloudTestPosPly) {
 TEST_F(IoPointCloudIoTest, ObjFileInput) {
   // Tests whether loading obj point clouds from files works as expected.
   const std::unique_ptr<PointCloud> pc =
-      ReadPointCloudFromFile(GetTestFileFullPath("test_nm.obj"));
+      ReadPointCloudFromTestFile("test_nm.obj");
   ASSERT_NE(pc, nullptr) << "Failed to load the obj point cloud.";
   EXPECT_EQ(pc->num_points(), 97) << "Obj point cloud not loaded properly.";
 }
@@ -98,17 +98,17 @@ TEST_F(IoPointCloudIoTest, ObjFileInput) {
 // Test if we handle wrong input for all file extensions.
 TEST_F(IoPointCloudIoTest, WrongFileObj) {
   const std::unique_ptr<PointCloud> pc =
-      ReadPointCloudFromFile(GetTestFileFullPath("wrong_file_name.obj"));
+      ReadPointCloudFromTestFile("wrong_file_name.obj");
   ASSERT_EQ(pc, nullptr);
 }
 TEST_F(IoPointCloudIoTest, WrongFilePly) {
   const std::unique_ptr<PointCloud> pc =
-      ReadPointCloudFromFile(GetTestFileFullPath("wrong_file_name.ply"));
+      ReadPointCloudFromTestFile("wrong_file_name.ply");
   ASSERT_EQ(pc, nullptr);
 }
 TEST_F(IoPointCloudIoTest, WrongFile) {
   const std::unique_ptr<PointCloud> pc =
-      ReadPointCloudFromFile(GetTestFileFullPath("wrong_file_name"));
+      ReadPointCloudFromTestFile("wrong_file_name");
   ASSERT_EQ(pc, nullptr);
 }
 

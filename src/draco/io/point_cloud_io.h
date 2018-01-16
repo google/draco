@@ -80,8 +80,8 @@ InStreamT &ReadPointCloudFromStream(std::unique_ptr<PointCloud> *point_cloud,
 // correct decoder based on the extension of the files. Currently, .obj and .ply
 // files are supported. Other file extensions are processed by the default
 // draco::PointCloudDecoder.
-// Returns nullptr if the decoding failed.
-std::unique_ptr<PointCloud> ReadPointCloudFromFile(
+// Returns nullptr with an error status if the decoding failed.
+StatusOr<std::unique_ptr<PointCloud>> ReadPointCloudFromFile(
     const std::string &file_name);
 
 }  // namespace draco

@@ -79,15 +79,15 @@ InStreamT &ReadMeshFromStream(std::unique_ptr<Mesh> *mesh, InStreamT &&is) {
 // decoder based on the extension of the files. Currently, .obj and .ply files
 // are supported. Other file extensions are processed by the default
 // draco::MeshDecoder.
-// Returns nullptr if the decoding failed.
-std::unique_ptr<Mesh> ReadMeshFromFile(const std::string &file_name);
+// Returns nullptr with an error status if the decoding failed.
+StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name);
 
 // Reads a mesh from a file. The function does the same thing as the previous
 // one except using metadata to encode additional information when
 // |use_metadata| is set to true.
-// Returns nullptr if the decoding failed.
-std::unique_ptr<Mesh> ReadMeshFromFile(const std::string &file_name,
-                                       bool use_metadata);
+// Returns nullptr with an error status if the decoding failed.
+StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
+                                                 bool use_metadata);
 
 }  // namespace draco
 

@@ -40,12 +40,13 @@ void MeshStripifier::GenerateStripsFromCroner(int local_strip_id,
       //
       // Perform the backward pass only when there is no attribute seam between
       // the initial face and the first face of the backward traversal.
-      if (GetOppositeCorner(corner_table_->Previous(start_ci)) < 0)
+      if (GetOppositeCorner(corner_table_->Previous(start_ci)) ==
+          kInvalidCornerIndex)
         break;  // Attribute seam or a boundary.
 
       ci = corner_table_->Next(start_ci);
       ci = corner_table_->SwingLeft(ci);
-      if (ci < 0)
+      if (ci == kInvalidCornerIndex)
         break;
 
       fi = corner_table_->Face(ci);
@@ -73,7 +74,7 @@ void MeshStripifier::GenerateStripsFromCroner(int local_strip_id,
         }
       }
       ci = GetOppositeCorner(ci);
-      if (ci < 0)
+      if (ci == kInvalidCornerIndex)
         break;
       fi = corner_table_->Face(ci);
     }
