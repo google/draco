@@ -71,7 +71,7 @@ GEM
       typhoeus (~> 0.7)
     html-pipeline (2.6.0)
       activesupport (>= 2)
-      nokogiri (>= 1.4)
+      nokogiri (>= 1.8.1)
     i18n (0.8.5)
     jekyll (3.4.3)
       addressable (~> 2.4)
