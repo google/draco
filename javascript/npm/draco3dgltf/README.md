@@ -14,6 +14,32 @@ This package is a build for encoding/decoding [Draco mesh compression extension]
 
 TODO: Add glTF branch url.
 
+News
+=======
+### Version 1.2.5 release
+* On average 10% faster decoding
+* Improved Javascript metadata API
+* Bug fixes
+
+### Version 1.2.4 release
+* Up to 20% faster decoding
+* Added support for integer attributes to our Javascript Encoder
+* Fixed issues with THREE.DracoLoader not releasing memory associated with the Draco module
+* OBJ decoder can now be used to parse pure point clouds
+* Added Unity plugins to support runtime loading and design-time importing of encoded Draco files
+
+### Version 1.2.3 release
+* Fixed Visual Studio building issue
+
+### Version 1.2.2 release
+The latest version of Draco brings a number of small bug fixes
+* Fixed issues when parsing ill-formatted .obj files
+
+### Version 1.2.1 release
+The latest version of Draco brings a number of enhancements to reduce decoder size and various other fixes
+* Javascript and WebAssembly decoder size reduced by 35%
+* Added specialized Javascript and Webassembly decoders for GLTF (size reduction about 50% compared to the previous version)
+
 NPM Package
 ===========
 
