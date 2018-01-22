@@ -12,7 +12,7 @@ set(DRACO_FAILED_CXX_FLAGS)
 # Checks C compiler for support of $c_flag. Adds $c_flag to $CMAKE_C_FLAGS when
 # the compile test passes. Caches $c_flag in $DRACO_FAILED_C_FLAGS when the test
 # fails.
-function (add_c_flag_if_supported c_flag)
+macro (add_c_flag_if_supported c_flag)
   unset(C_FLAG_FOUND CACHE)
   string(FIND "${CMAKE_C_FLAGS}" "${c_flag}" C_FLAG_FOUND)
   unset(C_FLAG_FAILED CACHE)
@@ -22,19 +22,19 @@ function (add_c_flag_if_supported c_flag)
     unset(C_FLAG_SUPPORTED CACHE)
     message("Checking C compiler flag support for: " ${c_flag})
     check_c_compiler_flag("${c_flag}" C_FLAG_SUPPORTED)
-    if (C_FLAG_SUPPORTED)
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${c_flag}" CACHE STRING "" FORCE)
+    if (${C_FLAG_SUPPORTED})
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${c_flag}" CACHE STRING "")
     else ()
       set(DRACO_FAILED_C_FLAGS "${DRACO_FAILED_C_FLAGS} ${c_flag}" CACHE STRING
-          "" FORCE)
+          "")
     endif ()
   endif ()
-endfunction ()
+endmacro ()
 
 # Checks C++ compiler for support of $cxx_flag. Adds $cxx_flag to
 # $CMAKE_CXX_FLAGS when the compile test passes. Caches $c_flag in
 # $DRACO_FAILED_CXX_FLAGS when the test fails.
-function (add_cxx_flag_if_supported cxx_flag)
+macro (add_cxx_flag_if_supported cxx_flag)
   unset(CXX_FLAG_FOUND CACHE)
   string(FIND "${CMAKE_CXX_FLAGS}" "${cxx_flag}" CXX_FLAG_FOUND)
   unset(CXX_FLAG_FAILED CACHE)
@@ -44,26 +44,25 @@ function (add_cxx_flag_if_supported cxx_flag)
     unset(CXX_FLAG_SUPPORTED CACHE)
     message("Checking CXX compiler flag support for: " ${cxx_flag})
     check_cxx_compiler_flag("${cxx_flag}" CXX_FLAG_SUPPORTED)
-    if (CXX_FLAG_SUPPORTED)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${cxx_flag}" CACHE STRING ""
-          FORCE)
+    if (${CXX_FLAG_SUPPORTED})
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${cxx_flag}" CACHE STRING "")
     else()
       set(DRACO_FAILED_CXX_FLAGS "${DRACO_FAILED_CXX_FLAGS} ${cxx_flag}" CACHE
-          STRING "" FORCE)
+          STRING "")
     endif ()
   endif ()
-endfunction ()
+endmacro ()
 
 # Convenience method for adding a flag to both the C and C++ compiler command
 # lines.
-function (add_compiler_flag_if_supported flag)
+macro (add_compiler_flag_if_supported flag)
   add_c_flag_if_supported(${flag})
   add_cxx_flag_if_supported(${flag})
-endfunction ()
+endmacro ()
 
 # Checks C compiler for support of $c_flag and terminates generation when
 # support is not present.
-function (require_c_flag c_flag update_c_flags)
+macro (require_c_flag c_flag update_c_flags)
   unset(C_FLAG_FOUND CACHE)
   string(FIND "${CMAKE_C_FLAGS}" "${c_flag}" C_FLAG_FOUND)
 
@@ -71,19 +70,19 @@ function (require_c_flag c_flag update_c_flags)
     unset(HAVE_C_FLAG CACHE)
     message("Checking C compiler flag support for: " ${c_flag})
     check_c_compiler_flag("${c_flag}" HAVE_C_FLAG)
-    if (NOT HAVE_C_FLAG)
+    if (NOT ${HAVE_C_FLAG})
       message(FATAL_ERROR
               "${PROJECT_NAME} requires support for C flag: ${c_flag}.")
     endif ()
-    if (update_c_flags)
-      set(CMAKE_C_FLAGS "${c_flag} ${CMAKE_C_FLAGS}" CACHE STRING "" FORCE)
+    if (${update_c_flags})
+      set(CMAKE_C_FLAGS "${c_flag} ${CMAKE_C_FLAGS}")
     endif ()
   endif ()
-endfunction ()
+endmacro ()
 
 # Checks CXX compiler for support of $cxx_flag and terminates generation when
 # support is not present.
-function (require_cxx_flag cxx_flag update_cxx_flags)
+macro (require_cxx_flag cxx_flag update_cxx_flags)
   unset(CXX_FLAG_FOUND CACHE)
   string(FIND "${CMAKE_CXX_FLAGS}" "${cxx_flag}" CXX_FLAG_FOUND)
 
@@ -91,125 +90,121 @@ function (require_cxx_flag cxx_flag update_cxx_flags)
     unset(HAVE_CXX_FLAG CACHE)
     message("Checking CXX compiler flag support for: " ${cxx_flag})
     check_cxx_compiler_flag("${cxx_flag}" HAVE_CXX_FLAG)
-    if (NOT HAVE_CXX_FLAG)
+    if (NOT ${HAVE_CXX_FLAG})
       message(FATAL_ERROR
               "${PROJECT_NAME} requires support for CXX flag: ${cxx_flag}.")
     endif ()
-    if (update_cxx_flags)
-      set(CMAKE_CXX_FLAGS "${cxx_flag} ${CMAKE_CXX_FLAGS}" CACHE STRING ""
-          FORCE)
+    if (${update_cxx_flags})
+      set(CMAKE_CXX_FLAGS "${cxx_flag} ${CMAKE_CXX_FLAGS}")
     endif ()
   endif ()
-endfunction ()
+endmacro ()
 
 # Checks for support of $flag by both the C and CXX compilers. Terminates
 # generation when support is not present in both compilers.
-function (require_compiler_flag flag update_cmake_flags)
+macro (require_compiler_flag flag update_cmake_flags)
   require_c_flag(${flag} ${update_cmake_flags})
   require_cxx_flag(${flag} ${update_cmake_flags})
-endfunction ()
+endmacro ()
 
 # Checks only non-MSVC targets for support of $c_flag and terminates generation
 # when support is not present.
-function (require_c_flag_nomsvc c_flag update_c_flags)
+macro (require_c_flag_nomsvc c_flag update_c_flags)
   if (NOT MSVC)
     require_c_flag(${c_flag} ${update_c_flags})
   endif ()
-endfunction ()
+endmacro ()
 
 # Checks only non-MSVC targets for support of $cxx_flag and terminates
 # generation when support is not present.
-function (require_cxx_flag_nomsvc cxx_flag update_cxx_flags)
+macro (require_cxx_flag_nomsvc cxx_flag update_cxx_flags)
   if (NOT MSVC)
     require_cxx_flag(${cxx_flag} ${update_cxx_flags})
   endif ()
-endfunction ()
+endmacro ()
 
 # Checks only non-MSVC targets for support of $flag by both the C and CXX
 # compilers. Terminates generation when support is not present in both
 # compilers.
-function (require_compiler_flag_nomsvc flag update_cmake_flags)
+macro (require_compiler_flag_nomsvc flag update_cmake_flags)
   require_c_flag_nomsvc(${flag} ${update_cmake_flags})
   require_cxx_flag_nomsvc(${flag} ${update_cmake_flags})
-endfunction ()
+endmacro ()
 
 # Adds $preproc_def to C compiler command line (as -D$preproc_def) if not
 # already present.
-function (add_c_preproc_definition preproc_def)
+macro (add_c_preproc_definition preproc_def)
   unset(PREPROC_DEF_FOUND CACHE)
   string(FIND "${CMAKE_C_FLAGS}" "${preproc_def}" PREPROC_DEF_FOUND)
 
   if (${PREPROC_DEF_FOUND} EQUAL -1)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D${preproc_def}" CACHE STRING ""
-        FORCE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D${preproc_def}")
   endif ()
-endfunction ()
+endmacro ()
 
 # Adds $preproc_def to CXX compiler command line (as -D$preproc_def) if not
 # already present.
-function (add_cxx_preproc_definition preproc_def)
+macro (add_cxx_preproc_definition preproc_def)
   unset(PREPROC_DEF_FOUND CACHE)
   string(FIND "${CMAKE_CXX_FLAGS}" "${preproc_def}" PREPROC_DEF_FOUND)
 
   if (${PREPROC_DEF_FOUND} EQUAL -1)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D${preproc_def}" CACHE STRING ""
-        FORCE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D${preproc_def}")
   endif ()
-endfunction ()
+endmacro ()
 
 # Adds $preproc_def to C and CXX compiler command line (as -D$preproc_def) if
 # not already present.
-function (add_preproc_definition preproc_def)
+macro (add_preproc_definition preproc_def)
   add_c_preproc_definition(${preproc_def})
   add_cxx_preproc_definition(${preproc_def})
-endfunction ()
+endmacro ()
 
 # Adds $flag to assembler command line.
-function (append_as_flag flag)
+macro (append_as_flag flag)
   unset(AS_FLAG_FOUND CACHE)
   string(FIND "${DRACO_AS_FLAGS}" "${flag}" AS_FLAG_FOUND)
 
   if (${AS_FLAG_FOUND} EQUAL -1)
-    set(DRACO_AS_FLAGS "${DRACO_AS_FLAGS} ${flag}" CACHE STRING "" FORCE)
+    set(DRACO_AS_FLAGS "${DRACO_AS_FLAGS} ${flag}")
   endif ()
-endfunction ()
+endmacro ()
 
 # Adds $flag to the C compiler command line.
-function (append_c_flag flag)
+macro (append_c_flag flag)
   unset(C_FLAG_FOUND CACHE)
   string(FIND "${CMAKE_C_FLAGS}" "${flag}" C_FLAG_FOUND)
 
   if (${C_FLAG_FOUND} EQUAL -1)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}" CACHE STRING "" FORCE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}")
   endif ()
-endfunction ()
+endmacro ()
 
 # Adds $flag to the CXX compiler command line.
-function (append_cxx_flag flag)
+macro (append_cxx_flag flag)
   unset(CXX_FLAG_FOUND CACHE)
   string(FIND "${CMAKE_CXX_FLAGS}" "${flag}" CXX_FLAG_FOUND)
 
   if (${CXX_FLAG_FOUND} EQUAL -1)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
   endif ()
-endfunction ()
+endmacro ()
 
 # Adds $flag to the C and CXX compiler command lines.
-function (append_compiler_flag flag)
+macro (append_compiler_flag flag)
   append_c_flag(${flag})
   append_cxx_flag(${flag})
-endfunction ()
+endmacro ()
 
 # Adds $flag to the executable linker command line.
-function (append_exe_linker_flag flag)
+macro (append_exe_linker_flag flag)
   unset(LINKER_FLAG_FOUND CACHE)
   string(FIND "${CMAKE_EXE_LINKER_FLAGS}" "${flag}" LINKER_FLAG_FOUND)
 
   if (${LINKER_FLAG_FOUND} EQUAL -1)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${flag}" CACHE STRING
-        "" FORCE)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${flag}")
   endif ()
-endfunction ()
+endmacro ()
 
 # Adds $flag to the link flags for $target.
 function (append_link_flag_to_target target flags)
@@ -233,7 +228,7 @@ function (append_link_flag_to_target target flags)
 endfunction ()
 
 # Adds $flag to executable linker flags, and makes sure C/CXX builds still work.
-function (require_linker_flag flag)
+macro (require_linker_flag flag)
   append_exe_linker_flag(${flag})
 
   unset(c_passed)
@@ -244,6 +239,6 @@ function (require_linker_flag flag)
   if (NOT c_passed OR NOT cxx_passed)
     message(FATAL_ERROR "Linker flag test for ${flag} failed.")
   endif ()
-endfunction ()
+endmacro ()
 
 endif ()  # DRACO_CMAKE_COMPILER_FLAGS_CMAKE_
