@@ -374,7 +374,7 @@ Encoding Point Clouds
 ---------------------
 
 You can encode point cloud data with `draco_encoder` by specifying the
-`point_cloud parameter`. If you specify the `point_cloud parameter` with a mesh
+`-point_cloud` parameter. If you specify the `-point_cloud` parameter with a mesh
 input file, `draco_encoder` will ignore the connectivity data and encode the
 positions from the mesh file.
 
