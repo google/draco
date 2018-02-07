@@ -41,5 +41,5 @@ Encode a mesh file using the default settings. `draco_encoder` will read OBJ or 
 
 `draco_decoder` will read Draco files as input, and output OBJ or PLY files. The basic command line looks like this:
 ```
-./draco_encoder -i bunny.drc -o bunny.ply
+./draco_decoder -i bunny.drc -o bunny.ply
 ```
