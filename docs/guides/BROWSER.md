@@ -3,7 +3,7 @@ This guide will show you how to use Draco files from the browser.
 
 ## JavaScript Decode
 
-This is a minimal example to show how to use the Draco JavaScript deocder to
+This is an example to show how to use the Draco JavaScript deocder to
 decode Draco files in the browser.
 
 This is the minimal amount of code to decode a Draco file:
@@ -35,8 +35,8 @@ decoderModule.destroy(decoder);
 decoderModule.destroy(buffer);
 ~~~
 
-Now create a web page to decode a Draco file and just output the number of
-points decoded. Save this file as *DracoDecode.html*.
+Create a web page to decode a Draco file and just output the number of
+points decoded. Save this file as `DracoDecode.html`.
 ~~~
 <!DOCTYPE html>
 <html>
@@ -104,5 +104,10 @@ points decoded. Save this file as *DracoDecode.html*.
 </html>
 ~~~
 
-Copy *bunny.drc* to the same folder as *DracoDecode.html*. Serve *DracoDecode.html* from a webserver, such as *python -m SimpleHTTPServer*. Open *DracoDecode.html* in a browser, you should see an alert message with xxxxx points decoded.
+Copy `bunny.drc` to the same folder as `DracoDecode.html`. Serve `DracoDecode.html` from a webserver, such as
+```
+python -m SimpleHTTPServer
+```
+
+Open `DracoDecode.html` in a browser, you should see an alert message with 34834 points decoded.
 
