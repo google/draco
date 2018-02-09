@@ -11,10 +11,4 @@ set(CMAKE_OSX_ARCHITECTURES "armv7s")
 
 include("${CMAKE_CURRENT_LIST_DIR}/arm-ios-common.cmake")
 
-# No intrinsics flag required for armv7s-ios.
-set(AOM_NEON_INTRIN_FLAG "")
-
-# No runtime cpu detect for armv7s-ios.
-set(CONFIG_RUNTIME_CPU_DETECT 0 CACHE NUMBER "")
-
 endif ()  # DRACO_CMAKE_TOOLCHAINS_ARMV7S_IOS_CMAKE_
