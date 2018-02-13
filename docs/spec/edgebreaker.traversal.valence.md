@@ -22,7 +22,7 @@ void EdgeBreakerTraversalValenceStart() {
   for (i = 0; i < NUM_UNIQUE_VALENCES; ++i) {
     ParseValenceContextCounters(i);
     if (ebv_context_counters[i] > 0) {
-      DecodeSymbols(ebv_context_counters[i], 0, &ebv_context_symbols[i]);
+      DecodeSymbols(ebv_context_counters[i], 1, &ebv_context_symbols[i]);
     }
   }
 }
