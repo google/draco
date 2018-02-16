@@ -1,7 +1,4 @@
 # GUIDES
-=======
-
-_**Contents**_
 
 ## Draco Files
  * [Command Line Applications](COMMAND_LINE_APPLICATIONS.md)
@@ -13,5 +10,5 @@ _**Contents**_
     * [Three.js Render](../../javascript/example/README.md)
 
 ## glTF
-    * [glTF to  Draco glTF Using gltf-pipeline](GLTF.md#Encode-Draco-glTF-Using-gltf-pipeline)
-    * [Render Draco glTF Using three-gltf-viewer](GLTF.md#Render-Draco-glTF-Using-three-gltf-viewer)
+  * [glTF to  Draco glTF Using gltf-pipeline](GLTF.md#Encode-Draco-glTF-Using-gltf-pipeline)
+  * [Render Draco glTF Using three-gltf-viewer](GLTF.md#Render-Draco-glTF-Using-three-gltf-viewer)
