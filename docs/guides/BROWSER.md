@@ -1,7 +1,7 @@
 # Using Draco in the Browser
 This guide will show you how to use Draco files from the browser.
 
-## JavaScript Decode
+## JavaScript Decode Draco File
 
 This is an example to show how to use the Draco JavaScript deocder to
 decode Draco files in the browser.
