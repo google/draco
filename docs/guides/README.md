@@ -9,6 +9,6 @@
     * [JavaScript Decode](BROWSER.md#JavaScript-Decode-Draco-File)
     * [Three.js Render](../../javascript/example/README.md)
 
-## glTF
+## [glTF](GLTF.md)
   * [glTF to  Draco glTF Using gltf-pipeline](GLTF.md#Encode-Draco-glTF-Using-gltf-pipeline)
   * [Render Draco glTF Using three-gltf-viewer](GLTF.md#Render-Draco-glTF-Using-three-gltf-viewer)
