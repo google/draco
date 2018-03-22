@@ -901,6 +901,9 @@ else ()
   endif ()
 
   # Draco app targets.
+  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+  SET(BUILD_SHARED_LIBRARIES OFF)
+  SET(CMAKE_EXE_LINKER_FLAGS "-static")
   add_executable(draco_decoder "${draco_src_root}/tools/draco_decoder.cc")
   target_link_libraries(draco_decoder PRIVATE dracodec)
   add_executable(draco_encoder

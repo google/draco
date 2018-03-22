@@ -134,20 +134,20 @@ bool PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
   // Decode vertex positions.
   {
     // TODO(ostava): For now assume the position types are float32.
-    if (x_prop->data_type() != DT_FLOAT32 ||
-        y_prop->data_type() != DT_FLOAT32 ||
-        z_prop->data_type() != DT_FLOAT32) {
+    if (x_prop->data_type() != DT_FLOAT64 ||
+        y_prop->data_type() != DT_FLOAT64 ||
+        z_prop->data_type() != DT_FLOAT64) {
       return false;
     }
-    PlyPropertyReader<float> x_reader(x_prop);
-    PlyPropertyReader<float> y_reader(y_prop);
-    PlyPropertyReader<float> z_reader(z_prop);
+    PlyPropertyReader<double> x_reader(x_prop);
+    PlyPropertyReader<double> y_reader(y_prop);
+    PlyPropertyReader<double> z_reader(z_prop);
     GeometryAttribute va;
-    va.Init(GeometryAttribute::POSITION, nullptr, 3, DT_FLOAT32, false,
-            sizeof(float) * 3, 0);
+    va.Init(GeometryAttribute::POSITION, nullptr, 3, DT_FLOAT64, false,
+            sizeof(double) * 3, 0);
     const int att_id = out_point_cloud_->AddAttribute(va, true, num_vertices);
     for (PointIndex::ValueType i = 0; i < num_vertices; ++i) {
-      std::array<float, 3> val;
+      std::array<double, 3> val;
       val[0] = x_reader.ReadValue(i);
       val[1] = y_reader.ReadValue(i);
       val[2] = z_reader.ReadValue(i);
@@ -183,73 +183,29 @@ bool PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
     }
   }
 
-  // Decode color data if present.
-  int num_colors = 0;
-  const PlyProperty *const r_prop = vertex_element->GetPropertyByName("red");
-  const PlyProperty *const g_prop = vertex_element->GetPropertyByName("green");
-  const PlyProperty *const b_prop = vertex_element->GetPropertyByName("blue");
-  const PlyProperty *const a_prop = vertex_element->GetPropertyByName("alpha");
-  if (r_prop)
-    ++num_colors;
-  if (g_prop)
-    ++num_colors;
-  if (b_prop)
-    ++num_colors;
-  if (a_prop)
-    ++num_colors;
+  const PlyProperty *const brep_prop = vertex_element->GetPropertyByName("brep_face_id");
 
-  if (num_colors) {
-    std::vector<std::unique_ptr<PlyPropertyReader<uint8_t>>> color_readers;
+  if (brep_prop) {
+    std::cout << "Encoding B-rep Face IDs" << std::endl;
+    std::unique_ptr<PlyPropertyReader<uint16_t>> brep_reader;
     const PlyProperty *p;
-    if (r_prop) {
-      p = r_prop;
-      // TODO(ostava): For now ensure the data type of all components is uint8.
-      DCHECK_EQ(true, p->data_type() == DT_UINT8);
-      if (p->data_type() != DT_UINT8)
-        return false;
-      color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
-          new PlyPropertyReader<uint8_t>(p)));
-    }
-    if (g_prop) {
-      p = g_prop;
-      // TODO(ostava): For now ensure the data type of all components is uint8.
-      DCHECK_EQ(true, p->data_type() == DT_UINT8);
-      if (p->data_type() != DT_UINT8)
-        return false;
-      color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
-          new PlyPropertyReader<uint8_t>(p)));
-    }
-    if (b_prop) {
-      p = b_prop;
-      // TODO(ostava): For now ensure the data type of all components is uint8.
-      DCHECK_EQ(true, p->data_type() == DT_UINT8);
-      if (p->data_type() != DT_UINT8)
-        return false;
-      color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
-          new PlyPropertyReader<uint8_t>(p)));
-    }
-    if (a_prop) {
-      p = a_prop;
-      // TODO(ostava): For now ensure the data type of all components is uint8.
-      DCHECK_EQ(true, p->data_type() == DT_UINT8);
-      if (p->data_type() != DT_UINT8)
-        return false;
-      color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
-          new PlyPropertyReader<uint8_t>(p)));
-    }
+    p = brep_prop;
+    // TODO(ostava): For now ensure the data type of all components is uint8.
+    DCHECK_EQ(true, p->data_type() == DT_UINT16);
+    if (p->data_type() != DT_UINT16)
+      return false;
+    brep_reader = std::unique_ptr<PlyPropertyReader<uint16_t>>(
+        new PlyPropertyReader<uint16_t>(p));
 
     GeometryAttribute va;
-    va.Init(GeometryAttribute::COLOR, nullptr, num_colors, DT_UINT8, true,
-            sizeof(uint8_t) * num_colors, 0);
+    va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT16, true,
+            sizeof(uint16_t), 0);
     const int32_t att_id =
         out_point_cloud_->AddAttribute(va, true, num_vertices);
     for (PointIndex::ValueType i = 0; i < num_vertices; ++i) {
-      std::array<uint8_t, 4> val;
-      for (int j = 0; j < num_colors; j++) {
-        val[j] = color_readers[j]->ReadValue(i);
-      }
+      uint16_t const value = brep_reader->ReadValue(i);
       out_point_cloud_->attribute(att_id)->SetAttributeValue(
-          AttributeValueIndex(i), &val[0]);
+          AttributeValueIndex(i), &value);
     }
   }
 
