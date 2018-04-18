@@ -26,7 +26,7 @@ macro (add_c_flag_if_supported c_flag)
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${c_flag}" CACHE STRING "")
     else ()
       set(DRACO_FAILED_C_FLAGS "${DRACO_FAILED_C_FLAGS} ${c_flag}" CACHE STRING
-          "")
+          "" FORCE)
     endif ()
   endif ()
 endmacro ()
@@ -48,7 +48,7 @@ macro (add_cxx_flag_if_supported cxx_flag)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${cxx_flag}" CACHE STRING "")
     else()
       set(DRACO_FAILED_CXX_FLAGS "${DRACO_FAILED_CXX_FLAGS} ${cxx_flag}" CACHE
-          STRING "")
+          STRING "" FORCE)
     endif ()
   endif ()
 endmacro ()
@@ -75,7 +75,7 @@ macro (require_c_flag c_flag update_c_flags)
               "${PROJECT_NAME} requires support for C flag: ${c_flag}.")
     endif ()
     if (${update_c_flags})
-      set(CMAKE_C_FLAGS "${c_flag} ${CMAKE_C_FLAGS}")
+      set(CMAKE_C_FLAGS "${c_flag} ${CMAKE_C_FLAGS}" CACHE STRING "" FORCE)
     endif ()
   endif ()
 endmacro ()
@@ -95,7 +95,8 @@ macro (require_cxx_flag cxx_flag update_cxx_flags)
               "${PROJECT_NAME} requires support for CXX flag: ${cxx_flag}.")
     endif ()
     if (${update_cxx_flags})
-      set(CMAKE_CXX_FLAGS "${cxx_flag} ${CMAKE_CXX_FLAGS}")
+      set(CMAKE_CXX_FLAGS "${cxx_flag} ${CMAKE_CXX_FLAGS}" CACHE STRING ""
+          FORCE)
     endif ()
   endif ()
 endmacro ()
@@ -129,35 +130,6 @@ endmacro ()
 macro (require_compiler_flag_nomsvc flag update_cmake_flags)
   require_c_flag_nomsvc(${flag} ${update_cmake_flags})
   require_cxx_flag_nomsvc(${flag} ${update_cmake_flags})
-endmacro ()
-
-# Adds $preproc_def to C compiler command line (as -D$preproc_def) if not
-# already present.
-macro (add_c_preproc_definition preproc_def)
-  unset(PREPROC_DEF_FOUND CACHE)
-  string(FIND "${CMAKE_C_FLAGS}" "${preproc_def}" PREPROC_DEF_FOUND)
-
-  if (${PREPROC_DEF_FOUND} EQUAL -1)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D${preproc_def}")
-  endif ()
-endmacro ()
-
-# Adds $preproc_def to CXX compiler command line (as -D$preproc_def) if not
-# already present.
-macro (add_cxx_preproc_definition preproc_def)
-  unset(PREPROC_DEF_FOUND CACHE)
-  string(FIND "${CMAKE_CXX_FLAGS}" "${preproc_def}" PREPROC_DEF_FOUND)
-
-  if (${PREPROC_DEF_FOUND} EQUAL -1)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D${preproc_def}")
-  endif ()
-endmacro ()
-
-# Adds $preproc_def to C and CXX compiler command line (as -D$preproc_def) if
-# not already present.
-macro (add_preproc_definition preproc_def)
-  add_c_preproc_definition(${preproc_def})
-  add_cxx_preproc_definition(${preproc_def})
 endmacro ()
 
 # Adds $flag to assembler command line.
