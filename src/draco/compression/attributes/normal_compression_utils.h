@@ -54,15 +54,14 @@ class OctahedronToolBox {
         max_value_(-1),
         center_value_(-1) {}
 
-  explicit OctahedronToolBox(int32_t q) { this->SetQuantizationBits(q); }
-
-  void SetQuantizationBits(int32_t q) {
-    DCHECK_GE(q, 2);
-    DCHECK_LE(q, 30);
+  bool SetQuantizationBits(int32_t q) {
+    if (q < 2 || q > 30)
+      return false;
     quantization_bits_ = q;
     max_quantized_value_ = (1 << quantization_bits_) - 1;
     max_value_ = max_quantized_value_ - 1;
     center_value_ = max_value_ / 2;
+    return true;
   }
   bool IsInitialized() const { return quantization_bits_ != -1; }
 
@@ -94,7 +93,7 @@ class OctahedronToolBox {
   inline void IntegerVectorToQuantizedOctahedralCoords(const int32_t *int_vec,
                                                        int32_t *out_s,
                                                        int32_t *out_t) const {
-    DCHECK_EQ(
+    DRACO_DCHECK_EQ(
         std::abs(int_vec[0]) + std::abs(int_vec[1]) + std::abs(int_vec[2]),
         center_value_);
     int32_t s, t;
@@ -188,10 +187,10 @@ class OctahedronToolBox {
 
   template <typename T>
   void OctaherdalCoordsToUnitVector(T in_s, T in_t, T *out_vector) const {
-    DCHECK_GE(in_s, 0);
-    DCHECK_GE(in_t, 0);
-    DCHECK_LE(in_s, 1);
-    DCHECK_LE(in_t, 1);
+    DRACO_DCHECK_GE(in_s, 0);
+    DRACO_DCHECK_GE(in_t, 0);
+    DRACO_DCHECK_LE(in_s, 1);
+    DRACO_DCHECK_LE(in_t, 1);
     T s = in_s;
     T t = in_t;
     T spt = s + t;
@@ -247,19 +246,19 @@ class OctahedronToolBox {
   // |s| and |t| are expected to be signed values.
   inline bool IsInDiamond(const int32_t &s, const int32_t &t) const {
     // Expect center already at origin.
-    DCHECK_LE(s, center_value_);
-    DCHECK_LE(t, center_value_);
-    DCHECK_GE(s, -center_value_);
-    DCHECK_GE(t, -center_value_);
+    DRACO_DCHECK_LE(s, center_value_);
+    DRACO_DCHECK_LE(t, center_value_);
+    DRACO_DCHECK_GE(s, -center_value_);
+    DRACO_DCHECK_GE(t, -center_value_);
     return std::abs(s) + std::abs(t) <= center_value_;
   }
 
   void InvertDiamond(int32_t *s, int32_t *t) const {
     // Expect center already at origin.
-    DCHECK_LE(*s, center_value_);
-    DCHECK_LE(*t, center_value_);
-    DCHECK_GE(*s, -center_value_);
-    DCHECK_GE(*t, -center_value_);
+    DRACO_DCHECK_LE(*s, center_value_);
+    DRACO_DCHECK_LE(*t, center_value_);
+    DRACO_DCHECK_GE(*s, -center_value_);
+    DRACO_DCHECK_GE(*t, -center_value_);
     int32_t sign_s = 0;
     int32_t sign_t = 0;
     if (*s >= 0 && *t >= 0) {
@@ -290,10 +289,10 @@ class OctahedronToolBox {
 
   void InvertDirection(int32_t *s, int32_t *t) const {
     // Expect center already at origin.
-    DCHECK_LE(*s, center_value_);
-    DCHECK_LE(*t, center_value_);
-    DCHECK_GE(*s, -center_value_);
-    DCHECK_GE(*t, -center_value_);
+    DRACO_DCHECK_LE(*s, center_value_);
+    DRACO_DCHECK_LE(*t, center_value_);
+    DRACO_DCHECK_GE(*s, -center_value_);
+    DRACO_DCHECK_GE(*t, -center_value_);
     *s *= -1;
     *t *= -1;
     this->InvertDiamond(s, t);
@@ -310,7 +309,7 @@ class OctahedronToolBox {
 
   // For correction values.
   int32_t MakePositive(int32_t x) const {
-    DCHECK_LE(x, this->center_value() * 2);
+    DRACO_DCHECK_LE(x, this->center_value() * 2);
     if (x < 0)
       return x + this->max_quantized_value();
     return x;

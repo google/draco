@@ -13,17 +13,19 @@
 // limitations under the License.
 //
 #include "draco/mesh/mesh_attribute_corner_table.h"
-
+#include "draco/mesh/corner_table_iterators.h"
 #include "draco/mesh/mesh_misc_functions.h"
 
 namespace draco {
 
 MeshAttributeCornerTable::MeshAttributeCornerTable()
-    : no_interior_seams_(true), corner_table_(nullptr) {}
+    : no_interior_seams_(true), corner_table_(nullptr), valence_cache_(*this) {}
 
 bool MeshAttributeCornerTable::InitEmpty(const CornerTable *table) {
   if (table == nullptr)
     return false;
+  valence_cache_.ClearValenceCache();
+  valence_cache_.ClearValenceCacheInaccurate();
   is_edge_on_seam_.assign(table->num_corners(), false);
   is_vertex_on_seam_.assign(table->num_vertices(), false);
   corner_to_vertex_map_.assign(table->num_corners(), kInvalidVertexIndex);
@@ -39,6 +41,8 @@ bool MeshAttributeCornerTable::InitFromAttribute(const Mesh *mesh,
                                                  const PointAttribute *att) {
   if (!InitEmpty(table))
     return false;
+  valence_cache_.ClearValenceCache();
+  valence_cache_.ClearValenceCacheInaccurate();
 
   // Find all necessary data for encoding attributes. For now we check which of
   // the mesh vertices is part of an attribute seam, because seams require
@@ -97,6 +101,7 @@ bool MeshAttributeCornerTable::InitFromAttribute(const Mesh *mesh,
 }
 
 void MeshAttributeCornerTable::AddSeamEdge(CornerIndex c) {
+  DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
   is_edge_on_seam_[c.value()] = true;
   // Mark seam vertices.
   is_vertex_on_seam_[corner_table_->Vertex(corner_table_->Next(c)).value()] =
@@ -118,6 +123,7 @@ void MeshAttributeCornerTable::AddSeamEdge(CornerIndex c) {
 
 void MeshAttributeCornerTable::RecomputeVertices(const Mesh *mesh,
                                                  const PointAttribute *att) {
+  DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
   if (mesh != nullptr && att != nullptr) {
     RecomputeVerticesInternal<true>(mesh, att);
   } else {
@@ -128,6 +134,7 @@ void MeshAttributeCornerTable::RecomputeVertices(const Mesh *mesh,
 template <bool init_vertex_to_attribute_entry_map>
 void MeshAttributeCornerTable::RecomputeVerticesInternal(
     const Mesh *mesh, const PointAttribute *att) {
+  DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
   int num_new_vertices = 0;
   for (VertexIndex v(0); v < corner_table_->num_vertices(); ++v) {
     const CornerIndex c = corner_table_->LeftMostCorner(v);
@@ -174,6 +181,22 @@ void MeshAttributeCornerTable::RecomputeVerticesInternal(
       act_c = corner_table_->SwingRight(act_c);
     }
   }
+}
+
+int MeshAttributeCornerTable::Valence(VertexIndex v) const {
+  if (v == kInvalidVertexIndex)
+    return -1;
+  return ConfidentValence(v);
+}
+
+int MeshAttributeCornerTable::ConfidentValence(VertexIndex v) const {
+  DRACO_DCHECK_LT(v.value(), num_vertices());
+  draco::VertexRingIterator<MeshAttributeCornerTable> vi(this, v);
+  int valence = 0;
+  for (; !vi.End(); vi.Next()) {
+    ++valence;
+  }
+  return valence;
 }
 
 }  // namespace draco

@@ -16,6 +16,7 @@
 #define DRACO_CORE_DRACO_INDEX_TYPE_VECTOR_H_
 
 #include <cstddef>
+#include <utility>
 #include <vector>
 
 #include "draco/core/draco_index_type.h"
@@ -27,7 +28,7 @@ namespace draco {
 // draco_index_type.h .
 // TODO(ostava): Make the interface more complete. It's currently missing
 // features such as iterators.
-// TODO(scottgodfrey): Make unit tests for this class.
+// TODO(): Make unit tests for this class.
 template <class IndexTypeT, class ValueTypeT>
 class IndexTypeVector {
  public:

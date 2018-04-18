@@ -35,14 +35,14 @@ FloatPointsTreeEncoder::FloatPointsTreeEncoder(
     PointCloudCompressionMethod method, uint32_t quantization_bits,
     uint32_t compression_level)
     : method_(method), num_points_(0), compression_level_(compression_level) {
-  DCHECK_LE(compression_level_, 6);
+  DRACO_DCHECK_LE(compression_level_, 6);
   qinfo_.quantization_bits = quantization_bits;
   qinfo_.range = 0;
 }
 
 bool FloatPointsTreeEncoder::EncodePointCloudKdTreeInternal(
     std::vector<Point3ui> *qpoints) {
-  DCHECK_LE(compression_level_, 6);
+  DRACO_DCHECK_LE(compression_level_, 6);
   switch (compression_level_) {
     case 0: {
       DynamicIntegerPointsKdTreeEncoder<0> qpoints_encoder(3);

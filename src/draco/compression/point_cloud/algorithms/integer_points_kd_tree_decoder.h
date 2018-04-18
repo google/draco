@@ -230,7 +230,7 @@ void IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodeInternal(
       continue;
     }
 
-    DCHECK_EQ(true, num_remaining_points != 0);
+    DRACO_DCHECK_EQ(true, num_remaining_points != 0);
     if (num_remaining_points <= 2) {
       std::array<uint32_t, D> axes;
       axes[0] = axis;

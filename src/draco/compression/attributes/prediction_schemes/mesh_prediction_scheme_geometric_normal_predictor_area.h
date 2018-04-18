@@ -39,7 +39,7 @@ class MeshPredictionSchemeGeometricNormalPredictorArea
   // Computes predicted octahedral coordinates on a given corner.
   void ComputePredictedValue(CornerIndex corner_id,
                              DataTypeT *prediction) override {
-    DCHECK(this->IsInitialized());
+    DRACO_DCHECK(this->IsInitialized());
     typedef typename MeshDataT::CornerTable CornerTable;
     const CornerTable *const corner_table = this->mesh_data_.corner_table();
     // Going to compute the predicted normal from the surrounding triangles
@@ -88,7 +88,7 @@ class MeshPredictionSchemeGeometricNormalPredictorArea
         normal = normal / quotient;
       }
     }
-    DCHECK_LE(normal.AbsSum(), upper_bound);
+    DRACO_DCHECK_LE(normal.AbsSum(), upper_bound);
     prediction[0] = static_cast<int32_t>(normal[0]);
     prediction[1] = static_cast<int32_t>(normal[1]);
     prediction[2] = static_cast<int32_t>(normal[2]);

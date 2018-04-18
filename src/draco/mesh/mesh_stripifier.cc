@@ -16,7 +16,7 @@
 
 namespace draco {
 
-void MeshStripifier::GenerateStripsFromCroner(int local_strip_id,
+void MeshStripifier::GenerateStripsFromCorner(int local_strip_id,
                                               CornerIndex ci) {
   // Clear the storage for strip faces.
   strip_faces_[local_strip_id].clear();

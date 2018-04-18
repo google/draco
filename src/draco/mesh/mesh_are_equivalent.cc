@@ -38,8 +38,8 @@ Vector3f MeshAreEquivalent::GetPosition(const Mesh &mesh, FaceIndex f,
 }
 
 void MeshAreEquivalent::InitCornerIndexOfSmallestPointXYZ() {
-  DCHECK_EQ(mesh_infos_[0].corner_index_of_smallest_vertex.size(), 0);
-  DCHECK_EQ(mesh_infos_[1].corner_index_of_smallest_vertex.size(), 0);
+  DRACO_DCHECK_EQ(mesh_infos_[0].corner_index_of_smallest_vertex.size(), 0);
+  DRACO_DCHECK_EQ(mesh_infos_[1].corner_index_of_smallest_vertex.size(), 0);
   for (int i = 0; i < 2; ++i) {
     mesh_infos_[i].corner_index_of_smallest_vertex.reserve(num_faces_);
     for (FaceIndex f(0); f < num_faces_; ++f) {
@@ -47,13 +47,15 @@ void MeshAreEquivalent::InitCornerIndexOfSmallestPointXYZ() {
           ComputeCornerIndexOfSmallestPointXYZ(mesh_infos_[i].mesh, f));
     }
   }
-  DCHECK_EQ(mesh_infos_[0].corner_index_of_smallest_vertex.size(), num_faces_);
-  DCHECK_EQ(mesh_infos_[1].corner_index_of_smallest_vertex.size(), num_faces_);
+  DRACO_DCHECK_EQ(mesh_infos_[0].corner_index_of_smallest_vertex.size(),
+                  num_faces_);
+  DRACO_DCHECK_EQ(mesh_infos_[1].corner_index_of_smallest_vertex.size(),
+                  num_faces_);
 }
 
 void MeshAreEquivalent::InitOrderedFaceIndex() {
-  DCHECK_EQ(mesh_infos_[0].ordered_index_of_face.size(), 0);
-  DCHECK_EQ(mesh_infos_[1].ordered_index_of_face.size(), 0);
+  DRACO_DCHECK_EQ(mesh_infos_[0].ordered_index_of_face.size(), 0);
+  DRACO_DCHECK_EQ(mesh_infos_[1].ordered_index_of_face.size(), 0);
   for (int32_t i = 0; i < 2; ++i) {
     mesh_infos_[i].ordered_index_of_face.reserve(num_faces_);
     for (FaceIndex j(0); j < num_faces_; ++j) {
@@ -63,9 +65,10 @@ void MeshAreEquivalent::InitOrderedFaceIndex() {
     std::sort(mesh_infos_[i].ordered_index_of_face.begin(),
               mesh_infos_[i].ordered_index_of_face.end(), less);
 
-    DCHECK_EQ(mesh_infos_[i].ordered_index_of_face.size(), num_faces_);
-    DCHECK(std::is_sorted(mesh_infos_[i].ordered_index_of_face.begin(),
-                          mesh_infos_[i].ordered_index_of_face.end(), less));
+    DRACO_DCHECK_EQ(mesh_infos_[i].ordered_index_of_face.size(), num_faces_);
+    DRACO_DCHECK(std::is_sorted(mesh_infos_[i].ordered_index_of_face.begin(),
+                                mesh_infos_[i].ordered_index_of_face.end(),
+                                less));
   }
 }
 
@@ -81,17 +84,17 @@ int32_t MeshAreEquivalent::ComputeCornerIndexOfSmallestPointXYZ(
 
 void MeshAreEquivalent::Init(const Mesh &mesh0, const Mesh &mesh1) {
   mesh_infos_.clear();
-  DCHECK_EQ(mesh_infos_.size(), 0);
+  DRACO_DCHECK_EQ(mesh_infos_.size(), 0);
 
   num_faces_ = mesh1.num_faces();
   mesh_infos_.push_back(MeshInfo(mesh0));
   mesh_infos_.push_back(MeshInfo(mesh1));
 
-  DCHECK_EQ(mesh_infos_.size(), 2);
-  DCHECK_EQ(mesh_infos_[0].corner_index_of_smallest_vertex.size(), 0);
-  DCHECK_EQ(mesh_infos_[1].corner_index_of_smallest_vertex.size(), 0);
-  DCHECK_EQ(mesh_infos_[0].ordered_index_of_face.size(), 0);
-  DCHECK_EQ(mesh_infos_[1].ordered_index_of_face.size(), 0);
+  DRACO_DCHECK_EQ(mesh_infos_.size(), 2);
+  DRACO_DCHECK_EQ(mesh_infos_[0].corner_index_of_smallest_vertex.size(), 0);
+  DRACO_DCHECK_EQ(mesh_infos_[1].corner_index_of_smallest_vertex.size(), 0);
+  DRACO_DCHECK_EQ(mesh_infos_[0].ordered_index_of_face.size(), 0);
+  DRACO_DCHECK_EQ(mesh_infos_[1].ordered_index_of_face.size(), 0);
 
   InitCornerIndexOfSmallestPointXYZ();
   InitOrderedFaceIndex();
@@ -133,8 +136,8 @@ bool MeshAreEquivalent::operator()(const Mesh &mesh0, const Mesh &mesh1) {
     if (att0->byte_stride() != att1->byte_stride())
       return false;
 
-    DCHECK(att0->IsValid());
-    DCHECK(att1->IsValid());
+    DRACO_DCHECK(att0->IsValid());
+    DRACO_DCHECK(att1->IsValid());
 
     // Prepare blocks of memory to hold data of corners for this attribute.
     std::unique_ptr<uint8_t[]> data0(new uint8_t[att0->byte_stride()]);

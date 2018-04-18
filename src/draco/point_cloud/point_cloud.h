@@ -15,6 +15,8 @@
 #ifndef DRACO_POINT_CLOUD_POINT_CLOUD_H_
 #define DRACO_POINT_CLOUD_POINT_CLOUD_H_
 
+#include "draco/draco_features.h"
+
 #include "draco/attributes/point_attribute.h"
 #include "draco/metadata/geometry_metadata.h"
 
@@ -56,16 +58,16 @@ class PointCloud {
 
   int32_t num_attributes() const { return attributes_.size(); }
   const PointAttribute *attribute(int32_t att_id) const {
-    DCHECK_LE(0, att_id);
-    DCHECK_LT(att_id, static_cast<int32_t>(attributes_.size()));
+    DRACO_DCHECK_LE(0, att_id);
+    DRACO_DCHECK_LT(att_id, static_cast<int32_t>(attributes_.size()));
     return attributes_[att_id].get();
   }
 
   // Returned attribute can be modified, but it's caller's responsibility to
   // maintain the attribute's consistency with draco::PointCloud.
   PointAttribute *attribute(int32_t att_id) {
-    DCHECK_LE(0, att_id);
-    DCHECK_LT(att_id, static_cast<int32_t>(attributes_.size()));
+    DRACO_DCHECK_LE(0, att_id);
+    DRACO_DCHECK_LT(att_id, static_cast<int32_t>(attributes_.size()));
     return attributes_[att_id].get();
   }
 

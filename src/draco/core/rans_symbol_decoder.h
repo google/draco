@@ -15,6 +15,8 @@
 #ifndef DRACO_CORE_RANS_SYMBOL_DECODER_H_
 #define DRACO_CORE_RANS_SYMBOL_DECODER_H_
 
+#include "draco/draco_features.h"
+
 #include "draco/compression/config/compression_shared.h"
 #include "draco/core/decoder_buffer.h"
 #include "draco/core/rans_symbol_coding.h"

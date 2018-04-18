@@ -50,7 +50,7 @@ TEST_F(SequentialIntegerAttributeEncodingTest, DoesCompress) {
 
   DecoderBuffer in_buf;
   in_buf.Init(out_buf.data(), out_buf.size());
-  in_buf.set_bitstream_version(kDracoBitstreamVersion);
+  in_buf.set_bitstream_version(kDracoMeshBitstreamVersion);
   SequentialIntegerAttributeDecoder id;
   ASSERT_TRUE(id.InitializeStandalone(&pa));
   ASSERT_TRUE(id.DecodePortableAttribute(point_ids, &in_buf));

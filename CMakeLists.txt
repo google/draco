@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 project(draco C CXX)
 
 set(draco_root "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -7,13 +7,17 @@ set(draco_build_dir "${CMAKE_BINARY_DIR}")
 
 if ("${draco_root}" STREQUAL "${draco_build_dir}")
   message(FATAL_ERROR
-          "Building from within the Draco source tree is not supported.\n"
-          "Hint: mkdir -p draco_build && cd draco_build\n"
-          "Run cmake from there.")
+    "Building from within the Draco source tree is not supported.\n"
+          "Hint: Run these commands\n"
+          "$ rm -rf CMakeCache.txt CMakeFiles\n"
+          "$ mkdir -p ../draco_build\n"
+          "$ cd ../draco_build\n"
+          "And re-run CMake from the draco_build directory.")
 endif ()
 
 include(CMakePackageConfigHelpers)
 include("${draco_root}/cmake/compiler_flags.cmake")
+include("${draco_root}/cmake/draco_features.cmake")
 include("${draco_root}/cmake/sanitizers.cmake")
 include("${draco_root}/cmake/util.cmake")
 
@@ -40,29 +44,28 @@ option(BUILD_UNITY_PLUGIN "Build plugin library for Unity" OFF)
 option(BUILD_FOR_GLTF "" OFF)
 
 if (BUILD_FOR_GLTF)
-# Override settings when building for GLTF.
-add_cxx_preproc_definition("DRACO_MESH_COMPRESSION_SUPPORTED")
-add_cxx_preproc_definition("DRACO_STANDARD_EDGEBREAKER_SUPPORTED")
+  # Override settings when building for GLTF.
+  draco_enable_feature(FEATURE "DRACO_MESH_COMPRESSION_SUPPORTED")
+  draco_enable_feature(FEATURE "DRACO_STANDARD_EDGEBREAKER_SUPPORTED")
 else ()
   if (ENABLE_POINT_CLOUD_COMPRESSION)
-    add_cxx_preproc_definition("DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED")
+    draco_enable_feature(FEATURE "DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED")
   endif ()
   if (ENABLE_MESH_COMPRESSION)
-    add_cxx_preproc_definition("DRACO_MESH_COMPRESSION_SUPPORTED")
+    draco_enable_feature(FEATURE "DRACO_MESH_COMPRESSION_SUPPORTED")
 
     if (ENABLE_STANDARD_EDGEBREAKER)
-      add_cxx_preproc_definition("DRACO_STANDARD_EDGEBREAKER_SUPPORTED")
+      draco_enable_feature(FEATURE "DRACO_STANDARD_EDGEBREAKER_SUPPORTED")
     endif ()
     if (ENABLE_PREDICTIVE_EDGEBREAKER)
-      add_cxx_preproc_definition("DRACO_PREDICTIVE_EDGEBREAKER_SUPPORTED")
+      draco_enable_feature(FEATURE "DRACO_PREDICTIVE_EDGEBREAKER_SUPPORTED")
     endif ()
   endif ()
 
   if (ENABLE_BACKWARDS_COMPATIBILITY)
-    add_cxx_preproc_definition("DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED")
+    draco_enable_feature(FEATURE "DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED")
   endif ()
 endif ()
-
 
 # Turn on more compiler warnings.
 if (ENABLE_EXTRA_WARNINGS)
@@ -103,7 +106,7 @@ if (ENABLE_GOMA)
 endif ()
 if (BUILD_UNITY_PLUGIN)
   set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared library for unity plugin.")
-  add_cxx_preproc_definition("BUILD_UNITY_PLUGIN")
+  draco_enable_feature(FEATURE "BUILD_UNITY_PLUGIN")
 endif ()
 
 if(ENABLE_EXTRA_SPEED)
@@ -149,6 +152,17 @@ configure_file("${draco_root}/cmake/draco_version.cc.cmake"
 configure_file("${draco_root}/cmake/draco_version.h.cmake"
                "${draco_build_dir}/draco_version.h" COPYONLY)
 
+# When a build type is not specified, default to producing a release mode Draco
+# library to avoid benchmarking shenanigans, but only when Draco is not being
+# pulled in via another cmake file.
+if (CMAKE_BUILD_TYPE STREQUAL "" AND NOT IGNORE_EMPTY_BUILD_TYPE)
+  if (CMAKE_CURRENT_LIST_FILE STREQUAL CMAKE_PARENT_LIST_FILE)
+    message(INFO "|Draco: ignoring empty build type, forcing release mode.")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Draco overridden build type"
+        FORCE)
+  endif ()
+endif ()
+
 if (EMSCRIPTEN)
   include(FindPythonInterp)
   if (NOT PYTHONINTERP_FOUND)
@@ -156,18 +170,6 @@ if (EMSCRIPTEN)
             "Python required for Emscripten builds, but cmake cannot find it.")
   endif ()
 else ()
-  # When not building the JS library, and when a build type is not specified,
-  # default to producing a release mode Draco library to avoid benchmarking
-  # shenanigans, but only when Draco is not being pulled in via another cmake
-  # file.
-  if (CMAKE_BUILD_TYPE STREQUAL "" AND NOT IGNORE_EMPTY_BUILD_TYPE)
-    if (CMAKE_CURRENT_LIST_FILE STREQUAL CMAKE_PARENT_LIST_FILE)
-      message(INFO "|Draco: ignoring empty build type, forcing release mode.")
-      set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Draco overridden build type"
-          FORCE)
-    endif ()
-  endif ()
-
   if (ENABLE_TESTS)
     if (MSVC)
       # Default runtime selected by cmake collides with Googletest settings,
@@ -229,6 +231,7 @@ set(draco_compression_attributes_dec_sources
     "${draco_src_root}/compression/attributes/mesh_attribute_indices_encoding_data.h"
     "${draco_src_root}/compression/attributes/mesh_traversal_sequencer.h"
     "${draco_src_root}/compression/attributes/normal_compression_utils.h"
+    "${draco_src_root}/compression/attributes/point_d_vector.h"
     "${draco_src_root}/compression/attributes/sequential_attribute_decoder.cc"
     "${draco_src_root}/compression/attributes/sequential_attribute_decoder.h"
     "${draco_src_root}/compression/attributes/sequential_attribute_decoders_controller.cc"
@@ -489,7 +492,8 @@ set(draco_mesh_sources
     "${draco_src_root}/mesh/mesh_stripifier.cc"
     "${draco_src_root}/mesh/mesh_stripifier.h"
     "${draco_src_root}/mesh/triangle_soup_mesh_builder.cc"
-    "${draco_src_root}/mesh/triangle_soup_mesh_builder.h")
+    "${draco_src_root}/mesh/triangle_soup_mesh_builder.h"
+    "${draco_src_root}/mesh/valence_cache.h")
 
 set(draco_point_cloud_sources
     "${draco_src_root}/point_cloud/point_cloud.cc"
@@ -543,6 +547,7 @@ set(draco_test_sources
     "${draco_src_root}/attributes/point_attribute_test.cc"
     "${draco_src_root}/compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_canonicalized_transform_test.cc"
     "${draco_src_root}/compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_transform_test.cc"
+    "${draco_src_root}/compression/attributes/point_d_vector_test.cc"
     "${draco_src_root}/compression/attributes/sequential_integer_attribute_encoding_test.cc"
     "${draco_src_root}/compression/decode_test.cc"
     "${draco_src_root}/compression/encode_test.cc"
@@ -558,6 +563,7 @@ set(draco_test_sources
     "${draco_src_root}/core/draco_tests.cc"
     "${draco_src_root}/core/math_utils_test.cc"
     "${draco_src_root}/core/quantization_utils_test.cc"
+    "${draco_src_root}/core/shannon_entropy_test.cc"
     "${draco_src_root}/core/status_test.cc"
     "${draco_src_root}/core/symbol_coding_test.cc"
     "${draco_src_root}/core/vector_d_test.cc"
@@ -582,7 +588,7 @@ set(draco_unity_plug_sources
     "${draco_src_root}/unity/draco_unity_plugin.cc"
     "${draco_src_root}/unity/draco_unity_plugin.h")
 
-include_directories("${draco_root}/src")
+include_directories("${draco_root}/src" "${draco_build_dir}")
 
 #
 # Draco targets.
@@ -657,9 +663,6 @@ if (EMSCRIPTEN)
                      VERBATIM)
 
 
-  # Add path to glue_decoder.cpp to draco include paths.
-  include_directories("${draco_build_dir}")
-
   set(draco_decoder_src
       ${draco_attributes_sources}
       ${draco_compression_attributes_dec_sources}
@@ -708,11 +711,11 @@ if (EMSCRIPTEN)
   append_link_flag_to_target(draco_encoder
                              "-s EXPORT_NAME=\"'DracoEncoderModule'\"")
 
-  target_compile_definitions(draco_encoder PRIVATE
-                             DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED)
+  draco_enable_feature(FEATURE DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
+                       TARGETS draco_encoder)
   if (ENABLE_DECODER_ATTRIBUTE_DEDUPLICATION)
-    target_compile_definitions(draco_decoder PRIVATE
-                               DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED)
+    draco_enable_feature(FEATURE DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
+                         TARGETS draco_decoder)
   endif ()
 
   # Make $draco_js_sources source files depend on glue_decoder.cpp.
@@ -869,7 +872,7 @@ else ()
   # For now, enable deduplication for both encoder and decoder.
   # TODO(ostava): Support for disabling attribute deduplication for the C++
   # decoder is planned in future releases.
-  add_preproc_definition(DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED)
+  draco_enable_feature(FEATURE DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED)
 
   if (BUILD_SHARED_LIBS)
     set_target_properties(dracodec PROPERTIES SOVERSION 1)
@@ -922,6 +925,9 @@ else ()
     install(FILES src/draco/${filename} DESTINATION
             "${CMAKE_INSTALL_PREFIX}/include/draco/${file_directory}")
   endforeach()
+
+  install(FILES "${draco_build_dir}/draco/draco_features.h"
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/include/draco/")
 
   if (NOT MSVC)
     # Install our pkg-config file.
@@ -980,3 +986,6 @@ else ()
     add_dummy_source_file_to_target("${target}" "cc")
   endforeach ()
 endif ()
+
+# Generate $draco_build_dir/draco/draco_features.h.
+draco_generate_features_h()

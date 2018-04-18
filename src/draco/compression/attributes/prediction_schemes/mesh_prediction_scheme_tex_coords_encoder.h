@@ -65,7 +65,7 @@ class MeshPredictionSchemeTexCoordsEncoder
   int GetNumParentAttributes() const override { return 1; }
 
   GeometryAttribute::Type GetParentAttributeType(int i) const override {
-    DCHECK_EQ(i, 0);
+    DRACO_DCHECK_EQ(i, 0);
     (void)i;
     return GeometryAttribute::POSITION;
   }

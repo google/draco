@@ -17,11 +17,15 @@
 
 #include <stdint.h>
 
+#include "draco/draco_features.h"
+
 namespace draco {
 
 // Latest Draco bit-stream version.
-static constexpr uint8_t kDracoBitstreamVersionMajor = 2;
-static constexpr uint8_t kDracoBitstreamVersionMinor = 2;
+static constexpr uint8_t kDracoPointCloudBitstreamVersionMajor = 2;
+static constexpr uint8_t kDracoPointCloudBitstreamVersionMinor = 3;
+static constexpr uint8_t kDracoMeshBitstreamVersionMajor = 2;
+static constexpr uint8_t kDracoMeshBitstreamVersionMinor = 2;
 
 // Macro that converts the Draco bit-stream into one uint16_t number.
 // Useful mostly when checking version numbers.
@@ -29,11 +33,15 @@ static constexpr uint8_t kDracoBitstreamVersionMinor = 2;
   ((static_cast<uint16_t>(MAJOR) << 8) | MINOR)
 
 // Concatenated latest bit-stream version.
-static constexpr uint16_t kDracoBitstreamVersion = DRACO_BITSTREAM_VERSION(
-    kDracoBitstreamVersionMajor, kDracoBitstreamVersionMinor);
+static constexpr uint16_t kDracoPointCloudBitstreamVersion =
+    DRACO_BITSTREAM_VERSION(kDracoPointCloudBitstreamVersionMajor,
+                            kDracoPointCloudBitstreamVersionMinor);
+
+static constexpr uint16_t kDracoMeshBitstreamVersion = DRACO_BITSTREAM_VERSION(
+    kDracoMeshBitstreamVersionMajor, kDracoMeshBitstreamVersionMinor);
 
 // Currently, we support point cloud and triangular mesh encoding.
-// TODO(scottgodfrey) convert enum to enum class (safety, not performance).
+// TODO() convert enum to enum class (safety, not performance).
 enum EncodedGeometryType {
   INVALID_GEOMETRY_TYPE = -1,
   POINT_CLOUD = 0,

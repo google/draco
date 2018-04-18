@@ -15,6 +15,7 @@
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_POINT_CLOUD_KD_TREE_ATTRIBUTES_ENCODER_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_POINT_CLOUD_KD_TREE_ATTRIBUTES_ENCODER_H_
 
+#include "draco/attributes/attribute_quantization_transform.h"
 #include "draco/compression/attributes/attributes_encoder.h"
 #include "draco/compression/config/compression_shared.h"
 
@@ -31,8 +32,18 @@ class KdTreeAttributesEncoder : public AttributesEncoder {
   uint8_t GetUniqueId() const override { return KD_TREE_ATTRIBUTE_ENCODER; }
 
  protected:
+  bool TransformAttributesToPortableFormat() override;
   bool EncodePortableAttributes(EncoderBuffer *out_buffer) override;
   bool EncodeDataNeededByPortableTransforms(EncoderBuffer *out_buffer) override;
+
+ private:
+  std::vector<AttributeQuantizationTransform>
+      attribute_quantization_transforms_;
+  // Min signed values are used to transform signed integers into unsigned ones
+  // (by subtracting the min signed value for each component).
+  std::vector<int32_t> min_signed_values_;
+  std::vector<std::unique_ptr<PointAttribute>> quantized_portable_attributes_;
+  int num_components_;
 };
 
 }  // namespace draco

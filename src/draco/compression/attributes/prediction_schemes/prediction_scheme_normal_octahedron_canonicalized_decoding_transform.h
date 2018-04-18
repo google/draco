@@ -61,15 +61,15 @@ class PredictionSchemeNormalOctahedronCanonicalizedDecodingTransform
   inline void ComputeOriginalValue(const DataType *pred_vals,
                                    const CorrType *corr_vals,
                                    DataType *out_orig_vals) const {
-    DCHECK_LE(pred_vals[0], 2 * this->center_value());
-    DCHECK_LE(pred_vals[1], 2 * this->center_value());
-    DCHECK_LE(corr_vals[0], 2 * this->center_value());
-    DCHECK_LE(corr_vals[1], 2 * this->center_value());
+    DRACO_DCHECK_LE(pred_vals[0], 2 * this->center_value());
+    DRACO_DCHECK_LE(pred_vals[1], 2 * this->center_value());
+    DRACO_DCHECK_LE(corr_vals[0], 2 * this->center_value());
+    DRACO_DCHECK_LE(corr_vals[1], 2 * this->center_value());
 
-    DCHECK_LE(0, pred_vals[0]);
-    DCHECK_LE(0, pred_vals[1]);
-    DCHECK_LE(0, corr_vals[0]);
-    DCHECK_LE(0, corr_vals[1]);
+    DRACO_DCHECK_LE(0, pred_vals[0]);
+    DRACO_DCHECK_LE(0, pred_vals[1]);
+    DRACO_DCHECK_LE(0, corr_vals[0]);
+    DRACO_DCHECK_LE(0, corr_vals[1]);
 
     const Point2 pred = Point2(pred_vals[0], pred_vals[1]);
     const Point2 corr = Point2(corr_vals[0], corr_vals[1]);

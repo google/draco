@@ -43,8 +43,8 @@ void RAnsBitEncoder::EncodeBit(bool bit) {
 }
 
 void RAnsBitEncoder::EncodeLeastSignificantBits32(int nbits, uint32_t value) {
-  DCHECK_EQ(true, nbits <= 32);
-  DCHECK_EQ(true, nbits > 0);
+  DRACO_DCHECK_EQ(true, nbits <= 32);
+  DRACO_DCHECK_EQ(true, nbits > 0);
 
   const uint32_t reversed = bits::ReverseBits32(value) >> (32 - nbits);
   const int ones = bits::CountOnes32(reversed);

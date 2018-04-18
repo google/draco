@@ -17,6 +17,8 @@
 
 #include <vector>
 
+#include "draco/draco_features.h"
+
 #include "draco/compression/attributes/attributes_decoder_interface.h"
 #include "draco/compression/point_cloud/point_cloud_decoder.h"
 #include "draco/core/decoder_buffer.h"

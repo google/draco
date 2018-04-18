@@ -18,6 +18,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "draco/draco_features.h"
+
 #include "draco/core/decoder_buffer.h"
 #include "draco/core/status.h"
 #include "draco/mesh/mesh.h"

@@ -107,7 +107,7 @@ int PointCloud::AddAttribute(
 }
 
 void PointCloud::SetAttribute(int att_id, std::unique_ptr<PointAttribute> pa) {
-  DCHECK(att_id >= 0);
+  DRACO_DCHECK(att_id >= 0);
   if (static_cast<int>(attributes_.size()) <= att_id) {
     attributes_.resize(att_id + 1);
   }

@@ -129,8 +129,8 @@ static inline void ans_write_init(struct AnsCoder *const ans,
 
 static inline int ans_write_end(struct AnsCoder *const ans) {
   uint32_t state;
-  DCHECK_GE(ans->state, l_base);
-  DCHECK_LT(ans->state, l_base * io_base);
+  DRACO_DCHECK_GE(ans->state, l_base);
+  DRACO_DCHECK_LT(ans->state, l_base * io_base);
   state = ans->state - l_base;
   if (state < (1 << 6)) {
     ans->buf[ans->buf_offset] = (0x00 << 6) + state;
@@ -142,7 +142,7 @@ static inline int ans_write_end(struct AnsCoder *const ans) {
     mem_put_le24(ans->buf + ans->buf_offset, (0x02 << 22) + state);
     return ans->buf_offset + 3;
   } else {
-    DCHECK(0 && "State is too large to be serialized");
+    DRACO_DCHECK(0 && "State is too large to be serialized");
     return ans->buf_offset;
   }
 }
@@ -353,8 +353,8 @@ class RAnsEncoder {
   // Needs to be called after all symbols are encoded.
   inline int write_end() {
     uint32_t state;
-    DCHECK_GE(ans_.state, l_rans_base);
-    DCHECK_LT(ans_.state, l_rans_base * io_base);
+    DRACO_DCHECK_GE(ans_.state, l_rans_base);
+    DRACO_DCHECK_LT(ans_.state, l_rans_base * io_base);
     state = ans_.state - l_rans_base;
     if (state < (1 << 6)) {
       ans_.buf[ans_.buf_offset] = (0x00 << 6) + state;
@@ -366,10 +366,10 @@ class RAnsEncoder {
       mem_put_le24(ans_.buf + ans_.buf_offset, (0x02 << 22) + state);
       return ans_.buf_offset + 3;
     } else if (state < (1 << 30)) {
-      mem_put_le32(ans_.buf + ans_.buf_offset, (0x03 << 30) + state);
+      mem_put_le32(ans_.buf + ans_.buf_offset, (0x03u << 30u) + state);
       return ans_.buf_offset + 4;
     } else {
-      DCHECK(0 && "State is too large to be serialized");
+      DRACO_DCHECK(0 && "State is too large to be serialized");
       return ans_.buf_offset;
     }
   }

@@ -15,6 +15,8 @@
 #ifndef DRACO_MESH_TRIANGLE_SOUP_MESH_BUILDER_H_
 #define DRACO_MESH_TRIANGLE_SOUP_MESH_BUILDER_H_
 
+#include "draco/draco_features.h"
+
 #include "draco/mesh/mesh.h"
 
 namespace draco {

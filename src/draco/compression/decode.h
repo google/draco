@@ -15,6 +15,8 @@
 #ifndef DRACO_COMPRESSION_DECODE_H_
 #define DRACO_COMPRESSION_DECODE_H_
 
+#include "draco/draco_features.h"
+
 #include "draco/compression/config/compression_shared.h"
 #include "draco/compression/config/decoder_options.h"
 #include "draco/core/decoder_buffer.h"

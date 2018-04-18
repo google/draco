@@ -15,8 +15,10 @@
 #ifndef DRACO_MESH_MESH_ATTRIBUTE_CORNER_TABLE_H_
 #define DRACO_MESH_MESH_ATTRIBUTE_CORNER_TABLE_H_
 
+#include "draco/core/macros.h"
 #include "draco/mesh/corner_table.h"
 #include "draco/mesh/mesh.h"
+#include "draco/mesh/valence_cache.h"
 
 namespace draco {
 
@@ -45,7 +47,7 @@ class MeshAttributeCornerTable {
   }
 
   inline CornerIndex Opposite(CornerIndex corner) const {
-    if (IsCornerOppositeToSeamEdge(corner))
+    if (corner == kInvalidCornerIndex || IsCornerOppositeToSeamEdge(corner))
       return kInvalidCornerIndex;
     return corner_table_->Opposite(corner);
   }
@@ -86,9 +88,12 @@ class MeshAttributeCornerTable {
   int num_faces() const { return corner_table_->num_faces(); }
 
   VertexIndex Vertex(CornerIndex corner) const {
+    DRACO_DCHECK_LT(corner.value(), corner_to_vertex_map_.size());
+    return ConfidentVertex(corner);
+  }
+  VertexIndex ConfidentVertex(CornerIndex corner) const {
     return corner_to_vertex_map_[corner.value()];
   }
-
   // Returns the attribute entry id associated to the given vertex.
   VertexIndex VertexParent(VertexIndex vert) const {
     return VertexIndex(vertex_to_attribute_entry_id_map_[vert.value()].value());
@@ -107,6 +112,36 @@ class MeshAttributeCornerTable {
 
   bool no_interior_seams() const { return no_interior_seams_; }
   const CornerTable *corner_table() const { return corner_table_; }
+
+  // TODO(): extract valence functions into a reusable class/object
+  // also from 'corner_table.*'
+
+  // Returns the valence (or degree) of a vertex.
+  // Returns -1 if the given vertex index is not valid.
+  int Valence(VertexIndex v) const;
+  // Same as above but does not check for validity and does not return -1
+  int ConfidentValence(VertexIndex v) const;
+  // Returns the valence of the vertex at the given corner.
+  inline int Valence(CornerIndex c) const {
+    DRACO_DCHECK_LT(c.value(), corner_table_->num_corners());
+    if (c == kInvalidCornerIndex)
+      return -1;
+    return ConfidentValence(c);
+  }
+  inline int ConfidentValence(CornerIndex c) const {
+    DRACO_DCHECK_LT(c.value(), corner_table_->num_corners());
+    return ConfidentValence(Vertex(c));
+  }
+
+  // Allows access to an internal object for caching valences.  The object can
+  // be instructed to cache or uncache all valences and then its interfaces
+  // queried directly for valences with differing performance/confidence
+  // qualities.  If the mesh or table is modified the cache should be discarded
+  // and not relied on as it does not automatically update or invalidate for
+  // performance reasons.
+  const draco::ValenceCache<MeshAttributeCornerTable> &GetValenceCache() const {
+    return valence_cache_;
+  }
 
  private:
   template <bool init_vertex_to_attribute_entry_map>
@@ -133,8 +168,8 @@ class MeshAttributeCornerTable {
   // VertexParent() method.
   std::vector<AttributeValueIndex> vertex_to_attribute_entry_id_map_;
   const CornerTable *corner_table_;
+  draco::ValenceCache<MeshAttributeCornerTable> valence_cache_;
 };
 
 }  // namespace draco
-
 #endif  // DRACO_MESH_MESH_ATTRIBUTE_CORNER_TABLE_H_

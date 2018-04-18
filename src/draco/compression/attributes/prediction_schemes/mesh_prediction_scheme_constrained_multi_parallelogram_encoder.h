@@ -22,6 +22,7 @@
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_encoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram_shared.h"
 #include "draco/core/bit_coders/rans_bit_encoder.h"
+#include "draco/core/shannon_entropy.h"
 #include "draco/core/varint_encoding.h"
 
 namespace draco {
@@ -72,6 +73,74 @@ class MeshPredictionSchemeConstrainedMultiParallelogramEncoder
   }
 
  private:
+  // Function used to compute number of bits needed to store overhead of the
+  // predictor. In this case, we consider overhead to be all bits that mark
+  // whether a parallelogram should be used for prediction or not. The input
+  // to this method is the total number of parallelograms that were evaluated so
+  // far(total_parallelogram), and the number of parallelograms we decided to
+  // use for prediction (total_used_parallelograms).
+  // Returns number of bits required to store the overhead.
+  int64_t ComputeOverheadBits(int64_t total_used_parallelograms,
+                              int64_t total_parallelogram) const {
+    // For now we assume RAns coding for the bits where the total required size
+    // is directly correlated to the binary entropy of the input stream.
+    // TODO(ostava): This should be generalized in case we use other binary
+    // coding scheme.
+    const double entropy = ComputeBinaryShannonEntropy(
+        total_parallelogram, total_used_parallelograms);
+
+    // Round up to the nearest full bit.
+    return ceil((double)total_parallelogram * entropy);
+  }
+
+  // Struct that contains data used for measuring the error of each available
+  // parallelogram configuration.
+  struct Error {
+    Error() : num_bits(0), residual_error(0) {}
+
+    // Primary metric: number of bits required to store the data as a result of
+    // the selected prediction configuration.
+    int num_bits;
+    // Secondary metric: absolute difference of residuals for the given
+    // configuration.
+    int residual_error;
+
+    bool operator<(const Error &e) const {
+      if (num_bits < e.num_bits)
+        return true;
+      if (num_bits > e.num_bits)
+        return false;
+      return residual_error < e.residual_error;
+    }
+  };
+
+  // Computes error for predicting |predicted_val| instead of |actual_val|.
+  // Error is computed as the number of bits needed to encode the difference
+  // between the values.
+  Error ComputeError(const DataTypeT *predicted_val,
+                     const DataTypeT *actual_val, int *out_residuals,
+                     int num_components) {
+    Error error;
+
+    for (int i = 0; i < num_components; ++i) {
+      const int dif = (predicted_val[i] - actual_val[i]);
+      error.residual_error += std::abs(dif);
+      out_residuals[i] = dif;
+      // Entropy needs unsigned symbols, so convert the signed difference to an
+      // unsigned symbol.
+      entropy_symbols_[i] = ConvertSignedIntToSymbol(dif);
+    }
+
+    // Generate entropy data for case that this configuration was used.
+    // Note that the entropy stream is NOT updated in this case.
+    const auto entropy_data =
+        entropy_tracker_.Peek(entropy_symbols_.data(), num_components);
+
+    error.num_bits = entropy_tracker_.GetNumberOfDataBits(entropy_data) +
+                     entropy_tracker_.GetNumberOfRAnsTableBits(entropy_data);
+    return error;
+  }
+
   typedef constrained_multi_parallelogram::Mode Mode;
   static constexpr int kMaxNumParallelograms =
       constrained_multi_parallelogram::kMaxNumParallelograms;
@@ -80,9 +149,15 @@ class MeshPredictionSchemeConstrainedMultiParallelogramEncoder
   // the edges are processed. For better compression, the flags are stored in
   // in separate contexts based on the number of available parallelograms at a
   // given vertex.
-  // TODO(scottgodfrey) reconsider std::vector<bool> (performance/space).
+  // TODO() reconsider std::vector<bool> (performance/space).
   std::vector<bool> is_crease_edge_[kMaxNumParallelograms];
   Mode selected_mode_;
+
+  ShannonEntropyTracker entropy_tracker_;
+
+  // Temporary storage for symbols that are fed into the |entropy_stream|.
+  // Always contains only |num_components| entries.
+  std::vector<uint32_t> entropy_symbols_;
 };
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
@@ -105,23 +180,31 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
   // Used to store predicted value for various multi-parallelogram predictions
   // (combinations of simple parallelogram predictions).
   std::vector<DataTypeT> multi_pred_vals(num_components);
+  entropy_symbols_.resize(num_components);
 
   // Struct for holding data about prediction configuration for different sets
   // of used parallelograms.
   struct PredictionConfiguration {
     PredictionConfiguration()
-        : error(std::numeric_limits<int>::max()),
-          configuration(0),
-          num_used_parallelograms(0) {}
-    int error;
+        : error(), configuration(0), num_used_parallelograms(0) {}
+    Error error;
     uint8_t configuration;  // Bitfield, 1 use parallelogram, 0 don't use it.
     int num_used_parallelograms;
     std::vector<DataTypeT> predicted_value;
+    std::vector<int32_t> residuals;
   };
 
   // Bit-field used for computing permutations of excluded edges
   // (parallelograms).
   bool exluded_parallelograms[kMaxNumParallelograms];
+
+  // Data about the number of used parallelogram and total number of available
+  // parallelogram for each context. Used to compute overhead needed for storing
+  // the parallelogram choices made by the encoder.
+  int64_t total_used_parallelograms[kMaxNumParallelograms] = {0};
+  int64_t total_parallelograms[kMaxNumParallelograms] = {0};
+
+  std::vector<int> current_residuals(num_components);
 
   // We start processing the vertices from the end because this prediction uses
   // data from previous entries that could be overwritten when an entry is
@@ -166,7 +249,7 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
 
     // Offset to the target (destination) vertex.
     const int dst_offset = p * num_components;
-    int error = 0;
+    Error error;
 
     // Compute all prediction errors for all possible configurations of
     // available parallelograms.
@@ -174,18 +257,25 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
     // Variable for holding the best configuration that has been found so far.
     PredictionConfiguration best_prediction;
 
+    total_parallelograms[num_parallelograms - 1] += num_parallelograms;
     // Compute delta coding error (configuration when no parallelogram is
     // selected).
     const int src_offset = (p - 1) * num_components;
-    for (int i = 0; i < num_components; ++i) {
-      error += (std::abs(in_data[dst_offset + i] - in_data[src_offset + i]));
-    }
+    error = ComputeError(in_data + src_offset, in_data + dst_offset,
+                         &current_residuals[0], num_components);
+
+    int64_t new_overhead_bits =
+        ComputeOverheadBits(total_used_parallelograms[num_parallelograms - 1],
+                            total_parallelograms[num_parallelograms - 1]);
+    error.num_bits += new_overhead_bits;
 
     best_prediction.error = error;
     best_prediction.configuration = 0;
     best_prediction.num_used_parallelograms = 0;
     best_prediction.predicted_value.assign(
         in_data + src_offset, in_data + src_offset + num_components);
+    best_prediction.residuals.assign(current_residuals.begin(),
+                                     current_residuals.end());
 
     // Compute prediction error for different cases of used parallelograms.
     for (int num_used_parallelograms = 1;
@@ -216,21 +306,41 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
           // Set jth bit of the configuration.
           configuration |= (1 << j);
         }
-        error = 0;
+
         for (int j = 0; j < num_components; ++j) {
           multi_pred_vals[j] /= num_used_parallelograms;
-          error += std::abs(multi_pred_vals[j] - in_data[dst_offset + j]);
         }
+        error = ComputeError(multi_pred_vals.data(), in_data + dst_offset,
+                             &current_residuals[0], num_components);
+        new_overhead_bits = ComputeOverheadBits(
+            total_used_parallelograms[num_parallelograms - 1] +
+                num_used_parallelograms,
+            total_parallelograms[num_parallelograms - 1]);
+
+        // Add overhead bits to the total error.
+        error.num_bits += new_overhead_bits;
         if (error < best_prediction.error) {
           best_prediction.error = error;
           best_prediction.configuration = configuration;
           best_prediction.num_used_parallelograms = num_used_parallelograms;
           best_prediction.predicted_value.assign(multi_pred_vals.begin(),
                                                  multi_pred_vals.end());
+          best_prediction.residuals.assign(current_residuals.begin(),
+                                           current_residuals.end());
         }
       } while (std::next_permutation(
           exluded_parallelograms, exluded_parallelograms + num_parallelograms));
     }
+    total_used_parallelograms[num_parallelograms - 1] +=
+        best_prediction.num_used_parallelograms;
+
+    // Update the entropy stream by adding selected residuals as symbols to the
+    // stream.
+    for (int i = 0; i < num_components; ++i) {
+      entropy_symbols_[i] =
+          ConvertSignedIntToSymbol(best_prediction.residuals[i]);
+    }
+    entropy_tracker_.Push(entropy_symbols_.data(), num_components);
 
     for (int i = 0; i < num_parallelograms; ++i) {
       if ((best_prediction.configuration & (1 << i)) == 0) {

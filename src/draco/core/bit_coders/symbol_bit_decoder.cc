@@ -19,17 +19,17 @@ bool SymbolBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
 bool SymbolBitDecoder::DecodeNextBit() {
   uint32_t symbol;
   DecodeLeastSignificantBits32(1, &symbol);
-  DCHECK(symbol == 0 || symbol == 1);
+  DRACO_DCHECK(symbol == 0 || symbol == 1);
   return symbol == 1;
 }
 
 void SymbolBitDecoder::DecodeLeastSignificantBits32(int nbits,
                                                     uint32_t *value) {
-  DCHECK_LE(1, nbits);
-  DCHECK_LE(nbits, 32);
-  DCHECK_NE(value, nullptr);
+  DRACO_DCHECK_LE(1, nbits);
+  DRACO_DCHECK_LE(nbits, 32);
+  DRACO_DCHECK_NE(value, nullptr);
   // Testing: check to make sure there is something to decode.
-  DCHECK_GT(symbols_.size(), 0);
+  DRACO_DCHECK_GT(symbols_.size(), 0);
 
   (*value) = symbols_.back();
   symbols_.pop_back();

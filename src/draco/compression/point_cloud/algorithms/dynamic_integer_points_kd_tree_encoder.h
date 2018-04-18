@@ -124,17 +124,11 @@ class DynamicIntegerPointsKdTreeEncoder {
   const uint32_t dimension() const { return dimension_; }
 
  private:
-  void copy(const VectorUint32 &source, VectorUint32 *target) {
-    for (int i = 0; i < source.size(); ++i) {
-      (*target)[i] = source[i];
-    }
-  }
-
   template <class RandomAccessIteratorT>
-  uint32_t GetAxis(RandomAccessIteratorT begin, RandomAccessIteratorT end,
-                   const VectorUint32 &old_base, const VectorUint32 &levels,
-                   uint32_t last_axis);
-
+  uint32_t GetAndEncodeAxis(RandomAccessIteratorT begin,
+                            RandomAccessIteratorT end,
+                            const VectorUint32 &old_base,
+                            const VectorUint32 &levels, uint32_t last_axis);
   template <class RandomAccessIteratorT>
   void EncodeInternal(RandomAccessIteratorT begin, RandomAccessIteratorT end);
 
@@ -147,8 +141,8 @@ class DynamicIntegerPointsKdTreeEncoder {
     }
 
    private:
-    uint32_t axis_;
-    uint32_t value_;
+    const uint32_t axis_;
+    const uint32_t value_;
   };
 
   void EncodeNumber(int nbits, uint32_t value) {
@@ -216,7 +210,8 @@ bool DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodePoints(
 }
 template <int compression_level_t>
 template <class RandomAccessIteratorT>
-uint32_t DynamicIntegerPointsKdTreeEncoder<compression_level_t>::GetAxis(
+uint32_t
+DynamicIntegerPointsKdTreeEncoder<compression_level_t>::GetAndEncodeAxis(
     RandomAccessIteratorT begin, RandomAccessIteratorT end,
     const VectorUint32 &old_base, const VectorUint32 &levels,
     uint32_t last_axis) {
@@ -229,7 +224,7 @@ uint32_t DynamicIntegerPointsKdTreeEncoder<compression_level_t>::GetAxis(
   // For lower number of points, we simply choose the axis that is refined the
   // least so far.
 
-  DCHECK_EQ(true, end - begin != 0);
+  DRACO_DCHECK_EQ(true, end - begin != 0);
 
   uint32_t best_axis = 0;
   if (end - begin < 64) {
@@ -241,12 +236,16 @@ uint32_t DynamicIntegerPointsKdTreeEncoder<compression_level_t>::GetAxis(
   } else {
     const uint32_t size = (end - begin);
     for (int i = 0; i < dimension_; i++) {
+      deviations_[i] = 0;
       num_remaining_bits_[i] = bit_length_ - levels[i];
-      const uint32_t split = old_base[i] + (1 << (num_remaining_bits_[i] - 1));
-      for (auto it = begin; it != end; ++it) {
-        deviations_[i] += ((*it)[i] < split);
+      if (num_remaining_bits_[i] > 0) {
+        const uint32_t split =
+            old_base[i] + (1 << (num_remaining_bits_[i] - 1));
+        for (auto it = begin; it != end; ++it) {
+          deviations_[i] += ((*it)[i] < split);
+        }
+        deviations_[i] = std::max(size - deviations_[i], deviations_[i]);
       }
-      deviations_[i] = std::max(size - deviations_[i], deviations_[i]);
     }
 
     uint32_t max_value = 0;
@@ -291,7 +290,8 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
     const VectorUint32 &old_base = base_stack_[stack_pos];
     const VectorUint32 &levels = levels_stack_[stack_pos];
 
-    const uint32_t axis = GetAxis(begin, end, old_base, levels, last_axis);
+    const uint32_t axis =
+        GetAndEncodeAxis(begin, end, old_base, levels, last_axis);
     const uint32_t level = levels[axis];
     const uint32_t num_remaining_points = end - begin;
 
@@ -322,14 +322,14 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
 
     const uint32_t num_remaining_bits = bit_length_ - level;
     const uint32_t modifier = 1 << (num_remaining_bits - 1);
-    copy(old_base, &base_stack_[stack_pos + 1]);
+    base_stack_[stack_pos + 1] = old_base;  // copy
     base_stack_[stack_pos + 1][axis] += modifier;
     const VectorUint32 &new_base = base_stack_[stack_pos + 1];
 
     const RandomAccessIteratorT split =
         std::partition(begin, end, Splitter(axis, new_base[axis]));
 
-    DCHECK_EQ(true, (end - begin) > 0);
+    DRACO_DCHECK_EQ(true, (end - begin) > 0);
 
     // Encode number of points in first and second half.
     const int required_bits = bits::MostSignificantBit(num_remaining_points);
@@ -348,7 +348,7 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
     }
 
     levels_stack_[stack_pos][axis] += 1;
-    copy(levels_stack_[stack_pos], &levels_stack_[stack_pos + 1]);
+    levels_stack_[stack_pos + 1] = levels_stack_[stack_pos];  // copy
     if (split != begin)
       status_stack.push(Status(begin, split, axis, stack_pos));
     if (split != end)

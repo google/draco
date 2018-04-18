@@ -15,6 +15,7 @@
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_KD_TREE_ATTRIBUTES_DECODER_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_KD_TREE_ATTRIBUTES_DECODER_H_
 
+#include "draco/attributes/attribute_quantization_transform.h"
 #include "draco/compression/attributes/attributes_decoder.h"
 
 namespace draco {
@@ -27,6 +28,17 @@ class KdTreeAttributesDecoder : public AttributesDecoder {
  protected:
   bool DecodePortableAttributes(DecoderBuffer *in_buffer) override;
   bool DecodeDataNeededByPortableTransforms(DecoderBuffer *in_buffer) override;
+  bool TransformAttributesToOriginalFormat() override;
+
+ private:
+  template <typename SignedDataTypeT>
+  bool TransformAttributeBackToSignedType(PointAttribute *att,
+                                          int num_processed_signed_components);
+
+  std::vector<AttributeQuantizationTransform>
+      attribute_quantization_transforms_;
+  std::vector<int32_t> min_signed_values_;
+  std::vector<std::unique_ptr<PointAttribute>> quantized_portable_attributes_;
 };
 
 }  // namespace draco

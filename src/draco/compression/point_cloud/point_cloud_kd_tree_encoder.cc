@@ -24,14 +24,15 @@ bool PointCloudKdTreeEncoder::EncodeGeometryData() {
 }
 
 bool PointCloudKdTreeEncoder::GenerateAttributesEncoder(int32_t att_id) {
-  // Currently supported only for single attribute.
-  if (att_id == 0) {
+  if (num_attributes_encoders() == 0) {
     // Create a new attribute encoder only for the first attribute.
     AddAttributesEncoder(std::unique_ptr<AttributesEncoder>(
         new KdTreeAttributesEncoder(att_id)));
     return true;
   }
-  return false;
+  // Add a new attribute to the attribute encoder.
+  attributes_encoder(0)->AddAttributeId(att_id);
+  return true;
 }
 
 }  // namespace draco

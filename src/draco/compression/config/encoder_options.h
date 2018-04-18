@@ -15,6 +15,8 @@
 #ifndef DRACO_COMPRESSION_CONFIG_ENCODER_OPTIONS_H_
 #define DRACO_COMPRESSION_CONFIG_ENCODER_OPTIONS_H_
 
+#include "draco/draco_features.h"
+
 #include "draco/attributes/geometry_attribute.h"
 #include "draco/compression/config/draco_options.h"
 #include "draco/compression/config/encoding_features.h"

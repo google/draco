@@ -50,27 +50,23 @@ Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud &pc,
   } else {
     // Speed < 10, use POINT_CLOUD_KD_TREE_ENCODING if possible.
     bool kd_tree_possible = true;
-    // Kd-Tree encoder can be currently used only under following conditions:
-    //   - Point cloud has one attribute describing positions
-    //   - Position is described by three components (x,y,z)
-    //   - Position data type is one of the following:
-    //         -float32 and quantization is enabled
-    //         -uint32
-    const PointAttribute *const att =
-        pc.GetNamedAttribute(GeometryAttribute::POSITION);
-    if (att == nullptr || pc.num_attributes() != 1)
-      kd_tree_possible = false;
-    if (kd_tree_possible &&
-        att->attribute_type() != GeometryAttribute::POSITION)
-      kd_tree_possible = false;
-    if (kd_tree_possible && att->num_components() != 3)
-      kd_tree_possible = false;
-    if (kd_tree_possible && att->data_type() != DT_FLOAT32 &&
-        att->data_type() != DT_UINT32)
-      kd_tree_possible = false;
-    if (kd_tree_possible && att->data_type() == DT_FLOAT32 &&
-        options().GetAttributeInt(0, "quantization_bits", -1) <= 0)
-      kd_tree_possible = false;  // Quantization not enabled.
+    // Kd-Tree encoder can be currently used only when the following conditions
+    // are satisfied for all attributes:
+    //     -data type is float32 and quantization is enabled, OR
+    //     -data type is uint32, uint16, uint8 or int32, int16, int8
+    for (int i = 0; i < pc.num_attributes(); ++i) {
+      const PointAttribute *const att = pc.attribute(i);
+      if (kd_tree_possible && att->data_type() != DT_FLOAT32 &&
+          att->data_type() != DT_UINT32 && att->data_type() != DT_UINT16 &&
+          att->data_type() != DT_UINT8 && att->data_type() != DT_INT32 &&
+          att->data_type() != DT_INT16 && att->data_type() != DT_INT8)
+        kd_tree_possible = false;
+      if (kd_tree_possible && att->data_type() == DT_FLOAT32 &&
+          options().GetAttributeInt(0, "quantization_bits", -1) <= 0)
+        kd_tree_possible = false;  // Quantization not enabled.
+      if (!kd_tree_possible)
+        break;
+    }
 
     if (kd_tree_possible) {
       // Create kD-tree encoder (all checks passed).

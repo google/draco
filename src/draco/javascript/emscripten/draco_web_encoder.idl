@@ -84,24 +84,82 @@ interface MetadataBuilder {
                          double entry_value);
 };
 
-interface MeshBuilder {
+interface PointCloudBuilder {
+  void PointCloudBuilder();
+  long AddFloatAttribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                         long num_vertices, long num_components,
+                         [Const] float[] att_values);
+  long AddInt8Attribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                        long num_vertices, long num_components,
+                        [Const] byte[] att_values);
+  long AddUInt8Attribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                         long num_vertices, long num_components,
+                         [Const] octet[] att_values);
+  long AddInt16Attribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                         long num_vertices, long num_components,
+                         [Const] short[] att_values);
+  long AddUInt16Attribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                          long num_vertices, long num_components,
+                          [Const] unsigned short[] att_values);
+  long AddInt32Attribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                         long num_vertices, long num_components,
+                         [Const] long[] att_values);
+  long AddUInt32Attribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                          long num_vertices, long num_components,
+                          [Const] unsigned long[] att_values);
+
+  boolean AddMetadata(PointCloud pc, [Const] Metadata metadata);
+  boolean SetMetadataForAttribute(PointCloud pc, long attribute_id,
+                                  [Const] Metadata metadata);
+};
+
+interface MeshBuilder : PointCloudBuilder {
   void MeshBuilder();
 
   boolean AddFacesToMesh(Mesh mesh, long num_faces, [Const] long[] faces);
+
+  // Deprecated.
   long AddFloatAttributeToMesh(Mesh mesh, draco_GeometryAttribute_Type type,
                                long num_vertices, long num_components,
                                [Const] float[] att_values);
+  // Deprecated.
   long AddInt32AttributeToMesh(Mesh mesh, draco_GeometryAttribute_Type type,
                                long num_vertices, long num_components,
                                [Const] long[] att_values);
-  boolean SetMetadataForAttribute(Mesh mesh, long attribute_id,
-                                  [Const] Metadata metadata);
+  // Deprecated.
   boolean AddMetadataToMesh(Mesh mesh, [Const] Metadata metadata);
+
+  // From PointCloudBuilder
+  long AddFloatAttribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                         long num_vertices, long num_components,
+                         [Const] float[] att_values);
+  long AddInt8Attribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                        long num_vertices, long num_components,
+                        [Const] byte[] att_values);
+  long AddUInt8Attribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                         long num_vertices, long num_components,
+                         [Const] octet[] att_values);
+  long AddInt16Attribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                         long num_vertices, long num_components,
+                         [Const] short[] att_values);
+  long AddUInt16Attribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                          long num_vertices, long num_components,
+                          [Const] unsigned short[] att_values);
+  long AddInt32Attribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                         long num_vertices, long num_components,
+                         [Const] long[] att_values);
+  long AddUInt32Attribute(PointCloud pc, draco_GeometryAttribute_Type type,
+                          long num_vertices, long num_components,
+                          [Const] unsigned long[] att_values);
+
+  boolean AddMetadata(PointCloud pc, [Const] Metadata metadata);
+  boolean SetMetadataForAttribute(PointCloud pc, long attribute_id,
+                                  [Const] Metadata metadata);
 };
 
 interface Encoder {
   void Encoder();
-  void SetEncodingMethod(draco_MeshEncoderMethod method);
+  void SetEncodingMethod(long method);
   void SetAttributeQuantization(draco_GeometryAttribute_Type type,
                                 long quantization_bits);
   void SetAttributeExplicitQuantization(draco_GeometryAttribute_Type type,
@@ -112,4 +170,6 @@ interface Encoder {
   void SetSpeedOptions(long encoding_speed, long decoding_speed);
   long EncodeMeshToDracoBuffer(Mesh mesh,
                                DracoInt8Array encoded_data);
+  long EncodePointCloudToDracoBuffer(PointCloud pc, boolean deduplicate_values,
+                                     DracoInt8Array encoded_data);
 };

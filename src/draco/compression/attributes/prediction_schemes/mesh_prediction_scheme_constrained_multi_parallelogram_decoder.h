@@ -18,6 +18,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "draco/draco_features.h"
+
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_constrained_multi_parallelogram_shared.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram_shared.h"

@@ -60,7 +60,7 @@ class PredictionSchemeNormalOctahedronTransformBase {
 
  protected:
   inline void set_max_quantized_value(DataTypeT max_quantized_value) {
-    DCHECK_EQ(max_quantized_value % 2, 1);
+    DRACO_DCHECK_EQ(max_quantized_value % 2, 1);
     int q = bits::MostSignificantBit(max_quantized_value) + 1;
     octahedron_tool_box_.SetQuantizationBits(q);
   }

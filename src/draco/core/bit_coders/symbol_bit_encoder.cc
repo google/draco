@@ -5,8 +5,8 @@
 namespace draco {
 
 void SymbolBitEncoder::EncodeLeastSignificantBits32(int nbits, uint32_t value) {
-  DCHECK_LE(1, nbits);
-  DCHECK_LE(nbits, 32);
+  DRACO_DCHECK_LE(1, nbits);
+  DRACO_DCHECK_LE(nbits, 32);
 
   const int discarded_bits = 32 - nbits;
   value <<= discarded_bits;

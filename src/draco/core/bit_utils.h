@@ -52,8 +52,7 @@ inline void CopyBits32(uint32_t *dst, int dst_offset, uint32_t src,
   *dst = (*dst & (~mask)) | (((src >> src_offset) << dst_offset) & mask);
 }
 
-// Returns the most location of the most significant bit in the input integer
-// |n|.
+// Returns the location of the most significant bit in the input integer |n|.
 // The functionality is not defined for |n == 0|.
 inline int MostSignificantBit(uint32_t n) {
 #if defined(__GNUC__)

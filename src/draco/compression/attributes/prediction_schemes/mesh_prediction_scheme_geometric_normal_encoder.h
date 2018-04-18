@@ -60,7 +60,7 @@ class MeshPredictionSchemeGeometricNormalEncoder
   int GetNumParentAttributes() const override { return 1; }
 
   GeometryAttribute::Type GetParentAttributeType(int i) const override {
-    DCHECK_EQ(i, 0);
+    DRACO_DCHECK_EQ(i, 0);
     (void)i;
     return GeometryAttribute::POSITION;
   }
@@ -76,8 +76,8 @@ class MeshPredictionSchemeGeometricNormalEncoder
 
  private:
   void SetQuantizationBits(int q) {
-    DCHECK_GE(q, 2);
-    DCHECK_LE(q, 30);
+    DRACO_DCHECK_GE(q, 2);
+    DRACO_DCHECK_LE(q, 30);
     octahedron_tool_box_.SetQuantizationBits(q);
   }
   MeshPredictionSchemeGeometricNormalPredictorArea<DataTypeT, TransformT,
@@ -96,9 +96,9 @@ bool MeshPredictionSchemeGeometricNormalEncoder<DataTypeT, TransformT,
                             const PointIndex *entry_to_point_id_map) {
   this->SetQuantizationBits(this->transform().quantization_bits());
   predictor_.SetEntryToPointIdMap(entry_to_point_id_map);
-  DCHECK(this->IsInitialized());
+  DRACO_DCHECK(this->IsInitialized());
   // Expecting in_data in octahedral coordinates, i.e., portable attribute.
-  DCHECK_EQ(num_components, 2);
+  DRACO_DCHECK_EQ(num_components, 2);
 
   flip_normal_bit_encoder_.StartEncoding();
 
@@ -116,7 +116,8 @@ bool MeshPredictionSchemeGeometricNormalEncoder<DataTypeT, TransformT,
 
     // Compute predicted octahedral coordinates.
     octahedron_tool_box_.CanonicalizeIntegerVector(pred_normal_3d.data());
-    DCHECK_EQ(pred_normal_3d.AbsSum(), octahedron_tool_box_.center_value());
+    DRACO_DCHECK_EQ(pred_normal_3d.AbsSum(),
+                    octahedron_tool_box_.center_value());
 
     // Compute octahedral coordinates for both possible directions.
     octahedron_tool_box_.IntegerVectorToQuantizedOctahedralCoords(

@@ -17,6 +17,8 @@
 
 #include <memory>
 
+#include "draco/draco_features.h"
+
 #include "draco/attributes/geometry_indices.h"
 #include "draco/core/hash_utils.h"
 #include "draco/core/macros.h"
@@ -60,8 +62,8 @@ class Mesh : public PointCloud {
 
   FaceIndex::ValueType num_faces() const { return faces_.size(); }
   const Face &face(FaceIndex face_id) const {
-    DCHECK_LE(0, face_id.value());
-    DCHECK_LT(face_id.value(), static_cast<int>(faces_.size()));
+    DRACO_DCHECK_LE(0, face_id.value());
+    DRACO_DCHECK_LT(face_id.value(), static_cast<int>(faces_.size()));
     return faces_[face_id];
   }
 

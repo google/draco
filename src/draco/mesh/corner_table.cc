@@ -23,7 +23,8 @@ namespace draco {
 CornerTable::CornerTable()
     : num_original_vertices_(0),
       num_degenerated_faces_(0),
-      num_isolated_vertices_(0) {}
+      num_isolated_vertices_(0),
+      valence_cache_(*this) {}
 
 std::unique_ptr<CornerTable> CornerTable::Create(
     const IndexTypeVector<FaceIndex, FaceType> &faces) {
@@ -35,8 +36,8 @@ std::unique_ptr<CornerTable> CornerTable::Create(
 
 bool CornerTable::Initialize(
     const IndexTypeVector<FaceIndex, FaceType> &faces) {
-  ClearValenceCache();
-  ClearValenceCacheInaccurate();
+  valence_cache_.ClearValenceCache();
+  valence_cache_.ClearValenceCacheInaccurate();
   corner_to_vertex_map_.resize(faces.size() * 3);
   for (FaceIndex fi(0); fi < faces.size(); ++fi) {
     for (int i = 0; i < 3; ++i) {
@@ -63,14 +64,13 @@ bool CornerTable::Reset(int num_faces, int num_vertices) {
   corner_to_vertex_map_.assign(num_faces * 3, kInvalidVertexIndex);
   opposite_corners_.assign(num_faces * 3, kInvalidCornerIndex);
   vertex_corners_.reserve(num_vertices);
-  ClearValenceCache();
-  ClearValenceCacheInaccurate();
+  valence_cache_.ClearValenceCache();
+  valence_cache_.ClearValenceCacheInaccurate();
   return true;
 }
 
 bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
-  DCHECK_EQ(vertex_valence_cache_8_bit_.size(), 0);
-  DCHECK_EQ(vertex_valence_cache_32_bit_.size(), 0);
+  DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
   if (num_vertices == nullptr)
     return false;
   opposite_corners_.resize(num_corners(), kInvalidCornerIndex);
@@ -125,6 +125,7 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
   // insert them to the |vertex_edge| array or connect them with existing
   // half-edges.
   for (CornerIndex c(0); c < num_corners(); ++c) {
+    const VertexIndex tip_v = Vertex(c);
     const VertexIndex source_v = Vertex(Next(c));
     const VertexIndex sink_v = Vertex(Previous(c));
 
@@ -149,6 +150,8 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
       if (other_v == kInvalidVertexIndex)
         break;  // No matching half-edge found on the sink vertex.
       if (other_v == source_v) {
+        if (tip_v == Vertex(vertex_edges[offset].edge_corner))
+          continue;  // Don't connect mirrored faces.
         // A matching half-edge was found on the sink vertex. Mark the
         // half-edge's opposite corner.
         opposite_c = vertex_edges[offset].edge_corner;
@@ -191,8 +194,7 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
 }
 
 bool CornerTable::ComputeVertexCorners(int num_vertices) {
-  DCHECK_EQ(vertex_valence_cache_8_bit_.size(), 0);
-  DCHECK_EQ(vertex_valence_cache_32_bit_.size(), 0);
+  DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
   num_original_vertices_ = num_vertices;
   vertex_corners_.resize(num_vertices, kInvalidCornerIndex);
   // Arrays for marking visited vertices and corners that allow us to detect
@@ -288,9 +290,9 @@ int CornerTable::Valence(VertexIndex v) const {
 }
 
 int CornerTable::ConfidentValence(VertexIndex v) const {
-  DCHECK_GE(v.value(), 0);
-  DCHECK_LT(v.value(), num_vertices());
-  VertexRingIterator vi(this, v);
+  DRACO_DCHECK_GE(v.value(), 0);
+  DRACO_DCHECK_LT(v.value(), num_vertices());
+  VertexRingIterator<CornerTable> vi(this, v);
   int valence = 0;
   for (; !vi.End(); vi.Next()) {
     ++valence;
@@ -299,8 +301,7 @@ int CornerTable::ConfidentValence(VertexIndex v) const {
 }
 
 void CornerTable::UpdateFaceToVertexMap(const VertexIndex vertex) {
-  DCHECK_EQ(vertex_valence_cache_8_bit_.size(), 0);
-  DCHECK_EQ(vertex_valence_cache_32_bit_.size(), 0);
+  DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
   VertexCornersIterator<CornerTable> it(this, vertex);
   for (; !it.End(); ++it) {
     const CornerIndex corner = *it;

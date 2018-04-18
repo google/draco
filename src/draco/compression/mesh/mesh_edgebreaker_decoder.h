@@ -15,6 +15,8 @@
 #ifndef DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_DECODER_H_
 #define DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_DECODER_H_
 
+#include "draco/draco_features.h"
+
 #include "draco/compression/mesh/mesh_decoder.h"
 #include "draco/compression/mesh/mesh_edgebreaker_decoder_impl_interface.h"
 

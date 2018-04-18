@@ -17,6 +17,8 @@
 
 #include <memory>
 
+#include "draco/draco_features.h"
+
 #include "draco/attributes/attribute_transform_data.h"
 #include "draco/attributes/geometry_attribute.h"
 #include "draco/core/draco_index_type_vector.h"
@@ -86,7 +88,7 @@ class PointAttribute : public GeometryAttribute {
   // Set an explicit map entry for a specific point index.
   void SetPointMapEntry(PointIndex point_index,
                         AttributeValueIndex entry_index) {
-    DCHECK(!identity_mapping_);
+    DRACO_DCHECK(!identity_mapping_);
     indices_map_[point_index] = entry_index;
   }
 

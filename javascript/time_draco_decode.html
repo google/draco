@@ -6,7 +6,7 @@
 'use strict';
 
 // Global Draco decoder.
-let dracoDecoder = {};
+let decoderModule = {};
 let dracoDecoderType = {};
 
 // This function loads a JavaScript file and adds it to the page. "path" is
@@ -35,13 +35,13 @@ function loadWebAssemblyDecoder() {
     // property with the name of wasmBinary and the value must be an
     // ArrayBuffer containing the contents of the .wasm file.
     dracoDecoderType['wasmBinary'] = xhr.response;
-    createDracoDecoder();
+    createDecoderModule();
   };
 
   xhr.send(null)
 }
 
-function createDracoDecoder() {
+function createDecoderModule() {
   // draco_decoder.js or draco_wasm_wrapper.js must be loaded before
   // DracoModule is created.
   if (typeof dracoDecoderType === 'undefined')
@@ -51,7 +51,7 @@ function createDracoDecoder() {
   };
   const create_t0 = performance.now();
 
-  dracoDecoder = DracoDecoderModule(dracoDecoderType);
+  decoderModule = DracoDecoderModule(dracoDecoderType);
   const create_t1 = performance.now();
   addCell('DracoModule', true);
   addCell(' ' + (create_t1 - create_t0), false);
@@ -64,7 +64,7 @@ function loadDracoDecoder() {
   if (typeof WebAssembly !== 'object') {
     // No WebAssembly support. DracoModule must be called with no parameters
     // or an empty object to create a JavaScript decoder.
-    loadJavaScriptFile('draco_decoder.js', createDracoDecoder);
+    loadJavaScriptFile('draco_decoder.js', createDecoderModule);
   } else {
     loadJavaScriptFile('draco_wasm_wrapper.js', loadWebAssemblyDecoder);
   }
@@ -146,20 +146,20 @@ function testMeshDecodingAsync(filenameList, index) {
 
       const total_t0 = performance.now();
 
-      const buffer = new dracoDecoder.DecoderBuffer();
+      const buffer = new decoderModule.DecoderBuffer();
       buffer.Init(byteArray, byteArray.length);
 
-      const decoder = new dracoDecoder.Decoder();
+      const decoder = new decoderModule.Decoder();
 
       const decode_t0 = performance.now();
       const geometryType = decoder.GetEncodedGeometryType(buffer);
       let dracoGeometry;
       let decodingStatus;
-      if (geometryType == dracoDecoder.TRIANGULAR_MESH) {
-        dracoGeometry = new dracoDecoder.Mesh();
+      if (geometryType == decoderModule.TRIANGULAR_MESH) {
+        dracoGeometry = new decoderModule.Mesh();
         decodingStatus = decoder.DecodeBufferToMesh(buffer, dracoGeometry);
       } else {
-        dracoGeometry = new dracoDecoder.PointCloud();
+        dracoGeometry = new decoderModule.PointCloud();
         decodingStatus =
             decoder.DecodeBufferToPointCloud(buffer, dracoGeometry);
       }
@@ -171,9 +171,9 @@ function testMeshDecodingAsync(filenameList, index) {
       addCell('' + byteArray.length, false);
       addCell('' + dracoGeometry.num_points(), false);
 
-      dracoDecoder.destroy(dracoGeometry);
-      dracoDecoder.destroy(decoder);
-      dracoDecoder.destroy(buffer);
+      decoderModule.destroy(dracoGeometry);
+      decoderModule.destroy(decoder);
+      decoderModule.destroy(buffer);
 
       if (index < filenameList.length - 1) {
         index = index + 1;

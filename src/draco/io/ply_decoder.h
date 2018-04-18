@@ -17,6 +17,8 @@
 
 #include <string>
 
+#include "draco/draco_features.h"
+
 #include "draco/core/decoder_buffer.h"
 #include "draco/io/ply_reader.h"
 #include "draco/mesh/mesh.h"
@@ -48,6 +50,11 @@ class PlyDecoder {
  private:
   bool DecodeFaceData(const PlyElement *face_element);
   bool DecodeVertexData(const PlyElement *vertex_element);
+
+  template <typename DataTypeT>
+  bool ReadPropertiesToAttribute(
+      const std::vector<const PlyProperty *> &properties,
+      PointAttribute *attribute, int num_vertices);
 
   DecoderBuffer buffer_;
 

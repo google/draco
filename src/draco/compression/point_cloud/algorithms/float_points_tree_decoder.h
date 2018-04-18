@@ -32,7 +32,9 @@ class FloatPointsTreeDecoder {
 
   // Decodes a point cloud from |buffer|.
   template <class OutputIteratorT>
-  bool DecodePointCloud(DecoderBuffer *buffer, OutputIteratorT out);
+  bool DecodePointCloud(DecoderBuffer *buffer, OutputIteratorT &out);
+  template <class OutputIteratorT>
+  bool DecodePointCloud(DecoderBuffer *buffer, OutputIteratorT &&out);
   // Initializes a DecoderBuffer from |data|, and calls function above.
   template <class OutputIteratorT>
   bool DecodePointCloud(const char *data, size_t data_size,
@@ -42,7 +44,7 @@ class FloatPointsTreeDecoder {
 
     DecoderBuffer buffer;
     buffer.Init(data, data_size);
-    buffer.set_bitstream_version(kDracoBitstreamVersion);
+    buffer.set_bitstream_version(kDracoPointCloudBitstreamVersion);
     return DecodePointCloud(&buffer, out);
   }
 
@@ -72,7 +74,14 @@ class FloatPointsTreeDecoder {
 
 template <class OutputIteratorT>
 bool FloatPointsTreeDecoder::DecodePointCloud(DecoderBuffer *buffer,
-                                              OutputIteratorT out) {
+                                              OutputIteratorT &&out) {
+  OutputIteratorT local = std::forward<OutputIteratorT>(out);
+  return DecodePointCloud(buffer, local);
+}
+
+template <class OutputIteratorT>
+bool FloatPointsTreeDecoder::DecodePointCloud(DecoderBuffer *buffer,
+                                              OutputIteratorT &out) {
   std::vector<Point3ui> qpoints;
 
   uint32_t decoded_version;

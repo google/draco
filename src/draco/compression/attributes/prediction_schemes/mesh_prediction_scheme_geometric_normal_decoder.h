@@ -15,6 +15,8 @@
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_GEOMETRIC_NORMAL_DECODER_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_GEOMETRIC_NORMAL_DECODER_H_
 
+#include "draco/draco_features.h"
+
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_predictor_area.h"
 #include "draco/core/bit_coders/rans_bit_decoder.h"
@@ -62,7 +64,7 @@ class MeshPredictionSchemeGeometricNormalDecoder
   int GetNumParentAttributes() const override { return 1; }
 
   GeometryAttribute::Type GetParentAttributeType(int i) const override {
-    DCHECK_EQ(i, 0);
+    DRACO_DCHECK_EQ(i, 0);
     (void)i;
     return GeometryAttribute::POSITION;
   }
@@ -96,10 +98,10 @@ bool MeshPredictionSchemeGeometricNormalDecoder<
                                       const PointIndex *entry_to_point_id_map) {
   this->SetQuantizationBits(this->transform().quantization_bits());
   predictor_.SetEntryToPointIdMap(entry_to_point_id_map);
-  DCHECK(this->IsInitialized());
+  DRACO_DCHECK(this->IsInitialized());
 
   // Expecting in_data in octahedral coordinates, i.e., portable attribute.
-  DCHECK_EQ(num_components, 2);
+  DRACO_DCHECK_EQ(num_components, 2);
 
   const int corner_map_size = this->mesh_data().data_to_corner_map()->size();
 
@@ -113,7 +115,8 @@ bool MeshPredictionSchemeGeometricNormalDecoder<
 
     // Compute predicted octahedral coordinates.
     octahedron_tool_box_.CanonicalizeIntegerVector(pred_normal_3d.data());
-    DCHECK_EQ(pred_normal_3d.AbsSum(), octahedron_tool_box_.center_value());
+    DRACO_DCHECK_EQ(pred_normal_3d.AbsSum(),
+                    octahedron_tool_box_.center_value());
     if (flip_normal_bit_decoder_.DecodeNextBit()) {
       pred_normal_3d = -pred_normal_3d;
     }

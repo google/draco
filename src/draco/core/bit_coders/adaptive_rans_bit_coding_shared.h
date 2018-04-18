@@ -22,8 +22,8 @@ namespace draco {
 
 // Clamp the probability p to a uint8_t in the range [1,255].
 inline uint8_t clamp_probability(double p) {
-  DCHECK_LE(p, 1.0);
-  DCHECK_LE(0.0, p);
+  DRACO_DCHECK_LE(p, 1.0);
+  DRACO_DCHECK_LE(0.0, p);
   uint32_t p_int = static_cast<uint32_t>((p * 256) + 0.5);
   p_int -= (p_int == 256);
   p_int += (p_int == 0);

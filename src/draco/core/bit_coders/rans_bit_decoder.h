@@ -18,6 +18,8 @@
 
 #include <vector>
 
+#include "draco/draco_features.h"
+
 #include "draco/core/ans.h"
 #include "draco/core/decoder_buffer.h"
 

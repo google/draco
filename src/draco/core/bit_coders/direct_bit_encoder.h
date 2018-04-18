@@ -46,8 +46,8 @@ class DirectBitEncoder {
   // Encode |nbits| of |value|, starting from the least significant bit.
   // |nbits| must be > 0 and <= 32.
   void EncodeLeastSignificantBits32(int nbits, uint32_t value) {
-    DCHECK_EQ(true, nbits <= 32);
-    DCHECK_EQ(true, nbits > 0);
+    DRACO_DCHECK_EQ(true, nbits <= 32);
+    DRACO_DCHECK_EQ(true, nbits > 0);
 
     const int remaining = 32 - num_local_bits_;
 

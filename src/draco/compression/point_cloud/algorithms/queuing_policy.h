@@ -19,6 +19,7 @@
 
 #include <queue>
 #include <stack>
+#include <utility>
 
 namespace draco {
 

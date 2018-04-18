@@ -116,6 +116,26 @@ bool PlyDecoder::DecodeFaceData(const PlyElement *face_element) {
   return true;
 }
 
+template <typename DataTypeT>
+bool PlyDecoder::ReadPropertiesToAttribute(
+    const std::vector<const PlyProperty *> &properties,
+    PointAttribute *attribute, int num_vertices) {
+  std::vector<std::unique_ptr<PlyPropertyReader<DataTypeT>>> readers;
+  readers.reserve(properties.size());
+  for (int prop = 0; prop < properties.size(); ++prop) {
+    readers.push_back(std::unique_ptr<PlyPropertyReader<DataTypeT>>(
+        new PlyPropertyReader<DataTypeT>(properties[prop])));
+  }
+  std::vector<DataTypeT> memory(properties.size());
+  for (PointIndex::ValueType i = 0; i < num_vertices; ++i) {
+    for (int prop = 0; prop < properties.size(); ++prop) {
+      memory[prop] = readers[prop]->ReadValue(i);
+    }
+    attribute->SetAttributeValue(AttributeValueIndex(i), memory.data());
+  }
+  return true;
+}
+
 bool PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
   if (vertex_element == nullptr)
     return false;
@@ -133,26 +153,30 @@ bool PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
   out_point_cloud_->set_num_points(num_vertices);
   // Decode vertex positions.
   {
-    // TODO(ostava): For now assume the position types are float32.
-    if (x_prop->data_type() != DT_FLOAT32 ||
-        y_prop->data_type() != DT_FLOAT32 ||
-        z_prop->data_type() != DT_FLOAT32) {
+    // All properties must have the same type.
+    if (x_prop->data_type() != y_prop->data_type() ||
+        y_prop->data_type() != z_prop->data_type()) {
       return false;
     }
-    PlyPropertyReader<float> x_reader(x_prop);
-    PlyPropertyReader<float> y_reader(y_prop);
-    PlyPropertyReader<float> z_reader(z_prop);
+    // TODO(ostava): For now assume the position types are float32 or int32.
+    const DataType dt = x_prop->data_type();
+    if (dt != DT_FLOAT32 && dt != DT_INT32)
+      return false;
+
     GeometryAttribute va;
-    va.Init(GeometryAttribute::POSITION, nullptr, 3, DT_FLOAT32, false,
-            sizeof(float) * 3, 0);
+    va.Init(GeometryAttribute::POSITION, nullptr, 3, dt, false,
+            DataTypeLength(dt) * 3, 0);
     const int att_id = out_point_cloud_->AddAttribute(va, true, num_vertices);
-    for (PointIndex::ValueType i = 0; i < num_vertices; ++i) {
-      std::array<float, 3> val;
-      val[0] = x_reader.ReadValue(i);
-      val[1] = y_reader.ReadValue(i);
-      val[2] = z_reader.ReadValue(i);
-      out_point_cloud_->attribute(att_id)->SetAttributeValue(
-          AttributeValueIndex(i), &val[0]);
+    std::vector<const PlyProperty *> properties;
+    properties.push_back(x_prop);
+    properties.push_back(y_prop);
+    properties.push_back(z_prop);
+    if (dt == DT_FLOAT32) {
+      ReadPropertiesToAttribute<float>(
+          properties, out_point_cloud_->attribute(att_id), num_vertices);
+    } else if (dt == DT_INT32) {
+      ReadPropertiesToAttribute<int32_t>(
+          properties, out_point_cloud_->attribute(att_id), num_vertices);
     }
   }
 
@@ -204,7 +228,7 @@ bool PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
     if (r_prop) {
       p = r_prop;
       // TODO(ostava): For now ensure the data type of all components is uint8.
-      DCHECK_EQ(true, p->data_type() == DT_UINT8);
+      DRACO_DCHECK_EQ(true, p->data_type() == DT_UINT8);
       if (p->data_type() != DT_UINT8)
         return false;
       color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
@@ -213,7 +237,7 @@ bool PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
     if (g_prop) {
       p = g_prop;
       // TODO(ostava): For now ensure the data type of all components is uint8.
-      DCHECK_EQ(true, p->data_type() == DT_UINT8);
+      DRACO_DCHECK_EQ(true, p->data_type() == DT_UINT8);
       if (p->data_type() != DT_UINT8)
         return false;
       color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
@@ -222,7 +246,7 @@ bool PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
     if (b_prop) {
       p = b_prop;
       // TODO(ostava): For now ensure the data type of all components is uint8.
-      DCHECK_EQ(true, p->data_type() == DT_UINT8);
+      DRACO_DCHECK_EQ(true, p->data_type() == DT_UINT8);
       if (p->data_type() != DT_UINT8)
         return false;
       color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
@@ -231,7 +255,7 @@ bool PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
     if (a_prop) {
       p = a_prop;
       // TODO(ostava): For now ensure the data type of all components is uint8.
-      DCHECK_EQ(true, p->data_type() == DT_UINT8);
+      DRACO_DCHECK_EQ(true, p->data_type() == DT_UINT8);
       if (p->data_type() != DT_UINT8)
         return false;
       color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(

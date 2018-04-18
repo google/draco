@@ -54,12 +54,12 @@ std::unique_ptr<PointAttribute>
 AttributeOctahedronTransform::GeneratePortableAttribute(
     const PointAttribute &attribute, const std::vector<PointIndex> &point_ids,
     int num_points) const {
-  DCHECK(is_initialized());
+  DRACO_DCHECK(is_initialized());
 
   // Allocate portable attribute.
   const int num_entries = point_ids.size();
   std::unique_ptr<PointAttribute> portable_attribute =
-      InitPortableAttribute(num_entries, 2, num_points, attribute);
+      InitPortableAttribute(num_entries, 2, num_points, attribute, true);
 
   // Quantize all values in the order given by point_ids into portable
   // attribute.
@@ -67,7 +67,9 @@ AttributeOctahedronTransform::GeneratePortableAttribute(
       portable_attribute->GetAddress(AttributeValueIndex(0)));
   float att_val[3];
   int32_t dst_index = 0;
-  const OctahedronToolBox converter(quantization_bits_);
+  OctahedronToolBox converter;
+  if (!converter.SetQuantizationBits(quantization_bits_))
+    return nullptr;
   for (uint32_t i = 0; i < point_ids.size(); ++i) {
     const AttributeValueIndex att_val_id = attribute.mapped_index(point_ids[i]);
     attribute.GetValue(att_val_id, att_val);

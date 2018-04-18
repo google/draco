@@ -19,6 +19,8 @@
 #include <cstring>
 #include <memory>
 
+#include "draco/draco_features.h"
+
 #include "draco/core/macros.h"
 
 namespace draco {
@@ -138,8 +140,8 @@ class DecoderBuffer {
     }
 
     inline uint32_t EnsureBits(int k) {
-      DCHECK_LE(k, 24);
-      DCHECK_LE(static_cast<uint64_t>(k), AvailBits());
+      DRACO_DCHECK_LE(k, 24);
+      DRACO_DCHECK_LE(static_cast<uint64_t>(k), AvailBits());
 
       uint32_t buf = 0;
       for (int i = 0; i < k; ++i) {
@@ -152,8 +154,8 @@ class DecoderBuffer {
 
     // Returns |nbits| bits in |x|.
     inline bool GetBits(int32_t nbits, uint32_t *x) {
-      DCHECK_GE(nbits, 0);
-      DCHECK_LE(nbits, 32);
+      DRACO_DCHECK_GE(nbits, 0);
+      DRACO_DCHECK_LE(nbits, 32);
       uint32_t value = 0;
       for (int32_t bit = 0; bit < nbits; ++bit)
         value |= GetBit() << bit;

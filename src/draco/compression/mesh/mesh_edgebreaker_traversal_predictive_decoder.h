@@ -16,6 +16,8 @@
 #ifndef DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_TRAVERSAL_PREDICTIVE_DECODER_H_
 #define DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_TRAVERSAL_PREDICTIVE_DECODER_H_
 
+#include "draco/draco_features.h"
+
 #include "draco/compression/mesh/mesh_edgebreaker_traversal_decoder.h"
 
 namespace draco {

@@ -85,8 +85,8 @@ class EncoderBuffer {
 
     // Write |nbits| of |data| into the bit buffer.
     void PutBits(uint32_t data, int32_t nbits) {
-      DCHECK_GE(nbits, 0);
-      DCHECK_LE(nbits, 32);
+      DRACO_DCHECK_GE(nbits, 0);
+      DRACO_DCHECK_LE(nbits, 32);
       for (int32_t bit = 0; bit < nbits; ++bit)
         PutBit((data >> bit) & 1);
     }

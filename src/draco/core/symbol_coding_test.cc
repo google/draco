@@ -24,7 +24,7 @@ namespace draco {
 
 class SymbolCodingTest : public ::testing::Test {
  protected:
-  SymbolCodingTest() : bitstream_version_(kDracoBitstreamVersion) {}
+  SymbolCodingTest() : bitstream_version_(kDracoMeshBitstreamVersion) {}
 
   template <class SignedIntTypeT>
   void TestConvertToSymbolAndBack(SignedIntTypeT x) {

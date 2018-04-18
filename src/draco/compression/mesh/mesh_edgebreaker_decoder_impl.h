@@ -18,6 +18,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "draco/draco_features.h"
+
 #include "draco/compression/attributes/mesh_attribute_indices_encoding_data.h"
 #include "draco/compression/attributes/mesh_traversal_sequencer.h"
 #include "draco/compression/mesh/mesh_edgebreaker_decoder_impl_interface.h"

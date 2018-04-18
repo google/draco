@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/metadata/geometry_metadata.h"
+#include <utility>
 
 namespace draco {
 

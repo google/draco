@@ -18,6 +18,8 @@
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_PREDICTION_SCHEME_DECODER_FACTORY_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_PREDICTION_SCHEME_DECODER_FACTORY_H_
 
+#include "draco/draco_features.h"
+
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_constrained_multi_parallelogram_decoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_decoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_multi_parallelogram_decoder.h"

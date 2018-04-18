@@ -92,7 +92,7 @@ class MeshStripifier {
     int longest_strip_id = -1;
     int longest_strip_length = 0;
     for (int i = 0; i < 3; ++i) {
-      GenerateStripsFromCroner(i, first_ci + i);
+      GenerateStripsFromCorner(i, first_ci + i);
       if (strip_faces_[i].size() > longest_strip_length) {
         longest_strip_length = strip_faces_[i].size();
         longest_strip_id = i;
@@ -157,7 +157,7 @@ class MeshStripifier {
     return oci;
   }
 
-  void GenerateStripsFromCroner(int local_strip_id, CornerIndex ci);
+  void GenerateStripsFromCorner(int local_strip_id, CornerIndex ci);
 
   const Mesh *mesh_;
   std::unique_ptr<CornerTable> corner_table_;

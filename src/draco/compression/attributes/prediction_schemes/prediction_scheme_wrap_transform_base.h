@@ -73,7 +73,7 @@ class PredictionSchemeWrapTransformBase {
 
   // TODO(hemmer): Consider refactoring to avoid this dummy.
   int quantization_bits() const {
-    DCHECK(false);
+    DRACO_DCHECK(false);
     return -1;
   }
 

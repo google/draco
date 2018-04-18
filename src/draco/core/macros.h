@@ -17,6 +17,8 @@
 
 #include "assert.h"
 
+#include "draco/draco_features.h"
+
 #ifdef ANDROID_LOGGING
 #include <android/log.h>
 #define LOG_TAG "draco"
@@ -29,24 +31,6 @@
 
 #include <iostream>
 namespace draco {
-
-#define CHECK(x) (assert(x));
-#define CHECK_EQ(a, b) assert((a) == (b));
-#define CHECK_NE(a, b) assert((a) != (b));
-#define CHECK_GE(a, b) assert((a) >= (b));
-#define CHECK_GT(a, b) assert((a) > (b));
-#define CHECK_LE(a, b) assert((a) <= (b));
-#define CHECK_LT(a, b) assert((a) < (b));
-#define CHECK_NOTNULL(x) assert((x) != NULL);
-
-#define DCHECK(x) (assert(x));
-#define DCHECK_EQ(a, b) assert((a) == (b));
-#define DCHECK_NE(a, b) assert((a) != (b));
-#define DCHECK_GE(a, b) assert((a) >= (b));
-#define DCHECK_GT(a, b) assert((a) > (b));
-#define DCHECK_LE(a, b) assert((a) <= (b));
-#define DCHECK_LT(a, b) assert((a) < (b));
-#define DCHECK_NOTNULL(x) assert((x) != NULL);
 
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName &) = delete;     \
@@ -65,6 +49,26 @@ namespace draco {
 #endif
 
 }  // namespace draco
+
+#ifdef DRACO_DEBUG
+#define DRACO_DCHECK(x) (assert(x));
+#define DRACO_DCHECK_EQ(a, b) assert((a) == (b));
+#define DRACO_DCHECK_NE(a, b) assert((a) != (b));
+#define DRACO_DCHECK_GE(a, b) assert((a) >= (b));
+#define DRACO_DCHECK_GT(a, b) assert((a) > (b));
+#define DRACO_DCHECK_LE(a, b) assert((a) <= (b));
+#define DRACO_DCHECK_LT(a, b) assert((a) < (b));
+#define DRACO_DCHECK_NOTNULL(x) assert((x) != NULL);
+#else
+#define DRACO_DCHECK(x)
+#define DRACO_DCHECK_EQ(a, b)
+#define DRACO_DCHECK_NE(a, b)
+#define DRACO_DCHECK_GE(a, b)
+#define DRACO_DCHECK_GT(a, b)
+#define DRACO_DCHECK_LE(a, b)
+#define DRACO_DCHECK_LT(a, b)
+#define DRACO_DCHECK_NOTNULL(x)
+#endif
 
 // Helper macros for concatenating macro values.
 #define DRACO_MACROS_IMPL_CONCAT_INNER_(x, y) x##y

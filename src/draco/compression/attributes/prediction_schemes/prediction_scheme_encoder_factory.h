@@ -104,7 +104,7 @@ CreatePredictionSchemeForEncoder(PredictionSchemeMethod method, int att_id,
     auto ret = CreateMeshPredictionScheme<
         MeshEncoder, PredictionSchemeEncoder<DataTypeT, TransformT>,
         MeshPredictionSchemeEncoderFactory<DataTypeT>>(
-        mesh_encoder, method, att_id, transform, kDracoBitstreamVersion);
+        mesh_encoder, method, att_id, transform, kDracoMeshBitstreamVersion);
     if (ret)
       return ret;
     // Otherwise try to create another prediction scheme.

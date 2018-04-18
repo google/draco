@@ -21,6 +21,7 @@
 #include "draco/attributes/geometry_indices.h"
 #include "draco/core/draco_index_type_vector.h"
 #include "draco/core/macros.h"
+#include "draco/mesh/valence_cache.h"
 
 namespace draco {
 
@@ -94,8 +95,8 @@ class CornerTable {
     return ConfidentVertex(corner);
   }
   inline VertexIndex ConfidentVertex(CornerIndex corner) const {
-    DCHECK_GE(corner.value(), 0);
-    DCHECK_LT(corner.value(), num_corners());
+    DRACO_DCHECK_GE(corner.value(), 0);
+    DRACO_DCHECK_LT(corner.value(), num_corners());
     return corner_to_vertex_map_[corner];
   }
   inline FaceIndex Face(CornerIndex corner) const {
@@ -124,8 +125,7 @@ class CornerTable {
   }
 
   void SetFaceData(FaceIndex face, FaceType data) {
-    DCHECK_EQ(vertex_valence_cache_8_bit_.size(), 0);
-    DCHECK_EQ(vertex_valence_cache_32_bit_.size(), 0);
+    DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
     const CornerIndex first_corner = FirstCorner(face);
     for (int i = 0; i < 3; ++i) {
       corner_to_vertex_map_[first_corner + i] = data[i];
@@ -156,31 +156,6 @@ class CornerTable {
   int Valence(VertexIndex v) const;
   // Same as above but does not check for validity and does not return -1
   int ConfidentValence(VertexIndex v) const;
-  // Same as above, do not call before CacheValences() /
-  // CacheValencesInaccurate().
-  inline int8_t ValenceFromCacheInaccurate(VertexIndex v) const {
-    DCHECK_EQ(vertex_valence_cache_8_bit_.size(), num_vertices());
-    if (v == kInvalidVertexIndex || v.value() >= num_vertices())
-      return -1;
-    return ConfidentValenceFromCacheInaccurate(v);
-  }
-  inline int8_t ConfidentValenceFromCacheInaccurate(VertexIndex v) const {
-    DCHECK_LT(v.value(), num_vertices());
-    DCHECK_EQ(vertex_valence_cache_8_bit_.size(), num_vertices());
-    return vertex_valence_cache_8_bit_[v];
-  }
-  // TODO(scottgodfrey) Add unit tests for ValenceCache functions.
-  inline int32_t ValenceFromCache(VertexIndex v) const {
-    DCHECK_EQ(vertex_valence_cache_32_bit_.size(), num_vertices());
-    if (v == kInvalidVertexIndex || v.value() >= num_vertices())
-      return -1;
-    return ConfidentValenceFromCache(v);
-  }
-  inline int32_t ConfidentValenceFromCache(VertexIndex v) const {
-    DCHECK_LT(v.value(), num_vertices());
-    DCHECK_EQ(vertex_valence_cache_32_bit_.size(), num_vertices());
-    return vertex_valence_cache_32_bit_[v];
-  }
   // Returns the valence of the vertex at the given corner.
   inline int Valence(CornerIndex c) const {
     if (c == kInvalidCornerIndex)
@@ -188,30 +163,8 @@ class CornerTable {
     return ConfidentValence(c);
   }
   inline int ConfidentValence(CornerIndex c) const {
-    DCHECK_LT(c.value(), num_corners());
+    DRACO_DCHECK_LT(c.value(), num_corners());
     return ConfidentValence(ConfidentVertex(c));
-  }
-
-  // Do not call before CacheValences() / CacheValencesInaccurate().
-  inline int8_t ValenceFromCacheInaccurate(CornerIndex c) const {
-    if (c == kInvalidCornerIndex)
-      return -1;
-    return ValenceFromCacheInaccurate(Vertex(c));
-  }
-  inline int32_t ValenceFromCache(CornerIndex c) const {
-    if (c == kInvalidCornerIndex)
-      return -1;
-    return ValenceFromCache(Vertex(c));
-  }
-  inline int8_t ConfidentValenceFromCacheInaccurate(CornerIndex c) const {
-    DCHECK_GE(c.value(), 0);
-    DCHECK_LT(c.value(), num_corners());
-    return ConfidentValenceFromCacheInaccurate(ConfidentVertex(c));
-  }
-  inline int32_t ConfidentValenceFromCache(CornerIndex c) const {
-    DCHECK_GE(c.value(), 0);
-    DCHECK_LT(c.value(), num_corners());
-    return ConfidentValenceFromCache(ConfidentVertex(c));
   }
 
   // Returns true if the specified vertex is on a boundary.
@@ -276,15 +229,13 @@ class CornerTable {
   // that the indices are valid.
   inline void SetOppositeCorner(CornerIndex corner_id,
                                 CornerIndex opp_corner_id) {
-    DCHECK_EQ(vertex_valence_cache_8_bit_.size(), 0);
-    DCHECK_EQ(vertex_valence_cache_32_bit_.size(), 0);
+    DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
     opposite_corners_[corner_id] = opp_corner_id;
   }
 
   // Sets opposite corners for both input corners.
   inline void SetOppositeCorners(CornerIndex corner_0, CornerIndex corner_1) {
-    DCHECK_EQ(vertex_valence_cache_8_bit_.size(), 0);
-    DCHECK_EQ(vertex_valence_cache_32_bit_.size(), 0);
+    DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
     if (corner_0 != kInvalidCornerIndex)
       SetOppositeCorner(corner_0, corner_1);
     if (corner_1 != kInvalidCornerIndex)
@@ -293,14 +244,12 @@ class CornerTable {
 
   // Updates mapping between a corner and a vertex.
   inline void MapCornerToVertex(CornerIndex corner_id, VertexIndex vert_id) {
-    DCHECK_EQ(vertex_valence_cache_8_bit_.size(), 0);
-    DCHECK_EQ(vertex_valence_cache_32_bit_.size(), 0);
+    DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
     corner_to_vertex_map_[corner_id] = vert_id;
   }
 
   VertexIndex AddNewVertex() {
-    DCHECK_EQ(vertex_valence_cache_8_bit_.size(), 0);
-    DCHECK_EQ(vertex_valence_cache_32_bit_.size(), 0);
+    DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
     // Add a new invalid vertex.
     vertex_corners_.push_back(kInvalidCornerIndex);
     return VertexIndex(vertex_corners_.size() - 1);
@@ -308,8 +257,7 @@ class CornerTable {
 
   // Sets a new left most corner for a given vertex.
   void SetLeftMostCorner(VertexIndex vert, CornerIndex corner) {
-    DCHECK_EQ(vertex_valence_cache_8_bit_.size(), 0);
-    DCHECK_EQ(vertex_valence_cache_32_bit_.size(), 0);
+    DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
     if (vert != kInvalidVertexIndex)
       vertex_corners_[vert] = corner;
   }
@@ -318,8 +266,7 @@ class CornerTable {
   // called in cases where the mapping may be invalid (e.g. when the corner
   // table was constructed manually).
   void UpdateVertexToCornerMap(VertexIndex vert) {
-    DCHECK_EQ(vertex_valence_cache_8_bit_.size(), 0);
-    DCHECK_EQ(vertex_valence_cache_32_bit_.size(), 0);
+    DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
     const CornerIndex first_c = vertex_corners_[vert];
     if (first_c == kInvalidCornerIndex)
       return;  // Isolated vertex.
@@ -338,15 +285,13 @@ class CornerTable {
   // ensure that no corner is mapped beyond the range of the new number of
   // vertices.
   inline void SetNumVertices(int num_vertices) {
-    DCHECK_EQ(vertex_valence_cache_8_bit_.size(), 0);
-    DCHECK_EQ(vertex_valence_cache_32_bit_.size(), 0);
+    DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
     vertex_corners_.resize(num_vertices, kInvalidCornerIndex);
   }
 
   // Makes a vertex isolated (not attached to any corner).
   void MakeVertexIsolated(VertexIndex vert) {
-    DCHECK_EQ(vertex_valence_cache_8_bit_.size(), 0);
-    DCHECK_EQ(vertex_valence_cache_32_bit_.size(), 0);
+    DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
     vertex_corners_[vert] = kInvalidCornerIndex;
   }
 
@@ -357,8 +302,7 @@ class CornerTable {
 
   // Makes a given face invalid (all corners are marked as invalid).
   void MakeFaceInvalid(FaceIndex face) {
-    DCHECK_EQ(vertex_valence_cache_8_bit_.size(), 0);
-    DCHECK_EQ(vertex_valence_cache_32_bit_.size(), 0);
+    DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
     if (face != kInvalidFaceIndex) {
       const CornerIndex first_corner = FirstCorner(face);
       for (int i = 0; i < 3; ++i) {
@@ -371,44 +315,14 @@ class CornerTable {
   // the provided vertex.
   void UpdateFaceToVertexMap(const VertexIndex vertex);
 
-  // Collect the valence for all vertices so they can be reused later.  The
-  // 'inaccurate' versions of this family of functions clips the true valence
-  // of the vertices to 8 signed bits as a space optimization.  This clipping
-  // will lead to occasionally wrong results.  If accurate results are required
-  // under all circumstances, do not use the 'inaccurate' version or else
-  // use it and fetch the correct result in the event the value appears clipped.
-  // The topology of the mesh should be a constant when Valence Cache functions
-  // are being used.  Modification of the mesh while cache(s) are filled will
-  // not guarantee proper results on subsequent calls unless they are rebuilt.
-  void CacheValencesInaccurate() const {
-    if (vertex_valence_cache_8_bit_.size() == 0) {
-      const VertexIndex vertex_count = VertexIndex(num_vertices());
-      vertex_valence_cache_8_bit_.resize(vertex_count.value());
-      for (VertexIndex v = VertexIndex(0); v < vertex_count; v += 1)
-        vertex_valence_cache_8_bit_[v] = static_cast<int8_t>(
-            (std::min)(static_cast<int32_t>(std::numeric_limits<int8_t>::max()),
-                       Valence(v)));
-    }
-  }
-  void CacheValences() const {
-    if (vertex_valence_cache_32_bit_.size() == 0) {
-      const VertexIndex vertex_count = VertexIndex(num_vertices());
-      vertex_valence_cache_32_bit_.resize(vertex_count.value());
-      for (VertexIndex v = VertexIndex(0); v < vertex_count; v += 1)
-        vertex_valence_cache_32_bit_[v] = Valence(v);
-    }
-  }
-
-  // Clear the cache of valences and deallocate the memory.
-  void ClearValenceCacheInaccurate() const {
-    vertex_valence_cache_8_bit_.clear();
-    // Force erasure.
-    IndexTypeVector<VertexIndex, int8_t>().swap(vertex_valence_cache_8_bit_);
-  }
-  void ClearValenceCache() const {
-    vertex_valence_cache_32_bit_.clear();
-    // Force erasure.
-    IndexTypeVector<VertexIndex, int32_t>().swap(vertex_valence_cache_32_bit_);
+  // Allows access to an internal object for caching valences.  The object can
+  // be instructed to cache or uncache all valences and then its interfaces
+  // queried directly for valences with differing performance/confidence
+  // qualities.  If the mesh or table is modified the cache should be discarded
+  // and not relied on as it does not automatically update or invalidate for
+  // performance reasons.
+  const draco::ValenceCache<CornerTable> &GetValenceCache() const {
+    return valence_cache_;
   }
 
  private:
@@ -432,174 +346,7 @@ class CornerTable {
   int num_isolated_vertices_;
   IndexTypeVector<VertexIndex, VertexIndex> non_manifold_vertex_parents_;
 
-  // Retain valences and clip them to char size.
-  mutable IndexTypeVector<VertexIndex, int8_t> vertex_valence_cache_8_bit_;
-  mutable IndexTypeVector<VertexIndex, int32_t> vertex_valence_cache_32_bit_;
-};
-
-// TODO(ostava): All these iterators will be moved into a new file in a separate
-// CL.
-
-// Class for iterating over vertices in a 1-ring around the specified vertex.
-class VertexRingIterator
-    : public std::iterator<std::forward_iterator_tag, VertexIndex> {
- public:
-  // std::iterator interface requires a default constructor.
-  VertexRingIterator()
-      : corner_table_(nullptr),
-        start_corner_(kInvalidCornerIndex),
-        corner_(start_corner_),
-        left_traversal_(true) {}
-
-  // Create the iterator from the provided corner table and the central vertex.
-  VertexRingIterator(const CornerTable *table, VertexIndex vert_id)
-      : corner_table_(table),
-        start_corner_(table->LeftMostCorner(vert_id)),
-        corner_(start_corner_),
-        left_traversal_(true) {}
-
-  // Gets the last visited ring vertex.
-  VertexIndex Vertex() const {
-    CornerIndex ring_corner = left_traversal_ ? corner_table_->Previous(corner_)
-                                              : corner_table_->Next(corner_);
-    return corner_table_->Vertex(ring_corner);
-  }
-
-  // Returns true when all ring vertices have been visited.
-  bool End() const { return corner_ == kInvalidCornerIndex; }
-
-  // Proceeds to the next ring vertex if possible.
-  void Next() {
-    if (left_traversal_) {
-      corner_ = corner_table_->SwingLeft(corner_);
-      if (corner_ == kInvalidCornerIndex) {
-        // Open boundary reached.
-        corner_ = start_corner_;
-        left_traversal_ = false;
-      } else if (corner_ == start_corner_) {
-        // End reached.
-        corner_ = kInvalidCornerIndex;
-      }
-    } else {
-      // Go to the right until we reach a boundary there (no explicit check
-      // is needed in this case).
-      corner_ = corner_table_->SwingRight(corner_);
-    }
-  }
-
-  // std::iterator interface.
-  value_type operator*() const { return Vertex(); }
-  VertexRingIterator &operator++() {
-    Next();
-    return *this;
-  }
-  VertexRingIterator operator++(int) {
-    const VertexRingIterator result = *this;
-    ++(*this);
-    return result;
-  }
-  bool operator!=(const VertexRingIterator &other) const {
-    return corner_ != other.corner_ || start_corner_ != other.start_corner_;
-  }
-  bool operator==(const VertexRingIterator &other) const {
-    return !this->operator!=(other);
-  }
-
-  // Helper function for getting a valid end iterator.
-  static VertexRingIterator EndIterator(VertexRingIterator other) {
-    VertexRingIterator ret = other;
-    ret.corner_ = kInvalidCornerIndex;
-    return ret;
-  }
-
- private:
-  const CornerTable *corner_table_;
-  // The first processed corner.
-  CornerIndex start_corner_;
-  // The last processed corner.
-  CornerIndex corner_;
-  // Traversal direction.
-  bool left_traversal_;
-};
-
-// Class for iterating over faces adjacent to the specified input face.
-class FaceAdjacencyIterator
-    : public std::iterator<std::forward_iterator_tag, FaceIndex> {
- public:
-  // std::iterator interface requires a default constructor.
-  FaceAdjacencyIterator()
-      : corner_table_(nullptr),
-        start_corner_(kInvalidCornerIndex),
-        corner_(start_corner_) {}
-
-  // Create the iterator from the provided corner table and the central vertex.
-  FaceAdjacencyIterator(const CornerTable *table, FaceIndex face_id)
-      : corner_table_(table),
-        start_corner_(table->FirstCorner(face_id)),
-        corner_(start_corner_) {
-    // We need to start with a corner that has a valid opposite face (if
-    // there is any such corner).
-    if (corner_table_->Opposite(corner_) == kInvalidCornerIndex)
-      FindNextFaceNeighbor();
-  }
-
-  // Gets the last visited adjacent face.
-  FaceIndex Face() const {
-    return corner_table_->Face(corner_table_->Opposite(corner_));
-  }
-
-  // Returns true when all adjacent faces have been visited.
-  bool End() const { return corner_ == kInvalidCornerIndex; }
-
-  // Proceeds to the next adjacent face if possible.
-  void Next() { FindNextFaceNeighbor(); }
-
-  // std::iterator interface.
-  value_type operator*() const { return Face(); }
-  FaceAdjacencyIterator &operator++() {
-    Next();
-    return *this;
-  }
-  FaceAdjacencyIterator operator++(int) {
-    const FaceAdjacencyIterator result = *this;
-    ++(*this);
-    return result;
-  }
-  bool operator!=(const FaceAdjacencyIterator &other) const {
-    return corner_ != other.corner_ || start_corner_ != other.start_corner_;
-  }
-  bool operator==(const FaceAdjacencyIterator &other) const {
-    return !this->operator!=(other);
-  }
-
-  // Helper function for getting a valid end iterator.
-  static FaceAdjacencyIterator EndIterator(FaceAdjacencyIterator other) {
-    FaceAdjacencyIterator ret = other;
-    ret.corner_ = kInvalidCornerIndex;
-    return ret;
-  }
-
- private:
-  // Finds the next corner with a valid opposite face.
-  void FindNextFaceNeighbor() {
-    while (corner_ != kInvalidCornerIndex) {
-      corner_ = corner_table_->Next(corner_);
-      if (corner_ == start_corner_) {
-        corner_ = kInvalidCornerIndex;
-        return;
-      }
-      if (corner_table_->Opposite(corner_) != kInvalidCornerIndex) {
-        // Valid opposite face.
-        return;
-      }
-    }
-  }
-
-  const CornerTable *corner_table_;
-  // The first processed corner.
-  CornerIndex start_corner_;
-  // The last processed corner.
-  CornerIndex corner_;
+  draco::ValenceCache<CornerTable> valence_cache_;
 };
 
 // A special case to denote an invalid corner table triangle.

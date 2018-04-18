@@ -59,7 +59,7 @@ class MeshPredictionSchemeGeometricNormalPredictorBase {
 
  protected:
   VectorD<int64_t, 3> GetPositionForDataId(int data_id) const {
-    DCHECK(this->IsInitialized());
+    DRACO_DCHECK(this->IsInitialized());
     const auto point_id = entry_to_point_id_map_[data_id];
     const auto pos_val_id = pos_attribute_->mapped_index(point_id);
     VectorD<int64_t, 3> pos;
@@ -67,7 +67,7 @@ class MeshPredictionSchemeGeometricNormalPredictorBase {
     return pos;
   }
   VectorD<int64_t, 3> GetPositionForCorner(CornerIndex ci) const {
-    DCHECK(this->IsInitialized());
+    DRACO_DCHECK(this->IsInitialized());
     const auto corner_table = mesh_data_.corner_table();
     const auto vert_id = corner_table->Vertex(ci).value();
     const auto data_id = mesh_data_.vertex_to_data_map()->at(vert_id);
@@ -75,7 +75,7 @@ class MeshPredictionSchemeGeometricNormalPredictorBase {
   }
   VectorD<int32_t, 2> GetOctahedralCoordForDataId(int data_id,
                                                   const DataTypeT *data) const {
-    DCHECK(this->IsInitialized());
+    DRACO_DCHECK(this->IsInitialized());
     const int data_offset = data_id * 2;
     return VectorD<int32_t, 2>(data[data_offset], data[data_offset + 1]);
   }

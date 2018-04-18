@@ -108,15 +108,46 @@ bool AttributeQuantizationTransform::EncodeParameters(
 
 std::unique_ptr<PointAttribute>
 AttributeQuantizationTransform::GeneratePortableAttribute(
+    const PointAttribute &attribute, int num_points) const {
+  DRACO_DCHECK(is_initialized());
+
+  // Allocate portable attribute.
+  const int num_entries = num_points;
+  const int num_components = attribute.num_components();
+  std::unique_ptr<PointAttribute> portable_attribute =
+      InitPortableAttribute(num_entries, num_components, 0, attribute, true);
+
+  // Quantize all values using the order given by point_ids.
+  int32_t *const portable_attribute_data = reinterpret_cast<int32_t *>(
+      portable_attribute->GetAddress(AttributeValueIndex(0)));
+  const uint32_t max_quantized_value = (1 << (quantization_bits_)) - 1;
+  Quantizer quantizer;
+  quantizer.Init(range(), max_quantized_value);
+  int32_t dst_index = 0;
+  const std::unique_ptr<float[]> att_val(new float[num_components]);
+  for (PointIndex i(0); i < num_points; ++i) {
+    const AttributeValueIndex att_val_id = attribute.mapped_index(i);
+    attribute.GetValue(att_val_id, att_val.get());
+    for (int c = 0; c < num_components; ++c) {
+      const float value = (att_val[c] - min_values()[c]);
+      const int32_t q_val = quantizer.QuantizeFloat(value);
+      portable_attribute_data[dst_index++] = q_val;
+    }
+  }
+  return portable_attribute;
+}
+
+std::unique_ptr<PointAttribute>
+AttributeQuantizationTransform::GeneratePortableAttribute(
     const PointAttribute &attribute, const std::vector<PointIndex> &point_ids,
     int num_points) const {
-  DCHECK(is_initialized());
+  DRACO_DCHECK(is_initialized());
 
   // Allocate portable attribute.
   const int num_entries = point_ids.size();
   const int num_components = attribute.num_components();
-  std::unique_ptr<PointAttribute> portable_attribute =
-      InitPortableAttribute(num_entries, num_components, num_points, attribute);
+  std::unique_ptr<PointAttribute> portable_attribute = InitPortableAttribute(
+      num_entries, num_components, num_points, attribute, true);
 
   // Quantize all values using the order given by point_ids.
   int32_t *const portable_attribute_data = reinterpret_cast<int32_t *>(

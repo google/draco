@@ -65,14 +65,14 @@ class PredictionSchemeNormalOctahedronEncodingTransform
   inline void ComputeCorrection(const DataType *orig_vals,
                                 const DataType *pred_vals,
                                 CorrType *out_corr_vals) const {
-    DCHECK_LE(pred_vals[0], this->center_value() * 2);
-    DCHECK_LE(pred_vals[1], this->center_value() * 2);
-    DCHECK_LE(orig_vals[0], this->center_value() * 2);
-    DCHECK_LE(orig_vals[1], this->center_value() * 2);
-    DCHECK_LE(0, pred_vals[0]);
-    DCHECK_LE(0, pred_vals[1]);
-    DCHECK_LE(0, orig_vals[0]);
-    DCHECK_LE(0, orig_vals[1]);
+    DRACO_DCHECK_LE(pred_vals[0], this->center_value() * 2);
+    DRACO_DCHECK_LE(pred_vals[1], this->center_value() * 2);
+    DRACO_DCHECK_LE(orig_vals[0], this->center_value() * 2);
+    DRACO_DCHECK_LE(orig_vals[1], this->center_value() * 2);
+    DRACO_DCHECK_LE(0, pred_vals[0]);
+    DRACO_DCHECK_LE(0, pred_vals[1]);
+    DRACO_DCHECK_LE(0, orig_vals[0]);
+    DRACO_DCHECK_LE(0, orig_vals[1]);
 
     const Point2 orig = Point2(orig_vals[0], orig_vals[1]);
     const Point2 pred = Point2(pred_vals[0], pred_vals[1]);

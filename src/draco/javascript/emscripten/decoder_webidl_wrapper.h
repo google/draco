@@ -79,6 +79,62 @@ class DracoFloat32Array {
   std::vector<float> values_;
 };
 
+class DracoInt8Array {
+ public:
+  DracoInt8Array();
+
+  int8_t GetValue(int index) const;
+  bool SetValues(const int8_t *values, int count);
+
+  void SetValue(int index, int8_t val) { values_[index] = val; }
+
+  int size() const { return values_.size(); }
+
+ private:
+  std::vector<int8_t> values_;
+};
+
+class DracoUInt8Array {
+ public:
+  DracoUInt8Array();
+  uint8_t GetValue(int index) const;
+  bool SetValues(const uint8_t *values, int count);
+
+  void SetValue(int index, uint8_t val) { values_[index] = val; }
+  int size() const { return values_.size(); }
+
+ private:
+  std::vector<uint8_t> values_;
+};
+
+class DracoInt16Array {
+ public:
+  DracoInt16Array();
+
+  int16_t GetValue(int index) const;
+  bool SetValues(const int16_t *values, int count);
+
+  void SetValue(int index, int16_t val) { values_[index] = val; }
+
+  int size() const { return values_.size(); }
+
+ private:
+  std::vector<int16_t> values_;
+};
+
+class DracoUInt16Array {
+ public:
+  DracoUInt16Array();
+  uint16_t GetValue(int index) const;
+  bool SetValues(const uint16_t *values, int count);
+
+  void SetValue(int index, uint16_t val) { values_[index] = val; }
+  int size() const { return values_.size(); }
+
+ private:
+  std::vector<uint16_t> values_;
+};
+
 class DracoInt32Array {
  public:
   DracoInt32Array();
@@ -92,6 +148,19 @@ class DracoInt32Array {
 
  private:
   std::vector<int32_t> values_;
+};
+
+class DracoUInt32Array {
+ public:
+  DracoUInt32Array();
+  uint32_t GetValue(int index) const;
+  bool SetValues(const uint32_t *values, int count);
+
+  void SetValue(int index, uint32_t val) { values_[index] = val; }
+  int size() const { return values_.size(); }
+
+ private:
+  std::vector<uint32_t> values_;
 };
 
 // Class used by emscripten WebIDL Binder [1] to wrap calls to decode Draco
@@ -159,7 +228,31 @@ class Decoder {
                                             const draco::PointAttribute &pa,
                                             DracoFloat32Array *out_values);
 
-  // Returns integer attribute values for all point ids of the point cloud.
+  // Returns int8_t attribute values for all point ids of the point cloud.
+  // I.e., the |out_values| is going to contain m.num_points() entries.
+  static bool GetAttributeInt8ForAllPoints(const draco::PointCloud &pc,
+                                           const draco::PointAttribute &pa,
+                                           DracoInt8Array *out_values);
+
+  // Returns uint8_t attribute values for all point ids of the point cloud.
+  // I.e., the |out_values| is going to contain m.num_points() entries.
+  static bool GetAttributeUInt8ForAllPoints(const draco::PointCloud &pc,
+                                            const draco::PointAttribute &pa,
+                                            DracoUInt8Array *out_values);
+
+  // Returns int16_t attribute values for all point ids of the point cloud.
+  // I.e., the |out_values| is going to contain m.num_points() entries.
+  static bool GetAttributeInt16ForAllPoints(const draco::PointCloud &pc,
+                                            const draco::PointAttribute &pa,
+                                            DracoInt16Array *out_values);
+
+  // Returns uint16_t attribute values for all point ids of the point cloud.
+  // I.e., the |out_values| is going to contain m.num_points() entries.
+  static bool GetAttributeUInt16ForAllPoints(const draco::PointCloud &pc,
+                                             const draco::PointAttribute &pa,
+                                             DracoUInt16Array *out_values);
+
+  // Returns int32_t attribute values for all point ids of the point cloud.
   // I.e., the |out_values| is going to contain m.num_points() entries.
   static bool GetAttributeInt32ForAllPoints(const draco::PointCloud &pc,
                                             const draco::PointAttribute &pa,
@@ -170,6 +263,12 @@ class Decoder {
                                           const draco::PointAttribute &pa,
                                           DracoInt32Array *out_values);
 
+  // Returns uint32_t attribute values for all point ids of the point cloud.
+  // I.e., the |out_values| is going to contain m.num_points() entries.
+  static bool GetAttributeUInt32ForAllPoints(const draco::PointCloud &pc,
+                                             const draco::PointAttribute &pa,
+                                             DracoUInt32Array *out_values);
+
   // Tells the decoder to skip an attribute transform (e.g. dequantization) for
   // an attribute of a given type.
   void SkipAttributeTransform(draco_GeometryAttribute_Type att_type);
@@ -179,6 +278,42 @@ class Decoder {
                                               long att_id) const;
 
  private:
+  template <class DracoArrayT, class ValueTypeT>
+  static bool GetAttributeDataForAllPoints(const draco::PointCloud &pc,
+                                           const draco::PointAttribute &pa,
+                                           draco::DataType draco_signed_type,
+                                           draco::DataType draco_unsigned_type,
+                                           DracoArrayT *out_values) {
+    const int components = pa.num_components();
+    const int num_points = pc.num_points();
+    const int num_entries = num_points * components;
+
+    if ((pa.data_type() == draco_signed_type ||
+         pa.data_type() == draco_unsigned_type) &&
+        pa.is_mapping_identity()) {
+      // Copy values directly to the output vector.
+      out_values->SetValues(reinterpret_cast<const ValueTypeT *>(
+                                pa.GetAddress(draco::AttributeValueIndex(0))),
+                            num_entries);
+      return true;
+    }
+
+    // Copy values one by one.
+    std::vector<ValueTypeT> values(components);
+    int entry_id = 0;
+
+    out_values->SetValues(nullptr, num_entries);
+    for (draco::PointIndex i(0); i < num_points; ++i) {
+      const draco::AttributeValueIndex val_index = pa.mapped_index(i);
+      if (!pa.ConvertValue<ValueTypeT>(val_index, &values[0]))
+        return false;
+      for (int j = 0; j < components; ++j) {
+        out_values->SetValue(entry_id++, values[j]);
+      }
+    }
+    return true;
+  }
+
   draco::Decoder decoder_;
   draco::Status last_status_;
 };

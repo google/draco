@@ -17,6 +17,9 @@
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_TEX_COORDS_DECODER_H_
 
 #include <math.h>
+
+#include "draco/draco_features.h"
+
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
 #include "draco/core/bit_coders/rans_bit_decoder.h"
 #include "draco/core/varint_decoding.h"
@@ -67,7 +70,7 @@ class MeshPredictionSchemeTexCoordsDecoder
   int GetNumParentAttributes() const override { return 1; }
 
   GeometryAttribute::Type GetParentAttributeType(int i) const override {
-    DCHECK_EQ(i, 0);
+    DRACO_DCHECK_EQ(i, 0);
     (void)i;
     return GeometryAttribute::POSITION;
   }

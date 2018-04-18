@@ -52,6 +52,8 @@
 
 #include <ostream>
 
+#include "draco/draco_features.h"
+
 namespace draco {
 
 #define DEFINE_NEW_DRACO_INDEX_TYPE(value_type, name) \

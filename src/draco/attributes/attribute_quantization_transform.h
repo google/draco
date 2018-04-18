@@ -52,7 +52,13 @@ class AttributeQuantizationTransform : public AttributeTransform {
   float range() const { return range_; }
   bool is_initialized() const { return quantization_bits_ != -1; }
 
-  // Create portable attribute.
+  // Create portable attribute using 1:1 mapping between points in the input and
+  // output attribute.
+  std::unique_ptr<PointAttribute> GeneratePortableAttribute(
+      const PointAttribute &attribute, int num_points) const;
+
+  // Create portable attribute using custom mapping between input and output
+  // points.
   std::unique_ptr<PointAttribute> GeneratePortableAttribute(
       const PointAttribute &attribute, const std::vector<PointIndex> &point_ids,
       int num_points) const;

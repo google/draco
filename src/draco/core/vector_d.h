@@ -43,39 +43,39 @@ class VectorD {
   // explicit VectorD(Args... args) : v_({args...}) {}
 
   VectorD(const CoeffT &c0, const CoeffT &c1) : v_({{c0, c1}}) {
-    CHECK_EQ(dimension_t, 2);
+    DRACO_DCHECK_EQ(dimension_t, 2);
     v_[0] = c0;
     v_[1] = c1;
   }
 
   VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2)
       : v_({{c0, c1, c2}}) {
-    CHECK_EQ(dimension_t, 3);
+    DRACO_DCHECK_EQ(dimension_t, 3);
   }
 
   VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2,
           const CoeffT &c3)
       : v_({{c0, c1, c2, c3}}) {
-    CHECK_EQ(dimension_t, 4);
+    DRACO_DCHECK_EQ(dimension_t, 4);
   }
 
   VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2,
           const CoeffT &c3, const CoeffT &c4)
       : v_({{c0, c1, c2, c3, c4}}) {
-    CHECK_EQ(dimension_t, 5);
+    DRACO_DCHECK_EQ(dimension_t, 5);
   }
 
   VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2,
           const CoeffT &c3, const CoeffT &c4, const CoeffT &c5)
       : v_({{c0, c1, c2, c3, c4, c5}}) {
-    CHECK_EQ(dimension_t, 6);
+    DRACO_DCHECK_EQ(dimension_t, 6);
   }
 
   VectorD(const CoeffT &c0, const CoeffT &c1, const CoeffT &c2,
           const CoeffT &c3, const CoeffT &c4, const CoeffT &c5,
           const CoeffT &c6)
       : v_({{c0, c1, c2, c3, c4, c5, c6}}) {
-    CHECK_EQ(dimension_t, 7);
+    DRACO_DCHECK_EQ(dimension_t, 7);
   }
 
   VectorD(const Self &o) {

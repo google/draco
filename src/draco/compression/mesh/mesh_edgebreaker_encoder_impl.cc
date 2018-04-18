@@ -28,7 +28,7 @@
 #include "draco/mesh/prediction_degree_traverser.h"
 
 namespace draco {
-// TODO(scottgodfrey) consider converting 'typedef' to 'using' and deduplicate.
+// TODO() consider converting 'typedef' to 'using' and deduplicate.
 typedef CornerIndex CornerIndex;
 typedef FaceIndex FaceIndex;
 typedef VertexIndex VertexIndex;
@@ -267,8 +267,10 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   } else {
     corner_table_ = CreateCornerTableFromPositionAttribute(mesh_);
   }
-  if (corner_table_ == nullptr) {
+  if (corner_table_ == nullptr ||
+      corner_table_->num_faces() == corner_table_->NumDegeneratedFaces()) {
     // Failed to construct the corner table.
+    // TODO(ostava): Add better error reporting.
     return false;
   }
 

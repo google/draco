@@ -231,4 +231,17 @@ TEST_F(MeshEdgebreakerEncodingTest, TestWrongAttributeOrder) {
             GeometryAttribute::NORMAL);
 }
 
+TEST_F(MeshEdgebreakerEncodingTest, TestDegenerateMesh) {
+  // Tests whether we can process a mesh that contains degenerate faces only.
+  const std::string file_name = "degenerate_mesh.obj";
+  const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name));
+  ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
+  EncoderBuffer buffer;
+  MeshEdgeBreakerEncoder encoder;
+  EncoderOptions encoder_options = EncoderOptions::CreateDefaultOptions();
+  encoder.SetMesh(*mesh);
+  // We expect the encoding to fail as edgebreaker can only process valid faces.
+  ASSERT_FALSE(encoder.Encode(encoder_options, &buffer).ok());
+}
+
 }  // namespace draco

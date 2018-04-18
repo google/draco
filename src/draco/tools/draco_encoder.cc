@@ -208,34 +208,34 @@ int main(int argc, char **argv) {
       options.is_point_cloud = true;
     } else if (!strcmp("-qp", argv[i]) && i < argc_check) {
       options.pos_quantization_bits = StringToInt(argv[++i]);
-      if (options.pos_quantization_bits > 31) {
+      if (options.pos_quantization_bits > 30) {
         printf(
             "Error: The maximum number of quantization bits for the position "
-            "attribute is 31.\n");
+            "attribute is 30.\n");
         return -1;
       }
     } else if (!strcmp("-qt", argv[i]) && i < argc_check) {
       options.tex_coords_quantization_bits = StringToInt(argv[++i]);
-      if (options.tex_coords_quantization_bits > 31) {
+      if (options.tex_coords_quantization_bits > 30) {
         printf(
             "Error: The maximum number of quantization bits for the texture "
-            "coordinate attribute is 31.\n");
+            "coordinate attribute is 30.\n");
         return -1;
       }
     } else if (!strcmp("-qn", argv[i]) && i < argc_check) {
       options.normals_quantization_bits = StringToInt(argv[++i]);
-      if (options.normals_quantization_bits > 31) {
+      if (options.normals_quantization_bits > 30) {
         printf(
             "Error: The maximum number of quantization bits for the normal "
-            "attribute is 31.\n");
+            "attribute is 30.\n");
         return -1;
       }
     } else if (!strcmp("-qg", argv[i]) && i < argc_check) {
       options.generic_quantization_bits = StringToInt(argv[++i]);
-      if (options.generic_quantization_bits > 31) {
+      if (options.generic_quantization_bits > 30) {
         printf(
             "Error: The maximum number of quantization bits for generic "
-            "attributes is 31.\n");
+            "attributes is 30.\n");
         return -1;
       }
     } else if (!strcmp("-cl", argv[i]) && i < argc_check) {

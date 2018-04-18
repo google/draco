@@ -18,6 +18,8 @@
 #include <stdint.h>
 #include <string>
 
+#include "draco/draco_features.h"
+
 namespace draco {
 
 enum DataType {

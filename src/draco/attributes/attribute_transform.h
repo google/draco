@@ -38,7 +38,7 @@ class AttributeTransform {
  protected:
   std::unique_ptr<PointAttribute> InitPortableAttribute(
       int num_entries, int num_components, int num_points,
-      const PointAttribute &attribute) const;
+      const PointAttribute &attribute, bool is_unsigned) const;
 };
 
 }  // namespace draco

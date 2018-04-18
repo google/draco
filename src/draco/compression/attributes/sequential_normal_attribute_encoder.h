@@ -66,7 +66,7 @@ class SequentialNormalAttributeEncoder
       return CreatePredictionSchemeForEncoder<int32_t, Transform>(
           PREDICTION_DIFFERENCE, attribute_id(), encoder(), transform);
     }
-    DCHECK(false);  // Should never be reached.
+    DRACO_DCHECK(false);  // Should never be reached.
     return nullptr;
   }
 

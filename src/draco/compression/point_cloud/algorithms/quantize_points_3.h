@@ -31,7 +31,7 @@ template <class PointIterator, class OutputIterator>
 OutputIterator QuantizePoints3(const PointIterator &begin,
                                const PointIterator &end, QuantizationInfo *info,
                                OutputIterator oit) {
-  DCHECK_GE(info->quantization_bits, 0);
+  DRACO_DCHECK_GE(info->quantization_bits, 0);
 
   float max_range = 0;
   for (auto it = begin; it != end; ++it) {
@@ -58,12 +58,10 @@ OutputIterator QuantizePoints3(const PointIterator &begin,
 }
 
 template <class QPointIterator, class OutputIterator>
-OutputIterator DequantizePoints3(const QPointIterator &begin,
-                                 const QPointIterator &end,
-                                 const QuantizationInfo &info,
-                                 OutputIterator oit) {
-  DCHECK_GE(info.quantization_bits, 0);
-  DCHECK_GE(info.range, 0);
+void DequantizePoints3(const QPointIterator &begin, const QPointIterator &end,
+                       const QuantizationInfo &info, OutputIterator &oit) {
+  DRACO_DCHECK_GE(info.quantization_bits, 0);
+  DRACO_DCHECK_GE(info.range, 0);
 
   const uint32_t quantization_bits = info.quantization_bits;
   const float range = info.range;
@@ -75,10 +73,9 @@ OutputIterator DequantizePoints3(const QPointIterator &begin,
     const float x = dequantize((*it)[0] - max_quantized_value);
     const float y = dequantize((*it)[1] - max_quantized_value);
     const float z = dequantize((*it)[2] - max_quantized_value);
-    *oit++ = Point3f(x, y, z);
+    *oit = Point3f(x, y, z);
+    ++oit;
   }
-
-  return oit;
 }
 
 }  // namespace draco

@@ -51,32 +51,41 @@ class MetadataBuilder {
                       double entry_value);
 };
 
-// TODO(zhafang): Regenerate wasm decoder.
-// TODO(zhafang): Add script to generate and test all Javascipt code.
-class MeshBuilder {
+class PointCloudBuilder {
  public:
-  MeshBuilder();
-
-  bool AddFacesToMesh(draco::Mesh *mesh, long num_faces, const int *faces);
-  int AddFloatAttributeToMesh(draco::Mesh *mesh,
-                              draco_GeometryAttribute_Type type,
-                              long num_vertices, long num_components,
-                              const float *att_values);
-  int AddInt32AttributeToMesh(draco::Mesh *mesh,
-                              draco_GeometryAttribute_Type type,
-                              long num_vertices, long num_components,
-                              const int32_t *att_values);
-  bool SetMetadataForAttribute(draco::Mesh *mesh, long attribute_id,
+  PointCloudBuilder() {}
+  int AddFloatAttribute(draco::PointCloud *pc,
+                        draco_GeometryAttribute_Type type, long num_vertices,
+                        long num_components, const float *att_values);
+  int AddInt8Attribute(draco::PointCloud *pc, draco_GeometryAttribute_Type type,
+                       long num_vertices, long num_components,
+                       const char *att_values);
+  int AddUInt8Attribute(draco::PointCloud *pc,
+                        draco_GeometryAttribute_Type type, long num_vertices,
+                        long num_components, const uint8_t *att_values);
+  int AddInt16Attribute(draco::PointCloud *pc,
+                        draco_GeometryAttribute_Type type, long num_vertices,
+                        long num_components, const int16_t *att_values);
+  int AddUInt16Attribute(draco::PointCloud *pc,
+                         draco_GeometryAttribute_Type type, long num_vertices,
+                         long num_components, const uint16_t *att_values);
+  int AddInt32Attribute(draco::PointCloud *pc,
+                        draco_GeometryAttribute_Type type, long num_vertices,
+                        long num_components, const int32_t *att_values);
+  int AddUInt32Attribute(draco::PointCloud *pc,
+                         draco_GeometryAttribute_Type type, long num_vertices,
+                         long num_components, const uint32_t *att_values);
+  bool SetMetadataForAttribute(draco::PointCloud *pc, long attribute_id,
                                const draco::Metadata *metadata);
-  bool AddMetadataToMesh(draco::Mesh *mesh, const draco::Metadata *metadata);
+  bool AddMetadata(draco::PointCloud *pc, const draco::Metadata *metadata);
 
  private:
   template <typename DataTypeT>
-  int AddAttributeToMesh(draco::Mesh *mesh, draco_GeometryAttribute_Type type,
-                         long num_vertices, long num_components,
-                         const DataTypeT *att_values,
-                         draco::DataType draco_data_type) {
-    if (!mesh)
+  int AddAttribute(draco::PointCloud *pc, draco_GeometryAttribute_Type type,
+                   long num_vertices, long num_components,
+                   const DataTypeT *att_values,
+                   draco::DataType draco_data_type) {
+    if (!pc)
       return -1;
     draco::PointAttribute att;
     att.Init(type, NULL, num_components, draco_data_type,
@@ -84,27 +93,51 @@ class MeshBuilder {
              /* stride */ sizeof(DataTypeT) * num_components,
              /* byte_offset */ 0);
     const int att_id =
-        mesh->AddAttribute(att, /* identity_mapping */ true, num_vertices);
-    draco::PointAttribute *const att_ptr = mesh->attribute(att_id);
+        pc->AddAttribute(att, /* identity_mapping */ true, num_vertices);
+    draco::PointAttribute *const att_ptr = pc->attribute(att_id);
 
     for (draco::PointIndex i(0); i < num_vertices; ++i) {
       att_ptr->SetAttributeValue(att_ptr->mapped_index(i),
                                  &att_values[i.value() * num_components]);
     }
-    if (mesh->num_points() == 0) {
-      mesh->set_num_points(num_vertices);
-    } else if (mesh->num_points() != num_vertices) {
+    if (pc->num_points() == 0) {
+      pc->set_num_points(num_vertices);
+    } else if (pc->num_points() != num_vertices) {
       return -1;
     }
     return att_id;
   }
 };
 
+// TODO(zhafang): Regenerate wasm decoder.
+// TODO(zhafang): Add script to generate and test all Javascipt code.
+class MeshBuilder : public PointCloudBuilder {
+ public:
+  MeshBuilder();
+
+  bool AddFacesToMesh(draco::Mesh *mesh, long num_faces, const int *faces);
+
+  // Deprecated: Use AddFloatAttribute() instead.
+  int AddFloatAttributeToMesh(draco::Mesh *mesh,
+                              draco_GeometryAttribute_Type type,
+                              long num_vertices, long num_components,
+                              const float *att_values);
+
+  // Deprecated: Use AddInt32Attribute() instead.
+  int AddInt32AttributeToMesh(draco::Mesh *mesh,
+                              draco_GeometryAttribute_Type type,
+                              long num_vertices, long num_components,
+                              const int32_t *att_values);
+
+  // Deprecated: Use AddMetadata() instead.
+  bool AddMetadataToMesh(draco::Mesh *mesh, const draco::Metadata *metadata);
+};
+
 class Encoder {
  public:
   Encoder();
 
-  void SetEncodingMethod(draco_MeshEncoderMethod method);
+  void SetEncodingMethod(long method);
   void SetAttributeQuantization(draco_GeometryAttribute_Type type,
                                 long quantization_bits);
   void SetAttributeExplicitQuantization(draco_GeometryAttribute_Type type,
@@ -112,7 +145,12 @@ class Encoder {
                                         long num_components,
                                         const float *origin, float range);
   void SetSpeedOptions(long encoding_speed, long decoding_speed);
+
   int EncodeMeshToDracoBuffer(draco::Mesh *mesh, DracoInt8Array *buffer);
+
+  int EncodePointCloudToDracoBuffer(draco::PointCloud *pc,
+                                    bool deduplicate_values,
+                                    DracoInt8Array *buffer);
 
  private:
   draco::Encoder encoder_;

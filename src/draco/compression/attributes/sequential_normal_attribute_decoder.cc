@@ -72,7 +72,9 @@ bool SequentialNormalAttributeDecoder::StoreValues(uint32_t num_points) {
   int quant_val_id = 0;
   int out_byte_pos = 0;
   const int32_t *const portable_attribute_data = GetPortableAttributeData();
-  const OctahedronToolBox octahedron_tool_box(quantization_bits_);
+  OctahedronToolBox octahedron_tool_box;
+  if (!octahedron_tool_box.SetQuantizationBits(quantization_bits_))
+    return false;
   for (uint32_t i = 0; i < num_points; ++i) {
     const int32_t s = portable_attribute_data[quant_val_id++];
     const int32_t t = portable_attribute_data[quant_val_id++];

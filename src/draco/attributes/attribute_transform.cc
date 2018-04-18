@@ -26,14 +26,17 @@ bool AttributeTransform::TransferToAttribute(PointAttribute *attribute) const {
 
 std::unique_ptr<PointAttribute> AttributeTransform::InitPortableAttribute(
     int num_entries, int num_components, int num_points,
-    const PointAttribute &attribute) const {
+    const PointAttribute &attribute, bool is_unsigned) const {
+  const DataType dt = is_unsigned ? DT_UINT32 : DT_INT32;
   GeometryAttribute va;
-  va.Init(attribute.attribute_type(), nullptr, num_components, DT_INT32, false,
-          num_components * DataTypeLength(DT_INT32), 0);
+  va.Init(attribute.attribute_type(), nullptr, num_components, dt, false,
+          num_components * DataTypeLength(dt), 0);
   std::unique_ptr<PointAttribute> portable_attribute(new PointAttribute(va));
   portable_attribute->Reset(num_entries);
   if (num_points) {
     portable_attribute->SetExplicitMapping(num_points);
+  } else {
+    portable_attribute->SetIdentityMapping();
   }
   return portable_attribute;
 }

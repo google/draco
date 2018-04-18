@@ -141,9 +141,39 @@ interface DracoFloat32Array {
   long size();
 };
 
+interface DracoInt8Array {
+  void DracoInt8Array();
+  byte GetValue(long index);
+  long size();
+};
+
+interface DracoUInt8Array {
+  void DracoUInt8Array();
+  octet GetValue(long index);
+  long size();
+};
+
+interface DracoInt16Array {
+  void DracoInt16Array();
+  short GetValue(long index);
+  long size();
+};
+
+interface DracoUInt16Array {
+  void DracoUInt16Array();
+  unsigned short GetValue(long index);
+  long size();
+};
+
 interface DracoInt32Array {
   void DracoInt32Array();
   long GetValue(long index);
+  long size();
+};
+
+interface DracoUInt32Array {
+  void DracoUInt32Array();
+  unsigned long GetValue(long index);
   long size();
 };
 
@@ -182,13 +212,30 @@ interface Decoder {
   boolean GetAttributeFloatForAllPoints([Ref, Const] PointCloud pc,
                                         [Ref, Const] PointAttribute pa,
                                         DracoFloat32Array out_values);
-  // Deprecated.
+
+  // Deprecated, use GetAttributeInt32ForAllPoints instead.
   boolean GetAttributeIntForAllPoints([Ref, Const] PointCloud pc,
                                       [Ref, Const] PointAttribute pa,
                                       DracoInt32Array out_values);
+
+  boolean GetAttributeInt8ForAllPoints([Ref, Const] PointCloud pc,
+                                       [Ref, Const] PointAttribute pa,
+                                       DracoInt8Array out_values);
+  boolean GetAttributeUInt8ForAllPoints([Ref, Const] PointCloud pc,
+                                        [Ref, Const] PointAttribute pa,
+                                        DracoUInt8Array out_values);
+  boolean GetAttributeInt16ForAllPoints([Ref, Const] PointCloud pc,
+                                        [Ref, Const] PointAttribute pa,
+                                        DracoInt16Array out_values);
+  boolean GetAttributeUInt16ForAllPoints([Ref, Const] PointCloud pc,
+                                         [Ref, Const] PointAttribute pa,
+                                         DracoUInt16Array out_values);
   boolean GetAttributeInt32ForAllPoints([Ref, Const] PointCloud pc,
                                         [Ref, Const] PointAttribute pa,
                                         DracoInt32Array out_values);
+  boolean GetAttributeUInt32ForAllPoints([Ref, Const] PointCloud pc,
+                                         [Ref, Const] PointAttribute pa,
+                                         DracoUInt32Array out_values);
 
   void SkipAttributeTransform(draco_GeometryAttribute_Type att_type);
 };

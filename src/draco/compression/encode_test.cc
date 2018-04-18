@@ -26,6 +26,7 @@
 #include "draco/core/vector_d.h"
 #include "draco/io/obj_decoder.h"
 #include "draco/mesh/triangle_soup_mesh_builder.h"
+#include "draco/point_cloud/point_cloud_builder.h"
 
 namespace {
 
@@ -59,6 +60,48 @@ class EncodeTest : public ::testing::Test {
         draco::Vector2f(1.f, 0.f).data(), draco::Vector2f(1.f, 1.f).data());
 
     return mesh_builder.Finalize();
+  }
+
+  std::unique_ptr<draco::PointCloud> CreateTestPointCloud() const {
+    draco::PointCloudBuilder pc_builder;
+
+    constexpr int kNumPoints = 100;
+    constexpr int kNumGenAttCoords0 = 4;
+    constexpr int kNumGenAttCoords1 = 6;
+    pc_builder.Start(kNumPoints);
+
+    // Add one position attribute and two generic attributes.
+    const int32_t pos_att_id = pc_builder.AddAttribute(
+        draco::GeometryAttribute::POSITION, 3, draco::DT_FLOAT32);
+    const int32_t gen_att_id_0 = pc_builder.AddAttribute(
+        draco::GeometryAttribute::GENERIC, kNumGenAttCoords0, draco::DT_UINT32);
+    const int32_t gen_att_id_1 = pc_builder.AddAttribute(
+        draco::GeometryAttribute::GENERIC, kNumGenAttCoords1, draco::DT_UINT8);
+
+    std::vector<uint32_t> gen_att_data_0(kNumGenAttCoords0);
+    std::vector<uint32_t> gen_att_data_1(kNumGenAttCoords1);
+
+    // Initialize the attribute values.
+    for (draco::PointIndex i(0); i < kNumPoints; ++i) {
+      const float pos_coord = float(i.value());
+      pc_builder.SetAttributeValueForPoint(
+          pos_att_id, i,
+          draco::Vector3f(pos_coord, -pos_coord, pos_coord).data());
+
+      for (int j = 0; j < kNumGenAttCoords0; ++j) {
+        gen_att_data_0[j] = i.value();
+      }
+      pc_builder.SetAttributeValueForPoint(gen_att_id_0, i,
+                                           gen_att_data_0.data());
+
+      for (int j = 0; j < kNumGenAttCoords1; ++j) {
+        gen_att_data_1[j] = -i.value();
+      }
+      pc_builder.SetAttributeValueForPoint(gen_att_id_1, i,
+                                           gen_att_data_1.data());
+    }
+
+    return pc_builder.Finalize(false);
   }
 
   int GetQuantizationBitsFromAttribute(const draco::PointAttribute *att) const {
@@ -140,6 +183,24 @@ TEST_F(EncodeTest, TestLinesObj) {
   encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 16);
 
   draco::EncoderBuffer buffer;
+  ASSERT_TRUE(encoder.EncodePointCloudToBuffer(*pc, &buffer).ok());
+}
+
+TEST_F(EncodeTest, TestKdTreeEncoding) {
+  // This test verifies that the API can successfully encode a point cloud
+  // defined by several attributes using the kd tree method.
+  std::unique_ptr<draco::PointCloud> pc = CreateTestPointCloud();
+  ASSERT_NE(pc, nullptr);
+
+  draco::EncoderBuffer buffer;
+  draco::Encoder encoder;
+  encoder.SetEncodingMethod(draco::POINT_CLOUD_KD_TREE_ENCODING);
+  // First try it without quantizing positions which should fail.
+  ASSERT_FALSE(encoder.EncodePointCloudToBuffer(*pc, &buffer).ok());
+
+  // Now set quantization for the position attribute which should make
+  // the encoder happy.
+  encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 16);
   ASSERT_TRUE(encoder.EncodePointCloudToBuffer(*pc, &buffer).ok());
 }
 

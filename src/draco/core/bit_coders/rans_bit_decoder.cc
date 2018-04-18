@@ -60,8 +60,8 @@ bool RAnsBitDecoder::DecodeNextBit() {
 }
 
 void RAnsBitDecoder::DecodeLeastSignificantBits32(int nbits, uint32_t *value) {
-  DCHECK_EQ(true, nbits <= 32);
-  DCHECK_EQ(true, nbits > 0);
+  DRACO_DCHECK_EQ(true, nbits <= 32);
+  DRACO_DCHECK_EQ(true, nbits > 0);
 
   uint32_t result = 0;
   while (nbits) {

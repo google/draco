@@ -237,7 +237,7 @@ uint32_t IntegerPointsKdTreeEncoder<PointDiT, compression_level_t>::GetAxis(
   // For lower number of points, we simply choose the axis that is refined the
   // least so far.
 
-  DCHECK_EQ(true, end - begin != 0);
+  DRACO_DCHECK_EQ(true, end - begin != 0);
 
   uint32_t best_axis = 0;
   if (end - begin < 64) {
@@ -352,7 +352,7 @@ void IntegerPointsKdTreeEncoder<PointDiT, compression_level_t>::EncodeInternal(
     const RandomAccessIteratorT split =
         std::partition(begin, end, Splitter(axis, new_base[axis]));
 
-    DCHECK_EQ(true, (end - begin) > 0);
+    DRACO_DCHECK_EQ(true, (end - begin) > 0);
 
     // Encode number of points in first and second half.
     const int required_bits = bits::MostSignificantBit(num_remaining_points);
