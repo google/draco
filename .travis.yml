@@ -8,6 +8,14 @@ matrix:
     - os: linux
       dist: trusty
       compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+        env:
+          - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
     - os: osx
       osx_image: xcode8.3
       compiler: clang
@@ -19,11 +27,13 @@ addons:
     packages:
     - ccache
     - cmake
-    - g++-4.9
 
 before_install:
   - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then brew update; fi
   - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then brew install ccache; fi
+  - if [[ "${TRAVIS_OS_NAME}" == "linux" ]] && [[ "${CXX}" = "g++" ]]; then
+      export CXX="g++-4.9" CC="gcc-4.9";
+    fi
 
 script:
   # Output version info for compilers, cmake, and make
@@ -36,5 +46,5 @@ script:
   # Configure and build
   - mkdir _travis_build && cd _travis_build
   - cmake -G "Unix Makefiles" -DENABLE_TESTS=ON -DENABLE_CCACHE=ON ..
-  - make -j
+  - make -j10
   - ./draco_tests
