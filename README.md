@@ -299,10 +299,7 @@ To add Draco to your project:
              externalNativeBuild {
                  cmake {
                      cppFlags "-std=c++11"
-                     cppFlags "-DDRACO_POINT_CLOUD_COMPRESSION_SUPPORTED"
-                     cppFlags "-DDRACO_MESH_COMPRESSION_SUPPORTED"
-                     cppFlags "-DDRACO_STANDARD_EDGEBREAKER_SUPPORTED"
-                     cppFlags "-DDRACO_PREDICTIVE_EDGEBREAKER_SUPPORTED"
+                     arguments "-DANDROID_STL=c++_shared"
                  }
              }
          }
