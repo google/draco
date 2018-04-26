@@ -51,6 +51,7 @@ _**Contents**_
       * [Googletest Integration](#googletest-integration)
       * [Javascript Encoder/Decoder](#javascript-encoderdecoder)
     * [Android Studio Project Integration](#android-studio-project-integration)
+    * [Native Android Builds](#native-android-builds)
   * [Usage](#usage)
     * [Command Line Applications](#command-line-applications)
     * [Encoding Tool](#encoding-tool)
@@ -309,6 +310,31 @@ To add Draco to your project:
              }
          }
      }
+
+Native Android Builds
+---------------------
+
+It's sometimes useful to build Draco command line tools and run them directly on
+Android devices via adb.
+
+~~~~~ bash
+# arm
+$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=path/to/draco/cmake/toolchains/armv7-android-clang-libstdc++.cmake
+$ make
+
+# arm64
+$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=path/to/draco/cmake/toolchains/arm64-android-clang-libstdc++.cmake
+$ make
+~~~~~
+
+Note: The above assumes that make_standalone_toolchain.py has been used to
+generate a standalone NDK toolchain for arm or arm64. In addition, Draco, as of
+this writing, requires that libc++ is used for the stl argument when the
+toolchain is generated.
+
+After building the tools they can be moved to an android device via the use of
+`adb push`, and then run with an `adb shell` instance.
+
 
 Usage
 ======
