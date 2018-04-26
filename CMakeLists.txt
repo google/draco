@@ -740,6 +740,9 @@ if (EMSCRIPTEN)
 else ()
   # Standard Draco libs, encoder and decoder.
   # Object collections that mirror the Draco directory structure.
+  if (BUILD_SHARED_LIBS)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  endif()
   add_library(draco_attributes OBJECT ${draco_attributes_sources})
   add_library(draco_compression_attributes_dec OBJECT
               ${draco_compression_attributes_dec_sources})
