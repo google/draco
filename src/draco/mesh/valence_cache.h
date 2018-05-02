@@ -100,7 +100,7 @@ class ValenceCache {
     return vertex_valence_cache_8_bit_[v];
   }
 
-  // TODO() Add unit tests for ValenceCache functions.
+  // TODO(draco-eng) Add unit tests for ValenceCache functions.
   inline int32_t ValenceFromCache(VertexIndex v) const {
     DRACO_DCHECK_EQ(vertex_valence_cache_32_bit_.size(), table_.num_vertices());
     if (v == kInvalidVertexIndex || v.value() >= table_.num_vertices())

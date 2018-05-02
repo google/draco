@@ -98,7 +98,7 @@ bool SequentialAttributeDecodersController::
         // attributes for predictors that may need them.
         sequential_decoders_[i]->attribute()->CopyFrom(
             *sequential_decoders_[i]->GetPortableAttribute());
-        return true;
+        continue;
       }
     }
     if (!sequential_decoders_[i]->TransformAttributeToOriginalFormat(

@@ -16,6 +16,9 @@ TODO: Add glTF branch url.
 
 News
 =======
+### Version 1.3.1 release
+* Fix issue with multiple attributes when skipping an attribute transform
+
 ### Version 1.3.0 release
 * Improved kD-tree based point cloud encoding
   * Now applicable to point clouds with any number of attributes

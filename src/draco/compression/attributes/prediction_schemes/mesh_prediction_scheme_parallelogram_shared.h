@@ -22,7 +22,7 @@
 
 namespace draco {
 
-// TODO() consolidate Vertex/next/previous queries to one call
+// TODO(draco-eng) consolidate Vertex/next/previous queries to one call
 // (performance).
 template <class CornerTableT>
 inline void GetParallelogramEntries(

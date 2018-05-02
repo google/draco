@@ -426,7 +426,7 @@ bool KdTreeAttributesDecoder::TransformAttributesToOriginalFormat() {
   if (quantized_portable_attributes_.empty() && min_signed_values_.empty()) {
     return true;
   }
-  int num_processed_attributes = 0;
+  int num_processed_quantized_attributes = 0;
   int num_processed_signed_components = 0;
   // Dequantize attributes that needed it.
   for (int i = 0; i < GetNumAttributes(); ++i) {
@@ -456,10 +456,26 @@ bool KdTreeAttributesDecoder::TransformAttributesToOriginalFormat() {
       // transform and shared with the SequentialQuantizationAttributeDecoder.
 
       const PointAttribute *const src_att =
-          quantized_portable_attributes_[num_processed_attributes].get();
+          quantized_portable_attributes_[num_processed_quantized_attributes]
+              .get();
 
       const AttributeQuantizationTransform &transform =
-          attribute_quantization_transforms_[num_processed_attributes];
+          attribute_quantization_transforms_
+              [num_processed_quantized_attributes];
+
+      num_processed_quantized_attributes++;
+
+      if (GetDecoder()->options()->GetAttributeBool(
+              att->attribute_type(), "skip_attribute_transform", false)) {
+        // Attribute transform should not be performed. In this case, we replace
+        // the output geometry attribute with the portable attribute.
+        // TODO(ostava): We can potentially avoid this copy by introducing a new
+        // mechanism that would allow to use the final attributes as portable
+        // attributes for predictors that may need them.
+        att->CopyFrom(*src_att);
+        continue;
+      }
+
       // Convert all quantized values back to floats.
       const int32_t max_quantized_value =
           (1u << static_cast<uint32_t>(transform.quantization_bits())) - 1;
@@ -485,7 +501,6 @@ bool KdTreeAttributesDecoder::TransformAttributesToOriginalFormat() {
         att->buffer()->Write(out_byte_pos, att_val.get(), entry_size);
         out_byte_pos += entry_size;
       }
-      num_processed_attributes++;
     }
   }
   return true;

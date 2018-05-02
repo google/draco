@@ -5,6 +5,9 @@
 
 News
 =======
+### Version 1.3.1 release
+* Fix issue with multiple attributes when skipping an attribute transform
+
 ### Version 1.3.0 release
 * Improved kD-tree based point cloud encoding
   * Now applicable to point clouds with any number of attributes
@@ -333,7 +336,7 @@ this writing, requires that libc++ is used for the stl argument when the
 toolchain is generated.
 
 After building the tools they can be moved to an android device via the use of
-`adb push`, and then run with an `adb shell` instance.
+`adb push`, and then run within an `adb shell` instance.
 
 
 Usage

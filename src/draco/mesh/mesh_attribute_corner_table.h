@@ -113,7 +113,7 @@ class MeshAttributeCornerTable {
   bool no_interior_seams() const { return no_interior_seams_; }
   const CornerTable *corner_table() const { return corner_table_; }
 
-  // TODO(): extract valence functions into a reusable class/object
+  // TODO(draco-eng): extract valence functions into a reusable class/object
   // also from 'corner_table.*'
 
   // Returns the valence (or degree) of a vertex.
