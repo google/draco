@@ -41,7 +41,7 @@ public unsafe class DracoMeshLoader
 		public Vector3[] vertices;
 		public Vector3[] normals;
 		public Vector2[] uvs;
-		public Vector3[] colors;
+		public Color[] colors;
 	}
 
 	[DllImport ("dracodec_unity")] private static extern int DecodeMeshForUnity (
@@ -53,81 +53,99 @@ public unsafe class DracoMeshLoader
 	// to be splitted.
 	private void SplitMesh (DecodedMesh mesh, ref List<DecodedMesh> splittedMeshes)
 	{
-		List<int> facesLeft = new List<int> ();
-		for (int i = 0; i < mesh.faces.Length; ++i) {
-			facesLeft.Add (mesh.faces [i]);
-		}
-		int numSubMeshes = 0;
+		int[] IndexNew = new int[maxNumVerticesPerMesh];
+        int BaseIndex = 0;
+        int FaceCount = mesh.faces.Length;
+        int[] FaceIndex = new int[FaceCount];
+        int[] NewFace = new int[FaceCount];
 
-		List<int> newCorners = new List<int> ();
-		Dictionary<int, int> indexToNewIndex = new Dictionary<int, int> ();
 
-		List<int> facesExtracted = new List<int> ();
-		List<Vector3> verticesExtracted = new List<Vector3> ();
-		List<Vector2> uvsExtracted = new List<Vector2> ();
-		List<Vector3> normalsExtracted = new List<Vector3> ();
-		List<Vector3> colorsExtracted = new List<Vector3> ();
+        for (int i = 0; i < FaceCount; i++)
+        {
+            FaceIndex[i] = -1;
+        }
 
-		while (facesLeft.Count > 0) {
-			numSubMeshes++;
-			List<int> tmpLeftFaces = new List<int> ();
-			facesExtracted.Clear ();
-			verticesExtracted.Clear ();
-			uvsExtracted.Clear ();
-			normalsExtracted.Clear ();
-			colorsExtracted.Clear ();
+        while (BaseIndex < FaceCount)
+        {
+            int uniqueCornerId = 0;
+            int UseIndex = 0;
+            int AddNew = 0;
+            int[] NewCorner = new int[3];
+            for (; BaseIndex + UseIndex < FaceCount;)
+            {
+                AddNew = 0;
+                for (int i = 0; i < 3; i++)
+                {
+                    if (FaceIndex[mesh.faces[BaseIndex + UseIndex + i]] == -1)
+                    {
+                        NewCorner[AddNew] = mesh.faces[BaseIndex + UseIndex + i];
+                        AddNew++;
+                    }
+                }
 
-			int uniqueCornerId = 0;
-			indexToNewIndex.Clear ();
-			for (int face = 0; face < facesLeft.Count / 3; ++face) {
-				newCorners.Clear ();
-				// If all indices has appeared or there's still space for more vertices.
-				for (int corner = 0; corner < 3; ++corner) {
-					if (!indexToNewIndex.ContainsKey (facesLeft [face * 3 + corner])) {
-						newCorners.Add (facesLeft [face * 3 + corner]);
-					}
-				}
-				if (newCorners.Count + uniqueCornerId > maxNumVerticesPerMesh) {
-					// Save face for the next sub-mesh.
-					for (int corner = 0; corner < 3; ++corner) {
-						tmpLeftFaces.Add (facesLeft [face * 3 + corner]);
-					}
-				} else {
-					// Add new corners.
-					for (int i = 0; i < newCorners.Count; ++i) {
-						indexToNewIndex.Add (newCorners [i], uniqueCornerId);
-						verticesExtracted.Add (mesh.vertices [newCorners [i]]);
-						if (mesh.normals != null)
-							normalsExtracted.Add (mesh.normals [newCorners [i]]);
-						if (mesh.colors != null)
-							colorsExtracted.Add (mesh.colors [newCorners [i]]);
-						if (mesh.uvs != null)
-							uvsExtracted.Add (mesh.uvs [newCorners [i]]);
+                if (uniqueCornerId + AddNew > maxNumVerticesPerMesh)
+                {
+                    break;
+                }
 
-						uniqueCornerId++;
-					}
-					// Add face to this sub-mesh.
-					for (int corner = 0; corner < 3; ++corner) {
-						facesExtracted.Add (
-							indexToNewIndex [facesLeft [face * 3 + corner]]);
-					}
-				}
-			}
+                for (int i = 0; i < AddNew; i++)
+                {
+                    FaceIndex[NewCorner[i]] = uniqueCornerId;
+                    IndexNew[uniqueCornerId] = NewCorner[i];
+                    uniqueCornerId++;
+                }
 
-			DecodedMesh subMesh = new DecodedMesh ();
-			subMesh.faces = facesExtracted.ToArray ();
-			subMesh.vertices = verticesExtracted.ToArray ();
-			if (normalsExtracted.Count > 0) {
-				subMesh.normals = normalsExtracted.ToArray ();
-			}
-			if (uvsExtracted.Count > 0)
-				subMesh.uvs = uvsExtracted.ToArray ();
-			if (colorsExtracted.Count > 0)
-				subMesh.colors = colorsExtracted.ToArray ();
-			splittedMeshes.Add (subMesh);
+                for (int i = 0; i < 3; i++)
+                {
+                    NewFace[UseIndex] = FaceIndex[mesh.faces[BaseIndex + UseIndex]];
+                    UseIndex++;
+                }
+            }
 
-			facesLeft = tmpLeftFaces;
-		}
+            for (int i = 0; i < uniqueCornerId; i++)
+            {
+                FaceIndex[IndexNew[i]] = -1;
+            }
+
+            DecodedMesh subMesh = new DecodedMesh();
+            subMesh.faces = new int[UseIndex];
+            Array.Copy(NewFace, subMesh.faces, UseIndex);
+            subMesh.vertices = new Vector3[uniqueCornerId];
+            for (int i = 0; i < uniqueCornerId; i++)
+            {
+                subMesh.vertices[i] = mesh.vertices[IndexNew[i]];
+            }
+            if (mesh.normals != null)
+            {
+                subMesh.normals = new Vector3[uniqueCornerId];
+                for (int i = 0; i < uniqueCornerId; i++)
+                {
+                    subMesh.normals[i] = mesh.normals[IndexNew[i]];
+                }
+            }
+
+            if (mesh.colors != null)
+            {
+                subMesh.colors = new Color[uniqueCornerId];
+                for (int i = 0; i < uniqueCornerId; i++)
+                {
+                    subMesh.colors[i] = mesh.colors[IndexNew[i]];
+                }
+            }
+
+            if (mesh.uvs != null)
+            {
+                subMesh.uvs = new Vector2[uniqueCornerId];
+                for (int i = 0; i < uniqueCornerId; i++)
+                {
+                    subMesh.uvs[i] = mesh.uvs[IndexNew[i]];
+                }
+            }
+
+            splittedMeshes.Add(subMesh);
+
+            BaseIndex += UseIndex;
+        }
 	}
 
 	private float ReadFloatFromIntPtr (IntPtr data, int offset)
@@ -176,11 +194,10 @@ public unsafe class DracoMeshLoader
 		int numFaces = tmpMesh->numFaces;
 		int[] newTriangles = new int[tmpMesh->numFaces * 3];
 		for (int i = 0; i < tmpMesh->numFaces; ++i) {
-			newTriangles [i * 3] = Marshal.ReadInt32 (tmpMesh->indices, i * 3 * 4);
-			newTriangles [i * 3 + 1] =
-        Marshal.ReadInt32 (tmpMesh->indices, i * 3 * 4 + 4);
-			newTriangles [i * 3 + 2] =
-        Marshal.ReadInt32 (tmpMesh->indices, i * 3 * 4 + 8);
+		byte* addr = (byte*)tmpMesh->indices + i * 3 * 4;
+        newTriangles[i * 3] = *((int*)addr);
+        newTriangles[i * 3 + 1] = *((int*)(addr + 4));
+        newTriangles[i * 3 + 2] = *((int*)(addr + 8));
 		}
 
 		// For floating point numbers, there's no Marshal functions could directly
@@ -193,9 +210,9 @@ public unsafe class DracoMeshLoader
 		Vector3[] newNormals = new Vector3[0];
 		if (tmpMesh->hasNormal)
 			newNormals = new Vector3[tmpMesh->numVertices];
-		Vector3[] newColors = new Vector3[0];
+        Color[] newColors = new Color[0];
 		if (tmpMesh->hasColor)
-			newColors = new Vector3[tmpMesh->numVertices];
+			newColors = new Color[tmpMesh->numVertices];
 		int byteStridePerValue = 4;
 		/*
      * TODO(zhafang): Change to:
@@ -207,35 +224,40 @@ public unsafe class DracoMeshLoader
      *             }
      * }
      */
+	 
+		byte* posaddr = (byte*)tmpMesh->position;
+        byte* normaladdr = (byte*)tmpMesh->normal;
+        byte* coloraddr = (byte*)tmpMesh->color;
+        byte* uvaddr = (byte*)tmpMesh->texcoord;
 		for (int i = 0; i < tmpMesh->numVertices; ++i) {
 			int numValuePerVertex = 3;
-			for (int j = 0; j < numValuePerVertex; ++j) {
-				int byteStridePerVertex = byteStridePerValue * numValuePerVertex;
-				newVertices [i] [j] =
-					ReadFloatFromIntPtr (
-					tmpMesh->position,
-					i * byteStridePerVertex + byteStridePerValue * j);
-				if (tmpMesh->hasNormal)
-					newNormals [i] [j] =
-						ReadFloatFromIntPtr (
-						tmpMesh->normal,
-						i * byteStridePerVertex + byteStridePerValue * j);
-				if (tmpMesh->hasColor)
-					newColors [i] [j] =
-						ReadFloatFromIntPtr (
-						tmpMesh->color,
-						i * byteStridePerVertex + byteStridePerValue * j);
-			}
-			if (tmpMesh->hasTexcoord) {
-				numValuePerVertex = 2;
-				for (int j = 0; j < numValuePerVertex; ++j) {
-					int byteStridePerVertex = byteStridePerValue * numValuePerVertex;
-					newUVs [i] [j] =
-						ReadFloatFromIntPtr (
-						tmpMesh->texcoord,
-						i * byteStridePerVertex + byteStridePerValue * j);
-				}
-			}
+
+            for (int j = 0; j < numValuePerVertex; ++j)
+            {
+                int byteStridePerVertex = byteStridePerValue * numValuePerVertex;
+                int OffSet = i * byteStridePerVertex + byteStridePerValue * j;
+                
+                newVertices[i][j] = *((float*)(posaddr + OffSet));
+                if (tmpMesh->hasNormal)
+                {
+                    newNormals[i][j] = *((float*)(normaladdr + OffSet));
+                }
+                if (tmpMesh->hasColor)
+                {
+                    newColors[i][j] = *((float*)(coloraddr + OffSet));
+                }
+            }
+
+
+            if (tmpMesh->hasTexcoord)
+            {
+                numValuePerVertex = 2;
+                for (int j = 0; j < numValuePerVertex; ++j)
+                {
+                    int byteStridePerVertex = byteStridePerValue * numValuePerVertex;
+                    newUVs[i][j] = *((float*)(uvaddr + (i * byteStridePerVertex + byteStridePerValue * j)));
+                }
+            }
 		}
 
 		Marshal.FreeCoTaskMem (tmpMesh->indices);
@@ -272,12 +294,8 @@ public unsafe class DracoMeshLoader
 					mesh.uv = splittedMeshes [i].uvs;
 
 				if (splittedMeshes [i].colors != null) {
-          mesh.colors = new Color[splittedMeshes [i].colors.Length];
-          for (int j = 0; j < splittedMeshes [i].colors.Length; ++j) {
-            mesh.colors [j] = new Color (splittedMeshes [i].colors [j] [0],
-                splittedMeshes [i].colors [j] [1], splittedMeshes [i].colors [j] [2]);
-          }
-        }
+                    mesh.colors = splittedMeshes[i].colors;
+                }
 
 				if (splittedMeshes [i].normals != null) {
 					mesh.normals = splittedMeshes [i].normals;
@@ -301,12 +319,8 @@ public unsafe class DracoMeshLoader
 				Debug.Log ("Mesh doesn't have normals, recomputed.");
 			}
 			if (newColors.Length != 0) {
-				mesh.colors = new Color[newColors.Length];
-				for (int i = 0; i < newColors.Length; ++i) {
-					mesh.colors [i] = new Color (newColors [i] [0],
-						newColors [i] [1], newColors [i] [2]);
-				}
-			}
+                mesh.colors = newColors;
+            }
 
 			mesh.RecalculateBounds ();
 			meshes.Add (mesh);
