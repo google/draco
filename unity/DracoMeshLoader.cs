@@ -1,4 +1,4 @@
-﻿// Copyright 2017 The Draco Authors.
+// Copyright 2017 The Draco Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ public unsafe class DracoMeshLoader
 
 	private struct DecodedMesh
 	{
-		public int[] faces;
+		public int[] indices;
 		public Vector3[] vertices;
 		public Vector3[] normals;
 		public Vector2[] uvs;
@@ -53,99 +53,123 @@ public unsafe class DracoMeshLoader
 	// to be splitted.
 	private void SplitMesh (DecodedMesh mesh, ref List<DecodedMesh> splittedMeshes)
 	{
-		int[] IndexNew = new int[maxNumVerticesPerMesh];
-        int BaseIndex = 0;
-        int FaceCount = mesh.faces.Length;
-        int[] FaceIndex = new int[FaceCount];
-        int[] NewFace = new int[FaceCount];
+		// Map between new indices on a splitted mesh and old indices on the
+		// original mesh.
+		int[] newToOldIndexMap = new int[maxNumVerticesPerMesh];
+
+		// Index of the first unprocessed corner.
+		int baseCorner = 0;
+		int indicesCount = mesh.indices.Length;
+
+		// Map between old indices of the original mesh and indices on the currently
+		// processed sub-mesh. Inverse of |newToOldIndexMap|.
+		int[] oldToNewIndexMap = new int[indicesCount];
+		int[] newIndices = new int[indicesCount];
 
 
-        for (int i = 0; i < FaceCount; i++)
-        {
-            FaceIndex[i] = -1;
-        }
+		// Set mapping between existing vertex indices and new vertex indices to
+		// a default value.
+		for (int i = 0; i < indicesCount; i++)
+		{
+			oldToNewIndexMap[i] = -1;
+		}
 
-        while (BaseIndex < FaceCount)
-        {
-            int uniqueCornerId = 0;
-            int UseIndex = 0;
-            int AddNew = 0;
-            int[] NewCorner = new int[3];
-            for (; BaseIndex + UseIndex < FaceCount;)
-            {
-                AddNew = 0;
-                for (int i = 0; i < 3; i++)
-                {
-                    if (FaceIndex[mesh.faces[BaseIndex + UseIndex + i]] == -1)
-                    {
-                        NewCorner[AddNew] = mesh.faces[BaseIndex + UseIndex + i];
-                        AddNew++;
-                    }
-                }
+		// Number of added vertices for the currently processed sub-mesh.
+		int numAddedVertices = 0;
 
-                if (uniqueCornerId + AddNew > maxNumVerticesPerMesh)
-                {
-                    break;
-                }
+		// Process all corners (faces) of the original mesh.
+		while (baseCorner < indicesCount)
+		{
+			// Reset the old to new indices map that may have been set by previously
+			// processed sub-meshes.
+			for (int i = 0; i < numAddedVertices; i++)
+			{
+				oldToNewIndexMap[newToOldIndexMap[i]] = -1;
+			}
+			numAddedVertices = 0;
 
-                for (int i = 0; i < AddNew; i++)
-                {
-                    FaceIndex[NewCorner[i]] = uniqueCornerId;
-                    IndexNew[uniqueCornerId] = NewCorner[i];
-                    uniqueCornerId++;
-                }
+			// Number of processed corners on the current sub-mesh.
+			int numProcessedCorners = 0;
 
-                for (int i = 0; i < 3; i++)
-                {
-                    NewFace[UseIndex] = FaceIndex[mesh.faces[BaseIndex + UseIndex]];
-                    UseIndex++;
-                }
-            }
+			// Local storage for indices added to the new sub-mesh for a currently
+			// processed face.
+			int[] newlyAddedIndices = new int[3];
 
-            for (int i = 0; i < uniqueCornerId; i++)
-            {
-                FaceIndex[IndexNew[i]] = -1;
-            }
+			// Sub-mesh processing starts here.
+			for (; baseCorner + numProcessedCorners < indicesCount;)
+			{
+				// Number of vertices that we need to add to the current sub-mesh.
+				int verticesAdded = 0;
+				for (int i = 0; i < 3; i++)
+				{
+					if (oldToNewIndexMap[mesh.indices[baseCorner + numProcessedCorners + i]] == -1)
+					{
+						newlyAddedIndices[verticesAdded] = mesh.indices[baseCorner + numProcessedCorners + i];
+						verticesAdded++;
+					}
+				}
 
-            DecodedMesh subMesh = new DecodedMesh();
-            subMesh.faces = new int[UseIndex];
-            Array.Copy(NewFace, subMesh.faces, UseIndex);
-            subMesh.vertices = new Vector3[uniqueCornerId];
-            for (int i = 0; i < uniqueCornerId; i++)
-            {
-                subMesh.vertices[i] = mesh.vertices[IndexNew[i]];
-            }
-            if (mesh.normals != null)
-            {
-                subMesh.normals = new Vector3[uniqueCornerId];
-                for (int i = 0; i < uniqueCornerId; i++)
-                {
-                    subMesh.normals[i] = mesh.normals[IndexNew[i]];
-                }
-            }
+				// If the number of new vertices that we need to add is larger than the
+				// allowed limit, we need to stop processing the current sub-mesh.
+				// The current face will be processed again for the next sub-mesh.
+				if (numAddedVertices + verticesAdded > maxNumVerticesPerMesh)
+				{
+					break;
+				}
 
-            if (mesh.colors != null)
-            {
-                subMesh.colors = new Color[uniqueCornerId];
-                for (int i = 0; i < uniqueCornerId; i++)
-                {
-                    subMesh.colors[i] = mesh.colors[IndexNew[i]];
-                }
-            }
+				// Update mapping between old an new vertex indices.
+				for (int i = 0; i < verticesAdded; i++)
+				{
+					oldToNewIndexMap[newlyAddedIndices[i]] = numAddedVertices;
+					newToOldIndexMap[numAddedVertices] = newlyAddedIndices[i];
+					numAddedVertices++;
+				}
 
-            if (mesh.uvs != null)
-            {
-                subMesh.uvs = new Vector2[uniqueCornerId];
-                for (int i = 0; i < uniqueCornerId; i++)
-                {
-                    subMesh.uvs[i] = mesh.uvs[IndexNew[i]];
-                }
-            }
+				for (int i = 0; i < 3; i++)
+				{
+					newIndices[numProcessedCorners] = oldToNewIndexMap[mesh.indices[baseCorner + numProcessedCorners]];
+					numProcessedCorners++;
+				}
+			}
+			// Sub-mesh processing done.
+			DecodedMesh subMesh = new DecodedMesh();
+			subMesh.indices = new int[numProcessedCorners];
+			Array.Copy(newIndices, subMesh.indices, numProcessedCorners);
+			subMesh.vertices = new Vector3[numAddedVertices];
+			for (int i = 0; i < numAddedVertices; i++)
+			{
+				subMesh.vertices[i] = mesh.vertices[newToOldIndexMap[i]];
+			}
+			if (mesh.normals != null)
+			{
+				subMesh.normals = new Vector3[numAddedVertices];
+				for (int i = 0; i < numAddedVertices; i++)
+				{
+					subMesh.normals[i] = mesh.normals[newToOldIndexMap[i]];
+				}
+			}
 
-            splittedMeshes.Add(subMesh);
+			if (mesh.colors != null)
+			{
+				subMesh.colors = new Color[numAddedVertices];
+				for (int i = 0; i < numAddedVertices; i++)
+				{
+					subMesh.colors[i] = mesh.colors[newToOldIndexMap[i]];
+				}
+			}
 
-            BaseIndex += UseIndex;
-        }
+			if (mesh.uvs != null)
+			{
+				subMesh.uvs = new Vector2[numAddedVertices];
+				for (int i = 0; i < numAddedVertices; i++)
+				{
+					subMesh.uvs[i] = mesh.uvs[newToOldIndexMap[i]];
+				}
+			}
+
+			splittedMeshes.Add(subMesh);
+			baseCorner += numProcessedCorners;
+		}
 	}
 
 	private float ReadFloatFromIntPtr (IntPtr data, int offset)
@@ -194,10 +218,10 @@ public unsafe class DracoMeshLoader
 		int numFaces = tmpMesh->numFaces;
 		int[] newTriangles = new int[tmpMesh->numFaces * 3];
 		for (int i = 0; i < tmpMesh->numFaces; ++i) {
-		byte* addr = (byte*)tmpMesh->indices + i * 3 * 4;
-        newTriangles[i * 3] = *((int*)addr);
-        newTriangles[i * 3 + 1] = *((int*)(addr + 4));
-        newTriangles[i * 3 + 2] = *((int*)(addr + 8));
+			byte* addr = (byte*)tmpMesh->indices + i * 3 * 4;
+			newTriangles[i * 3] = *((int*)addr);
+			newTriangles[i * 3 + 1] = *((int*)(addr + 4));
+			newTriangles[i * 3 + 2] = *((int*)(addr + 8));
 		}
 
 		// For floating point numbers, there's no Marshal functions could directly
@@ -210,54 +234,44 @@ public unsafe class DracoMeshLoader
 		Vector3[] newNormals = new Vector3[0];
 		if (tmpMesh->hasNormal)
 			newNormals = new Vector3[tmpMesh->numVertices];
-        Color[] newColors = new Color[0];
+			Color[] newColors = new Color[0];
 		if (tmpMesh->hasColor)
 			newColors = new Color[tmpMesh->numVertices];
 		int byteStridePerValue = 4;
-		/*
-     * TODO(zhafang): Change to:
-     * float[] pos = new float[3];
-     * for (int i = 0; i < tmpMesh -> numVertices; ++i) {
-     *       Marshal.Copy(tmpMesh->position, pos, 3 * i, 3);
-     *             for (int j = 0; j < 3; ++j) {
-     *                        newVertices[i][j] = pos[j];
-     *             }
-     * }
-     */
-	 
+
 		byte* posaddr = (byte*)tmpMesh->position;
-        byte* normaladdr = (byte*)tmpMesh->normal;
-        byte* coloraddr = (byte*)tmpMesh->color;
-        byte* uvaddr = (byte*)tmpMesh->texcoord;
+		byte* normaladdr = (byte*)tmpMesh->normal;
+		byte* coloraddr = (byte*)tmpMesh->color;
+		byte* uvaddr = (byte*)tmpMesh->texcoord;
 		for (int i = 0; i < tmpMesh->numVertices; ++i) {
 			int numValuePerVertex = 3;
 
-            for (int j = 0; j < numValuePerVertex; ++j)
-            {
-                int byteStridePerVertex = byteStridePerValue * numValuePerVertex;
-                int OffSet = i * byteStridePerVertex + byteStridePerValue * j;
-                
-                newVertices[i][j] = *((float*)(posaddr + OffSet));
-                if (tmpMesh->hasNormal)
-                {
-                    newNormals[i][j] = *((float*)(normaladdr + OffSet));
-                }
-                if (tmpMesh->hasColor)
-                {
-                    newColors[i][j] = *((float*)(coloraddr + OffSet));
-                }
-            }
+			for (int j = 0; j < numValuePerVertex; ++j)
+			{
+				int byteStridePerVertex = byteStridePerValue * numValuePerVertex;
+				int OffSet = i * byteStridePerVertex + byteStridePerValue * j;
+
+				newVertices[i][j] = *((float*)(posaddr + OffSet));
+				if (tmpMesh->hasNormal)
+				{
+					newNormals[i][j] = *((float*)(normaladdr + OffSet));
+				}
+				if (tmpMesh->hasColor)
+				{
+					newColors[i][j] = *((float*)(coloraddr + OffSet));
+				}
+			}
 
 
-            if (tmpMesh->hasTexcoord)
-            {
-                numValuePerVertex = 2;
-                for (int j = 0; j < numValuePerVertex; ++j)
-                {
-                    int byteStridePerVertex = byteStridePerValue * numValuePerVertex;
-                    newUVs[i][j] = *((float*)(uvaddr + (i * byteStridePerVertex + byteStridePerValue * j)));
-                }
-            }
+			if (tmpMesh->hasTexcoord)
+			{
+				numValuePerVertex = 2;
+				for (int j = 0; j < numValuePerVertex; ++j)
+				{
+					int byteStridePerVertex = byteStridePerValue * numValuePerVertex;
+					newUVs[i][j] = *((float*)(uvaddr + (i * byteStridePerVertex + byteStridePerValue * j)));
+				}
+			}
 		}
 
 		Marshal.FreeCoTaskMem (tmpMesh->indices);
@@ -276,7 +290,7 @@ public unsafe class DracoMeshLoader
 
 			DecodedMesh decodedMesh = new DecodedMesh ();
 			decodedMesh.vertices = newVertices;
-			decodedMesh.faces = newTriangles;
+			decodedMesh.indices = newTriangles;
 			if (newUVs.Length != 0)
 				decodedMesh.uvs = newUVs;
 			if (newNormals.Length != 0)
@@ -289,13 +303,13 @@ public unsafe class DracoMeshLoader
 			for (int i = 0; i < splittedMeshes.Count; ++i) {
 				Mesh mesh = new Mesh ();
 				mesh.vertices = splittedMeshes [i].vertices;
-				mesh.triangles = splittedMeshes [i].faces;
+				mesh.triangles = splittedMeshes [i].indices;
 				if (splittedMeshes [i].uvs != null)
 					mesh.uv = splittedMeshes [i].uvs;
 
 				if (splittedMeshes [i].colors != null) {
-                    mesh.colors = splittedMeshes[i].colors;
-                }
+					mesh.colors = splittedMeshes[i].colors;
+				}
 
 				if (splittedMeshes [i].normals != null) {
 					mesh.normals = splittedMeshes [i].normals;
@@ -319,8 +333,8 @@ public unsafe class DracoMeshLoader
 				Debug.Log ("Mesh doesn't have normals, recomputed.");
 			}
 			if (newColors.Length != 0) {
-                mesh.colors = newColors;
-            }
+				mesh.colors = newColors;
+			}
 
 			mesh.RecalculateBounds ();
 			meshes.Add (mesh);
