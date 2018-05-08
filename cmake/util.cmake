@@ -51,5 +51,26 @@ function (set_compiler_launcher launcher_flag launcher_name)
   endif ()
 endfunction ()
 
+# Terminates CMake execution when $var_name is unset in CMake and environment,
+# and then calls set_variable_if_unset() to ensure variable is set for caller.
+macro(require_variable var_name)
+  if ((NOT DEFINED ${var_name}) AND ("$ENV{${var_name}}" STREQUAL ""))
+    message(FATAL_ERROR "${var_name} must be set in cmake or environment.")
+  endif ()
+  set_variable_if_unset(${var_name} "")
+endmacro ()
+
+# Sets $var_name to $default_value if not already set in CMake or the
+# environment.
+macro (set_variable_if_unset var_name default_value)
+  if (DEFINED ${var_name})
+    return ()
+  elseif (NOT "$ENV{${var_name}}" STREQUAL "")
+    set(${var_name} $ENV{${var_name}})
+  else ()
+    set(${var_name} ${default_value})
+  endif ()
+endmacro ()
+
 endif()  # DRACO_CMAKE_UTIL_CMAKE_
 
