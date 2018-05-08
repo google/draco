@@ -234,7 +234,7 @@ public unsafe class DracoMeshLoader
 		Vector3[] newNormals = new Vector3[0];
 		if (tmpMesh->hasNormal)
 			newNormals = new Vector3[tmpMesh->numVertices];
-			Color[] newColors = new Color[0];
+		Color[] newColors = new Color[0];
 		if (tmpMesh->hasColor)
 			newColors = new Color[tmpMesh->numVertices];
 		int byteStridePerValue = 4;
