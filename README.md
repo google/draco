@@ -321,19 +321,28 @@ It's sometimes useful to build Draco command line tools and run them directly on
 Android devices via adb.
 
 ~~~~~ bash
+# all targets require CMAKE_ANDROID_NDK. It can be set in the environment or
+# within CMake. For example, this would set it in your environment.
+$ export CMAKE_ANDROID_NDK=path/to/ndk
+# To set it within CMake, add -DCMAKE_ANDROID_NDK=path/to/ndk to your CMake
+# command.
+
 # arm
-$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=path/to/draco/cmake/toolchains/armv7-android-clang-libstdc++.cmake
+$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=path/to/draco/cmake/toolchains/armv7-android-ndk-libcpp.cmake
 $ make
 
 # arm64
-$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=path/to/draco/cmake/toolchains/arm64-android-clang-libstdc++.cmake
+$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=path/to/draco/cmake/toolchains/arm64-android-ndk-libcpp.cmake
+$ make
+
+# x86
+$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=path/to/draco/cmake/toolchains/x86-android-ndk-libcpp.cmake
+$ make
+
+# x86_64
+$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=path/to/draco/cmake/toolchains/x86_64-android-ndk-libcpp.cmake
 $ make
 ~~~~~
-
-Note: The above assumes that make_standalone_toolchain.py has been used to
-generate a standalone NDK toolchain for arm or arm64. In addition, Draco, as of
-this writing, requires that libc++ is used for the stl argument when the
-toolchain is generated.
 
 After building the tools they can be moved to an android device via the use of
 `adb push`, and then run within an `adb shell` instance.
