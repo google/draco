@@ -42,6 +42,7 @@ option(ENABLE_WEXTRA "" OFF)
 option(IGNORE_EMPTY_BUILD_TYPE "" OFF)
 option(BUILD_UNITY_PLUGIN "Build plugin library for Unity" OFF)
 option(BUILD_FOR_GLTF "" OFF)
+option(BUILD_MAYA_PLUGIN "Build plugin library for Maya" OFF)
 
 if (BUILD_FOR_GLTF)
   # Override settings when building for GLTF.
@@ -107,6 +108,10 @@ endif ()
 if (BUILD_UNITY_PLUGIN)
   set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared library for unity plugin.")
   draco_enable_feature(FEATURE "BUILD_UNITY_PLUGIN")
+endif ()
+if (BUILD_MAYA_PLUGIN)
+  set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared library for maya plugin.")
+  draco_enable_feature(FEATURE "BUILD_MAYA_PLUGIN")
 endif ()
 
 if(ENABLE_EXTRA_SPEED)
@@ -588,7 +593,13 @@ set(draco_unity_plug_sources
     "${draco_src_root}/unity/draco_unity_plugin.cc"
     "${draco_src_root}/unity/draco_unity_plugin.h")
 
-include_directories("${draco_root}/src" "${draco_build_dir}")
+set(draco_maya_plug_sources
+    "${draco_src_root}/maya/draco_maya_plugin.cc"
+    "${draco_src_root}/maya/draco_maya_plugin.h")
+
+	
+
+	include_directories("${draco_root}/src" "${draco_build_dir}")
 
 #
 # Draco targets.
@@ -784,7 +795,11 @@ else ()
               ${draco_points_enc_sources})
   add_library(draco_unity_plugin OBJECT
               ${draco_unity_plug_sources})
+  add_library(draco_maya_plugin OBJECT
+			  ${draco_maya_plug_sources})
 
+
+			  
   # Library targets that consume the object collections.
   add_library(dracodec
               ${draco_version_sources}
@@ -867,6 +882,34 @@ else ()
       set_target_properties(dracodec_unity PROPERTIES BUNDLE true)
     endif ()
   endif ()
+
+  if (BUILD_MAYA_PLUGIN)
+    add_library(dracodec_maya
+                MODULE
+                ${draco_version_sources}
+                $<TARGET_OBJECTS:draco_maya_plugin>
+                $<TARGET_OBJECTS:draco_attributes>
+                $<TARGET_OBJECTS:draco_compression_attributes_dec>
+                $<TARGET_OBJECTS:draco_compression_decode>
+                $<TARGET_OBJECTS:draco_compression_mesh_dec>
+                $<TARGET_OBJECTS:draco_compression_point_cloud_dec>
+                $<TARGET_OBJECTS:draco_core>
+                $<TARGET_OBJECTS:draco_core_bit_coders>
+                $<TARGET_OBJECTS:draco_dec_config>
+                $<TARGET_OBJECTS:draco_io>
+                $<TARGET_OBJECTS:draco_mesh>
+                $<TARGET_OBJECTS:draco_metadata>
+                $<TARGET_OBJECTS:draco_metadata_dec>
+                $<TARGET_OBJECTS:draco_point_cloud>
+                $<TARGET_OBJECTS:draco_points_dec>)
+    # For Mac, we need to build a .bundle for plugin.
+    if (APPLE)
+      set_target_properties(dracodec_maya PROPERTIES BUNDLE true)
+    endif ()
+  endif ()
+  
+  
+  
   set(draco_header_only_targets
       draco_compression_attributes_pred_schemes_dec
       draco_dec_config
@@ -883,6 +926,9 @@ else ()
     set_target_properties(draco PROPERTIES SOVERSION 1)
     if (BUILD_UNITY_PLUGIN)
       set_target_properties(dracodec_unity PROPERTIES SOVERSION 1)
+    endif ()
+	if (BUILD_MAYA_PLUGIN)
+      set_target_properties(dracodec_maya PROPERTIES SOVERSION 1)
     endif ()
   endif ()
 
@@ -945,6 +991,11 @@ else ()
     install(TARGETS dracodec_unity
             DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
   endif ()
+  if (BUILD_MAYA_PLUGIN)
+    install(TARGETS dracodec_maya
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+  endif ()
+
   install(TARGETS draco_decoder draco_encoder DESTINATION
           "${CMAKE_INSTALL_PREFIX}/bin")
 
