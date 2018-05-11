@@ -27,6 +27,10 @@ class DracoTest(unittest.TestCase):
 		self.assertEqual(0, mesh.normals_num, 'Number of normals')
 		self.assertEqual(0, mesh.normals_len,'Length of normals array precalculated')
 		self.assertEqual(0, len(mesh.normals),'Length of normals array by len')
+		# Uvs check
+		self.assertEqual(0, mesh.normals_num, 'Number of uvs')
+		self.assertEqual(0, mesh.normals_len,'Length of uvs array precalculated')
+		self.assertEqual(0, len(mesh.normals),'Length of uvs array by len')
 
 	def test_unexistent_drc(self):
 		self.assertRaises(Exception, self.drc.decode, 'unexistent.drc')

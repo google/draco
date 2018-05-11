@@ -60,8 +60,7 @@ namespace draco {
 			int num_normals = drc_mesh->num_points();
 			out_mesh->normals = new float[num_normals];
 			out_mesh->normals_num = num_normals;
-			//out_mesh->has_normals = true;
-
+		
 			for (int i = 0; i < num_normals; i++) {
 				draco::PointIndex pi(i);
 				const draco::AttributeValueIndex val_index = normal_att->mapped_index(pi);
@@ -74,7 +73,32 @@ namespace draco {
 				out_mesh->normals[i * 3 + 1] = out_normal[1];
 				out_mesh->normals[i * 3 + 2] = out_normal[2];
 			}
+		}
 
+		static void decode_uvs(std::unique_ptr<draco::Mesh> &drc_mesh, Drc2PyMesh* out_mesh) {
+			const auto uv_att = drc_mesh->GetNamedAttribute(draco::GeometryAttribute::TEX_COORD);
+			if (uv_att == nullptr) {
+				out_mesh->uvs = new float[0];
+				out_mesh->uvs_num = 0;
+				return;
+			}
+
+			int num_uvs = drc_mesh->num_points();
+			out_mesh->normals = new float[num_uvs * 2];
+			out_mesh->normals_num = num_uvs;
+
+			for (int i = 0; i < num_uvs; i++) {
+				draco::PointIndex pi(i);
+				const draco::AttributeValueIndex val_index = uv_att->mapped_index(pi);
+
+				float out_uv[3];
+				bool is_ok = uv_att->ConvertValue<float, 3>(val_index, out_uv);
+				if (!is_ok) return;
+
+				out_mesh->uvs[i * 3 + 0] = out_uv[0];
+				out_mesh->uvs[i * 3 + 1] = out_uv[1];
+				out_mesh->uvs[i * 3 + 2] = out_uv[2];
+			}
 		}
 
 		void drc2py_free(Drc2PyMesh **mesh_ptr) {

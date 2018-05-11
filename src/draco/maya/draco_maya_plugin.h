@@ -36,13 +36,17 @@ namespace draco {
 					  vertices_num(0),
 					  vertices(nullptr),
 					  normals_num(0),
-					  normals(nullptr) {}
+					  normals(nullptr),
+				      uvs_num(0),
+					  uvs(nullptr) {}
 				int faces_num;
 				int* faces;
 				int vertices_num;
 				float* vertices;
 				int normals_num;
 				float* normals;
+				int uvs_num;
+				float* uvs;
 			};
 
 			EXPORT_API int drc2py_decode(char *data, unsigned int length, Drc2PyMesh **res_mesh);

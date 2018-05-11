@@ -15,7 +15,9 @@ class Drc2PyMesh(ctypes.Structure):
 				("vertices_num", ctypes.c_uint),
 				("vertices", ctypes.POINTER(ctypes.c_float)),
 				("normals_num", ctypes.c_uint),
-				("normals", ctypes.POINTER(ctypes.c_float))
+				("normals", ctypes.POINTER(ctypes.c_float)),
+				("uvs_num", ctypes.c_uint),
+				("uvs", ctypes.POINTER(ctypes.c_float))
 			   ]
 
 # TODO: Add integration for UNIX
@@ -66,6 +68,10 @@ class Draco:
 		result.normals = mesh.normals[0:mesh.normals_num * 3]
 		result.normals_len = mesh.normals_num * 3
 		result.normals_num = mesh.normals_num
+		
+		result.uvs = mesh.uvs[0:mesh.uvs_num * 3]
+		result.uvs_len = mesh.uvs_num * 3
+		result.uvs_num = mesh.uvs_num
 		
 		# Free memory allocated by the lib
 		self.drc_free(ctypes.byref(mesh_ptr))
