@@ -14,4 +14,8 @@ print(mesh.vertices[0:10])
 print("\n==== NORMALS ====")
 print(mesh.normals_num)
 print(mesh.normals_len)
-# print(mesh.normals[0:10])  This mesh has no normals
+print(mesh.normals)  #This mesh has no normals
+print("\n==== UVS ====")
+print(mesh.uvs_num)
+print(mesh.uvs_len)
+print(mesh.uvs)  #This mesh has no uvs
