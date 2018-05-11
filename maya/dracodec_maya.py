@@ -69,8 +69,8 @@ class Draco:
 		result.normals_len = mesh.normals_num * 3
 		result.normals_num = mesh.normals_num
 		
-		result.uvs = mesh.uvs[0:mesh.uvs_num * 3]
-		result.uvs_len = mesh.uvs_num * 3
+		result.uvs = mesh.uvs[0:mesh.uvs_num * 2]
+		result.uvs_len = mesh.uvs_num * 2
 		result.uvs_num = mesh.uvs_num
 		
 		# Free memory allocated by the lib

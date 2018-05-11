@@ -58,7 +58,7 @@ namespace draco {
 			}
 
 			int num_normals = drc_mesh->num_points();
-			out_mesh->normals = new float[num_normals];
+			out_mesh->normals = new float[num_normals * 3];
 			out_mesh->normals_num = num_normals;
 		
 			for (int i = 0; i < num_normals; i++) {
@@ -84,20 +84,21 @@ namespace draco {
 			}
 
 			int num_uvs = drc_mesh->num_points();
-			out_mesh->normals = new float[num_uvs * 2];
-			out_mesh->normals_num = num_uvs;
+			out_mesh->uvs = new float[num_uvs * 2];
+			out_mesh->uvs_num = num_uvs;
 
 			for (int i = 0; i < num_uvs; i++) {
 				draco::PointIndex pi(i);
 				const draco::AttributeValueIndex val_index = uv_att->mapped_index(pi);
 
-				float out_uv[3];
-				bool is_ok = uv_att->ConvertValue<float, 3>(val_index, out_uv);
+				float out_uv[2];
+				//bool is_ok = uv_att->ConvertValue<float, 3>(val_index, out_uv);
+				bool is_ok = uv_att->ConvertValue<float, 2>(val_index, out_uv);
 				if (!is_ok) return;
 
-				out_mesh->uvs[i * 3 + 0] = out_uv[0];
-				out_mesh->uvs[i * 3 + 1] = out_uv[1];
-				out_mesh->uvs[i * 3 + 2] = out_uv[2];
+				out_mesh->uvs[i * 2 + 0] = out_uv[0];
+				out_mesh->uvs[i * 2 + 1] = out_uv[1];
+				//out_mesh->uvs[i * 3 + 2] = out_uv[2];
 			}
 		}
 
@@ -118,6 +119,11 @@ namespace draco {
 				delete[] mesh->normals;
 				mesh->normals = nullptr;
 				mesh->normals_num = 0;
+			}
+			if (mesh->uvs) {
+				delete[] mesh->uvs;
+				mesh->uvs = nullptr;
+				mesh->uvs_num = 0;
 			}
 			delete mesh;
 			*mesh_ptr = nullptr;
@@ -146,6 +152,7 @@ namespace draco {
 			decode_faces(drc_mesh, *res_mesh);
 			decode_vertices(drc_mesh, *res_mesh);
 			decode_normals(drc_mesh, *res_mesh);
+			decode_uvs(drc_mesh, *res_mesh);
 			return 0;
 		}
 /*

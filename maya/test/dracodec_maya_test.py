@@ -34,14 +34,22 @@ class DracoTest(unittest.TestCase):
 
 	def test_valid_trooper_drc(self):
 		mesh = self.drc.decode(os.path.join(dir_path, 'stormtrooper.drc'))
-		# Normal check
-		self.assertGreater(mesh.normals_num, 0, 'Number of normals')
-		self.assertGreater(mesh.normals_len, 0,'Length of normals array')
-		self.assertGreater(len(mesh.normals), 0,'Length of normals array by len')
+		# Faces check
+		self.assertEqual(6518, mesh.faces_num, 'Number of faces')
+		self.assertEqual(19554, mesh.faces_len,'Length of faces array precalculated')
+		self.assertEqual(19554, len(mesh.faces),'Length of faces array by len')
+		# Vertices check
+		self.assertEqual(5176, mesh.vertices_num, 'Number of vertices')
+		self.assertEqual(15528, mesh.vertices_len,'Length of vertices array precalculated')
+		self.assertEqual(15528, len(mesh.vertices),'Length of vertices array by len')
+		# Normals check
+		self.assertEqual(5176, mesh.normals_num, 'Number of normals')
+		self.assertEqual(15528, mesh.normals_len, 'Length of normals array precalculated')
+		self.assertEqual(15528, len(mesh.normals),'Length of normals array by len')
 		# Uvs check
-		self.assertGreater(mesh.uvs_num, 0, 'Number of uvs')
-		self.assertGreater(mesh.uvs_len, 0,'Length of uvs array')
-		self.assertGreater(len(mesh.uvs), 0,'Length of uvs array by len')
+		self.assertEqual(5176, mesh.uvs_num, 'Number of uvs')
+		self.assertEqual(10352, mesh.uvs_len, 'Length of uvs array')
+		self.assertEqual(10352, len(mesh.uvs), 'Length of uvs array by len')
 
 	def test_unexistent_drc(self):
 		self.assertRaises(Exception, self.drc.decode, 'unexistent.drc')
