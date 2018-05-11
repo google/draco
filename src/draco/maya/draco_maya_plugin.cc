@@ -1,5 +1,3 @@
-// Copyright 2017 The Draco Authors.
-//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -51,26 +49,34 @@ namespace draco {
 			}
 		}
 
+		static void decode_normals(std::unique_ptr<draco::Mesh> &drc_mesh, Drc2PyMesh* out_mesh) {
+			const auto normal_att = drc_mesh->GetNamedAttribute(draco::GeometryAttribute::NORMAL);
+			if (normal_att == nullptr) {
+				out_mesh->normals = new float[0];
+				out_mesh->normals_num = 0;
+				return;
+			}
 
-		int hello() {
-			return 20;
+			int num_normals = drc_mesh->num_points();
+			out_mesh->normals = new float[num_normals];
+			out_mesh->normals_num = num_normals;
+			//out_mesh->has_normals = true;
+
+			for (int i = 0; i < num_normals; i++) {
+				draco::PointIndex pi(i);
+				const draco::AttributeValueIndex val_index = normal_att->mapped_index(pi);
+
+				float out_normal[3];
+				bool is_ok = normal_att->ConvertValue<float, 3>(val_index, out_normal);
+				if (!is_ok) return;
+
+				out_mesh->normals[i * 3 + 0] = out_normal[0];
+				out_mesh->normals[i * 3 + 1] = out_normal[1];
+				out_mesh->normals[i * 3 + 2] = out_normal[2];
+			}
+
 		}
-
-		void fill_int(int *num) {
-			*num = 1982;
-		}
-
-		MyStruct* fill_mystruct() {
-			MyStruct* my = new MyStruct();
-			my->num_faces = 500;
-			return my;
-		}
-
-		void fill_mystruct2(MyStruct** my) {
-			*my = new MyStruct();
-			(*my)->num_faces = 900;
-		}
-
+/*
 		void ReleaseMayaMesh(DracoToMayaMesh **mesh_ptr) {
 		  DracoToMayaMesh *mesh = *mesh_ptr;
 		  if (!mesh)
@@ -101,7 +107,7 @@ namespace draco {
 		  delete mesh;
 		  *mesh_ptr = nullptr;
 		}
-
+		*/
 		int drc2py_decode(char *data, unsigned int length, Drc2PyMesh **res_mesh) {
 			draco::DecoderBuffer buffer;
 			buffer.Init(data, length);
@@ -123,14 +129,12 @@ namespace draco {
 			std::unique_ptr<draco::Mesh> drc_mesh = std::move(statusor).value();
 
 			*res_mesh = new Drc2PyMesh();
-			//(*res_mesh)->faces_num = drc_mesh->num_faces();
-			//(*res_mesh)->vertices_num = drc_mesh->num_points();
 			decode_faces(drc_mesh, *res_mesh);
 			decode_vertices(drc_mesh, *res_mesh);
-
+			decode_normals(drc_mesh, *res_mesh);
 			return 0;
 		}
-
+/*
 		int DecodeMeshForMaya(char *data, unsigned int length, DracoToMayaMesh **tmp_mesh) {
 		  draco::DecoderBuffer buffer;
 		  buffer.Init(data, length);
@@ -224,7 +228,7 @@ namespace draco {
 
 		  return in_mesh->num_faces();
 		}
-
+*/
 }  // namespace maya
 
 }  // namespace draco
