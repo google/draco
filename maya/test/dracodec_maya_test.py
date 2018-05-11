@@ -28,9 +28,20 @@ class DracoTest(unittest.TestCase):
 		self.assertEqual(0, mesh.normals_len,'Length of normals array precalculated')
 		self.assertEqual(0, len(mesh.normals),'Length of normals array by len')
 		# Uvs check
-		self.assertEqual(0, mesh.normals_num, 'Number of uvs')
-		self.assertEqual(0, mesh.normals_len,'Length of uvs array precalculated')
-		self.assertEqual(0, len(mesh.normals),'Length of uvs array by len')
+		self.assertEqual(0, mesh.uvs_num, 'Number of uvs')
+		self.assertEqual(0, mesh.uvs_len,'Length of uvs ')
+		self.assertEqual(0, len(mesh.uvs),'Length of uvs array by len')
+
+	def test_valid_trooper_drc(self):
+		mesh = self.drc.decode(os.path.join(dir_path, 'stormtrooper.drc'))
+		# Normal check
+		self.assertGreater(mesh.normals_num, 0, 'Number of normals')
+		self.assertGreater(mesh.normals_len, 0,'Length of normals array')
+		self.assertGreater(len(mesh.normals), 0,'Length of normals array by len')
+		# Uvs check
+		self.assertGreater(mesh.uvs_num, 0, 'Number of uvs')
+		self.assertGreater(mesh.uvs_len, 0,'Length of uvs array')
+		self.assertGreater(len(mesh.uvs), 0,'Length of uvs array by len')
 
 	def test_unexistent_drc(self):
 		self.assertRaises(Exception, self.drc.decode, 'unexistent.drc')
