@@ -28,9 +28,7 @@
 
 namespace draco {
 	namespace maya {
-		extern "C" {
-			//void ReleaseMayaMesh(DracoToMayaMesh **mesh_ptr);
-
+		extern "C" {			
 			struct EXPORT_API Drc2PyMesh {
 				Drc2PyMesh()
 					: faces_num(0),
@@ -48,6 +46,7 @@ namespace draco {
 			};
 
 			EXPORT_API int drc2py_decode(char *data, unsigned int length, Drc2PyMesh **res_mesh);
+			EXPORT_API void drc2py_free(Drc2PyMesh **res_mesh);
 		}  // extern "C"
 
 	} // namespace maya

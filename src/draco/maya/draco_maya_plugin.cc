@@ -76,44 +76,34 @@ namespace draco {
 			}
 
 		}
-/*
-		void ReleaseMayaMesh(DracoToMayaMesh **mesh_ptr) {
-		  DracoToMayaMesh *mesh = *mesh_ptr;
-		  if (!mesh)
-			return;
-		  if (mesh->indices) {
-			delete[] mesh->indices;
-			mesh->indices = nullptr;
-		  }
-		  if (mesh->position) {
-			delete[] mesh->position;
-			mesh->position = nullptr;
-		  }
-		  if (mesh->has_normal && mesh->normal) {
-			delete[] mesh->normal;
-			mesh->has_normal = false;
-			mesh->normal = nullptr;
-		  }
-		  if (mesh->has_texcoord && mesh->texcoord) {
-			delete[] mesh->texcoord;
-			mesh->has_texcoord = false;
-			mesh->texcoord = nullptr;
-		  }
-		  if (mesh->has_color && mesh->color) {
-			delete[] mesh->color;
-			mesh->has_color = false;
-			mesh->color = nullptr;
-		  }
-		  delete mesh;
-		  *mesh_ptr = nullptr;
+
+		void drc2py_free(Drc2PyMesh **mesh_ptr) {
+			Drc2PyMesh *mesh = *mesh_ptr;
+			if (!mesh) return;
+			if (mesh->faces) {
+				delete[] mesh->faces;
+				mesh->faces = nullptr;
+				mesh->faces_num = 0;
+			}
+			if (mesh->vertices) {
+				delete[] mesh->vertices;
+				mesh->vertices = nullptr;
+				mesh->vertices_num = 0;
+			}
+			if (mesh->normals) {
+				delete[] mesh->normals;
+				mesh->normals = nullptr;
+				mesh->normals_num = 0;
+			}
+			delete mesh;
+			*mesh_ptr = nullptr;
 		}
-		*/
+	
 		int drc2py_decode(char *data, unsigned int length, Drc2PyMesh **res_mesh) {
 			draco::DecoderBuffer buffer;
 			buffer.Init(data, length);
 			auto type_statusor = draco::Decoder::GetEncodedGeometryType(&buffer);
 			if (!type_statusor.ok()) {
-				// TODO(zhafang): Use enum instead.
 				return -1;
 			}
 			const draco::EncodedGeometryType geom_type = type_statusor.value();
@@ -135,65 +125,6 @@ namespace draco {
 			return 0;
 		}
 /*
-		int DecodeMeshForMaya(char *data, unsigned int length, DracoToMayaMesh **tmp_mesh) {
-		  draco::DecoderBuffer buffer;
-		  buffer.Init(data, length);
-		  auto type_statusor = draco::Decoder::GetEncodedGeometryType(&buffer);
-		  if (!type_statusor.ok()) {
-			// TODO(zhafang): Use enum instead.
-			return -1;
-		  }
-		  const draco::EncodedGeometryType geom_type = type_statusor.value();
-		  if (geom_type != draco::TRIANGULAR_MESH) {
-			return -2;
-		  }
-
-		  draco::Decoder decoder;
-		  auto statusor = decoder.DecodeMeshFromBuffer(&buffer);
-		  if (!statusor.ok()) {
-			return -3;
-		  }
-		  std::unique_ptr<draco::Mesh> in_mesh = std::move(statusor).value();
-
-		  *tmp_mesh = new DracoToMayaMesh();
-		  DracoToMayaMesh *unity_mesh = *tmp_mesh;
-		  unity_mesh->num_faces = in_mesh->num_faces();
-		  unity_mesh->num_vertices = in_mesh->num_points();
-
-		  unity_mesh->indices = new int[in_mesh->num_faces() * 3];
-		  for (draco::FaceIndex face_id(0); face_id < in_mesh->num_faces(); ++face_id) {
-			const Mesh::Face &face = in_mesh->face(draco::FaceIndex(face_id));
-			memcpy(unity_mesh->indices + face_id.value() * 3,
-				   reinterpret_cast<const int *>(face.data()), sizeof(int) * 3);
-		  }
-
-		  // TODO(zhafang): Add other attributes.
-		  unity_mesh->position = new float[in_mesh->num_points() * 3];
-		  const auto pos_att =
-			  in_mesh->GetNamedAttribute(draco::GeometryAttribute::POSITION);
-		  for (draco::PointIndex i(0); i < in_mesh->num_points(); ++i) {
-			const draco::AttributeValueIndex val_index = pos_att->mapped_index(i);
-			if (!pos_att->ConvertValue<float, 3>(
-					val_index, unity_mesh->position + i.value() * 3)) {
-			  ReleaseMayaMesh(&unity_mesh);
-			  return -8;
-			}
-		  }
-		  // Get normal attributes.
-		  const auto normal_att =
-			  in_mesh->GetNamedAttribute(draco::GeometryAttribute::NORMAL);
-		  if (normal_att != nullptr) {
-			unity_mesh->normal = new float[in_mesh->num_points() * 3];
-			unity_mesh->has_normal = true;
-			for (draco::PointIndex i(0); i < in_mesh->num_points(); ++i) {
-			  const draco::AttributeValueIndex val_index = normal_att->mapped_index(i);
-			  if (!normal_att->ConvertValue<float, 3>(
-					  val_index, unity_mesh->normal + i.value() * 3)) {
-				ReleaseMayaMesh(&unity_mesh);
-				return -8;
-			  }
-			}
-		  }
 		  // Get color attributes.
 		  const auto color_att =
 			  in_mesh->GetNamedAttribute(draco::GeometryAttribute::COLOR);
@@ -225,9 +156,6 @@ namespace draco {
 			  }
 			}
 		  }
-
-		  return in_mesh->num_faces();
-		}
 */
 }  // namespace maya
 
