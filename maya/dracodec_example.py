@@ -1,4 +1,4 @@
-from draco import Draco
+from dracodec_maya import Draco
 
 drc = Draco()
 mesh = drc.decode('bunny.drc')
