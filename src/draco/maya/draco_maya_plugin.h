@@ -13,8 +13,10 @@
 #ifndef DRACO_MAYA_PLUGIN_H_
 #define DRACO_MAYA_PLUGIN_H_
 
-#include "draco/compression/config/compression_shared.h"
+//#include "draco/compression/config/compression_shared.h"
 #include "draco/compression/decode.h"
+#include "draco/compression/encode.h"
+#include <fstream>
 
 #ifdef BUILD_MAYA_PLUGIN
 
@@ -28,6 +30,11 @@
 
 namespace draco {
 	namespace maya {
+
+		enum class EncodeResult { OK=0, KO_WRONG_INPUT=-1, KO_MESH_ENCODING=-2, KO_FILE_CREATION=-3 };
+		enum class DecodeResult { OK=0, KO_GEOMETRY_TYPE_INVALID = -1, KO_TRIANGULAR_MESH_NOT_FOUND = -2, KO_MESH_DECODING = -3 };
+
+
 		extern "C" {			
 			struct EXPORT_API Drc2PyMesh {
 				Drc2PyMesh()
@@ -38,6 +45,7 @@ namespace draco {
 					  normals_num(0),
 					  normals(nullptr),
 				      uvs_num(0),
+					  uvs_real_num(0),
 					  uvs(nullptr) {}
 				int faces_num;
 				int* faces;
@@ -46,11 +54,13 @@ namespace draco {
 				int normals_num;
 				float* normals;
 				int uvs_num;
+				int uvs_real_num;
 				float* uvs;
 			};
 
-			EXPORT_API int drc2py_decode(char *data, unsigned int length, Drc2PyMesh **res_mesh);
+			EXPORT_API DecodeResult drc2py_decode(char *data, unsigned int length, Drc2PyMesh **res_mesh);
 			EXPORT_API void drc2py_free(Drc2PyMesh **res_mesh);
+			EXPORT_API EncodeResult drc2py_encode(Drc2PyMesh *in_mesh, char* file_path);
 		}  // extern "C"
 
 	} // namespace maya

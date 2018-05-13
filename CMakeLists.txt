@@ -884,27 +884,36 @@ else ()
   endif ()
 
   if (BUILD_MAYA_PLUGIN)
-    add_library(dracodec_maya
+    add_library(draco_maya_wrapper
                 MODULE
                 ${draco_version_sources}
                 $<TARGET_OBJECTS:draco_maya_plugin>
+				$<TARGET_OBJECTS:draco_compression_attributes_pred_schemes_enc>
                 $<TARGET_OBJECTS:draco_attributes>
                 $<TARGET_OBJECTS:draco_compression_attributes_dec>
                 $<TARGET_OBJECTS:draco_compression_decode>
                 $<TARGET_OBJECTS:draco_compression_mesh_dec>
                 $<TARGET_OBJECTS:draco_compression_point_cloud_dec>
+				$<TARGET_OBJECTS:draco_compression_attributes_enc>
+				$<TARGET_OBJECTS:draco_compression_encode>
+				$<TARGET_OBJECTS:draco_compression_mesh_enc>
+				$<TARGET_OBJECTS:draco_compression_point_cloud_enc>
                 $<TARGET_OBJECTS:draco_core>
                 $<TARGET_OBJECTS:draco_core_bit_coders>
-                $<TARGET_OBJECTS:draco_dec_config>
+                $<TARGET_OBJECTS:draco_enc_config>
+				$<TARGET_OBJECTS:draco_dec_config>
                 $<TARGET_OBJECTS:draco_io>
                 $<TARGET_OBJECTS:draco_mesh>
                 $<TARGET_OBJECTS:draco_metadata>
                 $<TARGET_OBJECTS:draco_metadata_dec>
                 $<TARGET_OBJECTS:draco_point_cloud>
-                $<TARGET_OBJECTS:draco_points_dec>)
+                $<TARGET_OBJECTS:draco_points_dec>
+				$<TARGET_OBJECTS:draco_metadata_enc>
+				$<TARGET_OBJECTS:draco_points_enc>)
+				
     # For Mac, we need to build a .bundle for plugin.
     if (APPLE)
-      set_target_properties(dracodec_maya PROPERTIES BUNDLE true)
+      set_target_properties(draco_maya_wrapper PROPERTIES BUNDLE true)
     endif ()
   endif ()
   
@@ -928,7 +937,7 @@ else ()
       set_target_properties(dracodec_unity PROPERTIES SOVERSION 1)
     endif ()
 	if (BUILD_MAYA_PLUGIN)
-      set_target_properties(dracodec_maya PROPERTIES SOVERSION 1)
+      set_target_properties(draco_maya_wrapper PROPERTIES SOVERSION 1)
     endif ()
   endif ()
 
@@ -992,7 +1001,7 @@ else ()
             DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
   endif ()
   if (BUILD_MAYA_PLUGIN)
-    install(TARGETS dracodec_maya
+    install(TARGETS draco_maya_wrapper
             DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
   endif ()
 
