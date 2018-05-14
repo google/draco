@@ -51,21 +51,19 @@ function (set_compiler_launcher launcher_flag launcher_name)
   endif ()
 endfunction ()
 
-# Terminates CMake execution when $var_name is unset in CMake and environment,
-# and then calls set_variable_if_unset() to ensure variable is set for caller.
+# Terminates CMake execution when $var_name is unset in the environment. Sets
+# CMake variable to the value of the environment variable when the variable is
+# present in the environment.
 macro(require_variable var_name)
-  if ((NOT DEFINED ${var_name}) AND ("$ENV{${var_name}}" STREQUAL ""))
-    message(FATAL_ERROR "${var_name} must be set in cmake or environment.")
+  if ("$ENV{${var_name}}" STREQUAL "")
+    message(FATAL_ERROR "${var_name} must be set in environment.")
   endif ()
   set_variable_if_unset(${var_name} "")
 endmacro ()
 
-# Sets $var_name to $default_value if not already set in CMake or the
-# environment.
+# Sets $var_name to $default_value if not already set in the environment.
 macro (set_variable_if_unset var_name default_value)
-  if (DEFINED ${var_name})
-    return ()
-  elseif (NOT "$ENV{${var_name}}" STREQUAL "")
+  if (NOT "$ENV{${var_name}}" STREQUAL "")
     set(${var_name} $ENV{${var_name}})
   else ()
     set(${var_name} ${default_value})
