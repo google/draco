@@ -321,11 +321,8 @@ It's sometimes useful to build Draco command line tools and run them directly on
 Android devices via adb.
 
 ~~~~~ bash
-# all targets require CMAKE_ANDROID_NDK. It can be set in the environment or
-# within CMake. For example, this would set it in your environment.
+# All targets require CMAKE_ANDROID_NDK. It must be set in the environment.
 $ export CMAKE_ANDROID_NDK=path/to/ndk
-# To set it within CMake, add -DCMAKE_ANDROID_NDK=path/to/ndk to your CMake
-# command.
 
 # arm
 $ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=path/to/draco/cmake/toolchains/armv7-android-ndk-libcpp.cmake
