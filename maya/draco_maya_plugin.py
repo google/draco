@@ -13,7 +13,7 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
         OpenMayaMPx.MPxFileTranslator.__init__(self)
 
     def maya_useNewAPI():
-        pass
+        return True
 
     def haveWriteMethod(self):
         return True
@@ -30,7 +30,7 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
     def writer(self, fileObject, optionString, accessMode):
         # Get the selection and create a selection list of all the nodes meshes
         selection = OpenMaya.MSelectionList()
-        OpenMaya.MGlobal.getActiveSelectionList(selection)
+        selection = OpenMaya.MGlobal.getActiveSelectionList()
 
         # Create an MItSelectionList class to iterate over the selection
         # Use the MFn class to as a filter to filter node types
@@ -49,11 +49,11 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
 
             # get dag path of current iterated selection
             dagPath = OpenMaya.MDagPath()
-            iter.getDagPath(dagPath)
+            dagPath = iter.getDagPath()
 
             # get the selection as an MObject
             mObj = OpenMaya.MObject()
-            iter.getDependNode(mObj)
+            mObj = iter.getDependNode()
 
             # create iterator of current mesh polygons
             polygonsIterator = OpenMaya.MItMeshPolygon(mObj)
@@ -66,26 +66,33 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
 
                 # Get current polygons vertices
                 verts = OpenMaya.MIntArray()
-                polygonsIterator.getVertices(verts)
+                verts = polygonsIterator.getVertices()
 
+                normalIndices = []
                 # Append the current polygons vertex indices
-                for i in range(verts.length()):
+                for i in range(len(verts)):
                     vertexList.append(verts[i])
+
+                # NOT VALID CODE
+                # for i in range(0,len(vertexList), 3):
+                # need vertex this is a float
+                # vertex = OpenMaya.MFloatPoint(vertexList[i], vertexList[i+1], vertexList[i+2])
+                # normalIndices.append(polygonsIterator.normalIndex(vertex))  #return the index in the normals buffer
 
                 # Get current polygons edges
                 edges = OpenMaya.MIntArray()
-                polygonsIterator.getEdges(edges)
+                edges = polygonsIterator.getEdges()
 
                 # Append the current polygons edge indices
-                for i in range(edges.length()):
+                for i in range(len(edges)):
                     edgeList.append(edges[i])
 
                 # Get current polygons connected faces
                 indexConnectedFaces = OpenMaya.MIntArray()
-                polygonsIterator.getConnectedFaces(indexConnectedFaces)
+                indexConnectedFaces = polygonsIterator.getConnectedFaces()
 
                 # Append the connected polygons indices
-                for i in range(indexConnectedFaces.length()):
+                for i in range(len(indexConnectedFaces)):
                     connectedPolyList.append(indexConnectedFaces[i])
 
                 # Get current polygons triangles
@@ -94,16 +101,15 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
                 space = OpenMaya.MSpace.kObject
 
                 # Get the vertices and vertex positions of all the triangles in the current face's triangulation.
-                polygonsIterator.getTriangles(pointArray, intArray, space)
+                pointArray, intArray = polygonsIterator.getTriangles(space)
 
                 # Append vertices that are part of the triangles
-                for i in range(intArray.length()):
+                for i in range(len(intArray)):
                     polytriVertsList.append(intArray[i])
 
                 # next poligon
-                polygonsIterator.next()
+                polygonsIterator.next(None)  # idk what arguments i need to pass here
 
-            #TODO: CREATE DRACOMESH
             drcMesh = DrcMesh()
             drcMesh.faces_num = len(polytriVertsList) / 3
             drcMesh.faces_len = len(polytriVertsList)
@@ -113,7 +119,8 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
             drcMesh.vertices_len = len(vertexList)
             drcMesh.vertices = vertexList
 
-            #SAVE FILE
+            draco = Draco()
+            draco.encode(drcMesh, fileObject)
 
             # print data for current selection being iterated on,
             print ("Object name: {}".format(dagPath.fullPathName()))
