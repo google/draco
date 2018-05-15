@@ -64,27 +64,13 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
                 # Get current polygons index
                 polyList.append(polygonsIterator.index())
 
-
-
                 # Get current polygons vertices
                 verts = OpenMaya.MIntArray()
                 polygonsIterator.getVertices(verts)
 
-                normalIndices = []
                 # Append the current polygons vertex indices
                 for i in range(verts.length()):
                     vertexList.append(verts[i])
-                    normalIndices.append(polygonsIterator.normalIndex())  #return the index in the normals buffer
-
-                # Get current polygons normals
-                norms = OpenMaya.MVectorArray()
-                # polygonsIterator.getNormals(norms)
-
-                #Append current polygons normal indices
-                for index in normalIndices:
-                    normalList.append(norms[index].x)
-                    normalList.append(norms[index].y)
-                    normalList.append(norms[index].z)
 
                 # Get current polygons edges
                 edges = OpenMaya.MIntArray()
@@ -126,6 +112,8 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
             drcMesh.vertices_num = len(vertexList) / 3
             drcMesh.vertices_len = len(vertexList)
             drcMesh.vertices = vertexList
+
+            #SAVE FILE
 
             # print data for current selection being iterated on,
             print ("Object name: {}".format(dagPath.fullPathName()))
