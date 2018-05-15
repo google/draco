@@ -143,10 +143,22 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
         drc = Draco()
         mesh = drc.decode(fileObject.fullName())
 
-        #vertices
+        # vertices, normals, uvs
         vertices = []
-        for i in range(0, mesh.vertices_len, 3):
+        normals = []
+        us = OpenMaya.MFloatArray()
+        vs = OpenMaya.MFloatArray()
+        newMesh = None
+        fnMesh = OpenMaya.MFnMesh()
+        for n in range(mesh.vertices_num):
+            i = 3 * n
             vertices.append(OpenMaya.MPoint(mesh.vertices[i], mesh.vertices[i + 1], mesh.vertices[i + 2]))
+            if mesh.normals:
+                normals.append(OpenMaya.MFloatVector(mesh.normals[i], mesh.normals[i + 1], mesh.normals[i + 2]))
+            if mesh.uvs:
+                i = 2 * n
+                us.append(mesh.uvs[i])
+                vs.append(mesh.uvs[i + 1])
 
         #indices
         indices = []
@@ -154,31 +166,18 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
             indices.append(index)
         poly_count = [3] * mesh.faces_num
 
-        fnMesh = OpenMaya.MFnMesh()
-
-        newMesh = None
-        #uv
+        #create mesh
         if mesh.uvs:
-            us = OpenMaya.MFloatArray()
-            vs = OpenMaya.MFloatArray()
-            for i in range(0, mesh.uvs_len, 2):
-                us.append(mesh.uvs[i])
-                vs.append(mesh.uvs[i + 1])
             #TODO: ensure the mesh actually uses the uvs inside maya
             newMesh = fnMesh.create(vertices, poly_count, indices, uValues=us, vValues=vs)
         else:
             newMesh = fnMesh.create(vertices, poly_count, indices)
 
-        #normals
         if mesh.normals:
-            normals = []
-            for i in range(0, mesh.normals_len, 3):
-                normals.append(OpenMaya.MFloatVector(mesh.normals[i], mesh.normals[i + 1], mesh.normals[i + 2]))
             fnMesh.setVertexNormals(normals, range(len(vertices)))
-
+            
         fnMesh.updateSurface()
 
-        # Assign initial shading group
         slist = OpenMaya.MGlobal.getSelectionListByName("initialShadingGroup")
         initialSG = slist.getDependNode(0)
 
