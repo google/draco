@@ -66,21 +66,15 @@ C:\Users\nobody> cmake path/to/draco -G "Visual Studio 14 2015 Win64" -DBUILD_UN
 Android
 -------
 
-You should first follow the [Android Studio Project Integration](../README.md#android-studio-project-integration) to build Draco within an Android project. Then, to build the plugin for Unity, just add the following flag to build.gradle.
+You should first follow the steps in [Android Native Builds](../README.md#native-android-builds) to build Draco for Android. Then, to build the plugin for Unity, add the following text to your cmake command line "-DBUILD_UNITY_PLUGIN=ON".
 
 ~~~~ bash
-cppFlags "-DBUILD_UNITY_PLUGIN"
-~~~~
-
-You should be able to find the plugin library under:
-
-~~~~ bash
-path/to/your/project/build/intermediates/cmake/debug(or release)/obj/your_platform/libdracodec_unity.so
+cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/armv7-android-ndk-libcpp.cmake -DBUILD_UNITY_PLUGIN=ON
 ~~~~
 
 Change file extension
 ---------------------
-Because Unity can not recognize un-native file extension, you need to change your compressed .drc file to .drc.bytes so that Unity will recognize it as binary file. For example, if you have file `bunny.drc` then change the file name to `bunny.drc.bytes`.
+Because Unity can only recognize file extensions known to Unity, you need to change your compressed .drc file to .bytes so that Unity will recognize it as a binary file. For example, if you have file `bunny.drc` then change the file name to `bunny.bytes`.
 
 Copy Library to Your Project
 ----------------------------
@@ -110,20 +104,15 @@ Copy the scripts in this folder to your project.
 Copy wrapper:
 
 ~~~~ bash
+cp DracoDecodingObject.cs path/to/your/Unity/Project/Assets/
 cp DracoMeshLoader.cs path/to/your/Unity/Project/Assets/
-~~~~
-
-Copy extened AssetPostProcessor which enables loading (This file is only used for import Draco files):
-
-~~~~ bash
-cp DracoFileImporter.cs path/to/your/Unity/Project/Assets/Editor/
 ~~~~
 
 ---
 
 Load Draco Assets in Runtime
 ============================
-For example, please see [DracoDecodingObject.cs](DracoDecodingObject.cs) for usage. To start, you can create an empty GameObject and attach this script to it.
+For example, please see [DracoDecodingObject.cs](DracoDecodingObject.cs) for usage. To start, you can create an empty GameObject and attach this script to it. [DracoDecodingObject.cs](DracoDecodingObject.cs) will load `bunny.bytes` by default.
 
 Enable Library in Script Debugging
 ----------------------------------
@@ -134,8 +123,14 @@ If you have library for the platform you are working on, e.g. `dracodec_unity.bu
 Import Compressed Draco Assets
 ==============================
 In this section we will describe how to import Draco files (.drc) to Unity as
-other 3D formats in design time, e.g. obj, fbx.
-To note that importing Draco files doesn't mean the Unity project will export Draco files as models. It will not save space when exported to package.
+other 3D formats at design time, e.g. obj, fbx.
+Note that importing Draco files doesn't mean the Unity project will export models as Draco files.
+
+Copy [DracoFileImporter.cs](Editor/DracoFileImporter.cs) which enables loading (This file is only used for import Draco files):
+
+~~~~ bash
+cp DracoFileImporter.cs path/to/your/Unity/Project/Assets/Editor/
+~~~~
 
 If you have followed the previous steps, you just need to copy your asset, e.g. `bunny.drc.bytes`, to `Your/Unity/Project/Assets/Resources`, the project will automatically load the file and add the models to the project.
 
