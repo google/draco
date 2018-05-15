@@ -20,6 +20,7 @@ class Drc2PyMesh(ctypes.Structure):
 				("uvs_real_num", ctypes.c_uint),
 				("uvs", ctypes.POINTER(ctypes.c_float))
 			   ]
+
 class DrcMesh:
 	def __init__(self):
 		self.faces = []
@@ -102,11 +103,10 @@ class Draco:
 		# Free memory allocated by the lib
 		self.drc_free(ctypes.byref(mesh_ptr))
 		mesh_ptr = None
-		return result;
+		return result
 
-	def encode(self, mesh_data: DrcMesh, file: str):
+	def encode(self, mesh_data, file):
 		mesh = Drc2PyMesh()
-		
 		
 		mesh.faces = array_to_ptr(mesh_data.faces, mesh_data.faces_num * 3, ctypes.c_uint)
 		mesh.faces_num = ctypes.c_uint(mesh_data.faces_num)
@@ -117,9 +117,7 @@ class Draco:
 		mesh.uvs = array_to_ptr(mesh_data.uvs, mesh_data.uvs_num * 3, ctypes.c_float)
 		mesh.uvs_num = ctypes.c_uint(mesh_data.uvs_num)
 		
-		
 		mesh_ptr = ctypes.byref(mesh)
 		file_ptr = ctypes.c_char_p(file.encode())
-
 		self.drc_encode(mesh_ptr, file_ptr)
-		#self.string(ctypes.c_char_p(file.encode()))
+
