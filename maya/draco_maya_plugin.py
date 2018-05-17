@@ -4,6 +4,7 @@ import maya.api.OpenMaya as OpenMaya
 import maya.OpenMayaMPx as OpenMayaMPx
 
 from draco_maya_wrapper import Draco
+from draco_maya_wrapper import DrcMesh
 
 __author__ = "Mattia Pezzano, Federico de Felici, Duccio Lenkowicz"
 __version__ = "0.1"
@@ -29,7 +30,6 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
 
     def writer(self, fileObject, optionString, accessMode):
         # Get the selection and create a selection list of all the nodes meshes
-        selection = OpenMaya.MSelectionList()
         selection = OpenMaya.MGlobal.getActiveSelectionList()
 
         # Create an MItSelectionList class to iterate over the selection
@@ -48,11 +48,9 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
             connectedPolyList = []
 
             # get dag path of current iterated selection
-            dagPath = OpenMaya.MDagPath()
             dagPath = iter.getDagPath()
 
             # get the selection as an MObject
-            mObj = OpenMaya.MObject()
             mObj = iter.getDependNode()
 
             # create iterator of current mesh polygons
@@ -65,10 +63,9 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
                 polyList.append(polygonsIterator.index())
 
                 # Get current polygons vertices
-                verts = OpenMaya.MIntArray()
                 verts = polygonsIterator.getVertices()
 
-                normalIndices = []
+                #normalIndices = []
                 # Append the current polygons vertex indices
                 for i in range(len(verts)):
                     vertexList.append(verts[i])
@@ -80,7 +77,6 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
                 # normalIndices.append(polygonsIterator.normalIndex(vertex))  #return the index in the normals buffer
 
                 # Get current polygons edges
-                edges = OpenMaya.MIntArray()
                 edges = polygonsIterator.getEdges()
 
                 # Append the current polygons edge indices
@@ -88,7 +84,6 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
                     edgeList.append(edges[i])
 
                 # Get current polygons connected faces
-                indexConnectedFaces = OpenMaya.MIntArray()
                 indexConnectedFaces = polygonsIterator.getConnectedFaces()
 
                 # Append the connected polygons indices
@@ -96,8 +91,6 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
                     connectedPolyList.append(indexConnectedFaces[i])
 
                 # Get current polygons triangles
-                pointArray = OpenMaya.MPointArray()
-                intArray = OpenMaya.MIntArray()
                 space = OpenMaya.MSpace.kObject
 
                 # Get the vertices and vertex positions of all the triangles in the current face's triangulation.
@@ -110,6 +103,8 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
                 # next poligon
                 polygonsIterator.next(None)  # idk what arguments i need to pass here
 
+            print(fileObject.fullName())
+
             drcMesh = DrcMesh()
             drcMesh.faces_num = len(polytriVertsList) / 3
             drcMesh.faces_len = len(polytriVertsList)
@@ -120,7 +115,7 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
             drcMesh.vertices = vertexList
 
             draco = Draco()
-            draco.encode(drcMesh, fileObject)
+            draco.encode(drcMesh, fileObject.fullName())
 
             # print data for current selection being iterated on,
             print ("Object name: {}".format(dagPath.fullPathName()))
@@ -152,10 +147,11 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
                 normals.append(OpenMaya.MFloatVector(mesh.normals[i], mesh.normals[i + 1], mesh.normals[i + 2]))
             if mesh.uvs:
                 i = 2 * n
-                us.append(mesh.uvs[i])
-                vs.append(mesh.uvs[i + 1])
+                us.append(float(mesh.uvs[i]))
+                vs.append(float(mesh.uvs[i + 1]))
 
         #indices
+        #TODO: verify if index array is effectively useful (we can use directly mesh.faces?)
         indices = []
         for index in mesh.faces:
             indices.append(index)
