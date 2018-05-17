@@ -113,12 +113,12 @@ int DecodeMeshForUnity(char *data, unsigned int length,
   const auto color_att =
       in_mesh->GetNamedAttribute(draco::GeometryAttribute::COLOR);
   if (color_att != nullptr) {
-    unity_mesh->color = new float[in_mesh->num_points() * 3];
+    unity_mesh->color = new float[in_mesh->num_points() * 4];
     unity_mesh->has_color = true;
     for (draco::PointIndex i(0); i < in_mesh->num_points(); ++i) {
       const draco::AttributeValueIndex val_index = color_att->mapped_index(i);
-      if (!color_att->ConvertValue<float, 3>(
-              val_index, unity_mesh->color + i.value() * 3)) {
+      if (!color_att->ConvertValue<float, 4>(
+              val_index, unity_mesh->color + i.value() * 4)) {
         ReleaseUnityMesh(&unity_mesh);
         return -8;
       }

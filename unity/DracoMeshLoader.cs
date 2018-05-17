@@ -243,9 +243,9 @@ public unsafe class DracoMeshLoader
 		byte* normaladdr = (byte*)tmpMesh->normal;
 		byte* coloraddr = (byte*)tmpMesh->color;
 		byte* uvaddr = (byte*)tmpMesh->texcoord;
-		for (int i = 0; i < tmpMesh->numVertices; ++i) {
+		for (int i = 0; i < tmpMesh->numVertices; ++i)
+		{
 			int numValuePerVertex = 3;
-
 			for (int j = 0; j < numValuePerVertex; ++j)
 			{
 				int byteStridePerVertex = byteStridePerValue * numValuePerVertex;
@@ -256,12 +256,17 @@ public unsafe class DracoMeshLoader
 				{
 					newNormals[i][j] = *((float*)(normaladdr + OffSet));
 				}
-				if (tmpMesh->hasColor)
-				{
-					newColors[i][j] = *((float*)(coloraddr + OffSet));
-				}
 			}
 
+			if (tmpMesh->hasColor)
+			{
+				numValuePerVertex = 4;
+				for (int j = 0; j < numValuePerVertex; ++j)
+				{
+					int byteStridePerVertex = byteStridePerValue * numValuePerVertex;
+					newColors[i][j] = *((float*)(coloraddr + (i * byteStridePerVertex + byteStridePerValue * j)));
+				}
+			}
 
 			if (tmpMesh->hasTexcoord)
 			{
