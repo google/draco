@@ -13,7 +13,7 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
     def __init__(self):
         OpenMayaMPx.MPxFileTranslator.__init__(self)
 
-    def maya_useNewAPI():
+    def maya_useNewAPI(self):
         return True
 
     def haveWriteMethod(self):
@@ -29,105 +29,62 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
         return "drc"
 
     def writer(self, fileObject, optionString, accessMode):
-        # Get the selection and create a selection list of all the nodes meshes
         selection = OpenMaya.MGlobal.getActiveSelectionList()
+        dagIterator = OpenMaya.MItSelectionList(selection, OpenMaya.MFn.kGeometric)
 
-        # Create an MItSelectionList class to iterate over the selection
-        # Use the MFn class to as a filter to filter node types
-        iter = OpenMaya.MItSelectionList(selection, OpenMaya.MFn.kGeometric)
+        drcIndices = []
+        drcVertices = []
+        indicesOffset = 0
 
-        # This uses built in functions of the MItSelectionList class to loop through the list of objects
-        # NB: isn't a basic array, you must use the built in functions
-        while not iter.isDone():  # iterate selection
+        while not dagIterator.isDone():  
+            dagPath = dagIterator.getDagPath()
+            try:
+                fnMesh = OpenMaya.MFnMesh(dagPath)
+            except Exception as e:
+                dagIterator.next()
+                continue
+            meshPoints = fnMesh.getPoints(OpenMaya.MSpace.kWorld)
+            polygonsIterator = OpenMaya.MItMeshPolygon(dagPath)
 
-            vertexList = []
-            normalList = []
-            edgeList = []
-            polytriVertsList = []
-            polyList = []
-            connectedPolyList = []
-
-            # get dag path of current iterated selection
-            dagPath = iter.getDagPath()
-
-            # get the selection as an MObject
-            mObj = iter.getDependNode()
-
-            # create iterator of current mesh polygons
-            polygonsIterator = OpenMaya.MItMeshPolygon(mObj)
-
-            # Iterate through polygons on current mesh
             while not polygonsIterator.isDone():
+                if not polygonsIterator.hasValidTriangulation():
+                    raise ValueError("The mesh has not valid triangulation")
+                polygonVertices = polygonsIterator.getVertices()
+                numTriangles = polygonsIterator.numTriangles()
+                
+                localindices = []
+                for i in range(numTriangles):
+                    points, indices = polygonsIterator.getTriangle(i)
+                    drcIndices.append(indicesOffset)
+                    indicesOffset += 1
+                    drcIndices.append(indicesOffset)
+                    indicesOffset += 1
+                    drcIndices.append(indicesOffset)
+                    indicesOffset += 1
+                    localindices.append(indices[0])
+                    localindices.append(indices[1])
+                    localindices.append(indices[2])
+                            
+                for i in localindices:
+                    drcVertices.append(meshPoints[i].x)
+                    drcVertices.append(meshPoints[i].y)
+                    drcVertices.append(meshPoints[i].z)
+                    
+                polygonsIterator.next(None)
+            dagIterator.next()
 
-                # Get current polygons index
-                polyList.append(polygonsIterator.index())
 
-                # Get current polygons vertices
-                verts = polygonsIterator.getVertices()
+        drcMesh = DrcMesh()
+        drcMesh.faces_num = len(drcIndices) / 3
+        drcMesh.faces_len = len(drcIndices)
+        drcMesh.faces = drcIndices
 
-                #normalIndices = []
-                # Append the current polygons vertex indices
-                for i in range(len(verts)):
-                    vertexList.append(verts[i])
+        drcMesh.vertices_num = len(drcVertices) / 3
+        drcMesh.vertices_len = len(drcVertices)
+        drcMesh.vertices = drcVertices
 
-                # NOT VALID CODE
-                # for i in range(0,len(vertexList), 3):
-                # need vertex this is a float
-                # vertex = OpenMaya.MFloatPoint(vertexList[i], vertexList[i+1], vertexList[i+2])
-                # normalIndices.append(polygonsIterator.normalIndex(vertex))  #return the index in the normals buffer
-
-                # Get current polygons edges
-                edges = polygonsIterator.getEdges()
-
-                # Append the current polygons edge indices
-                for i in range(len(edges)):
-                    edgeList.append(edges[i])
-
-                # Get current polygons connected faces
-                indexConnectedFaces = polygonsIterator.getConnectedFaces()
-
-                # Append the connected polygons indices
-                for i in range(len(indexConnectedFaces)):
-                    connectedPolyList.append(indexConnectedFaces[i])
-
-                # Get current polygons triangles
-                space = OpenMaya.MSpace.kObject
-
-                # Get the vertices and vertex positions of all the triangles in the current face's triangulation.
-                pointArray, intArray = polygonsIterator.getTriangles(space)
-
-                # Append vertices that are part of the triangles
-                for i in range(len(intArray)):
-                    polytriVertsList.append(intArray[i])
-
-                # next poligon
-                polygonsIterator.next(None)  # idk what arguments i need to pass here
-
-            print(fileObject.fullName())
-
-            drcMesh = DrcMesh()
-            drcMesh.faces_num = len(polytriVertsList) / 3
-            drcMesh.faces_len = len(polytriVertsList)
-            drcMesh.faces = polytriVertsList
-
-            drcMesh.vertices_num = len(vertexList) / 3
-            drcMesh.vertices_len = len(vertexList)
-            drcMesh.vertices = vertexList
-
-            draco = Draco()
-            draco.encode(drcMesh, fileObject.fullName())
-
-            # print data for current selection being iterated on,
-            print ("Object name: {}".format(dagPath.fullPathName()))
-            print ("Vertex list: {} size: {}".format(vertexList, len(vertexList)))
-            print ("Edge list: {} size: {}".format(edgeList, len(edgeList)))
-            print ("Poly Triangle Vertices: ***INDEX BUFFER*** {} size: {}".format(polytriVertsList,
-                                                                                   len(polytriVertsList)))
-            print ("Polygon index list: {} size: {}".format(polyList, len(polyList)))
-            print ("Connected Polygons list: {} size: {}".format(connectedPolyList, len(connectedPolyList)))
-
-            # next selected
-            iter.next()
+        draco = Draco()
+        draco.encode(drcMesh, fileObject.fullName())
 
     def reader(self, fileObject, optionString, accessMode):
         drc = Draco()
