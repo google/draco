@@ -107,19 +107,14 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
                 us.append(float(mesh.uvs[i]))
                 vs.append(float(mesh.uvs[i + 1]))
 
-        #indices
-        #TODO: verify if index array is effectively useful (we can use directly mesh.faces?)
-        indices = []
-        for index in mesh.faces:
-            indices.append(index)
         poly_count = [3] * mesh.faces_num
 
         #create mesh
         if mesh.uvs:
             #TODO: ensure the mesh actually uses the uvs inside maya
-            newMesh = fnMesh.create(vertices, poly_count, indices, uValues=us, vValues=vs)
+            newMesh = fnMesh.create(vertices, poly_count, mesh.faces, uValues=us, vValues=vs)
         else:
-            newMesh = fnMesh.create(vertices, poly_count, indices)
+            newMesh = fnMesh.create(vertices, poly_count, mesh.faces)
 
         if mesh.normals:
             fnMesh.setVertexNormals(normals, range(len(vertices)))
