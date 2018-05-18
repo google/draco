@@ -6,6 +6,7 @@ The following feature are offered:
 * Support .drc format: TRIANGULAR MESH  (no POINT CLOUD)
 * Import .drc file into Maya by Import menu
 * Import .drc file into Maya by Drag & Drop
+* Export from Maya into .drc file by Export Selection menu
 
 With the following contraints:
 * Import attributes limited to: Vertices, Normals and Uvs
@@ -19,11 +20,12 @@ and tested against Maya versions:
 * Maya 2018
 
 # Installation
-[TODO]: Describe installation steps
+Copy the files draco_maya_plugin.py, draco_maya_wrapper.py and draco_maya_wrapper.dll in the appropriate maya folder
+For example on Windows C:\Users\username\Documents\maya\2018\plug-ins for Maya 2018
 
 
 # Usage
-[TODO]: Describe usate steps
+Use the regular Maya import/export functionalities
 
 
 # Build From Source
