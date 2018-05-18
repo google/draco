@@ -95,8 +95,7 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
         normals = []
         us = OpenMaya.MFloatArray()
         vs = OpenMaya.MFloatArray()
-        newMesh = None
-        fnMesh = OpenMaya.MFnMesh()
+        poly_count = [3] * mesh.faces_num
         for n in range(mesh.vertices_num):
             i = 3 * n
             vertices.append(OpenMaya.MPoint(mesh.vertices[i], mesh.vertices[i + 1], mesh.vertices[i + 2]))
@@ -104,20 +103,19 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
                 normals.append(OpenMaya.MFloatVector(mesh.normals[i], mesh.normals[i + 1], mesh.normals[i + 2]))
             if mesh.uvs:
                 i = 2 * n
-                us.append(float(mesh.uvs[i]))
-                vs.append(float(mesh.uvs[i + 1]))
-
-        poly_count = [3] * mesh.faces_num
+                us.append(mesh.uvs[i])
+                vs.append(mesh.uvs[i + 1])
 
         #create mesh
-        if mesh.uvs:
-            #TODO: ensure the mesh actually uses the uvs inside maya
-            newMesh = fnMesh.create(vertices, poly_count, mesh.faces, uValues=us, vValues=vs)
-        else:
-            newMesh = fnMesh.create(vertices, poly_count, mesh.faces)
+        fnMesh = OpenMaya.MFnMesh()
+        newMesh = fnMesh.create(vertices, poly_count, mesh.faces)
 
         if mesh.normals:
             fnMesh.setVertexNormals(normals, range(len(vertices)))
+        if mesh.uvs:
+            uvSetsNames = fnMesh.getUVSetNames()
+            fnMesh.setUVs(us, vs, uvSetsNames[0])
+            fnMesh.assignUVs(poly_count, mesh.faces)
             
         fnMesh.updateSurface()
 
