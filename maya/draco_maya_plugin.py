@@ -29,11 +29,16 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
         return "drc"
 
     def writer(self, fileObject, optionString, accessMode):
+        exportUVs = True
+        exportNormals = True
+
         selection = OpenMaya.MGlobal.getActiveSelectionList()
         dagIterator = OpenMaya.MItSelectionList(selection, OpenMaya.MFn.kGeometric)
 
         drcIndices = []
         drcVertices = []
+        drcNormals = []
+        drcUvs = []
         indicesOffset = 0
 
         while not dagIterator.isDone():  
@@ -43,8 +48,20 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
             except Exception as e:
                 dagIterator.next()
                 continue
+
             meshPoints = fnMesh.getPoints(OpenMaya.MSpace.kWorld)
             polygonsIterator = OpenMaya.MItMeshPolygon(dagPath)
+
+            meshNormals = normals = u = v = uvSetsNames = uvs = None
+
+            if exportNormals:
+                meshNormals = fnMesh.getNormals()
+                normals = {}    
+
+            if exportUVs:
+                uvSetsNames = fnMesh.getUVSetNames()
+                u, v = fnMesh.getUVs(uvSetsNames[0])
+                uvs = {}
 
             while not polygonsIterator.isDone():
                 if not polygonsIterator.hasValidTriangulation():
@@ -64,11 +81,37 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
                     localindices.append(indices[0])
                     localindices.append(indices[1])
                     localindices.append(indices[2])
-                            
+
+                    localIndex = []
+                    for gt in range(len(indices)):
+                        for gv in range(len(polygonVertices)):
+                            if indices[gt] == polygonVertices[gv]:
+                                localIndex.append(gv)
+                                break
+                    if exportNormals:
+                        normals[indices[0]] = meshNormals[polygonsIterator.normalIndex(localIndex[0])]
+                        normals[indices[1]] = meshNormals[polygonsIterator.normalIndex(localIndex[1])]
+                        normals[indices[2]] = meshNormals[polygonsIterator.normalIndex(localIndex[2])]
+
+                    if exportUVs and polygonsIterator.hasUVs():
+                        uvID = [0, 0, 0]
+                        for vtxInPolygon in range(3):
+                            uvID[vtxInPolygon] = polygonsIterator.getUVIndex(localIndex[vtxInPolygon], uvSetsNames[0])
+                        uvs[indices[0]] = (u[uvID[0]], v[uvID[0]])
+                        uvs[indices[1]] = (u[uvID[1]], v[uvID[1]])
+                        uvs[indices[2]] = (u[uvID[2]], v[uvID[2]])
+
                 for i in localindices:
                     drcVertices.append(meshPoints[i].x)
                     drcVertices.append(meshPoints[i].y)
                     drcVertices.append(meshPoints[i].z)
+                    if exportNormals:
+                        drcNormals.append(normals[i][0])
+                        drcNormals.append(normals[i][1])
+                        drcNormals.append(normals[i][2])
+                    if exportUVs and polygonsIterator.hasUVs():
+                        drcUvs.append(uvs[i][0])
+                        drcUvs.append(uvs[i][1])
                     
                 polygonsIterator.next(None)
             dagIterator.next()
@@ -82,6 +125,16 @@ class DracoTranslator(OpenMayaMPx.MPxFileTranslator):
         drcMesh.vertices_num = len(drcVertices) / 3
         drcMesh.vertices_len = len(drcVertices)
         drcMesh.vertices = drcVertices
+
+        if exportNormals:
+            drcMesh.normals = drcNormals
+            drcMesh.normals_len = len(drcNormals)
+            drcMesh.normals_num = len(drcVertices) / 3
+
+        if exportUVs:
+            drcMesh.uvs = drcUvs
+            drcMesh.uvs_len = len(drcUvs)
+            drcMesh.uvs_num = len(drcVertices) / 3
 
         draco = Draco()
         draco.encode(drcMesh, fileObject.fullName())
