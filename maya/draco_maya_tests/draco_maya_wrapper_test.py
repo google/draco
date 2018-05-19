@@ -2,7 +2,7 @@ import unittest
 import os
 import sys
 dir_path = os.path.dirname(os.path.realpath(__file__))
-root_path = os.path.join(dir_path, '..')
+root_path = os.path.join(dir_path, '../draco_maya')
 sys.path.insert(0, root_path)
 
 def file_del(file_path):
@@ -18,7 +18,7 @@ class DracoTest(unittest.TestCase):
 		self.drc = Draco()
 
 	def test_decode_bunny_drc(self):
-		mesh = self.drc.decode(os.path.join(dir_path, 'bunny.drc'))
+		mesh = self.drc.decode(os.path.join(dir_path, 'res/bunny.drc'))
 		# Faces check
 		self.assertEqual(69451, mesh.faces_num, 'Number of faces')
 		self.assertEqual(208353, mesh.faces_len,'Length of faces array precalculated')
@@ -37,7 +37,7 @@ class DracoTest(unittest.TestCase):
 		self.assertEqual(0, len(mesh.uvs),'Length of uvs array by len')
 
 	def test_decode_trooper_drc(self):
-		mesh = self.drc.decode(os.path.join(dir_path, 'stormtrooper.drc'))
+		mesh = self.drc.decode(os.path.join(dir_path, 'res/stormtrooper.drc'))
 		# Faces check
 		self.assertEqual(6518, mesh.faces_num, 'Number of faces')
 		self.assertEqual(19554, mesh.faces_len,'Length of faces array precalculated')
@@ -56,7 +56,7 @@ class DracoTest(unittest.TestCase):
 		self.assertEqual(10352, len(mesh.uvs), 'Length of uvs array by len')
 
 	def test_decode_unexistent_drc(self):
-		self.assertRaises(Exception, self.drc.decode, 'unexistent.drc')
+		self.assertRaises(Exception, self.drc.decode, 'res/unexistent.drc')
 
 	def test_encode_triangle_mesh(self):
 		mesh = DrcMesh()
@@ -79,7 +79,7 @@ class DracoTest(unittest.TestCase):
 		mesh.faces_num = 1
 		mesh.vertices = [0, 0, 0, 1, 1, 1, 2, 2, 2]
 		mesh.vertices_num = 3
-		file = os.path.join(dir_path,'triangle.drc')
+		file = os.path.join(dir_path, 'res/triangle.drc')
 		file_del(file)
 		self.drc.encode(mesh, file)
 		
@@ -97,9 +97,9 @@ class DracoTest(unittest.TestCase):
 
 	def test_decode_and_encode_stoormtrup_drc(self):
 		# Step1: decode
-		mesh = self.drc.decode(os.path.join(dir_path, 'stormtrooper.drc'))
+		mesh = self.drc.decode(os.path.join(dir_path, 'res/stormtrooper.drc'))
 		# Step2: encode
-		file = os.path.join(dir_path,'stormtrooper_copy.drc')
+		file = os.path.join(dir_path, 'res/stormtrooper_copy.drc')
 		file_del(file)
 		self.drc.encode(mesh, file)
 		# Step3: re-decode and test
