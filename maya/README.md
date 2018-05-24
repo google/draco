@@ -51,6 +51,15 @@ You should be able to find the library under:
 path/to/build/Debug(or Release)/draco_maya_wrapper.bundle
 ~~~~
 
+The makefile generator will also work:
+
+~~~~~ bash
+$ cmake path/to/draco -DBUILD_MAYA_PLUGIN=ON && make
+~~~~~
+
+`draco_maya_wrapper.bundle` can be found in the directory where you generated
+the build files and ran make.
+
 ### Windows
 On Windows, run the following command to generate Visual Studio projects:
 
@@ -72,5 +81,12 @@ path/to/build/Debug(or Release)/draco_maya_wrapper.dll
 ~~~~
 
 ### Linux
-[TODO]
+On Linux, run the following command to generate a Makefile build and build the
+plugin.
 
+~~~~~ bash
+$ cmake path/to/draco -DBUILD_MAYA_PLUGIN=1 && make
+~~~~~
+
+Note: While the linux build completes successfully, the plugin has not been
+tested.
