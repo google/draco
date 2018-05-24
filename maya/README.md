@@ -81,5 +81,12 @@ path/to/build/Debug(or Release)/draco_maya_wrapper.dll
 ~~~~
 
 ### Linux
-[TODO]
+On Linux, run the following command to generate a Makefile build and build the
+plugin.
 
+~~~~~ bash
+$ cmake path/to/draco -DBUILD_MAYA_PLUGIN=1 && make
+~~~~~
+
+Note: While the linux build completes successfully, the plugin has not been
+tested.
