@@ -209,6 +209,12 @@ $ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake
 $ make
 ~~~~~
 
+To build a decoder module that is compatible with IE11 (at the cost of a slightly larger resulting module), set the `IE_COMPATIBLE` variable to `true` when generating the cmake file.
+
+~~~~~ bash
+$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake -DIE_COMPATIBLE=true
+~~~~~
+
 WebAssembly Decoder
 -------------------
 

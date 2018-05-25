@@ -59,7 +59,11 @@ ALL_C_OPTS := -std=c++11
 #ALL_C_OPTS += -s USE_SDL=0 -s USE_SDL_IMAGE=0 -s USE_SDL_TTF=0
 
 # Options for speed.
-ALL_C_OPTS += -O3
+ifeq ($(IE_COMPATIBLE), true)
+    ALL_C_OPTS += -g
+else 
+    ALL_C_OPTS += -O3
+endif
 ALL_C_OPTS += -s NO_FILESYSTEM=1 -s ELIMINATE_DUPLICATE_FUNCTIONS=1
 ALL_C_OPTS += -s EXPORTED_RUNTIME_METHODS=[]
 ALL_C_OPTS += -s PRECISE_F32=1
@@ -77,6 +81,11 @@ endif
 # will hurt performance.
 ALL_C_OPTS += -s ALLOW_MEMORY_GROWTH=1
 #ALL_C_OPTS += -s TOTAL_MEMORY=67108864
+
+# Allow legacy vm support for IE11
+ifeq ($(IE_COMPATIBLE), true)
+    ALL_C_OPTS += -s LEGACY_VM_SUPPORT=1
+endif
 
 # Export the main module as "DracoDecoderModule".
 ALL_C_OPTS += -s MODULARIZE=1 -s EXPORT_NAME="'DracoDecoderModule'"

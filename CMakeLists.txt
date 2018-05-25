@@ -607,6 +607,9 @@ set(draco_maya_plug_sources
 if (EMSCRIPTEN)
   # Draco js decoder.
   require_compiler_flag("-s ALLOW_MEMORY_GROWTH=1" YES)
+  if (IE_COMPATIBLE)
+    require_compiler_flag("-s LEGACY_VM_SUPPORT=1" YES)
+  endif ()
   require_compiler_flag("-Wno-almost-asm" YES)
   require_compiler_flag("--memory-init-file 0" YES)
   require_compiler_flag("-fno-omit-frame-pointer" YES)
@@ -625,7 +628,11 @@ if (EMSCRIPTEN)
 
   if (CMAKE_BUILD_TYPE STREQUAL "")
     # Force -O3 when no build type is specified.
-    add_compiler_flag_if_supported("-O3")
+    if (IE_COMPATIBLE)
+      add_compiler_flag_if_supported("-g")
+    else ()
+      add_compiler_flag_if_supported("-O3")
+    endif ()
   endif ()
 
   set(draco_js_dec_idl
