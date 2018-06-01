@@ -91,11 +91,15 @@ long MetadataQuerier::NumEntries(const Metadata &metadata) const {
 const char *MetadataQuerier::GetEntryName(const Metadata &metadata,
                                           int entry_id) {
   if (entry_names_metadata_ != &metadata) {
-    entry_names_.clear();
+    entry_names_.resize(metadata.num_entries());
     entry_names_metadata_ = &metadata;
     // Initialize the list of entry names.
     for (auto &&entry : metadata.entries()) {
-      entry_names_.push_back(entry.first);
+      int name_index = -1;
+      entry.second.GetValue(&name_index);
+      if (name_index >= 0 || name_index < metadata.num_entries()) {
+        entry_names_[name_index] = entry.first;
+      }
     }
   }
   if (entry_id < 0 || entry_id >= entry_names_.size())
