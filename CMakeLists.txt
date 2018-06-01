@@ -29,6 +29,7 @@ option(ENABLE_DISTCC "Enable distcc support." OFF)
 option(ENABLE_EXTRA_SPEED "" OFF)
 option(ENABLE_EXTRA_WARNINGS "" OFF)
 option(ENABLE_GOMA "Enable goma support." OFF)
+option(ENABLE_JS_GLUE "Enable JS Glue and JS targets when using Emscripten." ON)
 option(ENABLE_MESH_COMPRESSION "" ON)
 option(ENABLE_POINT_CLOUD_COMPRESSION "" ON)
 option(ENABLE_PREDICTIVE_EDGEBREAKER "" ON)
@@ -547,7 +548,6 @@ set(draco_js_enc_sources
     "${draco_src_root}/javascript/emscripten/draco_encoder_glue_wrapper.cc"
     "${draco_src_root}/javascript/emscripten/encoder_webidl_wrapper.cc")
 
-
 set(draco_test_sources
     "${draco_src_root}/attributes/point_attribute_test.cc"
     "${draco_src_root}/compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_canonicalized_transform_test.cc"
@@ -597,14 +597,12 @@ set(draco_maya_plug_sources
     "${draco_src_root}/maya/draco_maya_plugin.cc"
     "${draco_src_root}/maya/draco_maya_plugin.h")
 
-	
-
-	include_directories("${draco_root}/src" "${draco_build_dir}")
+include_directories("${draco_root}/src" "${draco_build_dir}")
 
 #
 # Draco targets.
 #
-if (EMSCRIPTEN)
+if (EMSCRIPTEN AND ENABLE_JS_GLUE)
   # Draco js decoder.
   require_compiler_flag("-s ALLOW_MEMORY_GROWTH=1" YES)
   require_compiler_flag("-Wno-almost-asm" YES)
@@ -650,7 +648,6 @@ if (EMSCRIPTEN)
     message(FATAL_ERROR "Glue generation failed.")
   endif ()
 
-
   # Add a custom rule depending on the IDL to regenerate
   # ${draco_build_dir}/glue_decoder.cpp as needed.
   add_custom_command(OUTPUT ${draco_build_dir}/glue_decoder.cpp
@@ -673,7 +670,6 @@ if (EMSCRIPTEN)
                      WORKING_DIRECTORY ${draco_build_dir}
                      VERBATIM)
 
-
   set(draco_decoder_src
       ${draco_attributes_sources}
       ${draco_compression_attributes_dec_sources}
@@ -691,6 +687,7 @@ if (EMSCRIPTEN)
       ${draco_point_cloud_sources}
       ${draco_points_dec_sources}
       ${draco_version_sources})
+
   set(draco_encoder_src
       ${draco_attributes_sources}
       ${draco_compression_attributes_enc_sources}
@@ -708,7 +705,6 @@ if (EMSCRIPTEN)
       ${draco_point_cloud_sources}
       ${draco_points_enc_sources}
       ${draco_version_sources})
-
 
   add_executable(draco_decoder
                  ${draco_js_dec_sources}
