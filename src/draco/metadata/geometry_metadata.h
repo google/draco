@@ -74,7 +74,7 @@ class GeometryMetadata : public Metadata {
 
   const AttributeMetadata *GetAttributeMetadataByUniqueId(
       int32_t att_unique_id) const {
-    // TODO(zhafang): Consider using unordered_map instead of vector to store
+    // TODO(draco-eng): Consider using unordered_map instead of vector to store
     // attribute metadata.
     for (auto &&att_metadata : att_metadatas_) {
       if (att_metadata->att_unique_id() == att_unique_id) {
@@ -85,7 +85,7 @@ class GeometryMetadata : public Metadata {
   }
 
   AttributeMetadata *attribute_metadata(int32_t att_unique_id) {
-    // TODO(zhafang): Consider use unordered_map instead of vector to store
+    // TODO(draco-eng): Consider use unordered_map instead of vector to store
     // attribute metadata.
     for (auto &&att_metadata : att_metadatas_) {
       if (att_metadata->att_unique_id() == att_unique_id) {

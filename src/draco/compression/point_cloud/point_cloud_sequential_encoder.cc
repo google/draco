@@ -42,4 +42,8 @@ bool PointCloudSequentialEncoder::GenerateAttributesEncoder(int32_t att_id) {
   return true;
 }
 
+void PointCloudSequentialEncoder::ComputeNumberOfEncodedPoints() {
+  set_num_encoded_points(point_cloud()->num_points());
+}
+
 }  // namespace draco

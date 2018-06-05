@@ -23,10 +23,15 @@ namespace draco {
 
 namespace {
 static constexpr char kTestDataDir[] = DRACO_TEST_DATA_DIR;
+static constexpr char kTestTempDir[] = DRACO_TEST_TEMP_DIR;
 }  // namespace
 
 std::string GetTestFileFullPath(const std::string &file_name) {
   return std::string(kTestDataDir) + std::string("/") + file_name;
+}
+
+std::string GetTestTempFileFullPath(const std::string &file_name) {
+  return std::string(kTestTempDir) + std::string("/") + file_name;
 }
 
 bool GenerateGoldenFile(const std::string &golden_file_name, const void *data,

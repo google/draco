@@ -65,13 +65,14 @@ class Dequantizer {
   // Returns false when the initialization fails.
   bool Init(float range, int32_t max_quantized_value);
   inline float DequantizeFloat(int32_t val) const {
-    const bool neg = (val < 0);
-    if (neg) {
-      val = -val;
-    }
-    float norm_value = static_cast<float>(val) * max_quantized_value_factor_;
-    if (neg)
-      norm_value = -norm_value;
+    if (val >= 0)
+      return static_cast<float>(val) * max_quantized_value_factor_ * range_;
+
+    // val was negative.
+    const int64_t neg_val = -static_cast<int64_t>(val);
+    float norm_value =
+        static_cast<float>(neg_val) * max_quantized_value_factor_;
+    norm_value = -norm_value;
     return norm_value * range_;
   }
   inline float operator()(int32_t val) const { return DequantizeFloat(val); }

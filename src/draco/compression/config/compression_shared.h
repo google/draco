@@ -41,7 +41,7 @@ static constexpr uint16_t kDracoMeshBitstreamVersion = DRACO_BITSTREAM_VERSION(
     kDracoMeshBitstreamVersionMajor, kDracoMeshBitstreamVersionMinor);
 
 // Currently, we support point cloud and triangular mesh encoding.
-// TODO(draco-eng) convert enum to enum class (safety, not performance).
+// TODO(draco-eng) Convert enum to enum class (safety, not performance).
 enum EncodedGeometryType {
   INVALID_GEOMETRY_TYPE = -1,
   POINT_CLOUD = 0,
@@ -115,8 +115,7 @@ enum PredictionSchemeTransformType {
 enum MeshTraversalMethod {
   MESH_TRAVERSAL_DEPTH_FIRST = 0,
   MESH_TRAVERSAL_PREDICTION_DEGREE = 1,
-  MESH_TRAVERSAL_RESERVED_1 = 2,
-  MESH_TRAVERSAL_RESERVED_2 = 3,
+  NUM_TRAVERSAL_METHODS
 };
 
 // List of all variant of the edgebreaker method that is used for compression

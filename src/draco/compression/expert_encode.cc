@@ -82,7 +82,11 @@ Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud &pc,
     encoder.reset(new PointCloudSequentialEncoder());
   }
   encoder->SetPointCloud(pc);
-  return encoder->Encode(options(), out_buffer);
+  DRACO_RETURN_IF_ERROR(encoder->Encode(options(), out_buffer));
+
+  set_num_encoded_points(encoder->num_encoded_points());
+  set_num_encoded_faces(0);
+  return OkStatus();
 }
 
 Status ExpertEncoder::EncodeMeshToBuffer(const Mesh &m,
@@ -104,7 +108,11 @@ Status ExpertEncoder::EncodeMeshToBuffer(const Mesh &m,
     encoder = std::unique_ptr<MeshEncoder>(new MeshSequentialEncoder());
   }
   encoder->SetMesh(m);
-  return encoder->Encode(options(), out_buffer);
+  DRACO_RETURN_IF_ERROR(encoder->Encode(options(), out_buffer));
+
+  set_num_encoded_points(encoder->num_encoded_points());
+  set_num_encoded_faces(encoder->num_encoded_faces());
+  return OkStatus();
 }
 
 void ExpertEncoder::Reset(const EncoderOptions &options) {
@@ -145,9 +153,10 @@ void ExpertEncoder::SetEncodingMethod(int encoding_method) {
 
 Status ExpertEncoder::SetAttributePredictionScheme(
     int32_t attribute_id, int prediction_scheme_method) {
-  auto att = point_cloud_->GetAttributeByUniqueId(attribute_id);
+  auto att = point_cloud_->attribute(attribute_id);
   auto att_type = att->attribute_type();
-  Status status = CheckPredictionScheme(att_type, prediction_scheme_method);
+  const Status status =
+      CheckPredictionScheme(att_type, prediction_scheme_method);
   if (!status.ok())
     return status;
   options().SetAttributeInt(attribute_id, "prediction_scheme",

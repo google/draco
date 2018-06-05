@@ -57,7 +57,7 @@ class MeshPredictionSchemeTexCoordsPortablePredictor {
   // Computes predicted UV coordinates on a given corner. The coordinates are
   // stored in |predicted_value_| member.
   template <bool is_encoder_t>
-  void ComputePredictedValue(CornerIndex corner_id, const DataTypeT *data,
+  bool ComputePredictedValue(CornerIndex corner_id, const DataTypeT *data,
                              int data_id);
 
   const DataTypeT *predicted_value() const { return predicted_value_; }
@@ -82,7 +82,7 @@ class MeshPredictionSchemeTexCoordsPortablePredictor {
 
 template <typename DataTypeT, class MeshDataT>
 template <bool is_encoder_t>
-void MeshPredictionSchemeTexCoordsPortablePredictor<
+bool MeshPredictionSchemeTexCoordsPortablePredictor<
     DataTypeT, MeshDataT>::ComputePredictedValue(CornerIndex corner_id,
                                                  const DataTypeT *data,
                                                  int data_id) {
@@ -111,7 +111,7 @@ void MeshPredictionSchemeTexCoordsPortablePredictor<
       // We cannot do a reliable prediction on degenerated UV triangles.
       predicted_value_[0] = p_uv[0];
       predicted_value_[1] = p_uv[1];
-      return;
+      return true;
     }
 
     // Get positions at all corners.
@@ -203,6 +203,8 @@ void MeshPredictionSchemeTexCoordsPortablePredictor<
         }
       } else {
         // When decoding the data, we already know which orientation to use.
+        if (orientations_.empty())
+          return false;
         const bool orientation = orientations_.back();
         orientations_.pop_back();
         if (orientation)
@@ -212,7 +214,7 @@ void MeshPredictionSchemeTexCoordsPortablePredictor<
       }
       predicted_value_[0] = static_cast<int>(predicted_uv[0]);
       predicted_value_[1] = static_cast<int>(predicted_uv[1]);
-      return;
+      return true;
     }
   }
   // Else we don't have available textures on both corners or the position data
@@ -236,12 +238,13 @@ void MeshPredictionSchemeTexCoordsPortablePredictor<
       for (int i = 0; i < kNumComponents; ++i) {
         predicted_value_[i] = 0;
       }
-      return;
+      return true;
     }
   }
   for (int i = 0; i < kNumComponents; ++i) {
     predicted_value_[i] = data[data_offset + i];
   }
+  return true;
 }
 
 }  // namespace draco

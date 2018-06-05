@@ -82,6 +82,8 @@ class DynamicIntegerPointsKdTreeDecoder {
  public:
   explicit DynamicIntegerPointsKdTreeDecoder(uint32_t dimension)
       : bit_length_(0),
+        num_points_(0),
+        num_decoded_points_(0),
         dimension_(dimension),
         p_(dimension, 0),
         axes_(dimension, 0),
@@ -103,7 +105,7 @@ class DynamicIntegerPointsKdTreeDecoder {
                    uint32_t last_axis);
 
   template <class OutputIteratorT>
-  void DecodeInternal(uint32_t num_points, OutputIteratorT &oit);
+  bool DecodeInternal(uint32_t num_points, OutputIteratorT &oit);
 
   void DecodeNumber(int nbits, uint32_t *value) {
     numbers_decoder_.DecodeLeastSignificantBits32(nbits, value);
@@ -123,6 +125,7 @@ class DynamicIntegerPointsKdTreeDecoder {
 
   uint32_t bit_length_;
   uint32_t num_points_;
+  uint32_t num_decoded_points_;
   uint32_t dimension_;
   NumbersDecoder numbers_decoder_;
   RemainingBitsDecoder remaining_bits_decoder_;
@@ -148,9 +151,12 @@ template <class OutputIteratorT>
 bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
     DecoderBuffer *buffer, OutputIteratorT &oit) {
   buffer->Decode(&bit_length_);
+  if (bit_length_ > 32)
+    return false;
   buffer->Decode(&num_points_);
   if (num_points_ == 0)
     return true;
+  num_decoded_points_ = 0;
 
   if (!numbers_decoder_.StartDecoding(buffer))
     return false;
@@ -161,7 +167,8 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
   if (!half_decoder_.StartDecoding(buffer))
     return false;
 
-  DecodeInternal(num_points_, oit);
+  if (!DecodeInternal(num_points_, oit))
+    return false;
 
   numbers_decoder_.EndDecoding();
   remaining_bits_decoder_.EndDecoding();
@@ -194,7 +201,7 @@ uint32_t DynamicIntegerPointsKdTreeDecoder<compression_level_t>::GetAxis(
 
 template <int compression_level_t>
 template <class OutputIteratorT>
-void DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
+bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
     uint32_t num_points, OutputIteratorT &oit) {
   typedef DecodingStatus Status;
   base_stack_[0] = VectorUint32(dimension_, 0);
@@ -214,14 +221,21 @@ void DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
     const VectorUint32 &old_base = base_stack_[stack_pos];
     const VectorUint32 &levels = levels_stack_[stack_pos];
 
+    if (num_remaining_points > num_points)
+      return false;
+
     const uint32_t axis = GetAxis(num_remaining_points, levels, last_axis);
+    if (axis >= dimension_)
+      return false;
+
     const uint32_t level = levels[axis];
 
     // All axes have been fully subdivided, just output points.
     if ((bit_length_ - level) == 0) {
-      for (int i = 0; i < static_cast<int>(num_remaining_points); i++) {
+      for (uint32_t i = 0; i < num_remaining_points; i++) {
         *oit = old_base;
         ++oit;
+        ++num_decoded_points_;
       }
       continue;
     }
@@ -246,9 +260,14 @@ void DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
         }
         *oit = p_;
         ++oit;
+        ++num_decoded_points_;
       }
       continue;
     }
+
+    if (num_decoded_points_ > num_points_)
+      return false;
+
     const int num_remaining_bits = bit_length_ - level;
     const uint32_t modifier = 1 << (num_remaining_bits - 1);
     base_stack_[stack_pos + 1] = old_base;         // copy
@@ -273,6 +292,7 @@ void DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
     if (second_half)
       status_stack.push(DecodingStatus(second_half, axis, stack_pos + 1));
   }
+  return true;
 }
 
 extern template class DynamicIntegerPointsKdTreeDecoder<0>;

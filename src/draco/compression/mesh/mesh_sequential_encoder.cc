@@ -120,4 +120,12 @@ bool MeshSequentialEncoder::CompressAndEncodeIndices() {
   return true;
 }
 
+void MeshSequentialEncoder::ComputeNumberOfEncodedPoints() {
+  set_num_encoded_points(mesh()->num_points());
+}
+
+void MeshSequentialEncoder::ComputeNumberOfEncodedFaces() {
+  set_num_encoded_faces(mesh()->num_faces());
+}
+
 }  // namespace draco

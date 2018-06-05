@@ -64,7 +64,7 @@ bool MetadataEncoder::EncodeGeometryMetadata(EncoderBuffer *out_buffer,
   // Encode number of attribute metadata.
   const std::vector<std::unique_ptr<AttributeMetadata>> &att_metadatas =
       metadata->attribute_metadatas();
-  // TODO(zhafang): Limit the number of attributes.
+  // TODO(draco-eng): Limit the number of attributes.
   EncodeVarint(static_cast<uint32_t>(att_metadatas.size()), out_buffer);
   // Encode each attribute metadata
   for (auto &&att_metadata : att_metadatas) {

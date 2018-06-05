@@ -168,8 +168,15 @@ interface Encoder {
                                         [Const] float[] origin,
                                         float range);
   void SetSpeedOptions(long encoding_speed, long decoding_speed);
+  void SetTrackEncodedProperties(boolean flag);
+
   long EncodeMeshToDracoBuffer(Mesh mesh,
                                DracoInt8Array encoded_data);
   long EncodePointCloudToDracoBuffer(PointCloud pc, boolean deduplicate_values,
                                      DracoInt8Array encoded_data);
+
+  // Returns the number of encoded points or faces from the last Encode
+  // operation. Returns 0 if SetTrackEncodedProperties was not set to true.
+  long GetNumberOfEncodedPoints();
+  long GetNumberOfEncodedFaces();
 };

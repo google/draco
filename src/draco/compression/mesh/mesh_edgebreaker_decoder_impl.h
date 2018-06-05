@@ -199,6 +199,9 @@ class MeshEdgeBreakerDecoderImpl : public MeshEdgeBreakerDecoderImplInterface {
 
   MeshAttributeIndicesEncodingData pos_encoding_data_;
 
+  // Id of an attributes decoder that uses |pos_encoding_data_|.
+  int pos_data_decoder_id_;
+
   // Data for non-position attributes used by the decoder.
   struct AttributeData {
     AttributeData() : decoder_id(-1), is_connectivity_used(true) {}

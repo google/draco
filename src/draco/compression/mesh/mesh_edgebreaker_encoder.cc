@@ -85,4 +85,68 @@ bool MeshEdgeBreakerEncoder::EncodeConnectivity() {
   return impl_->EncodeConnectivity();
 }
 
+void MeshEdgeBreakerEncoder::ComputeNumberOfEncodedPoints() {
+  if (!impl_)
+    return;
+  const CornerTable *const corner_table = impl_->GetCornerTable();
+  if (!corner_table)
+    return;
+  size_t num_points =
+      corner_table->num_vertices() - corner_table->NumIsolatedVertices();
+
+  if (mesh()->num_attributes() > 1) {
+    // Add a new point based on the configuration of interior attribute seams
+    // (replicating what the decoder would do).
+    for (VertexIndex vi(0); vi < corner_table->num_vertices(); ++vi) {
+      if (corner_table->IsVertexIsolated(vi))
+        continue;
+      // Go around all corners of the vertex and keep track of the observed
+      // attribute seams.
+      const CornerIndex first_corner_index = corner_table->LeftMostCorner(vi);
+      const PointIndex first_point_index =
+          mesh()->CornerToPointId(first_corner_index);
+
+      PointIndex last_point_index = first_point_index;
+      CornerIndex corner_index = corner_table->SwingRight(first_corner_index);
+      size_t num_attribute_seams = 0;
+      while (corner_index != kInvalidCornerIndex &&
+             corner_index != first_corner_index) {
+        const PointIndex point_index = mesh()->CornerToPointId(corner_index);
+        if (point_index != last_point_index) {
+          // New attribute seam detected.
+          ++num_attribute_seams;
+          last_point_index = point_index;
+        }
+        // Proceed to the next corner
+        corner_index = corner_table->SwingRight(corner_index);
+      }
+
+      if (!corner_table->IsOnBoundary(vi) && num_attribute_seams > 0 &&
+          last_point_index == first_point_index) {
+        // If the last visited point index is the same as the first point index
+        // we traveled all the way around the vertex. In this case the number of
+        // new points should be num_attribute_seams - 1
+        num_points += num_attribute_seams - 1;
+      } else {
+        // Else the vertex was either on a boundary (i.e. we couldn't travel all
+        // around the vertex), or we ended up at a different point. In both of
+        // these cases, the number of new points is equal to the number of
+        // attribute seams.
+        num_points += num_attribute_seams;
+      }
+    }
+  }
+  set_num_encoded_points(num_points);
+}
+
+void MeshEdgeBreakerEncoder::ComputeNumberOfEncodedFaces() {
+  if (!impl_)
+    return;
+  const CornerTable *const corner_table = impl_->GetCornerTable();
+  if (!corner_table)
+    return;
+  set_num_encoded_faces(corner_table->num_faces() -
+                        corner_table->NumDegeneratedFaces());
+}
+
 }  // namespace draco

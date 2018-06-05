@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#include <fstream>
 #include <sstream>
 
 #include "draco/core/draco_test_base.h"
@@ -87,6 +88,8 @@ TEST_F(ObjEncoderTest, TestObjEncodingAll) {
   test_encoding("cube_quads.obj");
   test_encoding("cube_subd.obj");
   test_encoding("extra_vertex.obj");
+  test_encoding("multiple_isolated_triangles.obj");
+  test_encoding("multiple_tetrahedrons.obj");
   test_encoding("one_face_123.obj");
   test_encoding("one_face_312.obj");
   test_encoding("one_face_321.obj");
@@ -99,4 +102,5 @@ TEST_F(ObjEncoderTest, TestObjEncodingAll) {
   test_encoding("two_faces_123.obj");
   test_encoding("two_faces_312.obj");
 }
+
 }  // namespace draco

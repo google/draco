@@ -36,7 +36,7 @@ bool SequentialAttributeDecoder::InitializeStandalone(
 
 bool SequentialAttributeDecoder::DecodePortableAttribute(
     const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
-  if (!attribute_->Reset(point_ids.size()))
+  if (attribute_->num_components() <= 0 || !attribute_->Reset(point_ids.size()))
     return false;
   if (!DecodeValues(point_ids, in_buffer))
     return false;
@@ -83,7 +83,8 @@ bool SequentialAttributeDecoder::InitPredictionScheme(
     } else
 #endif
     {
-      if (!ps->SetParentAttribute(decoder_->GetPortableAttribute(att_id))) {
+      const PointAttribute *const pa = decoder_->GetPortableAttribute(att_id);
+      if (pa == nullptr || !ps->SetParentAttribute(pa)) {
         return false;
       }
     }

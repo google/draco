@@ -231,6 +231,69 @@ TEST_F(PointCloudKdTreeEncodingTest,
   TestKdTreeEncoding(*pc);
 }
 
+// Test 16 and 8 bit encoding with size bigger than 32bit encoding.
+TEST_F(PointCloudKdTreeEncodingTest,
+       TestIntKdTreeEncodingHigherDimensionVariedTypesBig16BitEncoding) {
+  constexpr int num_points = 120;
+  std::vector<std::array<uint32_t, 3>> points3(num_points);
+  for (int i = 0; i < num_points; ++i) {
+    std::array<uint32_t, 3> pos;
+    // Generate some pseudo-random points.
+    pos[0] = 8 * ((i * 7) % 127);
+    pos[1] = 13 * ((i * 3) % 321);
+    pos[2] = 29 * ((i * 19) % 450);
+    points3[i] = pos;
+  }
+  // The total size of the 16bit encoding must be bigger than the total size of
+  // the 32bit encoding.
+  std::vector<std::array<uint16_t, 7>> points7(num_points);
+  for (int i = 0; i < num_points; ++i) {
+    std::array<uint16_t, 7> pos;
+    // Generate some pseudo-random points.
+    pos[0] = 8 * ((i * 7) % 127) + 1;
+    pos[1] = 13 * ((i * 3) % 321) + 1;
+    pos[2] = pos[0] + 13;
+    pos[3] = pos[2] + 13;
+    pos[4] = pos[3] + 13;
+    pos[5] = pos[4] + 13;
+    pos[6] = pos[5] + 13;
+    points7[i] = pos;
+  }
+  std::vector<std::array<uint8_t, 1>> points1(num_points);
+  for (int i = 0; i < num_points; ++i) {
+    std::array<uint8_t, 1> pos;
+    // Generate some pseudo-random points.
+    pos[0] = 8 * ((i * 7) % 127) + 11;
+    points1[i] = pos;
+  }
+
+  PointCloudBuilder builder;
+  builder.Start(num_points);
+  const int att_id3 =
+      builder.AddAttribute(GeometryAttribute::POSITION, 3, DT_UINT32);
+  for (PointIndex i(0); i < num_points; ++i) {
+    builder.SetAttributeValueForPoint(att_id3, PointIndex(i),
+                                      &(points3[i.value()])[0]);
+  }
+  const int att_id2 =
+      builder.AddAttribute(GeometryAttribute::POSITION, 7, DT_UINT16);
+  for (PointIndex i(0); i < num_points; ++i) {
+    builder.SetAttributeValueForPoint(att_id2, PointIndex(i),
+                                      &(points7[i.value()])[0]);
+  }
+  const int att_id1 =
+      builder.AddAttribute(GeometryAttribute::GENERIC, 1, DT_UINT8);
+  for (PointIndex i(0); i < num_points; ++i) {
+    builder.SetAttributeValueForPoint(att_id1, PointIndex(i),
+                                      &(points1[i.value()])[0]);
+  }
+
+  std::unique_ptr<PointCloud> pc = builder.Finalize(false);
+  ASSERT_NE(pc, nullptr);
+
+  TestKdTreeEncoding(*pc);
+}
+
 // Test encoding of quantized values.
 TEST_F(PointCloudKdTreeEncodingTest,
        TestIntKdTreeEncodingHigherDimensionFloatTypes) {

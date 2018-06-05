@@ -107,9 +107,9 @@ class EdgeBreakerTraverser {
   // Called when all the traversing is done.
   void OnTraversalEnd() {}
 
-  void TraverseFromCorner(CornerIndex corner_id) {
+  bool TraverseFromCorner(CornerIndex corner_id) {
     if (processor_.IsFaceVisited(corner_id))
-      return;  // Already traversed.
+      return true;  // Already traversed.
 
     corner_traversal_stack_.clear();
     corner_traversal_stack_.push_back(corner_id);
@@ -119,6 +119,8 @@ class EdgeBreakerTraverser {
         corner_table_->Vertex(corner_table_->Next(corner_id));
     const VertexIndex prev_vert =
         corner_table_->Vertex(corner_table_->Previous(corner_id));
+    if (next_vert == kInvalidVertexIndex || prev_vert == kInvalidVertexIndex)
+      return false;
     if (!processor_.IsVertexVisited(next_vert)) {
       processor_.MarkVertexVisited(next_vert);
       traversal_observer_.OnNewVertexVisited(next_vert,
@@ -146,6 +148,8 @@ class EdgeBreakerTraverser {
         processor_.MarkFaceVisited(face_id);
         traversal_observer_.OnNewFaceVisited(face_id);
         const VertexIndex vert_id = corner_table_->Vertex(corner_id);
+        if (vert_id == kInvalidVertexIndex)
+          return false;
         if (!processor_.IsVertexVisited(vert_id)) {
           const bool on_boundary = corner_table_->IsOnBoundary(vert_id);
           processor_.MarkVertexVisited(vert_id);
@@ -210,6 +214,7 @@ class EdgeBreakerTraverser {
         }
       }
     }
+    return true;
   }
 
   const CornerTable *corner_table() const { return corner_table_; }

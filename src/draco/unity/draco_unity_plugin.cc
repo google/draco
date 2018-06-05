@@ -55,7 +55,7 @@ int DecodeMeshForUnity(char *data, unsigned int length,
   buffer.Init(data, length);
   auto type_statusor = draco::Decoder::GetEncodedGeometryType(&buffer);
   if (!type_statusor.ok()) {
-    // TODO(zhafang): Use enum instead.
+    // TODO(draco-eng): Use enum instead.
     return -1;
   }
   const draco::EncodedGeometryType geom_type = type_statusor.value();
@@ -82,7 +82,7 @@ int DecodeMeshForUnity(char *data, unsigned int length,
            reinterpret_cast<const int *>(face.data()), sizeof(int) * 3);
   }
 
-  // TODO(zhafang): Add other attributes.
+  // TODO(draco-eng): Add other attributes.
   unity_mesh->position = new float[in_mesh->num_points() * 3];
   const auto pos_att =
       in_mesh->GetNamedAttribute(draco::GeometryAttribute::POSITION);
@@ -121,6 +121,11 @@ int DecodeMeshForUnity(char *data, unsigned int length,
               val_index, unity_mesh->color + i.value() * 4)) {
         ReleaseUnityMesh(&unity_mesh);
         return -8;
+      }
+      if (color_att->num_components() < 4) {
+        // If the alpha component wasn't set in the input data we should set
+        // it to an opaque value.
+        unity_mesh->color[i.value() * 4 + 3] = 1.f;
       }
     }
   }

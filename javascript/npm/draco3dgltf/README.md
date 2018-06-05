@@ -16,6 +16,9 @@ TODO: Add glTF branch url.
 
 News
 =======
+### Version 1.3.2 release
+* Bug Fixes
+
 ### Version 1.3.1 release
 * Fix issue with multiple attributes when skipping an attribute transform
 

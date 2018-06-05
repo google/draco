@@ -81,6 +81,8 @@ class ObjEncoder {
   std::unordered_map<int, std::string> material_id_to_name_;
   // Current material id of faces.
   int current_material_id_;
+
+  std::string file_name_;
 };
 
 }  // namespace draco

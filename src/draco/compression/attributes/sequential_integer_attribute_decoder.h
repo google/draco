@@ -56,6 +56,8 @@ class SequentialIntegerAttributeDecoder : public SequentialAttributeDecoder {
   void PreparePortableAttribute(int num_entries, int num_components);
 
   int32_t *GetPortableAttributeData() {
+    if (portable_attribute()->size() == 0)
+      return nullptr;
     return reinterpret_cast<int32_t *>(
         portable_attribute()->GetAddress(AttributeValueIndex(0)));
   }

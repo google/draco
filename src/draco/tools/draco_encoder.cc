@@ -35,6 +35,8 @@ struct Options {
   int generic_quantization_bits;
   bool generic_deleted;
   int compression_level;
+  int edgebreaker_method;
+  std::map<draco::GeometryAttribute::Type, int> attribute_prediction_scheme;
   bool use_metadata;
   std::string input;
   std::string output;
@@ -50,6 +52,7 @@ Options::Options()
       generic_quantization_bits(8),
       generic_deleted(false),
       compression_level(7),
+      edgebreaker_method(-1),
       use_metadata(false) {}
 
 void Usage() {
@@ -157,7 +160,7 @@ int EncodePointCloudToFile(const draco::PointCloud &pc, const std::string &file,
     return -1;
   }
   out_file.write(buffer.data(), buffer.size());
-  printf("Encoded point cloud saved to %s (%" PRId64 " ms to encode)\n",
+  printf("Encoded point cloud saved to %s (%" PRId64 " ms to encode).\n",
          file.c_str(), timer.GetInMs());
   printf("\nEncoded size = %zu bytes\n\n", buffer.size());
   return 0;
@@ -183,7 +186,7 @@ int EncodeMeshToFile(const draco::Mesh &mesh, const std::string &file,
     return -1;
   }
   out_file.write(buffer.data(), buffer.size());
-  printf("Encoded mesh saved to %s (%" PRId64 " ms to encode)\n", file.c_str(),
+  printf("Encoded mesh saved to %s (%" PRId64 " ms to encode).\n", file.c_str(),
          timer.GetInMs());
   printf("\nEncoded size = %zu bytes\n\n", buffer.size());
   return 0;
@@ -193,7 +196,6 @@ int EncodeMeshToFile(const draco::Mesh &mesh, const std::string &file,
 
 int main(int argc, char **argv) {
   Options options;
-  draco::Encoder encoder;
   const int argc_check = argc - 1;
 
   for (int i = 1; i < argc; ++i) {
@@ -329,7 +331,19 @@ int main(int argc, char **argv) {
   // Convert compression level to speed (that 0 = slowest, 10 = fastest).
   const int speed = 10 - options.compression_level;
 
+  draco::Encoder encoder;
+
   // Setup encoder options.
+  if (options.edgebreaker_method != -1)
+    encoder.options().SetGlobalInt("edgebreaker_method",
+                                   options.edgebreaker_method);
+  auto iter = options.attribute_prediction_scheme.begin();
+  while (iter != options.attribute_prediction_scheme.end()) {
+    const draco::GeometryAttribute::Type attribute_type = iter->first;
+    const int prediction_scheme = iter->second;
+    encoder.SetAttributePredictionScheme(attribute_type, prediction_scheme);
+    iter++;
+  }
   if (options.pos_quantization_bits > 0) {
     encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION,
                                      options.pos_quantization_bits);
@@ -356,15 +370,16 @@ int main(int argc, char **argv) {
   PrintOptions(*pc.get(), options);
 
   int ret = -1;
-  if (mesh && mesh->num_faces() > 0)
+  const bool input_is_mesh = mesh && mesh->num_faces() > 0;
+  if (input_is_mesh)
     ret = EncodeMeshToFile(*mesh, options.output, &encoder);
   else
     ret = EncodePointCloudToFile(*pc.get(), options.output, &encoder);
 
   if (ret != -1 && options.compression_level < 10) {
     printf(
-        "For better compression, increase the compression level '-cl' (up to "
-        "10).\n\n");
+        "For better compression, increase the compression level up to '-cl 10' "
+        ".\n\n");
   }
 
   return ret;

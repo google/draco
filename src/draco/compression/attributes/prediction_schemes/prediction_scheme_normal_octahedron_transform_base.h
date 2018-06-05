@@ -59,10 +59,11 @@ class PredictionSchemeNormalOctahedronTransformBase {
   }
 
  protected:
-  inline void set_max_quantized_value(DataTypeT max_quantized_value) {
-    DRACO_DCHECK_EQ(max_quantized_value % 2, 1);
+  inline bool set_max_quantized_value(DataTypeT max_quantized_value) {
+    if (max_quantized_value % 2 == 0)
+      return false;
     int q = bits::MostSignificantBit(max_quantized_value) + 1;
-    octahedron_tool_box_.SetQuantizationBits(q);
+    return octahedron_tool_box_.SetQuantizationBits(q);
   }
 
   bool IsInDiamond(DataTypeT s, DataTypeT t) const {

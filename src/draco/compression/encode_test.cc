@@ -135,6 +135,60 @@ class EncodeTest : public ::testing::Test {
     ASSERT_EQ(GetQuantizationBitsFromAttribute(mesh->attribute(2)),
               tex_coord_1_quantization);
   }
+
+  // Tests that the encoder returns the correct number of encoded points and
+  // faces for a given mesh or point cloud.
+  void TestNumberOfEncodedEntries(const std::string &file_name,
+                                  int32_t encoding_method) {
+    std::unique_ptr<draco::PointCloud> geometry;
+    draco::Mesh *mesh = nullptr;
+
+    if (encoding_method == draco::MESH_EDGEBREAKER_ENCODING ||
+        encoding_method == draco::MESH_SEQUENTIAL_ENCODING) {
+      std::unique_ptr<draco::Mesh> mesh_tmp =
+          draco::ReadMeshFromTestFile(file_name);
+      mesh = mesh_tmp.get();
+      geometry = std::move(mesh_tmp);
+    } else {
+      geometry = draco::ReadPointCloudFromTestFile(file_name);
+    }
+    ASSERT_NE(mesh, nullptr);
+    draco::Encoder encoder;
+    encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 16);
+    encoder.SetAttributeQuantization(draco::GeometryAttribute::TEX_COORD, 15);
+    encoder.SetAttributeQuantization(draco::GeometryAttribute::NORMAL, 14);
+    encoder.SetEncodingMethod(encoding_method);
+
+    encoder.SetTrackEncodedProperties(true);
+
+    draco::EncoderBuffer buffer;
+    if (mesh) {
+      encoder.EncodeMeshToBuffer(*mesh, &buffer);
+    } else {
+      encoder.EncodePointCloudToBuffer(*geometry, &buffer);
+    }
+
+    // Ensure the logged number of encoded points and faces matches the number
+    // we get from the decoder.
+
+    draco::DecoderBuffer decoder_buffer;
+    decoder_buffer.Init(buffer.data(), buffer.size());
+    draco::Decoder decoder;
+
+    if (mesh) {
+      auto maybe_mesh = decoder.DecodeMeshFromBuffer(&decoder_buffer);
+      ASSERT_TRUE(maybe_mesh.ok());
+      auto decoded_mesh = std::move(maybe_mesh).value();
+      ASSERT_NE(decoded_mesh, nullptr);
+      ASSERT_EQ(decoded_mesh->num_points(), encoder.num_encoded_points());
+      ASSERT_EQ(decoded_mesh->num_faces(), encoder.num_encoded_faces());
+    } else {
+      auto maybe_pc = decoder.DecodePointCloudFromBuffer(&decoder_buffer);
+      ASSERT_TRUE(maybe_pc.ok());
+      auto decoded_pc = std::move(maybe_pc).value();
+      ASSERT_EQ(decoded_pc->num_points(), encoder.num_encoded_points());
+    }
+  }
 };
 
 TEST_F(EncodeTest, TestExpertEncoderQuantization) {
@@ -202,6 +256,33 @@ TEST_F(EncodeTest, TestKdTreeEncoding) {
   // the encoder happy.
   encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 16);
   ASSERT_TRUE(encoder.EncodePointCloudToBuffer(*pc, &buffer).ok());
+}
+
+TEST_F(EncodeTest, TestTrackingOfNumberOfEncodedEntries) {
+  TestNumberOfEncodedEntries("deg_faces.obj", draco::MESH_EDGEBREAKER_ENCODING);
+  TestNumberOfEncodedEntries("deg_faces.obj", draco::MESH_SEQUENTIAL_ENCODING);
+  TestNumberOfEncodedEntries("cube_att.obj", draco::MESH_EDGEBREAKER_ENCODING);
+  TestNumberOfEncodedEntries("test_nm.obj", draco::MESH_EDGEBREAKER_ENCODING);
+  TestNumberOfEncodedEntries("test_nm.obj", draco::MESH_SEQUENTIAL_ENCODING);
+  TestNumberOfEncodedEntries("cube_subd.obj",
+                             draco::POINT_CLOUD_KD_TREE_ENCODING);
+  TestNumberOfEncodedEntries("cube_subd.obj",
+                             draco::POINT_CLOUD_SEQUENTIAL_ENCODING);
+}
+
+TEST_F(EncodeTest, TestTrackingOfNumberOfEncodedEntriesNotSet) {
+  // Tests that when tracing of encoded properties is disabled, the returned
+  // number of encoded faces and poitns is 0.
+  std::unique_ptr<draco::Mesh> mesh(
+      draco::ReadMeshFromTestFile("cube_att.obj"));
+  ASSERT_NE(mesh, nullptr);
+
+  draco::EncoderBuffer buffer;
+  draco::Encoder encoder;
+
+  ASSERT_TRUE(encoder.EncodeMeshToBuffer(*mesh, &buffer).ok());
+  ASSERT_EQ(encoder.num_encoded_points(), 0);
+  ASSERT_EQ(encoder.num_encoded_faces(), 0);
 }
 
 }  // namespace

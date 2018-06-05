@@ -77,12 +77,14 @@ class MeshTraversalSequencer : public PointsSequencer {
     traverser_.OnTraversalStart();
     if (corner_order_) {
       for (uint32_t i = 0; i < corner_order_->size(); ++i) {
-        ProcessCorner(corner_order_->at(i));
+        if (!ProcessCorner(corner_order_->at(i)))
+          return false;
       }
     } else {
       const int32_t num_faces = traverser_.corner_table()->num_faces();
       for (int i = 0; i < num_faces; ++i) {
-        ProcessCorner(CornerIndex(3 * i));
+        if (!ProcessCorner(CornerIndex(3 * i)))
+          return false;
       }
     }
     traverser_.OnTraversalEnd();
@@ -90,8 +92,8 @@ class MeshTraversalSequencer : public PointsSequencer {
   }
 
  private:
-  void ProcessCorner(CornerIndex corner_id) {
-    traverser_.TraverseFromCorner(corner_id);
+  bool ProcessCorner(CornerIndex corner_id) {
+    return traverser_.TraverseFromCorner(corner_id);
   }
 
   TraverserT traverser_;

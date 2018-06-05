@@ -36,6 +36,11 @@ class MeshEncoder : public PointCloudEncoder {
     return TRIANGULAR_MESH;
   }
 
+  // Returns the number of faces that were encoded during the last Encode().
+  // function call. Valid only if "store_number_of_encoded_faces" flag was set
+  // in the provided EncoderOptions.
+  size_t num_encoded_faces() const { return num_encoded_faces_; }
+
   // Returns the base connectivity of the encoded mesh (or nullptr if it is not
   // initialized).
   virtual const CornerTable *GetCornerTable() const { return nullptr; }
@@ -61,10 +66,17 @@ class MeshEncoder : public PointCloudEncoder {
   // Needs to be implemented by the derived classes.
   virtual bool EncodeConnectivity() = 0;
 
+  // Computes and sets the num_encoded_faces_ for the encoder.
+  virtual void ComputeNumberOfEncodedFaces() = 0;
+
   void set_mesh(const Mesh *mesh) { mesh_ = mesh; }
+  void set_num_encoded_faces(size_t num_faces) {
+    num_encoded_faces_ = num_faces;
+  }
 
  private:
   const Mesh *mesh_;
+  size_t num_encoded_faces_;
 };
 
 }  // namespace draco

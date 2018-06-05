@@ -46,12 +46,14 @@ namespace draco {
 #endif
 
 struct AnsCoder {
+  AnsCoder() : buf(nullptr), buf_offset(0), state(0) {}
   uint8_t *buf;
   int buf_offset;
   uint32_t state;
 };
 
 struct AnsDecoder {
+  AnsDecoder() : buf(nullptr), buf_offset(0), state(0) {}
   const uint8_t *buf;
   int buf_offset;
   uint32_t state;

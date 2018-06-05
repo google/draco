@@ -46,6 +46,9 @@ static constexpr CornerIndex kInvalidCornerIndex(
 static constexpr FaceIndex kInvalidFaceIndex(
     std::numeric_limits<uint32_t>::max());
 
+// TODO(ostava): Add strongly typed indices for attribute id and unique
+// attribute id.
+
 }  // namespace draco
 
 #endif  // DRACO_ATTRIBUTES_GEOMETRY_INDICES_H_

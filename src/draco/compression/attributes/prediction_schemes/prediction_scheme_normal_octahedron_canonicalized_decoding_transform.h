@@ -48,8 +48,9 @@ class PredictionSchemeNormalOctahedronCanonicalizedDecodingTransform
       return false;
     if (!buffer->Decode(&center_value))
       return false;
-    this->set_max_quantized_value(max_quantized_value);
     (void)center_value;
+    if (!this->set_max_quantized_value(max_quantized_value))
+      return false;
     // Account for reading wrong values, e.g., due to fuzzing.
     if (this->quantization_bits() < 2)
       return false;

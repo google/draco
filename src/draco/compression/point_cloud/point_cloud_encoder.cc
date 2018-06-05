@@ -19,7 +19,7 @@
 namespace draco {
 
 PointCloudEncoder::PointCloudEncoder()
-    : point_cloud_(nullptr), buffer_(nullptr) {}
+    : point_cloud_(nullptr), buffer_(nullptr), num_encoded_points_(0) {}
 
 void PointCloudEncoder::SetPointCloud(const PointCloud &pc) {
   point_cloud_ = &pc;
@@ -47,6 +47,8 @@ Status PointCloudEncoder::Encode(const EncoderOptions &options,
     return Status(Status::ERROR, "Failed to encode geometry data.");
   if (!EncodePointAttributes())
     return Status(Status::ERROR, "Failed to encode point attributes.");
+  if (options.GetGlobalBool("store_number_of_encoded_points", false))
+    ComputeNumberOfEncodedPoints();
   return OkStatus();
 }
 

@@ -90,7 +90,9 @@ bool MeshPredictionSchemeTexCoordsPortableDecoder<
   const int corner_map_size = this->mesh_data().data_to_corner_map()->size();
   for (int p = 0; p < corner_map_size; ++p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
-    predictor_.template ComputePredictedValue<false>(corner_id, out_data, p);
+    if (!predictor_.template ComputePredictedValue<false>(corner_id, out_data,
+                                                          p))
+      return false;
 
     const int dst_offset = p * num_components;
     this->transform().ComputeOriginalValue(predictor_.predicted_value(),

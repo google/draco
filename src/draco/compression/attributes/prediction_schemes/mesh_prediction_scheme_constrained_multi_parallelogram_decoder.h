@@ -152,8 +152,10 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
       // Check which parallelograms are actually used.
       for (int i = 0; i < num_parallelograms; ++i) {
         const int context = num_parallelograms - 1;
-        const bool is_crease =
-            is_crease_edge_[context][is_crease_edge_pos[context]++];
+        const int pos = is_crease_edge_pos[context]++;
+        if (is_crease_edge_[context].size() <= pos)
+          return false;
+        const bool is_crease = is_crease_edge_[context][pos];
         if (!is_crease) {
           ++num_used_parallelograms;
           for (int j = 0; j < num_components; ++j) {
@@ -207,7 +209,8 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
     if (num_flags > 0) {
       is_crease_edge_[i].resize(num_flags);
       RAnsBitDecoder decoder;
-      decoder.StartDecoding(buffer);
+      if (!decoder.StartDecoding(buffer))
+        return false;
       for (int j = 0; j < num_flags; ++j) {
         is_crease_edge_[i][j] = decoder.DecodeNextBit();
       }

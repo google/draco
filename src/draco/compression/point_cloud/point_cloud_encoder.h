@@ -44,6 +44,11 @@ class PointCloudEncoder {
   // for mesh compression).
   virtual uint8_t GetEncodingMethod() const = 0;
 
+  // Returns the number of points that were encoded during the last Encode()
+  // function call. Valid only if "store_number_of_encoded_points" flag was set
+  // in the provided EncoderOptions.
+  size_t num_encoded_points() const { return num_encoded_points_; }
+
   int num_attributes_encoders() const { return attributes_encoders_.size(); }
   AttributesEncoder *attributes_encoder(int i) {
     return attributes_encoders_[i].get();
@@ -108,6 +113,13 @@ class PointCloudEncoder {
   // Encodes all the attribute data using the created attribute encoders.
   virtual bool EncodeAllAttributes();
 
+  // Computes and sets the num_encoded_points_ for the encoder.
+  virtual void ComputeNumberOfEncodedPoints() = 0;
+
+  void set_num_encoded_points(size_t num_points) {
+    num_encoded_points_ = num_points;
+  }
+
  private:
   // Encodes Draco header that is the same for all encoders.
   Status EncodeHeader();
@@ -135,6 +147,8 @@ class PointCloudEncoder {
   EncoderBuffer *buffer_;
 
   const EncoderOptions *options_;
+
+  size_t num_encoded_points_;
 };
 
 }  // namespace draco

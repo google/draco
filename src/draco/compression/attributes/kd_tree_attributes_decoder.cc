@@ -49,8 +49,9 @@ class PointAttributeVectorOutputIterator {
     uint32_t required_decode_bytes = 0;
     for (auto index = 0; index < attributes_.size(); index++) {
       const AttributeTuple &att = attributes_[index];
-      required_decode_bytes = (std::max)(required_decode_bytes,
-                                         std::get<1>(att) * std::get<3>(att));
+      required_decode_bytes =
+          (std::max)(required_decode_bytes,
+                     std::get<1>(att) * std::get<3>(att) * std::get<4>(att));
     }
     memory_.resize(required_decode_bytes);
     data_ = memory_.data();
@@ -102,8 +103,10 @@ class PointAttributeVectorOutputIterator {
         // redirect to copied data
         data_source = reinterpret_cast<uint32_t *>(data_);
       }
-      attribute->SetAttributeValue(attribute->mapped_index(point_id_),
-                                   data_source);
+      const AttributeValueIndex avi = attribute->mapped_index(point_id_);
+      if (avi >= attribute->size())
+        return *this;
+      attribute->SetAttributeValue(avi, data_source);
     }
     return *this;
   }

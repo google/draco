@@ -92,6 +92,8 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
   const size_t num_values = num_entries * num_components;
   PreparePortableAttribute(num_entries, num_components);
   int32_t *const portable_attribute_data = GetPortableAttributeData();
+  if (portable_attribute_data == nullptr)
+    return false;
   uint8_t compressed;
   if (!in_buffer->Decode(&compressed))
     return false;

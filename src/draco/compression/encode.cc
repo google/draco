@@ -30,10 +30,13 @@ Status Encoder::EncodePointCloudToBuffer(const PointCloud &pc,
 Status Encoder::EncodeMeshToBuffer(const Mesh &m, EncoderBuffer *out_buffer) {
   ExpertEncoder encoder(m);
   encoder.Reset(CreateExpertEncoderOptions(m));
-  return encoder.EncodeToBuffer(out_buffer);
+  DRACO_RETURN_IF_ERROR(encoder.EncodeToBuffer(out_buffer));
+  set_num_encoded_points(encoder.num_encoded_points());
+  set_num_encoded_faces(encoder.num_encoded_faces());
+  return OkStatus();
 }
 
-EncoderOptions Encoder::CreateExpertEncoderOptions(const PointCloud &pc) {
+EncoderOptions Encoder::CreateExpertEncoderOptions(const PointCloud &pc) const {
   EncoderOptions ret_options = EncoderOptions::CreateEmptyOptions();
   ret_options.SetGlobalOptions(options().GetGlobalOptions());
   ret_options.SetFeatureOptions(options().GetFeaturelOptions());

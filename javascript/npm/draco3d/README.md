@@ -5,6 +5,9 @@
 
 News
 =======
+### Version 1.3.2 release
+* Bug fixes
+
 ### Version 1.3.1 release
 * Fix issue with multiple attributes when skipping an attribute transform
 

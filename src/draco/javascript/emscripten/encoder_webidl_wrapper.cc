@@ -217,6 +217,10 @@ void Encoder::SetSpeedOptions(long encoding_speed, long decoding_speed) {
   encoder_.SetSpeedOptions(encoding_speed, decoding_speed);
 }
 
+void Encoder::SetTrackEncodedProperties(bool flag) {
+  encoder_.SetTrackEncodedProperties(flag);
+}
+
 int Encoder::EncodeMeshToDracoBuffer(Mesh *mesh, DracoInt8Array *draco_buffer) {
   if (!mesh)
     return 0;
@@ -253,3 +257,9 @@ int Encoder::EncodePointCloudToDracoBuffer(draco::PointCloud *pc,
   draco_buffer->SetValues(buffer.data(), buffer.size());
   return buffer.size();
 }
+
+int Encoder::GetNumberOfEncodedPoints() {
+  return encoder_.num_encoded_points();
+}
+
+int Encoder::GetNumberOfEncodedFaces() { return encoder_.num_encoded_faces(); }

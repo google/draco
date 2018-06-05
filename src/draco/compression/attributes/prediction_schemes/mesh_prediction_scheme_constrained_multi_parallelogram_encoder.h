@@ -257,17 +257,19 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
     // Variable for holding the best configuration that has been found so far.
     PredictionConfiguration best_prediction;
 
-    total_parallelograms[num_parallelograms - 1] += num_parallelograms;
     // Compute delta coding error (configuration when no parallelogram is
     // selected).
     const int src_offset = (p - 1) * num_components;
     error = ComputeError(in_data + src_offset, in_data + dst_offset,
                          &current_residuals[0], num_components);
 
-    int64_t new_overhead_bits =
-        ComputeOverheadBits(total_used_parallelograms[num_parallelograms - 1],
-                            total_parallelograms[num_parallelograms - 1]);
-    error.num_bits += new_overhead_bits;
+    if (num_parallelograms > 0) {
+      total_parallelograms[num_parallelograms - 1] += num_parallelograms;
+      const int64_t new_overhead_bits =
+          ComputeOverheadBits(total_used_parallelograms[num_parallelograms - 1],
+                              total_parallelograms[num_parallelograms - 1]);
+      error.num_bits += new_overhead_bits;
+    }
 
     best_prediction.error = error;
     best_prediction.configuration = 0;
@@ -312,13 +314,15 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
         }
         error = ComputeError(multi_pred_vals.data(), in_data + dst_offset,
                              &current_residuals[0], num_components);
-        new_overhead_bits = ComputeOverheadBits(
-            total_used_parallelograms[num_parallelograms - 1] +
-                num_used_parallelograms,
-            total_parallelograms[num_parallelograms - 1]);
+        if (num_parallelograms > 0) {
+          const int64_t new_overhead_bits = ComputeOverheadBits(
+              total_used_parallelograms[num_parallelograms - 1] +
+                  num_used_parallelograms,
+              total_parallelograms[num_parallelograms - 1]);
 
-        // Add overhead bits to the total error.
-        error.num_bits += new_overhead_bits;
+          // Add overhead bits to the total error.
+          error.num_bits += new_overhead_bits;
+        }
         if (error < best_prediction.error) {
           best_prediction.error = error;
           best_prediction.configuration = configuration;
@@ -331,8 +335,10 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
       } while (std::next_permutation(
           exluded_parallelograms, exluded_parallelograms + num_parallelograms));
     }
-    total_used_parallelograms[num_parallelograms - 1] +=
-        best_prediction.num_used_parallelograms;
+    if (num_parallelograms > 0) {
+      total_used_parallelograms[num_parallelograms - 1] +=
+          best_prediction.num_used_parallelograms;
+    }
 
     // Update the entropy stream by adding selected residuals as symbols to the
     // stream.

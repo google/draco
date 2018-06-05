@@ -33,6 +33,9 @@ class DirectBitDecoder {
   // Decode one bit. Returns true if the bit is a 1, otherwise false.
   bool DecodeNextBit() {
     const uint32_t selector = 1 << (31 - num_used_bits_);
+    if (pos_ == bits_.end()) {
+      return false;
+    }
     const bool bit = *pos_ & selector;
     ++num_used_bits_;
     if (num_used_bits_ == 32) {
@@ -49,6 +52,10 @@ class DirectBitDecoder {
     DRACO_DCHECK_EQ(true, nbits > 0);
     const int remaining = 32 - num_used_bits_;
     if (nbits <= remaining) {
+      if (pos_ == bits_.end()) {
+        *value = 0;
+        return;
+      }
       *value = (*pos_ << num_used_bits_) >> (32 - nbits);
       num_used_bits_ += nbits;
       if (num_used_bits_ == 32) {
@@ -56,6 +63,10 @@ class DirectBitDecoder {
         num_used_bits_ = 0;
       }
     } else {
+      if (pos_ + 1 == bits_.end()) {
+        *value = 0;
+        return;
+      }
       const uint32_t value_l = ((*pos_) << num_used_bits_);
       num_used_bits_ = nbits - remaining;
       ++pos_;

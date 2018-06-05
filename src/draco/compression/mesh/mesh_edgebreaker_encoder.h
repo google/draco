@@ -54,6 +54,8 @@ class MeshEdgeBreakerEncoder : public MeshEncoder {
   bool EncodeConnectivity() override;
   bool GenerateAttributesEncoder(int32_t att_id) override;
   bool EncodeAttributesEncoderIdentifier(int32_t att_encoder_id) override;
+  void ComputeNumberOfEncodedPoints() override;
+  void ComputeNumberOfEncodedFaces() override;
 
  private:
   // The actual implementation of the edge breaker method. The implementations

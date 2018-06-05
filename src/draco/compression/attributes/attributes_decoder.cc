@@ -72,7 +72,7 @@ bool AttributesDecoder::DecodeAttributesDecoderData(DecoderBuffer *in_buffer) {
       uint16_t custom_id;
       if (!in_buffer->Decode(&custom_id))
         return false;
-      // TODO(zhafang): Add "custom_id" to attribute metadata.
+      // TODO(draco-eng): Add "custom_id" to attribute metadata.
       unique_id = static_cast<uint32_t>(custom_id);
       ga.set_unique_id(unique_id);
     } else

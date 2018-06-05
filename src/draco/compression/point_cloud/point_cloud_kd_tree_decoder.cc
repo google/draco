@@ -22,6 +22,8 @@ bool PointCloudKdTreeDecoder::DecodeGeometryData() {
   int32_t num_points;
   if (!buffer()->Decode(&num_points))
     return false;
+  if (num_points < 0)
+    return false;
   point_cloud()->set_num_points(num_points);
   return true;
 }

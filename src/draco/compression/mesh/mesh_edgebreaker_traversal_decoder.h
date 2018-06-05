@@ -156,12 +156,10 @@ class MeshEdgeBreakerTraversalDecoder {
       if (traversal_size > buffer_.remaining_size())
         return false;
       buffer_.Advance(traversal_size);
-    } else
-#endif
-    {
-      start_face_decoder_.StartDecoding(&buffer_);
+      return true;
     }
-    return true;
+#endif
+    return start_face_decoder_.StartDecoding(&buffer_);
   }
 
   bool DecodeAttributeSeams() {

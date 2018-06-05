@@ -48,7 +48,8 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::MeshEdgeBreakerDecoderImpl()
       last_vert_id_(-1),
       last_face_id_(-1),
       num_new_vertices_(0),
-      num_encoded_vertices_(0) {}
+      num_encoded_vertices_(0),
+      pos_data_decoder_id_(-1) {}
 
 template <class TraversalDecoder>
 bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::Init(
@@ -134,7 +135,18 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::CreateAttributesDecoder(
     if (att_data_id >= attribute_data_.size()) {
       return false;  // Unexpected attribute data.
     }
+
+    // Ensure that the attribute data is not mapped to a different attributes
+    // decoder already.
+    if (attribute_data_[att_data_id].decoder_id >= 0)
+      return false;
+
     attribute_data_[att_data_id].decoder_id = att_decoder_id;
+  } else {
+    // Assign the attributes decoder to |pos_encoding_data_|.
+    if (pos_data_decoder_id_ >= 0)
+      return false;  // Some other decoder is already using the data. Error.
+    pos_data_decoder_id_ = att_decoder_id;
   }
 
   MeshTraversalMethod traversal_method = MESH_TRAVERSAL_DEPTH_FIRST;
@@ -260,32 +272,12 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   if (num_faces > std::numeric_limits<CornerIndex::ValueType>::max() / 3)
     return false;  // Draco cannot handle this many faces.
 
-  // Decode topology (connectivity).
-  vertex_traversal_length_.clear();
-  corner_table_ = std::unique_ptr<CornerTable>(new CornerTable());
-  if (corner_table_ == nullptr)
-    return false;
-  processed_corner_ids_.clear();
-  processed_corner_ids_.reserve(num_faces);
-  processed_connectivity_corners_.clear();
-  processed_connectivity_corners_.reserve(num_faces);
-  topology_split_data_.clear();
-  hole_event_data_.clear();
-  init_face_configurations_.clear();
-  init_corners_.clear();
-
-  last_symbol_id_ = -1;
-
-  last_face_id_ = -1;
-  last_vert_id_ = -1;
-
+  if (num_encoded_vertices_ > num_faces * 3) {
+    return false;  // There cannot be more vertices than 3 * num_faces.
+  }
   uint8_t num_attribute_data;
   if (!decoder_->buffer()->Decode(&num_attribute_data))
     return false;
-
-  attribute_data_.clear();
-  // Add one attribute data for each attribute decoder.
-  attribute_data_.resize(num_attribute_data);
 
   uint32_t num_encoded_symbols;
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
@@ -305,6 +297,14 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
     // a symbol).
     return false;
   }
+  const uint32_t max_encoded_faces =
+      num_encoded_symbols + (num_encoded_symbols / 3);
+  if (num_faces > max_encoded_faces) {
+    // Faces can only be 1 1/3 times bigger than number of encoded symbols. This
+    // could only happen if all new encoded components started with interior
+    // triangles. E.g. A mesh with multiple tetrahedrons.
+    return false;
+  }
 
   uint32_t num_encoded_split_symbols;
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
@@ -317,6 +317,32 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
     if (!DecodeVarint(&num_encoded_split_symbols, decoder_->buffer()))
       return false;
   }
+
+  if (num_encoded_split_symbols > num_encoded_symbols) {
+    return false;  // Split symbols are a sub-set of all symbols.
+  }
+
+  // Decode topology (connectivity).
+  vertex_traversal_length_.clear();
+  corner_table_ = std::unique_ptr<CornerTable>(new CornerTable());
+  if (corner_table_ == nullptr)
+    return false;
+  processed_corner_ids_.clear();
+  processed_corner_ids_.reserve(num_faces);
+  processed_connectivity_corners_.clear();
+  processed_connectivity_corners_.reserve(num_faces);
+  topology_split_data_.clear();
+  hole_event_data_.clear();
+  init_face_configurations_.clear();
+  init_corners_.clear();
+
+  last_symbol_id_ = -1;
+  last_face_id_ = -1;
+  last_vert_id_ = -1;
+
+  attribute_data_.clear();
+  // Add one attribute data for each attribute decoder.
+  attribute_data_.resize(num_attribute_data);
 
   if (!corner_table_->Reset(num_faces,
                             num_encoded_vertices_ + num_encoded_split_symbols))
@@ -515,8 +541,6 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
           corner_table_->Vertex(corner_table_->Previous(corner_a));
       corner_table_->MapCornerToVertex(corner + 2, vert_a_prev);
       corner_table_->SetLeftMostCorner(vert_a_prev, corner + 2);
-      if (corner_table_->num_vertices() > max_num_vertices)
-        return -1;  // Unexpected number of decoded vertices.
       // Mark the vertex |x| as interior.
       is_vert_hole_[vertex_x.value()] = false;
       // Update the corner on the active stack.
@@ -557,6 +581,10 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       SetOppositeCorners(opp_corner, corner_a);
       // Update vertex mapping.
       const VertexIndex new_vert_index = corner_table_->AddNewVertex();
+
+      if (corner_table_->num_vertices() > max_num_vertices)
+        return -1;  // Unexpected number of decoded vertices.
+
       corner_table_->MapCornerToVertex(opp_corner, new_vert_index);
       corner_table_->SetLeftMostCorner(new_vert_index, opp_corner);
 
@@ -596,6 +624,14 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       if (active_corner_stack.empty())
         return -1;
       const CornerIndex corner_a = active_corner_stack.back();
+
+      if (corner_table_->Opposite(corner_a) != kInvalidCornerIndex ||
+          corner_table_->Opposite(corner_b) != kInvalidCornerIndex) {
+        // One of the corners is already opposite to an existing face, which
+        // should not happen unless the input was tempered with.
+        return -1;
+      }
+
       // First corner on the new face is corner "x" from the image above.
       const CornerIndex corner(3 * face.value());
       // Update the opposite corner mapping.
@@ -640,6 +676,10 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
                                        corner_table_->AddNewVertex());
       corner_table_->MapCornerToVertex(corner + 2,
                                        corner_table_->AddNewVertex());
+
+      if (corner_table_->num_vertices() > max_num_vertices)
+        return -1;  // Unexpected number of decoded vertices.
+
       corner_table_->SetLeftMostCorner(first_vert_index, corner);
       corner_table_->SetLeftMostCorner(first_vert_index + 1, corner + 1);
       corner_table_->SetLeftMostCorner(first_vert_index + 2, corner + 2);
@@ -1028,6 +1068,8 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners(
         CornerIndex act_c = corner_table_->SwingRight(c);
         bool seam_found = false;
         while (act_c != c) {
+          if (act_c == kInvalidCornerIndex)
+            return false;
           if (attribute_data_[i].connectivity_data.Vertex(act_c) != vert_id) {
             // Attribute seam found. Stop.
             deduplication_first_corner = act_c;

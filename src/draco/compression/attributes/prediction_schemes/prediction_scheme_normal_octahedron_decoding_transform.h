@@ -51,9 +51,8 @@ class PredictionSchemeNormalOctahedronDecodingTransform
       if (!buffer->Decode(&center_value))
         return false;
     }
-    this->set_max_quantized_value(max_quantized_value);
     (void)center_value;
-    return true;
+    return this->set_max_quantized_value(max_quantized_value);
   }
 
   inline void ComputeOriginalValue(const DataType *pred_vals,

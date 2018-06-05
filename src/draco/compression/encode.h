@@ -38,13 +38,14 @@ class Encoder
   typedef EncoderBase<EncoderOptionsBase<GeometryAttribute::Type>> Base;
 
   Encoder();
+  virtual ~Encoder() {}
 
   // Encodes a point cloud to the provided buffer.
-  Status EncodePointCloudToBuffer(const PointCloud &pc,
-                                  EncoderBuffer *out_buffer);
+  virtual Status EncodePointCloudToBuffer(const PointCloud &pc,
+                                          EncoderBuffer *out_buffer);
 
   // Encodes a mesh to the provided buffer.
-  Status EncodeMeshToBuffer(const Mesh &m, EncoderBuffer *out_buffer);
+  virtual Status EncodeMeshToBuffer(const Mesh &m, EncoderBuffer *out_buffer);
 
   // Set encoder options used during the geometry encoding. Note that this call
   // overwrites any modifications to the options done with the functions below,
@@ -128,10 +129,10 @@ class Encoder
   // call of EncodePointCloudToBuffer or EncodeMeshToBuffer is going to fail.
   void SetEncodingMethod(int encoding_method);
 
- private:
+ protected:
   // Creates encoder options for the expert encoder used during the actual
   // encoding.
-  EncoderOptions CreateExpertEncoderOptions(const PointCloud &pc);
+  EncoderOptions CreateExpertEncoderOptions(const PointCloud &pc) const;
 };
 
 }  // namespace draco

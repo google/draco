@@ -548,6 +548,7 @@ set(draco_js_enc_sources
     "${draco_src_root}/javascript/emscripten/draco_encoder_glue_wrapper.cc"
     "${draco_src_root}/javascript/emscripten/encoder_webidl_wrapper.cc")
 
+
 set(draco_test_sources
     "${draco_src_root}/attributes/point_attribute_test.cc"
     "${draco_src_root}/compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_canonicalized_transform_test.cc"
@@ -648,6 +649,7 @@ if (EMSCRIPTEN AND ENABLE_JS_GLUE)
     message(FATAL_ERROR "Glue generation failed.")
   endif ()
 
+
   # Add a custom rule depending on the IDL to regenerate
   # ${draco_build_dir}/glue_decoder.cpp as needed.
   add_custom_command(OUTPUT ${draco_build_dir}/glue_decoder.cpp
@@ -670,6 +672,7 @@ if (EMSCRIPTEN AND ENABLE_JS_GLUE)
                      WORKING_DIRECTORY ${draco_build_dir}
                      VERBATIM)
 
+
   set(draco_decoder_src
       ${draco_attributes_sources}
       ${draco_compression_attributes_dec_sources}
@@ -687,7 +690,6 @@ if (EMSCRIPTEN AND ENABLE_JS_GLUE)
       ${draco_point_cloud_sources}
       ${draco_points_dec_sources}
       ${draco_version_sources})
-
   set(draco_encoder_src
       ${draco_attributes_sources}
       ${draco_compression_attributes_enc_sources}
@@ -792,7 +794,7 @@ else ()
   add_library(draco_unity_plugin OBJECT
               ${draco_unity_plug_sources})
   add_library(draco_maya_plugin OBJECT
-			  ${draco_maya_plug_sources})
+              ${draco_maya_plug_sources})
 
   # Library targets that consume the object collections.
   add_library(dracodec
@@ -904,13 +906,13 @@ else ()
                 $<TARGET_OBJECTS:draco_points_dec>
                 $<TARGET_OBJECTS:draco_metadata_enc>
                 $<TARGET_OBJECTS:draco_points_enc>)
-				
+
     # For Mac, we need to build a .bundle for plugin.
     if (APPLE)
       set_target_properties(draco_maya_wrapper PROPERTIES BUNDLE true)
     endif ()
   endif ()
-  
+
   set(draco_header_only_targets
       draco_compression_attributes_pred_schemes_dec
       draco_dec_config

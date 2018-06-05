@@ -69,9 +69,9 @@ class PredictionDegreeTraverser {
   // Called when all the traversing is done.
   void OnTraversalEnd() {}
 
-  void TraverseFromCorner(CornerIndex corner_id) {
+  bool TraverseFromCorner(CornerIndex corner_id) {
     if (prediction_degree_.size() == 0)
-      return;
+      return true;
 
     // Traversal starts from the |corner_id|. It's going to follow either the
     // right or the left neighboring faces to |corner_id| based on their
@@ -171,6 +171,7 @@ class PredictionDegreeTraverser {
         break;
       }
     }
+    return true;
   }
 
   const CornerTable *corner_table() const { return corner_table_; }

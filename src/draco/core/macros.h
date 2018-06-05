@@ -81,7 +81,8 @@ namespace draco {
 // #define FUNC_2(x, y) x + y
 // #define FUNC_3(x, y, z) x + y + z
 //
-// #define VARIADIC_MACRO(...) DRACO_SELECT_NTH_FROM_3(__VA_ARGS__, FUNC_3, FUNC_2, FUNC_1) __VA_ARGS__
+// #define VARIADIC_MACRO(...)
+//   DRACO_SELECT_NTH_FROM_3(__VA_ARGS__, FUNC_3, FUNC_2, FUNC_1) __VA_ARGS__
 //
 #define DRACO_SELECT_NTH_FROM_2(_1, _2, NAME) NAME
 #define DRACO_SELECT_NTH_FROM_3(_1, _2, _3, NAME) NAME

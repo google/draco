@@ -109,8 +109,8 @@ class PointCloudBuilder {
   }
 };
 
-// TODO(zhafang): Regenerate wasm decoder.
-// TODO(zhafang): Add script to generate and test all Javascipt code.
+// TODO(draco-eng): Regenerate wasm decoder.
+// TODO(draco-eng): Add script to generate and test all Javascipt code.
 class MeshBuilder : public PointCloudBuilder {
  public:
   MeshBuilder();
@@ -145,12 +145,15 @@ class Encoder {
                                         long num_components,
                                         const float *origin, float range);
   void SetSpeedOptions(long encoding_speed, long decoding_speed);
+  void SetTrackEncodedProperties(bool flag);
 
   int EncodeMeshToDracoBuffer(draco::Mesh *mesh, DracoInt8Array *buffer);
 
   int EncodePointCloudToDracoBuffer(draco::PointCloud *pc,
                                     bool deduplicate_values,
                                     DracoInt8Array *buffer);
+  int GetNumberOfEncodedPoints();
+  int GetNumberOfEncodedFaces();
 
  private:
   draco::Encoder encoder_;

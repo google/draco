@@ -148,6 +148,8 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
     if (!DecodeVarint(&num_orientations, buffer))
       return false;
   }
+  if (num_orientations == 0)
+    return false;
   orientations_.resize(num_orientations);
   bool last_orientation = true;
   RAnsBitDecoder decoder;

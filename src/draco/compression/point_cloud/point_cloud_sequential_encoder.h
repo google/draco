@@ -35,6 +35,7 @@ class PointCloudSequentialEncoder : public PointCloudEncoder {
  protected:
   bool EncodeGeometryData() override;
   bool GenerateAttributesEncoder(int32_t att_id) override;
+  void ComputeNumberOfEncodedPoints() override;
 };
 
 }  // namespace draco

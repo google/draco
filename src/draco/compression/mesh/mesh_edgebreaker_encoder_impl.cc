@@ -151,6 +151,13 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
       encoding_data = &pos_encoding_data_;
     } else {
       encoding_data = &attribute_data_[att_data_id].encoding_data;
+
+      // Ensure we use the correct number of vertices in the encoding data.
+      encoding_data->vertex_to_encoded_attribute_value_index_map.assign(
+          corner_table_->num_vertices(), -1);
+
+      // Mark the attribute specific connectivity data as not used as we use the
+      // position attribute connectivity data.
       attribute_data_[att_data_id].is_connectivity_used = false;
     }
 
@@ -165,14 +172,11 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
         traversal_method = MESH_TRAVERSAL_DEPTH_FIRST;
       }
     }
+    // Select traverser that is used to generate the encoding order.
     if (traversal_method == MESH_TRAVERSAL_PREDICTION_DEGREE) {
-      // Traverser that is used to generate the encoding order of each
-      // attribute.
       typedef PredictionDegreeTraverser<AttProcessor, AttObserver> AttTraverser;
       sequencer = CreateVertexTraversalSequencer<AttTraverser>(encoding_data);
-    } else {
-      // Traverser that is used to generate the encoding order of each
-      // attribute.
+    } else if (traversal_method == MESH_TRAVERSAL_DEPTH_FIRST) {
       typedef EdgeBreakerTraverser<AttProcessor, AttObserver> AttTraverser;
       sequencer = CreateVertexTraversalSequencer<AttTraverser>(encoding_data);
     }
@@ -184,6 +188,11 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
         AttObserver;
     // Traverser that is used to generate the encoding order of each attribute.
     typedef EdgeBreakerTraverser<AttProcessor, AttObserver> AttTraverser;
+
+    // Ensure we use the correct number of vertices in the encoding data.
+    attribute_data_[att_data_id]
+        .encoding_data.vertex_to_encoded_attribute_value_index_map.assign(
+            attribute_data_[att_data_id].connectivity_data.num_vertices(), -1);
 
     std::unique_ptr<MeshTraversalSequencer<AttTraverser>> traversal_sequencer(
         new MeshTraversalSequencer<AttTraverser>(
@@ -222,7 +231,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
   attribute_encoder_to_data_id_map_.push_back(att_data_id);
   GetEncoder()->AddAttributesEncoder(std::move(att_controller));
   return true;
-}
+}  // namespace draco
 
 template <class TraversalEncoder>
 bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::
@@ -768,9 +777,6 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::InitAttributeData() {
     attribute_data_[data_index]
         .encoding_data.encoded_attribute_value_index_to_corner_map.reserve(
             corner_table_->num_corners());
-    attribute_data_[data_index]
-        .encoding_data.vertex_to_encoded_attribute_value_index_map.assign(
-            corner_table_->num_corners(), -1);
     attribute_data_[data_index].encoding_data.num_values = 0;
     attribute_data_[data_index].connectivity_data.InitFromAttribute(
         mesh_, corner_table_.get(), att);
