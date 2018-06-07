@@ -35,7 +35,7 @@ bool AttributesEncoder::Initialize(PointCloudEncoder *encoder,
 bool AttributesEncoder::EncodeAttributesEncoderData(EncoderBuffer *out_buffer) {
   // Encode data about all attributes.
   EncodeVarint(num_attributes(), out_buffer);
-  for (int i = 0; i < num_attributes(); ++i) {
+  for (uint32_t i = 0; i < num_attributes(); ++i) {
     const int32_t att_id = point_attribute_ids_[i];
     const PointAttribute *const pa = point_cloud_->attribute(att_id);
     out_buffer->Encode(static_cast<uint8_t>(pa->attribute_type()));

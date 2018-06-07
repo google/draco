@@ -59,7 +59,7 @@ bool SequentialAttributeEncoder::EncodeDataNeededByPortableTransform(
 
 bool SequentialAttributeEncoder::EncodeValues(
     const std::vector<PointIndex> &point_ids, EncoderBuffer *out_buffer) {
-  const int entry_size = attribute_->byte_stride();
+  const int entry_size = (int)attribute_->byte_stride();
   const std::unique_ptr<uint8_t[]> value_data_ptr(new uint8_t[entry_size]);
   uint8_t *const value_data = value_data_ptr.get();
   // Encode all attribute values in their native raw format.

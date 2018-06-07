@@ -194,7 +194,7 @@ Status ObjDecoder::DecodeInternal() {
       va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT32, false, 4, 0);
     }
     sub_obj_att_id_ =
-        out_point_cloud_->AddAttribute(va, false, obj_name_to_id_.size());
+        out_point_cloud_->AddAttribute(va, false, (uint32_t)obj_name_to_id_.size());
     // Fill the sub object id entries.
     for (const auto &itr : obj_name_to_id_) {
       const AttributeValueIndex i(itr.second);
@@ -515,7 +515,7 @@ bool ObjDecoder::ParseObject(Status *status) {
     return true;  // Ignore empty name entries.
   auto it = obj_name_to_id_.find(obj_name);
   if (it == obj_name_to_id_.end()) {
-    const int num_obj = obj_name_to_id_.size();
+    const int num_obj = (int)obj_name_to_id_.size();
     obj_name_to_id_[obj_name] = num_obj;
     last_sub_obj_id_ = num_obj;
   } else {

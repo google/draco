@@ -90,7 +90,7 @@ bool MeshPredictionSchemeTexCoordsPortableEncoder<DataTypeT, TransformT,
   this->transform().Initialize(in_data, size, num_components);
   // We start processing from the end because this prediction uses data from
   // previous entries that could be overwritten when an entry is processed.
-  for (int p = this->mesh_data().data_to_corner_map()->size() - 1; p >= 0;
+  for (int p = (int)(this->mesh_data().data_to_corner_map()->size() - 1); p >= 0;
        --p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     predictor_.template ComputePredictedValue<true>(corner_id, in_data, p);

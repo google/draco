@@ -81,7 +81,7 @@ static int64_t ApproximateTaggedSchemeBits(
   // Compute the number of entropy bits for tags.
   int num_unique_symbols;
   const int64_t tag_bits = ComputeShannonEntropy(
-      bit_lengths.data(), bit_lengths.size(), 32, &num_unique_symbols);
+      bit_lengths.data(), (int)bit_lengths.size(), 32, &num_unique_symbols);
   const int64_t tag_table_bits =
       ApproximateRAnsFrequencyTableBits(num_unique_symbols, num_unique_symbols);
   return tag_bits + tag_table_bits + total_bit_length * num_components;
@@ -247,7 +247,7 @@ bool EncodeRawSymbolsInternal(const uint32_t *symbols, int num_values,
   }
 
   SymbolEncoderT encoder;
-  encoder.Create(frequencies.data(), frequencies.size(), target_buffer);
+  encoder.Create(frequencies.data(), (int)frequencies.size(), target_buffer);
   encoder.StartEncoding(target_buffer);
   // Encode all values.
   if (SymbolEncoderT::needs_reverse_encoding()) {

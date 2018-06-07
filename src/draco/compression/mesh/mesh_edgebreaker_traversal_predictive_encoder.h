@@ -145,7 +145,7 @@ class MeshEdgeBreakerTraversalPredictiveEncoder
     // Store the predictions.
     BinaryEncoder prediction_encoder;
     prediction_encoder.StartEncoding();
-    for (int i = predictions_.size() - 1; i >= 0; --i) {
+    for (int i = (int)predictions_.size() - 1; i >= 0; --i) {
       prediction_encoder.EncodeBit(predictions_[i]);
     }
     prediction_encoder.EndEncoding(GetOutputBuffer());

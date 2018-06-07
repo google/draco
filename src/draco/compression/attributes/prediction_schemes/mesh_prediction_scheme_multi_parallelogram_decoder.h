@@ -73,7 +73,7 @@ bool MeshPredictionSchemeMultiParallelogramDecoder<DataTypeT, TransformT,
   const std::vector<int32_t> *const vertex_to_data_map =
       this->mesh_data().vertex_to_data_map();
 
-  const int corner_map_size = this->mesh_data().data_to_corner_map()->size();
+  const int corner_map_size = (int)this->mesh_data().data_to_corner_map()->size();
   for (int p = 1; p < corner_map_size; ++p) {
     const CornerIndex start_corner_id =
         this->mesh_data().data_to_corner_map()->at(p);

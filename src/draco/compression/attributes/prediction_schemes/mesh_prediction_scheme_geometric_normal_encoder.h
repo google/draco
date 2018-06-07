@@ -102,7 +102,7 @@ bool MeshPredictionSchemeGeometricNormalEncoder<DataTypeT, TransformT,
 
   flip_normal_bit_encoder_.StartEncoding();
 
-  const int corner_map_size = this->mesh_data().data_to_corner_map()->size();
+  const int corner_map_size = (int)this->mesh_data().data_to_corner_map()->size();
 
   VectorD<int32_t, 3> pred_normal_3d;
   VectorD<int32_t, 2> pos_pred_normal_oct;

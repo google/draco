@@ -70,9 +70,9 @@ class CornerTable {
   // Resets the corner table to the given number of invalid faces and vertices.
   bool Reset(int num_faces, int num_vertices);
 
-  inline int num_vertices() const { return vertex_corners_.size(); }
-  inline int num_corners() const { return corner_to_vertex_map_.size(); }
-  inline int num_faces() const { return corner_to_vertex_map_.size() / 3; }
+  inline int num_vertices() const { return (int)vertex_corners_.size(); }
+  inline int num_corners() const { return (int)corner_to_vertex_map_.size(); }
+  inline int num_faces() const { return (int)(corner_to_vertex_map_.size() / 3); }
 
   inline CornerIndex Opposite(CornerIndex corner) const {
     if (corner == kInvalidCornerIndex)
@@ -141,7 +141,7 @@ class CornerTable {
 
   // Returns the parent vertex index of a given corner table vertex.
   VertexIndex VertexParent(VertexIndex vertex) const {
-    if (vertex.value() < num_original_vertices_)
+    if (vertex.value() < (uint32_t)num_original_vertices_)
       return vertex;
     return non_manifold_vertex_parents_[vertex - num_original_vertices_];
   }
@@ -252,7 +252,7 @@ class CornerTable {
     DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
     // Add a new invalid vertex.
     vertex_corners_.push_back(kInvalidCornerIndex);
-    return VertexIndex(vertex_corners_.size() - 1);
+    return VertexIndex((uint32_t)(vertex_corners_.size() - 1));
   }
 
   // Sets a new left most corner for a given vertex.

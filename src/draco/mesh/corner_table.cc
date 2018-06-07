@@ -39,7 +39,7 @@ bool CornerTable::Initialize(
   valence_cache_.ClearValenceCache();
   valence_cache_.ClearValenceCacheInaccurate();
   corner_to_vertex_map_.resize(faces.size() * 3);
-  for (FaceIndex fi(0); fi < faces.size(); ++fi) {
+  for (FaceIndex fi(0); fi < (uint32_t)faces.size(); ++fi) {
     for (int i = 0; i < 3; ++i) {
       corner_to_vertex_map_[FirstCorner(fi) + i] = faces[fi][i];
     }
@@ -59,7 +59,7 @@ bool CornerTable::Reset(int num_faces) {
 bool CornerTable::Reset(int num_faces, int num_vertices) {
   if (num_faces < 0 || num_vertices < 0)
     return false;
-  if (num_faces > std::numeric_limits<CornerIndex::ValueType>::max() / 3)
+  if ((unsigned int)num_faces > std::numeric_limits<CornerIndex::ValueType>::max() / 3)
     return false;
   corner_to_vertex_map_.assign(num_faces * 3, kInvalidVertexIndex);
   opposite_corners_.assign(num_faces * 3, kInvalidCornerIndex);
@@ -189,7 +189,7 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
       opposite_corners_[opposite_c] = c;
     }
   }
-  *num_vertices = num_corners_on_vertices.size();
+  *num_vertices = (int)num_corners_on_vertices.size();
   return true;
 }
 

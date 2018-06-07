@@ -49,7 +49,7 @@ class MeshTraversalSequencer : public PointsSequencer {
     attribute->SetExplicitMapping(mesh_->num_points());
     const size_t num_faces = mesh_->num_faces();
     const size_t num_points = mesh_->num_points();
-    for (FaceIndex f(0); f < num_faces; ++f) {
+    for (FaceIndex f(0); f < (uint32_t)num_faces; ++f) {
       const auto &face = mesh_->face(f);
       for (int p = 0; p < 3; ++p) {
         const PointIndex point_id = face[p];

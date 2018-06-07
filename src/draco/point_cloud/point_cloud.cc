@@ -25,7 +25,7 @@ int32_t PointCloud::NumNamedAttributes(GeometryAttribute::Type type) const {
   if (type == GeometryAttribute::INVALID ||
       type >= GeometryAttribute::NAMED_ATTRIBUTES_COUNT)
     return 0;
-  return named_attribute_index_[type].size();
+  return (int32_t)named_attribute_index_[type].size();
 }
 
 int32_t PointCloud::GetNamedAttributeId(GeometryAttribute::Type type) const {
@@ -74,14 +74,14 @@ const PointAttribute *PointCloud::GetAttributeByUniqueId(
 int32_t PointCloud::GetAttributeIdByUniqueId(uint32_t unique_id) const {
   for (size_t att_id = 0; att_id < attributes_.size(); ++att_id) {
     if (attributes_[att_id]->unique_id() == unique_id)
-      return att_id;
+      return (int32_t)att_id;
   }
   return -1;
 }
 
 int PointCloud::AddAttribute(std::unique_ptr<PointAttribute> pa) {
-  SetAttribute(attributes_.size(), std::move(pa));
-  return attributes_.size() - 1;
+  SetAttribute((int)attributes_.size(), std::move(pa));
+  return (int)(attributes_.size() - 1);
 }
 
 int PointCloud::AddAttribute(
@@ -155,7 +155,7 @@ void PointCloud::DeduplicatePointIds() {
     PointIndex::ValueType hash = 0;
     for (int32_t i = 0; i < this->num_attributes(); ++i) {
       const AttributeValueIndex att_id = attribute(i)->mapped_index(p);
-      hash = HashCombine(att_id.value(), hash);
+      hash = (uint32_t)HashCombine(att_id.value(), hash);
     }
     return hash;
   };

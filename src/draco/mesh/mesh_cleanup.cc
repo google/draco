@@ -121,7 +121,7 @@ bool MeshCleanup::operator()(Mesh *mesh, const MeshCleanupOptions &options) {
       if (num_used_entries < static_cast<int>(att->size())) {
         att_index_map.resize(att->size());
         num_used_entries = 0;
-        for (AttributeValueIndex i(0); i < att->size(); ++i) {
+        for (AttributeValueIndex i(0); i < (uint32_t)att->size(); ++i) {
           if (is_att_index_used[i]) {
             att_index_map[i] = num_used_entries;
             if (i > num_used_entries) {

@@ -61,7 +61,7 @@ const PointAttribute *SequentialAttributeDecoder::GetPortableAttribute() {
   if (!attribute_->is_mapping_identity() && portable_attribute_ &&
       portable_attribute_->is_mapping_identity()) {
     portable_attribute_->SetExplicitMapping(attribute_->indices_map_size());
-    for (PointIndex i(0); i < attribute_->indices_map_size(); ++i) {
+    for (PointIndex i(0); i < (uint32_t)attribute_->indices_map_size(); ++i) {
       portable_attribute_->SetPointMapEntry(i, attribute_->mapped_index(i));
     }
   }
@@ -94,8 +94,8 @@ bool SequentialAttributeDecoder::InitPredictionScheme(
 
 bool SequentialAttributeDecoder::DecodeValues(
     const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
-  const int32_t num_values = point_ids.size();
-  const int entry_size = attribute_->byte_stride();
+  const int32_t num_values = (int32_t)point_ids.size();
+  const int entry_size = (int)attribute_->byte_stride();
   std::unique_ptr<uint8_t[]> value_data_ptr(new uint8_t[entry_size]);
   uint8_t *const value_data = value_data_ptr.get();
   int out_byte_pos = 0;

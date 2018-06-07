@@ -246,11 +246,11 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
     if (num_remaining_points <= 2) {
       // TODO(hemmer): axes_ not necessary, remove would change bitstream!
       axes_[0] = axis;
-      for (int i = 1; i < dimension_; i++) {
+      for (uint32_t i = 1; i < dimension_; i++) {
         axes_[i] = DRACO_INCREMENT_MOD(axes_[i - 1], dimension_);
       }
       for (uint32_t i = 0; i < num_remaining_points; ++i) {
-        for (int j = 0; j < dimension_; j++) {
+        for (uint32_t j = 0; j < dimension_; j++) {
           p_[axes_[j]] = 0;
           const uint32_t num_remaining_bits = bit_length_ - levels[axes_[j]];
           if (num_remaining_bits)

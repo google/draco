@@ -130,13 +130,13 @@ bool RAnsSymbolDecoder<unique_symbols_bit_length_t>::StartDecoding(
     if (!DecodeVarint<uint64_t>(&bytes_encoded, buffer))
       return false;
   }
-  if (bytes_encoded > buffer->remaining_size())
+  if (bytes_encoded > (uint64_t)buffer->remaining_size())
     return false;
   const uint8_t *const data_head =
       reinterpret_cast<const uint8_t *>(buffer->data_head());
   // Advance the buffer past the rANS data.
   buffer->Advance(bytes_encoded);
-  if (ans_.read_init(data_head, bytes_encoded) != 0)
+  if (ans_.read_init(data_head, (int)bytes_encoded) != 0)
     return false;
   return true;
 }

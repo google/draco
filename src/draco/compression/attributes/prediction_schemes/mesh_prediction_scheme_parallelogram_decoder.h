@@ -69,7 +69,7 @@ bool MeshPredictionSchemeParallelogramDecoder<DataTypeT, TransformT,
   // Restore the first value.
   this->transform().ComputeOriginalValue(pred_vals.get(), in_corr, out_data);
 
-  const int corner_map_size = this->mesh_data().data_to_corner_map()->size();
+  const int corner_map_size = (int)this->mesh_data().data_to_corner_map()->size();
   for (int p = 1; p < corner_map_size; ++p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     const int dst_offset = p * num_components;

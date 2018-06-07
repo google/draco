@@ -87,10 +87,10 @@ class MeshPredictionSchemeConstrainedMultiParallelogramEncoder
     // TODO(ostava): This should be generalized in case we use other binary
     // coding scheme.
     const double entropy = ComputeBinaryShannonEntropy(
-        total_parallelogram, total_used_parallelograms);
+		(uint32_t)total_parallelogram, (uint32_t)total_used_parallelograms);
 
     // Round up to the nearest full bit.
-    return ceil((double)total_parallelogram * entropy);
+    return (int64_t)ceil((double)total_parallelogram * entropy);
   }
 
   // Struct that contains data used for measuring the error of each available
@@ -209,7 +209,7 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
   // We start processing the vertices from the end because this prediction uses
   // data from previous entries that could be overwritten when an entry is
   // processed.
-  for (int p = this->mesh_data().data_to_corner_map()->size() - 1; p > 0; --p) {
+  for (int p = (int)this->mesh_data().data_to_corner_map()->size() - 1; p > 0; --p) {
     const CornerIndex start_corner_id =
         this->mesh_data().data_to_corner_map()->at(p);
 
@@ -386,7 +386,7 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
       // Encode the crease edge flags in the reverse vertex order that is needed
       // be the decoder. Note that for the currently supported mode, each vertex
       // has exactly |num_used_parallelograms| edges that need to be encoded.
-      for (int j = is_crease_edge_[i].size() - num_used_parallelograms; j >= 0;
+      for (int j = (int)(is_crease_edge_[i].size() - num_used_parallelograms); j >= 0;
            j -= num_used_parallelograms) {
         // Go over all edges of the current vertex.
         for (int k = 0; k < num_used_parallelograms; ++k) {

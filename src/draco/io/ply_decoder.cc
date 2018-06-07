@@ -108,7 +108,7 @@ bool PlyDecoder::DecodeFaceData(const PlyElement *face_element) {
     if (list_size != 3)
       continue;  // All non-triangular faces are skipped.
     for (int64_t c = 0; c < 3; ++c)
-      face[c] = vertex_index_reader.ReadValue(list_offset + c);
+      face[c] = vertex_index_reader.ReadValue((int)(list_offset + c));
     out_mesh_->SetFace(face_index, face);
     face_index++;
   }
@@ -127,7 +127,7 @@ bool PlyDecoder::ReadPropertiesToAttribute(
         new PlyPropertyReader<DataTypeT>(properties[prop])));
   }
   std::vector<DataTypeT> memory(properties.size());
-  for (PointIndex::ValueType i = 0; i < num_vertices; ++i) {
+  for (PointIndex::ValueType i = 0; i < (uint32_t)num_vertices; ++i) {
     for (int prop = 0; prop < properties.size(); ++prop) {
       memory[prop] = readers[prop]->ReadValue(i);
     }

@@ -38,7 +38,7 @@ bool MetadataDecoder::DecodeGeometryMetadata(DecoderBuffer *in_buffer,
   uint32_t num_att_metadata = 0;
   DecodeVarint(&num_att_metadata, buffer_);
   // Decode attribute metadata.
-  for (int i = 0; i < num_att_metadata; ++i) {
+  for (int i = 0; i < (int)num_att_metadata; ++i) {
     uint32_t att_unique_id;
     DecodeVarint(&att_unique_id, buffer_);
     std::unique_ptr<AttributeMetadata> att_metadata =
@@ -54,13 +54,13 @@ bool MetadataDecoder::DecodeGeometryMetadata(DecoderBuffer *in_buffer,
 bool MetadataDecoder::DecodeMetadata(Metadata *metadata) {
   uint32_t num_entries = 0;
   DecodeVarint(&num_entries, buffer_);
-  for (int i = 0; i < num_entries; ++i) {
+  for (int i = 0; i < (int)num_entries; ++i) {
     if (!DecodeEntry(metadata))
       return false;
   }
   uint32_t num_sub_metadata = 0;
   DecodeVarint(&num_sub_metadata, buffer_);
-  for (int i = 0; i < num_sub_metadata; ++i) {
+  for (int i = 0; i < (int)num_sub_metadata; ++i) {
     std::string sub_metadata_name;
     if (!DecodeName(&sub_metadata_name))
       return false;

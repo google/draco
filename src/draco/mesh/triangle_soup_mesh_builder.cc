@@ -74,7 +74,7 @@ std::unique_ptr<Mesh> TriangleSoupMeshBuilder::Finalize() {
 #endif
   for (size_t i = 0; i < attribute_element_types_.size(); ++i) {
     if (attribute_element_types_[i] >= 0) {
-      mesh_->SetAttributeElementType(i, static_cast<MeshAttributeElementType>(
+      mesh_->SetAttributeElementType((int)i, static_cast<MeshAttributeElementType>(
                                             attribute_element_types_[i]));
     }
   }

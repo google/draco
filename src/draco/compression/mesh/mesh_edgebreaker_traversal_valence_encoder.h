@@ -51,7 +51,7 @@ class MeshEdgeBreakerTraversalValenceEncoder
 
     // Initialize valences of all vertices.
     vertex_valences_.resize(corner_table_->num_vertices());
-    for (VertexIndex i(0); i < vertex_valences_.size(); ++i) {
+    for (VertexIndex i(0); i < (uint32_t)vertex_valences_.size(); ++i) {
       vertex_valences_[i] = corner_table_->Valence(VertexIndex(i));
     }
 
@@ -126,7 +126,7 @@ class MeshEdgeBreakerTraversalValenceEncoder
 
           // Create a new vertex for the right side and count the number of
           // faces that should be attached to this vertex.
-          const int new_vert_id = vertex_valences_.size();
+          const int new_vert_id = (int)vertex_valences_.size();
           int num_right_faces = 0;
 
           act_c = corner_table_->Opposite(next);
@@ -187,9 +187,9 @@ class MeshEdgeBreakerTraversalValenceEncoder
 
     // Store the contexts.
     for (int i = 0; i < context_symbols_.size(); ++i) {
-      EncodeVarint<uint32_t>(context_symbols_[i].size(), GetOutputBuffer());
+      EncodeVarint<uint32_t>((uint32_t)context_symbols_[i].size(), GetOutputBuffer());
       if (context_symbols_[i].size() > 0) {
-        EncodeSymbols(context_symbols_[i].data(), context_symbols_[i].size(), 1,
+        EncodeSymbols(context_symbols_[i].data(), (int)context_symbols_[i].size(), 1,
                       nullptr, GetOutputBuffer());
       }
     }

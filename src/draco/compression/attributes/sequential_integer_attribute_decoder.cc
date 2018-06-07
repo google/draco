@@ -36,7 +36,7 @@ bool SequentialIntegerAttributeDecoder::TransformAttributeToOriginalFormat(
       decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0))
     return true;  // Don't revert the transform here for older files.
 #endif
-  return StoreValues(point_ids.size());
+  return StoreValues((uint32_t)point_ids.size());
 }
 
 bool SequentialIntegerAttributeDecoder::DecodeValues(
@@ -61,7 +61,7 @@ bool SequentialIntegerAttributeDecoder::DecodeValues(
     return false;
 
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
-  const int32_t num_values = point_ids.size();
+  const int32_t num_values = (uint32_t)point_ids.size();
   if (decoder() &&
       decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     // For older files, revert the transform right after we decode the data.
@@ -90,7 +90,7 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
     return false;
   const size_t num_entries = point_ids.size();
   const size_t num_values = num_entries * num_components;
-  PreparePortableAttribute(num_entries, num_components);
+  PreparePortableAttribute((int)num_entries, num_components);
   int32_t *const portable_attribute_data = GetPortableAttributeData();
   if (portable_attribute_data == nullptr)
     return false;
@@ -99,7 +99,7 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
     return false;
   if (compressed > 0) {
     // Decode compressed values.
-    if (!DecodeSymbols(num_values, num_components, in_buffer,
+    if (!DecodeSymbols((uint32_t)num_values, num_components, in_buffer,
                        reinterpret_cast<uint32_t *>(portable_attribute_data)))
       return false;
   } else {
@@ -118,7 +118,7 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
     } else {
       if (portable_attribute()->buffer()->data_size() < num_bytes * num_values)
         return false;
-      if (in_buffer->remaining_size() < num_bytes * num_values)
+      if (in_buffer->remaining_size() < (int64_t)num_bytes * (int64_t)num_values)
         return false;
       for (size_t i = 0; i < num_values; ++i) {
         in_buffer->Decode(portable_attribute_data + i, num_bytes);
@@ -130,7 +130,7 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
                          !prediction_scheme_->AreCorrectionsPositive())) {
     // Convert the values back to the original signed format.
     ConvertSymbolsToSignedInts(
-        reinterpret_cast<const uint32_t *>(portable_attribute_data), num_values,
+        reinterpret_cast<const uint32_t *>(portable_attribute_data), (int)num_values,
         portable_attribute_data);
   }
 
@@ -141,7 +141,7 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
 
     if (num_values > 0) {
       if (!prediction_scheme_->ComputeOriginalValues(
-              portable_attribute_data, portable_attribute_data, num_values,
+              portable_attribute_data, portable_attribute_data, (int)num_values,
               num_components, point_ids.data())) {
         return false;
       }

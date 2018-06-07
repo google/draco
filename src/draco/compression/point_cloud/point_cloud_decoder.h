@@ -66,7 +66,7 @@ class PointCloudDecoder {
     return attributes_decoders_[dec_id].get();
   }
   int32_t num_attributes_decoders() const {
-    return attributes_decoders_.size();
+    return (int32_t)attributes_decoders_.size();
   }
 
   // Get a mutable pointer to the decoded point cloud. This is intended to be

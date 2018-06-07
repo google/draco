@@ -87,7 +87,7 @@ class MeshEdgeBreakerTraversalEncoder {
   }
 
   // Returns the number of encoded symbols.
-  int NumEncodedSymbols() const { return symbols_.size(); }
+  int NumEncodedSymbols() const { return (int)symbols_.size(); }
 
   const EncoderBuffer &buffer() const { return traversal_buffer_; }
 
@@ -98,7 +98,7 @@ class MeshEdgeBreakerTraversalEncoder {
     // It's guaranteed that each face will need only up to 3 bits.
     traversal_buffer_.StartBitEncoding(
         encoder_impl_->GetEncoder()->mesh()->num_faces() * 3, true);
-    for (int i = symbols_.size() - 1; i >= 0; --i) {
+    for (int i = (int)(symbols_.size() - 1); i >= 0; --i) {
       traversal_buffer_.EncodeLeastSignificantBits32(
           edge_breaker_topology_bit_pattern_length[symbols_[i]], symbols_[i]);
     }
