@@ -233,7 +233,11 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
     // All axes have been fully subdivided, just output points.
     if ((bit_length_ - level) == 0) {
       for (uint32_t i = 0; i < num_remaining_points; i++) {
-        *oit = old_base;
+        if (oit > old_base) {
+          *oit = old_base;
+        } else {
+          return false;
+        }
         ++oit;
         ++num_decoded_points_;
       }
@@ -258,7 +262,11 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
                 num_remaining_bits, &p_[axes_[j]]);
           p_[axes_[j]] = old_base[axes_[j]] | p_[axes_[j]];
         }
-        *oit = p_;
+        if (oit > p_) {
+          *oit = p_;
+        } else {
+          return false;
+        }
         ++oit;
         ++num_decoded_points_;
       }
