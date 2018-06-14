@@ -57,6 +57,10 @@ class ConversionOutputIterator {
     return *this;
   }
 
+  const bool operator>(const SourceType &source) {
+    return true;
+  }
+
  private:
   OutputIterator oit_;
 };

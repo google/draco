@@ -111,6 +111,19 @@ class PointAttributeVectorOutputIterator {
     return *this;
   }
 
+  const bool operator>(const std::vector<CoeffT> &val) {
+    bool fit = true;
+    for (auto index = 0; index < attributes_.size(); index++) {
+      AttributeTuple &att = attributes_[index];
+      const uint32_t &data_size = std::get<3>(att);
+      const uint32_t &num_components = std::get<4>(att);
+      if (data_size != 4) {  // handle uint16_t, uint8_t
+          fit = fit && (memory_.end() > (memory_.begin() + (num_components * data_size)));
+      }
+    }
+    return fit;
+  }
+
  private:
   // preallocated memory for buffering different data sizes.  Never reallocated.
   std::vector<uint8_t> memory_;
