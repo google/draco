@@ -798,8 +798,12 @@ else ()
   add_library(draco_points_enc OBJECT
               ${draco_points_common_sources}
               ${draco_points_enc_sources})
-  add_library(draco_unity_plugin OBJECT
-              ${draco_unity_plug_sources})
+
+  if (BUILD_UNITY_PLUGIN)
+    add_library(draco_unity_plugin OBJECT
+                ${draco_unity_plug_sources})
+  endif ()
+
   add_library(draco_maya_plugin OBJECT
               ${draco_maya_plug_sources})
 
