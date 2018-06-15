@@ -804,8 +804,10 @@ else ()
                 ${draco_unity_plug_sources})
   endif ()
 
-  add_library(draco_maya_plugin OBJECT
-              ${draco_maya_plug_sources})
+  if (BUILD_MAYA_PLUGIN)
+    add_library(draco_maya_plugin OBJECT
+                ${draco_maya_plug_sources})
+  endif ()
 
   # Library targets that consume the object collections.
   add_library(dracodec
