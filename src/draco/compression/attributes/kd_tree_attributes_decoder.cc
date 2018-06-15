@@ -49,9 +49,8 @@ class PointAttributeVectorOutputIterator {
     uint32_t required_decode_bytes = 0;
     for (auto index = 0; index < attributes_.size(); index++) {
       const AttributeTuple &att = attributes_[index];
-      required_decode_bytes =
-          (std::max)(required_decode_bytes,
-                     std::get<1>(att) * std::get<3>(att) * std::get<4>(att));
+      required_decode_bytes = (std::max)(required_decode_bytes,
+                                         std::get<3>(att) * std::get<4>(att));
     }
     memory_.resize(required_decode_bytes);
     data_ = memory_.data();

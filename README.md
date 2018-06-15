@@ -5,6 +5,11 @@
 
 News
 =======
+### Version 1.3.3 release
+* Added ExpertEncoder to the Javascript API
+  * Allows developers to set quantization options per attribute id
+* Bug fixes
+
 ### Version 1.3.2 release
 * Bug fixes
 
@@ -210,12 +215,6 @@ $ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake
 
 # Build the Javascript encoder and decoder.
 $ make
-~~~~~
-
-To build a decoder module that is compatible with IE11 (at the cost of a slightly larger resulting module), set the `IE_COMPATIBLE` variable to `true` when generating the cmake file.
-
-~~~~~ bash
-$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake -DIE_COMPATIBLE=true
 ~~~~~
 
 WebAssembly Decoder

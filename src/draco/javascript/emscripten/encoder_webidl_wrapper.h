@@ -21,6 +21,7 @@
 #include "draco/compression/config/compression_shared.h"
 #include "draco/compression/config/encoder_options.h"
 #include "draco/compression/encode.h"
+#include "draco/compression/expert_encode.h"
 #include "draco/mesh/mesh.h"
 
 typedef draco::GeometryAttribute draco_GeometryAttribute;
@@ -157,6 +158,29 @@ class Encoder {
 
  private:
   draco::Encoder encoder_;
+};
+
+class ExpertEncoder {
+ public:
+  ExpertEncoder(draco::PointCloud *pc);
+
+  void SetEncodingMethod(long method);
+  void SetAttributeQuantization(long att_id, long quantization_bits);
+  void SetAttributeExplicitQuantization(long att_id, long quantization_bits,
+                                        long num_components,
+                                        const float *origin, float range);
+  void SetSpeedOptions(long encoding_speed, long decoding_speed);
+  void SetTrackEncodedProperties(bool flag);
+
+  int EncodeToDracoBuffer(bool deduplicate_values, DracoInt8Array *buffer);
+
+  int GetNumberOfEncodedPoints();
+  int GetNumberOfEncodedFaces();
+
+ private:
+  std::unique_ptr<draco::ExpertEncoder> encoder_;
+
+  draco::PointCloud *pc_;
 };
 
 #endif  // DRACO_JAVASCRIPT_EMSCRITPEN_ENCODER_WEBIDL_WRAPPER_H_

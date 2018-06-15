@@ -5,6 +5,11 @@
 
 News
 =======
+### Version 1.3.3 release
+* Added ExpertEncoder to the JavaScript API
+  * Allows developers to set quantization options per attribute id
+* Bug fixes
+
 ### Version 1.3.2 release
 * Bug fixes
 

@@ -16,8 +16,13 @@ TODO: Add glTF branch url.
 
 News
 =======
+### Version 1.3.3 release
+* Added ExpertEncoder to the JavaScript API
+  * Allows developers to set quantization options per attribute id
+* Bug fixes
+
 ### Version 1.3.2 release
-* Bug Fixes
+* Bug fixes
 
 ### Version 1.3.1 release
 * Fix issue with multiple attributes when skipping an attribute transform

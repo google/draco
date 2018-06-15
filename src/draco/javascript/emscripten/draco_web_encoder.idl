@@ -180,3 +180,25 @@ interface Encoder {
   long GetNumberOfEncodedPoints();
   long GetNumberOfEncodedFaces();
 };
+
+interface ExpertEncoder {
+  void ExpertEncoder(PointCloud pc);
+  void SetEncodingMethod(long method);
+  void SetAttributeQuantization(long att_id,
+                                long quantization_bits);
+  void SetAttributeExplicitQuantization(long att_id,
+                                        long quantization_bits,
+                                        long num_components,
+                                        [Const] float[] origin,
+                                        float range);
+  void SetSpeedOptions(long encoding_speed, long decoding_speed);
+  void SetTrackEncodedProperties(boolean flag);
+
+  long EncodeToDracoBuffer(boolean deduplicate_values,
+                           DracoInt8Array encoded_data);
+
+  // Returns the number of encoded points or faces from the last Encode
+  // operation. Returns 0 if SetTrackEncodedProperties was not set to true.
+  long GetNumberOfEncodedPoints();
+  long GetNumberOfEncodedFaces();
+};

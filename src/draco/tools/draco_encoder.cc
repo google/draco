@@ -35,8 +35,6 @@ struct Options {
   int generic_quantization_bits;
   bool generic_deleted;
   int compression_level;
-  int edgebreaker_method;
-  std::map<draco::GeometryAttribute::Type, int> attribute_prediction_scheme;
   bool use_metadata;
   std::string input;
   std::string output;
@@ -52,7 +50,6 @@ Options::Options()
       generic_quantization_bits(8),
       generic_deleted(false),
       compression_level(7),
-      edgebreaker_method(-1),
       use_metadata(false) {}
 
 void Usage() {
@@ -334,16 +331,6 @@ int main(int argc, char **argv) {
   draco::Encoder encoder;
 
   // Setup encoder options.
-  if (options.edgebreaker_method != -1)
-    encoder.options().SetGlobalInt("edgebreaker_method",
-                                   options.edgebreaker_method);
-  auto iter = options.attribute_prediction_scheme.begin();
-  while (iter != options.attribute_prediction_scheme.end()) {
-    const draco::GeometryAttribute::Type attribute_type = iter->first;
-    const int prediction_scheme = iter->second;
-    encoder.SetAttributePredictionScheme(attribute_type, prediction_scheme);
-    iter++;
-  }
   if (options.pos_quantization_bits > 0) {
     encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION,
                                      options.pos_quantization_bits);

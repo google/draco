@@ -83,7 +83,7 @@ class EncodeTest : public ::testing::Test {
 
     // Initialize the attribute values.
     for (draco::PointIndex i(0); i < kNumPoints; ++i) {
-      const float pos_coord = float(i.value());
+      const float pos_coord = static_cast<float>(i.value());
       pc_builder.SetAttributeValueForPoint(
           pos_att_id, i,
           draco::Vector3f(pos_coord, -pos_coord, pos_coord).data());
@@ -148,15 +148,20 @@ class EncodeTest : public ::testing::Test {
       std::unique_ptr<draco::Mesh> mesh_tmp =
           draco::ReadMeshFromTestFile(file_name);
       mesh = mesh_tmp.get();
+      if (!mesh->DeduplicateAttributeValues())
+        return;
+      mesh->DeduplicatePointIds();
       geometry = std::move(mesh_tmp);
     } else {
       geometry = draco::ReadPointCloudFromTestFile(file_name);
     }
     ASSERT_NE(mesh, nullptr);
+
     draco::Encoder encoder;
-    encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 16);
-    encoder.SetAttributeQuantization(draco::GeometryAttribute::TEX_COORD, 15);
-    encoder.SetAttributeQuantization(draco::GeometryAttribute::NORMAL, 14);
+    encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 14);
+    encoder.SetAttributeQuantization(draco::GeometryAttribute::TEX_COORD, 12);
+    encoder.SetAttributeQuantization(draco::GeometryAttribute::NORMAL, 10);
+
     encoder.SetEncodingMethod(encoding_method);
 
     encoder.SetTrackEncodedProperties(true);
@@ -272,7 +277,7 @@ TEST_F(EncodeTest, TestTrackingOfNumberOfEncodedEntries) {
 
 TEST_F(EncodeTest, TestTrackingOfNumberOfEncodedEntriesNotSet) {
   // Tests that when tracing of encoded properties is disabled, the returned
-  // number of encoded faces and poitns is 0.
+  // number of encoded faces and points is 0.
   std::unique_ptr<draco::Mesh> mesh(
       draco::ReadMeshFromTestFile("cube_att.obj"));
   ASSERT_NE(mesh, nullptr);

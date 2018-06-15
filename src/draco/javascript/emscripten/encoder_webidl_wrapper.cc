@@ -263,3 +263,67 @@ int Encoder::GetNumberOfEncodedPoints() {
 }
 
 int Encoder::GetNumberOfEncodedFaces() { return encoder_.num_encoded_faces(); }
+
+ExpertEncoder::ExpertEncoder(PointCloud *pc) : pc_(pc) {
+  // Web-IDL interface does not support constructor overloading so instead we
+  // use RTTI to determine whether the input is a mesh or a point cloud.
+  Mesh *mesh = dynamic_cast<Mesh *>(pc);
+  if (mesh)
+    encoder_ =
+        std::unique_ptr<draco::ExpertEncoder>(new draco::ExpertEncoder(*mesh));
+  else
+    encoder_ =
+        std::unique_ptr<draco::ExpertEncoder>(new draco::ExpertEncoder(*pc));
+}
+
+void ExpertEncoder::SetEncodingMethod(long method) {
+  encoder_->SetEncodingMethod(method);
+}
+
+void ExpertEncoder::SetAttributeQuantization(long att_id,
+                                             long quantization_bits) {
+  encoder_->SetAttributeQuantization(att_id, quantization_bits);
+}
+
+void ExpertEncoder::SetAttributeExplicitQuantization(long att_id,
+                                                     long quantization_bits,
+                                                     long num_components,
+                                                     const float *origin,
+                                                     float range) {
+  encoder_->SetAttributeExplicitQuantization(att_id, quantization_bits,
+                                             num_components, origin, range);
+}
+
+void ExpertEncoder::SetSpeedOptions(long encoding_speed, long decoding_speed) {
+  encoder_->SetSpeedOptions(encoding_speed, decoding_speed);
+}
+
+void ExpertEncoder::SetTrackEncodedProperties(bool flag) {
+  encoder_->SetTrackEncodedProperties(flag);
+}
+
+int ExpertEncoder::EncodeToDracoBuffer(bool deduplicate_values,
+                                       DracoInt8Array *draco_buffer) {
+  if (!pc_)
+    return 0;
+  if (deduplicate_values) {
+    if (!pc_->DeduplicateAttributeValues())
+      return 0;
+    pc_->DeduplicatePointIds();
+  }
+
+  draco::EncoderBuffer buffer;
+  if (!encoder_->EncodeToBuffer(&buffer).ok()) {
+    return 0;
+  }
+  draco_buffer->SetValues(buffer.data(), buffer.size());
+  return buffer.size();
+}
+
+int ExpertEncoder::GetNumberOfEncodedPoints() {
+  return encoder_->num_encoded_points();
+}
+
+int ExpertEncoder::GetNumberOfEncodedFaces() {
+  return encoder_->num_encoded_faces();
+}

@@ -231,6 +231,34 @@ TEST_F(PointCloudKdTreeEncodingTest,
   TestKdTreeEncoding(*pc);
 }
 
+// Test 16 only encoding for one attribute.
+TEST_F(PointCloudKdTreeEncodingTest, TestIntKdTreeEncoding16Bit) {
+  constexpr int num_points = 120;
+  std::vector<std::array<uint16_t, 3>> points3(num_points);
+  for (int i = 0; i < num_points; ++i) {
+    std::array<uint16_t, 3> pos;
+    // Generate some pseudo-random points.
+    pos[0] = 8 * ((i * 7) % 127);
+    pos[1] = 13 * ((i * 3) % 321);
+    pos[2] = 29 * ((i * 19) % 450);
+    points3[i] = pos;
+  }
+
+  PointCloudBuilder builder;
+  builder.Start(num_points);
+  const int att_id3 =
+      builder.AddAttribute(GeometryAttribute::POSITION, 3, DT_UINT16);
+  for (PointIndex i(0); i < num_points; ++i) {
+    builder.SetAttributeValueForPoint(att_id3, PointIndex(i),
+                                      &(points3[i.value()])[0]);
+  }
+
+  std::unique_ptr<PointCloud> pc = builder.Finalize(false);
+  ASSERT_NE(pc, nullptr);
+
+  TestKdTreeEncoding(*pc);
+}
+
 // Test 16 and 8 bit encoding with size bigger than 32bit encoding.
 TEST_F(PointCloudKdTreeEncodingTest,
        TestIntKdTreeEncodingHigherDimensionVariedTypesBig16BitEncoding) {

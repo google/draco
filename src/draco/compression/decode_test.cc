@@ -150,4 +150,47 @@ TEST_F(DecodeTest, TestSkipAttributeTransformOnPointCloud) {
   TestSkipAttributeTransformOnPointCloudWithColor("pc_kd_color.drc");
 }
 
+TEST_F(DecodeTest, TestSkipAttributeTransformWithNoQuantization) {
+  // Tests that decoders can successfully skip attribute transform even though
+  // the input model was not quantized (it has no attribute transform).
+  const std::string file_name = "point_cloud_no_qp.drc";
+  std::ifstream input_file(draco::GetTestFileFullPath(file_name),
+                           std::ios::binary);
+  ASSERT_TRUE(input_file);
+
+  // Read the file stream into a buffer.
+  std::streampos file_size = 0;
+  input_file.seekg(0, std::ios::end);
+  file_size = input_file.tellg() - file_size;
+  input_file.seekg(0, std::ios::beg);
+  std::vector<char> data(file_size);
+  input_file.read(data.data(), file_size);
+
+  ASSERT_FALSE(data.empty());
+
+  // Create a draco decoding buffer. Note that no data is copied in this step.
+  draco::DecoderBuffer buffer;
+  buffer.Init(data.data(), data.size());
+
+  draco::Decoder decoder;
+  // Make sure we skip dequantization for the position attribute.
+  decoder.SetSkipAttributeTransform(draco::GeometryAttribute::POSITION);
+
+  // Decode the input data into a geometry.
+  std::unique_ptr<draco::PointCloud> pc =
+      decoder.DecodePointCloudFromBuffer(&buffer).value();
+  ASSERT_NE(pc, nullptr);
+
+  const draco::PointAttribute *const pos_att =
+      pc->GetNamedAttribute(draco::GeometryAttribute::POSITION);
+  ASSERT_NE(pos_att, nullptr);
+
+  // Ensure the position attribute is of type float32 since the attribute was
+  // not quantized.
+  ASSERT_EQ(pos_att->data_type(), draco::DT_FLOAT32);
+
+  // Make sure there is no attribute transform available for the attribute.
+  ASSERT_EQ(pos_att->GetAttributeTransformData(), nullptr);
+}
+
 }  // namespace

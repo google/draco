@@ -89,15 +89,17 @@ bool SequentialAttributeDecodersController::
     if (GetDecoder()->options()) {
       const PointAttribute *const attribute =
           sequential_decoders_[i]->attribute();
-      if (GetDecoder()->options()->GetAttributeBool(
+      const PointAttribute *const portable_attribute =
+          sequential_decoders_[i]->GetPortableAttribute();
+      if (portable_attribute &&
+          GetDecoder()->options()->GetAttributeBool(
               attribute->attribute_type(), "skip_attribute_transform", false)) {
         // Attribute transform should not be performed. In this case, we replace
         // the output geometry attribute with the portable attribute.
         // TODO(ostava): We can potentially avoid this copy by introducing a new
         // mechanism that would allow to use the final attributes as portable
         // attributes for predictors that may need them.
-        sequential_decoders_[i]->attribute()->CopyFrom(
-            *sequential_decoders_[i]->GetPortableAttribute());
+        sequential_decoders_[i]->attribute()->CopyFrom(*portable_attribute);
         continue;
       }
     }

@@ -95,6 +95,20 @@ void MeshEdgeBreakerEncoder::ComputeNumberOfEncodedPoints() {
       corner_table->num_vertices() - corner_table->NumIsolatedVertices();
 
   if (mesh()->num_attributes() > 1) {
+    // Gather all corner tables for all non-position attributes.
+    std::vector<const MeshAttributeCornerTable *> attribute_corner_tables;
+    for (int i = 0; i < mesh()->num_attributes(); ++i) {
+      if (mesh()->attribute(i)->attribute_type() == GeometryAttribute::POSITION)
+        continue;
+      const MeshAttributeCornerTable *const att_corner_table =
+          GetAttributeCornerTable(i);
+      // Attribute corner table may not be used in some configurations. For
+      // these cases we can assume the attribute connectivity to be the same as
+      // the connectivity of the position data.
+      if (att_corner_table)
+        attribute_corner_tables.push_back(att_corner_table);
+    }
+
     // Add a new point based on the configuration of interior attribute seams
     // (replicating what the decoder would do).
     for (VertexIndex vi(0); vi < corner_table->num_vertices(); ++vi) {
@@ -107,22 +121,40 @@ void MeshEdgeBreakerEncoder::ComputeNumberOfEncodedPoints() {
           mesh()->CornerToPointId(first_corner_index);
 
       PointIndex last_point_index = first_point_index;
+      CornerIndex last_corner_index = first_corner_index;
       CornerIndex corner_index = corner_table->SwingRight(first_corner_index);
       size_t num_attribute_seams = 0;
-      while (corner_index != kInvalidCornerIndex &&
-             corner_index != first_corner_index) {
+      while (corner_index != kInvalidCornerIndex) {
         const PointIndex point_index = mesh()->CornerToPointId(corner_index);
+        bool seam_found = false;
         if (point_index != last_point_index) {
-          // New attribute seam detected.
-          ++num_attribute_seams;
+          // Point index changed - new attribute seam detected.
+          seam_found = true;
           last_point_index = point_index;
+        } else {
+          // Even though point indices matches, there still may be a seam caused
+          // by non-manifold connectivity of non-position attribute data.
+          for (int i = 0; i < attribute_corner_tables.size(); ++i) {
+            if (attribute_corner_tables[i]->Vertex(corner_index) !=
+                attribute_corner_tables[i]->Vertex(last_corner_index)) {
+              seam_found = true;
+              break;  // No need to process other attributes.
+            }
+          }
         }
+        if (seam_found) {
+          ++num_attribute_seams;
+        }
+
+        if (corner_index == first_corner_index)
+          break;
+
         // Proceed to the next corner
+        last_corner_index = corner_index;
         corner_index = corner_table->SwingRight(corner_index);
       }
 
-      if (!corner_table->IsOnBoundary(vi) && num_attribute_seams > 0 &&
-          last_point_index == first_point_index) {
+      if (!corner_table->IsOnBoundary(vi) && num_attribute_seams > 0) {
         // If the last visited point index is the same as the first point index
         // we traveled all the way around the vertex. In this case the number of
         // new points should be num_attribute_seams - 1

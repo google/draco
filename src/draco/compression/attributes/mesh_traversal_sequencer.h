@@ -55,6 +55,8 @@ class MeshTraversalSequencer : public PointsSequencer {
         const PointIndex point_id = face[p];
         const VertexIndex vert_id =
             corner_table->Vertex(CornerIndex(3 * f.value() + p));
+        if (vert_id == kInvalidVertexIndex)
+          return false;
         const AttributeValueIndex att_entry_id(
             encoding_data_
                 ->vertex_to_encoded_attribute_value_index_map[vert_id.value()]);
