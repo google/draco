@@ -60,7 +60,7 @@ bool PointAttribute::Reset(size_t num_attribute_values) {
     return false;
   // Assign the new buffer to the parent attribute.
   ResetBuffer(attribute_buffer_.get(), entry_size, 0);
-  num_unique_entries_ = (uint32_t)num_attribute_values;
+  num_unique_entries_ = static_cast<uint32_t>(num_attribute_values);
   return true;
 }
 
@@ -193,7 +193,7 @@ AttributeValueIndex::ValueType PointAttribute::DeduplicateFormattedValues(
     }
   } else {
     // Update point to value map using the mapping between old and new values.
-    for (PointIndex i(0); i < (uint32_t)indices_map_.size(); ++i) {
+    for (PointIndex i(0); i < static_cast<uint32_t>(indices_map_.size()); ++i) {
       SetPointMapEntry(i, value_map[indices_map_[i]]);
     }
   }

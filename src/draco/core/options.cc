@@ -54,7 +54,7 @@ float Options::GetFloat(const std::string &name, float default_val) const {
   const auto it = options_.find(name);
   if (it == options_.end())
     return default_val;
-  return (float)std::atof(it->second.c_str());
+  return static_cast<float>(std::atof(it->second.c_str()));
 }
 
 bool Options::GetBool(const std::string &name) const {

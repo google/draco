@@ -165,7 +165,7 @@ bool ObjEncoder::EncodePositions() {
   if (att == nullptr || att->size() == 0)
     return false;  // Position attribute must be valid.
   std::array<float, 3> value;
-  for (AttributeValueIndex i(0); i < (uint32_t)att->size(); ++i) {
+  for (AttributeValueIndex i(0); i < static_cast<uint32_t>(att->size()); ++i) {
     if (!att->ConvertValue<float, 3>(i, &value[0]))
       return false;
     buffer()->Encode("v ", 2);
@@ -182,7 +182,7 @@ bool ObjEncoder::EncodeTextureCoordinates() {
   if (att == nullptr || att->size() == 0)
     return true;  // It's OK if we don't have texture coordinates.
   std::array<float, 2> value;
-  for (AttributeValueIndex i(0); i < (uint32_t)att->size(); ++i) {
+  for (AttributeValueIndex i(0); i < static_cast<uint32_t>(att->size()); ++i) {
     if (!att->ConvertValue<float, 2>(i, &value[0]))
       return false;
     buffer()->Encode("vt ", 3);
@@ -199,7 +199,7 @@ bool ObjEncoder::EncodeNormals() {
   if (att == nullptr || att->size() == 0)
     return true;  // It's OK if we don't have normals.
   std::array<float, 3> value;
-  for (AttributeValueIndex i(0); i < (uint32_t)att->size(); ++i) {
+  for (AttributeValueIndex i(0); i < static_cast<uint32_t>(att->size()); ++i) {
     if (!att->ConvertValue<float, 3>(i, &value[0]))
       return false;
     buffer()->Encode("vn ", 3);

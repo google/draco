@@ -30,7 +30,7 @@ int64_t ComputeShannonEntropy(const uint32_t *symbols, int num_symbols,
   if (out_num_unique_symbols)
     *out_num_unique_symbols = num_unique_symbols;
   // Entropy is always negative.
-  return (int64_t)(-total_bits);
+  return static_cast<int64_t>(-total_bits);
 }
 
 double ComputeBinaryShannonEntropy(uint32_t num_values,
@@ -94,7 +94,7 @@ ShannonEntropyTracker::EntropyData ShannonEntropyTracker::UpdateSymbols(
       old_symbol_entropy_norm = frequency * std::log2(frequency);
     } else if (frequency == 0) {
       ret_data.num_unique_symbols++;
-      if (symbol > (uint32_t)ret_data.max_symbol) {
+      if (symbol > static_cast<uint32_t>(ret_data.max_symbol)) {
         ret_data.max_symbol = symbol;
       }
     }
@@ -129,8 +129,8 @@ int64_t ShannonEntropyTracker::GetNumberOfDataBits(
   //
   // and number of bits required for the entropy is: num_values * entropy
   //
-  return (int64_t)ceil(entropy_data.num_values * std::log2(entropy_data.num_values) -
-              entropy_data.entropy_norm);
+  return static_cast<int64_t>(ceil(entropy_data.num_values * std::log2(entropy_data.num_values) -
+              entropy_data.entropy_norm));
 }
 
 int64_t ShannonEntropyTracker::GetNumberOfRAnsTableBits(

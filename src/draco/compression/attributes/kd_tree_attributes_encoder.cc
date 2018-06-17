@@ -78,7 +78,7 @@ bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
       // the actual encoding of the data.
       quantized_portable_attributes_.push_back(
           attribute_quantization_transform.GeneratePortableAttribute(
-              *att, (int)num_points));
+              *att, static_cast<int>(num_points)));
     } else if (att->data_type() == DT_INT32 || att->data_type() == DT_INT16 ||
                att->data_type() == DT_INT8) {
       // For signed types, find the minimum value for each component. These
@@ -87,7 +87,7 @@ bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
       std::vector<int32_t> min_value(att->num_components(),
                                      std::numeric_limits<int32_t>::max());
       std::vector<int32_t> act_value(att->num_components());
-      for (AttributeValueIndex avi(0); avi < (uint32_t)att->size(); ++avi) {
+      for (AttributeValueIndex avi(0); avi < static_cast<uint32_t>(att->size()); ++avi) {
         att->ConvertValue<int32_t>(avi, &act_value[0]);
         for (int c = 0; c < att->num_components(); ++c) {
           if (min_value[c] > act_value[c])

@@ -57,7 +57,7 @@ AttributeOctahedronTransform::GeneratePortableAttribute(
   DRACO_DCHECK(is_initialized());
 
   // Allocate portable attribute.
-  const int num_entries = (int)point_ids.size();
+  const int num_entries = static_cast<int>(point_ids.size());
   std::unique_ptr<PointAttribute> portable_attribute =
       InitPortableAttribute(num_entries, 2, num_points, attribute, true);
 

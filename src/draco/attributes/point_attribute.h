@@ -67,7 +67,7 @@ class PointAttribute : public GeometryAttribute {
 
   // Sets the new number of unique attribute entries for the attribute.
   void Resize(size_t new_num_unique_entries) {
-    num_unique_entries_ = (uint32_t)new_num_unique_entries;
+    num_unique_entries_ = static_cast<uint32_t>(new_num_unique_entries);
   }
 
   // Functions for setting the type of mapping between point indices and

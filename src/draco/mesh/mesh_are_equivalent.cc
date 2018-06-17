@@ -79,7 +79,7 @@ int32_t MeshAreEquivalent::ComputeCornerIndexOfSmallestPointXYZ(
     pos[i] = GetPosition(mesh, f, i);
   }
   const auto min_it = std::min_element(pos, pos + 3);
-  return (int32_t)(min_it - pos);
+  return static_cast<int32_t>(min_it - pos);
 }
 
 void MeshAreEquivalent::Init(const Mesh &mesh0, const Mesh &mesh1) {

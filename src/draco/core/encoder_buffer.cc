@@ -69,7 +69,7 @@ void EncoderBuffer::EndBitEncoding() {
 
     EncoderBuffer var_size_buffer;
     EncodeVarint(encoded_bytes, &var_size_buffer);
-    const uint32_t size_len = (uint32_t)var_size_buffer.size();
+    const uint32_t size_len = static_cast<uint32_t>(var_size_buffer.size());
     char *const dst = out_mem + size_len;
     const char *const src = out_mem + sizeof(uint64_t);
     memmove(dst, src, encoded_bytes);

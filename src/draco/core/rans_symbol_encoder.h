@@ -264,7 +264,7 @@ void RAnsSymbolEncoder<unique_symbols_bit_length_t>::EndEncoding(
   const uint64_t bytes_written = static_cast<uint64_t>(ans_.write_end());
   EncoderBuffer var_size_buffer;
   EncodeVarint(bytes_written, &var_size_buffer);
-  const uint32_t size_len = (uint32_t)var_size_buffer.size();
+  const uint32_t size_len = static_cast<uint32_t>(var_size_buffer.size());
   char *const dst = src + size_len;
   memmove(dst, src, bytes_written);
 

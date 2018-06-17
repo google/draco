@@ -105,7 +105,7 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
   // Used to store predicted value for multi-parallelogram prediction.
   std::vector<DataTypeT> multi_pred_vals(num_components);
 
-  const int corner_map_size = (int)this->mesh_data().data_to_corner_map()->size();
+  const int corner_map_size = static_cast<int>(this->mesh_data().data_to_corner_map()->size());
   for (int p = 1; p < corner_map_size; ++p) {
     const CornerIndex start_corner_id =
         this->mesh_data().data_to_corner_map()->at(p);

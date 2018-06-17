@@ -66,7 +66,7 @@ class MeshEdgeBreakerTraversalValenceDecoder
         if (!DecodeVarint(&num_split_symbols, out_buffer))
           return false;
       }
-      if (num_split_symbols >= (uint32_t)num_vertices_)
+      if (num_split_symbols >= static_cast<uint32_t>(num_vertices_))
         return false;
 
       int8_t mode;

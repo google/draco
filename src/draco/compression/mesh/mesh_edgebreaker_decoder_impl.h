@@ -87,7 +87,7 @@ class MeshEdgeBreakerDecoderImpl : public MeshEdgeBreakerDecoderImplInterface {
                        int *out_encoder_split_symbol_id) {
     if (topology_split_data_.size() == 0)
       return false;
-    if (topology_split_data_.back().source_symbol_id > (uint32_t)encoder_symbol_id) {
+    if (topology_split_data_.back().source_symbol_id > static_cast<uint32_t>(encoder_symbol_id)) {
       // Something is wrong; if the desired source symbol is greater than the
       // current encoder_symbol_id, we missed it, or the input was tampered
       // (|encoder_symbol_id| keeps decreasing).

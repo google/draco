@@ -87,7 +87,7 @@ bool MeshPredictionSchemeTexCoordsPortableDecoder<
   predictor_.SetEntryToPointIdMap(entry_to_point_id_map);
   this->transform().Initialize(num_components);
 
-  const int corner_map_size = (int)this->mesh_data().data_to_corner_map()->size();
+  const int corner_map_size = static_cast<int>(this->mesh_data().data_to_corner_map()->size());
   for (int p = 0; p < corner_map_size; ++p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     if (!predictor_.template ComputePredictedValue<false>(corner_id, out_data,

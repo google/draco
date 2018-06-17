@@ -84,8 +84,8 @@ class MeshAttributeCornerTable {
     return Next(Opposite(Next(corner)));
   }
 
-  int num_vertices() const { return (int)vertex_to_attribute_entry_id_map_.size(); }
-  int num_faces() const { return (int)corner_table_->num_faces(); }
+  int num_vertices() const { return static_cast<int>(vertex_to_attribute_entry_id_map_.size()); }
+  int num_faces() const { return static_cast<int>(corner_table_->num_faces()); }
 
   VertexIndex Vertex(CornerIndex corner) const {
     DRACO_DCHECK_LT(corner.value(), corner_to_vertex_map_.size());

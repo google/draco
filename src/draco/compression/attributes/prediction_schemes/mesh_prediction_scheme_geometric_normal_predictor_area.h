@@ -76,7 +76,7 @@ class MeshPredictionSchemeGeometricNormalPredictorArea
     // Convert to int32_t, make sure entries are not too large.
     constexpr int64_t upper_bound = 1 << 29;
     if (this->normal_prediction_mode_ == ONE_TRIANGLE) {
-      const int32_t abs_sum = (int32_t)normal.AbsSum();
+      const int32_t abs_sum = static_cast<int32_t>(normal.AbsSum());
       if (abs_sum > upper_bound) {
         const int64_t quotient = abs_sum / upper_bound;
         normal = normal / quotient;

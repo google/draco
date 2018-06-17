@@ -29,7 +29,7 @@ bool MetadataEncoder::EncodeMetadata(EncoderBuffer *out_buffer,
     if (!EncodeString(out_buffer, entry.first))
       return false;
     const std::vector<uint8_t> &entry_value = entry.second.data();
-    const uint32_t data_size = (uint32_t)entry_value.size();
+    const uint32_t data_size = static_cast<uint32_t>(entry_value.size());
     EncodeVarint(data_size, out_buffer);
     out_buffer->Encode(entry_value.data(), data_size);
   }

@@ -76,7 +76,7 @@ bool AttributeQuantizationTransform::ComputeParameters(
   attribute.GetValue(AttributeValueIndex(0), min_values_.data());
   attribute.GetValue(AttributeValueIndex(0), max_values.get());
 
-  for (AttributeValueIndex i(1); i < (uint32_t)attribute.size(); ++i) {
+  for (AttributeValueIndex i(1); i < static_cast<uint32_t>(attribute.size()); ++i) {
     attribute.GetValue(i, att_val.get());
     for (int c = 0; c < num_components; ++c) {
       if (min_values_[c] > att_val[c])
@@ -144,7 +144,7 @@ AttributeQuantizationTransform::GeneratePortableAttribute(
   DRACO_DCHECK(is_initialized());
 
   // Allocate portable attribute.
-  const int num_entries = (int)point_ids.size();
+  const int num_entries = static_cast<int>(point_ids.size());
   const int num_components = attribute.num_components();
   std::unique_ptr<PointAttribute> portable_attribute = InitPortableAttribute(
       num_entries, num_components, num_points, attribute, true);

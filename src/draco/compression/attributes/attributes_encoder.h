@@ -89,7 +89,7 @@ class AttributesEncoder {
     point_attribute_ids_.push_back(id);
     if (id >= static_cast<int32_t>(point_attribute_to_local_id_map_.size()))
       point_attribute_to_local_id_map_.resize(id + 1, -1);
-    point_attribute_to_local_id_map_[id] = (int32_t)point_attribute_ids_.size() - 1;
+    point_attribute_to_local_id_map_[id] = static_cast<int32_t>(point_attribute_ids_.size()) - 1;
   }
 
   // Sets new attribute point ids (replacing the existing ones).
@@ -102,7 +102,7 @@ class AttributesEncoder {
   }
 
   int32_t GetAttributeId(int i) const { return point_attribute_ids_[i]; }
-  uint32_t num_attributes() const { return (uint32_t)point_attribute_ids_.size(); }
+  uint32_t num_attributes() const { return static_cast<uint32_t>(point_attribute_ids_.size()); }
   PointCloudEncoder *encoder() const { return point_cloud_encoder_; }
 
  protected:
@@ -122,7 +122,7 @@ class AttributesEncoder {
   }
 
   int32_t GetLocalIdForPointAttribute(int32_t point_attribute_id) const {
-    const int id_map_size = (int)point_attribute_to_local_id_map_.size();
+    const int id_map_size = static_cast<int>(point_attribute_to_local_id_map_.size());
     if (point_attribute_id >= id_map_size)
       return -1;
     return point_attribute_to_local_id_map_[point_attribute_id];

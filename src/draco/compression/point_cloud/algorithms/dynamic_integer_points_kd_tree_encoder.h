@@ -157,7 +157,7 @@ class DynamicIntegerPointsKdTreeEncoder {
           end(end_),
           last_axis(last_axis_),
           stack_pos(stack_pos_) {
-      num_remaining_points = (uint32_t)(end - begin);
+      num_remaining_points = static_cast<uint32_t>(end - begin);
     }
 
     RandomAccessIteratorT begin;
@@ -187,7 +187,7 @@ bool DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodePoints(
     RandomAccessIteratorT begin, RandomAccessIteratorT end,
     const uint32_t &bit_length, EncoderBuffer *buffer) {
   bit_length_ = bit_length;
-  num_points_ = (uint32_t)(end - begin);
+  num_points_ = static_cast<uint32_t>(end - begin);
 
   buffer->Encode(bit_length_);
   buffer->Encode(num_points_);
@@ -234,7 +234,7 @@ DynamicIntegerPointsKdTreeEncoder<compression_level_t>::GetAndEncodeAxis(
       }
     }
   } else {
-    const uint32_t size = (uint32_t)(end - begin);
+    const uint32_t size = static_cast<uint32_t>(end - begin);
     for (uint32_t i = 0; i < dimension_; i++) {
       deviations_[i] = 0;
       num_remaining_bits_[i] = bit_length_ - levels[i];
@@ -293,7 +293,7 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
     const uint32_t axis =
         GetAndEncodeAxis(begin, end, old_base, levels, last_axis);
     const uint32_t level = levels[axis];
-    const uint32_t num_remaining_points = (uint32_t)(end - begin);
+    const uint32_t num_remaining_points = static_cast<uint32_t>(end - begin);
 
     // If this happens all axis are subdivided to the end.
     if ((bit_length_ - level) == 0)
@@ -334,8 +334,8 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
     // Encode number of points in first and second half.
     const int required_bits = bits::MostSignificantBit(num_remaining_points);
 
-    const uint32_t first_half = (uint32_t)(split - begin);
-    const uint32_t second_half = (uint32_t)(end - split);
+    const uint32_t first_half = static_cast<uint32_t>(split - begin);
+    const uint32_t second_half = static_cast<uint32_t>(end - split);
     const bool left = first_half < second_half;
 
     if (first_half != second_half)

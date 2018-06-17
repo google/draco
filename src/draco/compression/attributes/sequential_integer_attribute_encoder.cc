@@ -118,7 +118,7 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
   }
 
   const int num_components = portable_attribute()->num_components();
-  const int num_values = (int)(num_components * portable_attribute()->size());
+  const int num_values = static_cast<int>(num_components * portable_attribute()->size());
   const int32_t *const portable_attribute_data = GetPortableAttributeData();
 
   // We need to keep the portable data intact, but several encoding steps can
@@ -152,7 +152,7 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
                                         10 - encoder()->options()->GetSpeed());
     }
     if (!EncodeSymbols(reinterpret_cast<uint32_t *>(encoded_data.data()),
-                       (int)point_ids.size() * num_components, num_components,
+                       static_cast<int>(point_ids.size()) * num_components, num_components,
                        &symbol_encoding_options, out_buffer)) {
       return false;
     }
@@ -162,7 +162,7 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
 
     // To compute the maximum bit-length, first OR all values.
     uint32_t masked_value = 0;
-    for (uint32_t i = 0; i < (uint32_t)num_values; ++i) {
+    for (uint32_t i = 0; i < static_cast<uint32_t>(num_values); ++i) {
       masked_value |= encoded_data[i];
     }
     // Compute the msb of the ORed value.
@@ -178,7 +178,7 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
     if (num_bytes == DataTypeLength(DT_INT32)) {
       out_buffer->Encode(encoded_data.data(), sizeof(int32_t) * num_values);
     } else {
-      for (uint32_t i = 0; i < (uint32_t)num_values; ++i) {
+      for (uint32_t i = 0; i < static_cast<uint32_t>(num_values); ++i) {
         out_buffer->Encode(encoded_data.data() + i, num_bytes);
       }
     }
@@ -194,7 +194,7 @@ bool SequentialIntegerAttributeEncoder::PrepareValues(
   // Convert all values to int32_t format.
   const PointAttribute *const attrib = attribute();
   const int num_components = attrib->num_components();
-  const int num_entries = (int)point_ids.size();
+  const int num_entries = static_cast<int>(point_ids.size());
   PreparePortableAttribute(num_entries, num_components, num_points);
   int32_t dst_index = 0;
   int32_t *const portable_attribute_data = GetPortableAttributeData();
