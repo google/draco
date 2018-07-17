@@ -79,10 +79,10 @@ class PlyElement {
  public:
   PlyElement(const std::string &name, int64_t num_entries);
   void AddProperty(const PlyProperty &prop) {
-    property_index_[prop.name()] = properties_.size();
+    property_index_[prop.name()] = static_cast<int>(properties_.size());
     properties_.emplace_back(prop);
     if (!properties_.back().is_list())
-      properties_.back().ReserveData(num_entries_);
+      properties_.back().ReserveData(static_cast<int>(num_entries_));
   }
 
   const PlyProperty *GetPropertyByName(const std::string &name) const {
@@ -92,8 +92,8 @@ class PlyElement {
     return nullptr;
   }
 
-  int num_properties() const { return properties_.size(); }
-  int num_entries() const { return num_entries_; }
+  int num_properties() const { return static_cast<int>(properties_.size()); }
+  int num_entries() const { return static_cast<int>(num_entries_); }
   const PlyProperty &property(int prop_index) const {
     return properties_[prop_index];
   }
@@ -120,7 +120,7 @@ class PlyReader {
     return nullptr;
   }
 
-  int num_elements() const { return elements_.size(); }
+  int num_elements() const { return static_cast<int>(elements_.size()); }
   const PlyElement &element(int element_index) const {
     return elements_[element_index];
   }

@@ -65,7 +65,7 @@ bool DecodeTaggedSymbols(uint32_t num_values, int num_components,
   // values are encoded).
   src_buffer->StartBitDecoding(false, nullptr);
   int value_id = 0;
-  for (int i = 0; i < num_values; i += num_components) {
+  for (uint32_t i = 0; i < num_values; i += num_components) {
     // Decode the tag.
     const int bit_length = tag_decoder.DecodeSymbol();
     // Decode the actual value.

@@ -46,7 +46,7 @@ class AttributesDecoder : public AttributesDecoderInterface {
     return point_attribute_ids_[i];
   }
   int32_t GetNumAttributes() const override {
-    return point_attribute_ids_.size();
+    return static_cast<int32_t>(point_attribute_ids_.size());
   }
   PointCloudDecoder *GetDecoder() const override {
     return point_cloud_decoder_;
@@ -65,7 +65,7 @@ class AttributesDecoder : public AttributesDecoderInterface {
 
  protected:
   int32_t GetLocalIdForPointAttribute(int32_t point_attribute_id) const {
-    const int id_map_size = point_attribute_to_local_id_map_.size();
+    const int id_map_size = static_cast<int>(point_attribute_to_local_id_map_.size());
     if (point_attribute_id >= id_map_size)
       return -1;
     return point_attribute_to_local_id_map_[point_attribute_id];

@@ -58,7 +58,7 @@ class AttributeTransformData {
   // Sets a parameter value at the end of the |buffer_|.
   template <typename DataTypeT>
   void AppendParameterValue(const DataTypeT &in_data) {
-    SetParameterValue(buffer_.data_size(), in_data);
+    SetParameterValue(static_cast<int>(buffer_.data_size()), in_data);
   }
 
  private:

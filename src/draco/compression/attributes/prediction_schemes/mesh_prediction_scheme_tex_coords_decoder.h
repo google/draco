@@ -97,7 +97,7 @@ class MeshPredictionSchemeTexCoordsDecoder
 
   Vector2f GetTexCoordForEntryId(int entry_id, const DataTypeT *data) const {
     const int data_offset = entry_id * num_components_;
-    return Vector2f(data[data_offset], data[data_offset + 1]);
+    return Vector2f(static_cast<float>(data[data_offset]), static_cast<float>(data[data_offset + 1]));
   }
 
   void ComputePredictedValue(CornerIndex corner_id, const DataTypeT *data,
@@ -124,7 +124,7 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
       std::unique_ptr<DataTypeT[]>(new DataTypeT[num_components]);
   this->transform().Initialize(num_components);
 
-  const int corner_map_size = this->mesh_data().data_to_corner_map()->size();
+  const int corner_map_size = static_cast<int>(this->mesh_data().data_to_corner_map()->size());
   for (int p = 0; p < corner_map_size; ++p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     ComputePredictedValue(corner_id, out_data, p);
@@ -155,7 +155,7 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
   RAnsBitDecoder decoder;
   if (!decoder.StartDecoding(buffer))
     return false;
-  for (int i = 0; i < num_orientations; ++i) {
+  for (uint32_t i = 0; i < num_orientations; ++i) {
     if (!decoder.DecodeNextBit())
       last_orientation = !last_orientation;
     orientations_[i] = last_orientation;

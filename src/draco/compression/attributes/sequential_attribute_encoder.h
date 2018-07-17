@@ -58,7 +58,7 @@ class SequentialAttributeEncoder {
 
   virtual bool IsLossyEncoder() const { return false; }
 
-  int NumParentAttributes() const { return parent_attributes_.size(); }
+  int NumParentAttributes() const { return static_cast<int>(parent_attributes_.size()); }
   int GetParentAttributeId(int i) const { return parent_attributes_[i]; }
 
   const PointAttribute *GetPortableAttribute() const {

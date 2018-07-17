@@ -45,7 +45,7 @@ bool AttributesDecoder::DecodeAttributesDecoderData(DecoderBuffer *in_buffer) {
     return false;
   point_attribute_ids_.resize(num_attributes);
   PointCloud *pc = point_cloud_;
-  for (int i = 0; i < num_attributes; ++i) {
+  for (uint32_t i = 0; i < num_attributes; ++i) {
     // Decode attribute descriptor data.
     uint8_t att_type, data_type, num_components, normalized;
     if (!in_buffer->Decode(&att_type))

@@ -138,7 +138,7 @@ bool PointCloudEncoder::GenerateAttributesEncoders() {
   }
   attribute_to_encoder_map_.resize(point_cloud_->num_attributes());
   for (uint32_t i = 0; i < attributes_encoders_.size(); ++i) {
-    for (int j = 0; j < attributes_encoders_[i]->num_attributes(); ++j) {
+    for (uint32_t j = 0; j < attributes_encoders_[i]->num_attributes(); ++j) {
       attribute_to_encoder_map_[attributes_encoders_[i]->GetAttributeId(j)] = i;
     }
   }
@@ -198,7 +198,7 @@ bool PointCloudEncoder::RearrangeAttributesEncoders() {
         continue;  // Encoder already processed.
       // Check if all parent encoders are already processed.
       bool can_be_processed = true;
-      for (int p = 0; p < attributes_encoders_[i]->num_attributes(); ++p) {
+      for (uint32_t p = 0; p < attributes_encoders_[i]->num_attributes(); ++p) {
         const int32_t att_id = attributes_encoders_[i]->GetAttributeId(p);
         for (int ap = 0;
              ap < attributes_encoders_[i]->NumParentAttributes(att_id); ++ap) {

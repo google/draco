@@ -131,7 +131,7 @@ class Metadata {
 
   void RemoveEntry(const std::string &name);
 
-  int num_entries() const { return entries_.size(); }
+  int num_entries() const { return static_cast<int>(entries_.size()); }
   const std::unordered_map<std::string, EntryValue> &entries() const {
     return entries_;
   }

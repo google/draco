@@ -272,7 +272,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   if (num_faces > std::numeric_limits<CornerIndex::ValueType>::max() / 3)
     return false;  // Draco cannot handle this many faces.
 
-  if (num_encoded_vertices_ > num_faces * 3) {
+  if (static_cast<uint32_t>(num_encoded_vertices_) > num_faces * 3) {
     return false;  // There cannot be more vertices than 3 * num_faces.
   }
   uint8_t num_attribute_data;
@@ -491,7 +491,7 @@ int MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
   std::vector<VertexIndex> invalid_vertices;
   const bool remove_invalid_vertices = attribute_data_.empty();
 
-  int max_num_vertices = is_vert_hole_.size();
+  int max_num_vertices = static_cast<int>(is_vert_hole_.size());
   int num_faces = 0;
   for (int symbol_id = 0; symbol_id < num_symbols; ++symbol_id) {
     const FaceIndex face(num_faces++);
@@ -865,7 +865,7 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
       return -1;
   }
   if (num_topology_splits > 0) {
-    if (num_topology_splits > corner_table_->num_faces())
+    if (num_topology_splits > static_cast<uint32_t>(corner_table_->num_faces()))
       return -1;
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(1, 2)) {
@@ -949,7 +949,7 @@ MeshEdgeBreakerDecoderImpl<TraversalDecoder>::DecodeHoleAndTopologySplitEvents(
       }
     }
   }
-  return decoder_buffer->decoded_size();
+  return static_cast<int32_t>(decoder_buffer->decoded_size());
 }
 
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
@@ -1090,7 +1090,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners(
     // a new point id whenever one of the attributes change.
     c = deduplication_first_corner;
     // Create a new point.
-    corner_to_point_map[c.value()] = point_to_corner_map.size();
+    corner_to_point_map[c.value()] = static_cast<uint32_t>(point_to_corner_map.size());
     point_to_corner_map.push_back(c.value());
     // Traverse in CW direction.
     CornerIndex prev_c = c;
@@ -1107,7 +1107,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners(
         }
       }
       if (attribute_seam) {
-        corner_to_point_map[c.value()] = point_to_corner_map.size();
+        corner_to_point_map[c.value()] = static_cast<uint32_t>(point_to_corner_map.size());
         point_to_corner_map.push_back(c.value());
       } else {
         corner_to_point_map[c.value()] = corner_to_point_map[prev_c.value()];
@@ -1125,7 +1125,7 @@ bool MeshEdgeBreakerDecoderImpl<TraversalDecoder>::AssignPointsToCorners(
     }
     decoder_->mesh()->SetFace(f, face);
   }
-  decoder_->point_cloud()->set_num_points(point_to_corner_map.size());
+  decoder_->point_cloud()->set_num_points(static_cast<uint32_t>(point_to_corner_map.size()));
   return true;
 }
 

@@ -103,7 +103,7 @@ bool MeshPredictionSchemeGeometricNormalDecoder<
   // Expecting in_data in octahedral coordinates, i.e., portable attribute.
   DRACO_DCHECK_EQ(num_components, 2);
 
-  const int corner_map_size = this->mesh_data().data_to_corner_map()->size();
+  const int corner_map_size = static_cast<int>(this->mesh_data().data_to_corner_map()->size());
 
   VectorD<int32_t, 3> pred_normal_3d;
   int32_t pred_normal_oct[2];

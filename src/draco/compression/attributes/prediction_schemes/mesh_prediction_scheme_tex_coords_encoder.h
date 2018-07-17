@@ -90,7 +90,7 @@ class MeshPredictionSchemeTexCoordsEncoder
 
   Vector2f GetTexCoordForEntryId(int entry_id, const DataTypeT *data) const {
     const int data_offset = entry_id * num_components_;
-    return Vector2f(data[data_offset], data[data_offset + 1]);
+    return Vector2f(static_cast<float>(data[data_offset]), static_cast<float>(data[data_offset + 1]));
   }
 
   void ComputePredictedValue(CornerIndex corner_id, const DataTypeT *data,
@@ -117,7 +117,7 @@ bool MeshPredictionSchemeTexCoordsEncoder<DataTypeT, TransformT, MeshDataT>::
   this->transform().Initialize(in_data, size, num_components);
   // We start processing from the end because this prediction uses data from
   // previous entries that could be overwritten when an entry is processed.
-  for (int p = this->mesh_data().data_to_corner_map()->size() - 1; p >= 0;
+  for (int p = static_cast<int>(this->mesh_data().data_to_corner_map()->size()) - 1; p >= 0;
        --p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     ComputePredictedValue(corner_id, in_data, p);
@@ -133,7 +133,7 @@ template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeTexCoordsEncoder<DataTypeT, TransformT, MeshDataT>::
     EncodePredictionData(EncoderBuffer *buffer) {
   // Encode the delta-coded orientations using arithmetic coding.
-  const uint32_t num_orientations = orientations_.size();
+  const uint32_t num_orientations = static_cast<uint32_t>(orientations_.size());
   EncodeVarint(num_orientations, buffer);
   bool last_orientation = true;
   RAnsBitEncoder encoder;

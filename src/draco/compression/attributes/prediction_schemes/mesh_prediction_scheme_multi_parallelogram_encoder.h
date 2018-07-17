@@ -74,7 +74,7 @@ bool MeshPredictionSchemeMultiParallelogramEncoder<DataTypeT, TransformT,
 
   // We start processing from the end because this prediction uses data from
   // previous entries that could be overwritten when an entry is processed.
-  for (int p = this->mesh_data().data_to_corner_map()->size() - 1; p > 0; --p) {
+  for (int p = static_cast<int>(this->mesh_data().data_to_corner_map()->size() - 1); p > 0; --p) {
     const CornerIndex start_corner_id =
         this->mesh_data().data_to_corner_map()->at(p);
 

@@ -32,7 +32,7 @@ bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
   // the kd tree encoder (quantization of floating attributes for now).
   const size_t num_points = encoder()->point_cloud()->num_points();
   int num_components = 0;
-  for (int i = 0; i < num_attributes(); ++i) {
+  for (uint32_t i = 0; i < num_attributes(); ++i) {
     const int att_id = GetAttributeId(i);
     const PointAttribute *const att =
         encoder()->point_cloud()->attribute(att_id);
@@ -41,7 +41,7 @@ bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
   num_components_ = num_components;
 
   // Go over all attributes and quantize them if needed.
-  for (int i = 0; i < num_attributes(); ++i) {
+  for (uint32_t i = 0; i < num_attributes(); ++i) {
     const int att_id = GetAttributeId(i);
     const PointAttribute *const att =
         encoder()->point_cloud()->attribute(att_id);
@@ -78,7 +78,7 @@ bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
       // the actual encoding of the data.
       quantized_portable_attributes_.push_back(
           attribute_quantization_transform.GeneratePortableAttribute(
-              *att, num_points));
+              *att, static_cast<int>(num_points)));
     } else if (att->data_type() == DT_INT32 || att->data_type() == DT_INT16 ||
                att->data_type() == DT_INT8) {
       // For signed types, find the minimum value for each component. These
@@ -87,7 +87,7 @@ bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
       std::vector<int32_t> min_value(att->num_components(),
                                      std::numeric_limits<int32_t>::max());
       std::vector<int32_t> act_value(att->num_components());
-      for (AttributeValueIndex avi(0); avi < att->size(); ++avi) {
+      for (AttributeValueIndex avi(0); avi < static_cast<uint32_t>(att->size()); ++avi) {
         att->ConvertValue<int32_t>(avi, &act_value[0]);
         for (int c = 0; c < att->num_components(); ++c) {
           if (min_value[c] > act_value[c])
@@ -145,7 +145,7 @@ bool KdTreeAttributesEncoder::EncodePortableAttributes(
   int num_processed_quantized_attributes = 0;
   int num_processed_signed_components = 0;
   // Copy data to the point vector.
-  for (int i = 0; i < num_attributes(); ++i) {
+  for (uint32_t i = 0; i < num_attributes(); ++i) {
     const int att_id = GetAttributeId(i);
     const PointAttribute *const att =
         encoder()->point_cloud()->attribute(att_id);

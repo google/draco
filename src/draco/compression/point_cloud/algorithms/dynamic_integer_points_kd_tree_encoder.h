@@ -157,7 +157,7 @@ class DynamicIntegerPointsKdTreeEncoder {
           end(end_),
           last_axis(last_axis_),
           stack_pos(stack_pos_) {
-      num_remaining_points = end - begin;
+      num_remaining_points = static_cast<uint32_t>(end - begin);
     }
 
     RandomAccessIteratorT begin;
@@ -187,7 +187,7 @@ bool DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodePoints(
     RandomAccessIteratorT begin, RandomAccessIteratorT end,
     const uint32_t &bit_length, EncoderBuffer *buffer) {
   bit_length_ = bit_length;
-  num_points_ = end - begin;
+  num_points_ = static_cast<uint32_t>(end - begin);
 
   buffer->Encode(bit_length_);
   buffer->Encode(num_points_);
@@ -234,8 +234,8 @@ DynamicIntegerPointsKdTreeEncoder<compression_level_t>::GetAndEncodeAxis(
       }
     }
   } else {
-    const uint32_t size = (end - begin);
-    for (int i = 0; i < dimension_; i++) {
+    const uint32_t size = static_cast<uint32_t>(end - begin);
+    for (uint32_t i = 0; i < dimension_; i++) {
       deviations_[i] = 0;
       num_remaining_bits_[i] = bit_length_ - levels[i];
       if (num_remaining_bits_[i] > 0) {
@@ -250,7 +250,7 @@ DynamicIntegerPointsKdTreeEncoder<compression_level_t>::GetAndEncodeAxis(
 
     uint32_t max_value = 0;
     best_axis = 0;
-    for (int i = 0; i < dimension_; i++) {
+    for (uint32_t i = 0; i < dimension_; i++) {
       // If axis can be subdivided.
       if (num_remaining_bits_[i]) {
         // Check if this is the better axis.
@@ -293,7 +293,7 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
     const uint32_t axis =
         GetAndEncodeAxis(begin, end, old_base, levels, last_axis);
     const uint32_t level = levels[axis];
-    const uint32_t num_remaining_points = end - begin;
+    const uint32_t num_remaining_points = static_cast<uint32_t>(end - begin);
 
     // If this happens all axis are subdivided to the end.
     if ((bit_length_ - level) == 0)
@@ -304,12 +304,12 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
     if (num_remaining_points <= 2) {
       // TODO(hemmer): axes_ not necessary, remove would change bitstream!
       axes_[0] = axis;
-      for (int i = 1; i < dimension_; i++) {
+      for (uint32_t i = 1; i < dimension_; i++) {
         axes_[i] = DRACO_INCREMENT_MOD(axes_[i - 1], dimension_);
       }
       for (uint32_t i = 0; i < num_remaining_points; ++i) {
         const auto &p = *(begin + i);
-        for (int j = 0; j < dimension_; j++) {
+        for (uint32_t j = 0; j < dimension_; j++) {
           const uint32_t num_remaining_bits = bit_length_ - levels[axes_[j]];
           if (num_remaining_bits) {
             remaining_bits_encoder_.EncodeLeastSignificantBits32(
@@ -334,8 +334,8 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
     // Encode number of points in first and second half.
     const int required_bits = bits::MostSignificantBit(num_remaining_points);
 
-    const uint32_t first_half = split - begin;
-    const uint32_t second_half = end - split;
+    const uint32_t first_half = static_cast<uint32_t>(split - begin);
+    const uint32_t second_half = static_cast<uint32_t>(end - split);
     const bool left = first_half < second_half;
 
     if (first_half != second_half)

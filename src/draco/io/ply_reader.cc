@@ -120,7 +120,7 @@ bool PlyReader::ParseElement(DecoderBuffer *buffer) {
   } else {
     return false;
   }
-  element_index_[element_name] = elements_.size();
+  element_index_[element_name] = static_cast<uint32_t>(elements_.size());
   elements_.emplace_back(PlyElement(element_name, count));
   *buffer = line_buffer;
   return true;

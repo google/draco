@@ -94,7 +94,7 @@ class MeshStripifier {
     for (int i = 0; i < 3; ++i) {
       GenerateStripsFromCorner(i, first_ci + i);
       if (strip_faces_[i].size() > longest_strip_length) {
-        longest_strip_length = strip_faces_[i].size();
+        longest_strip_length = static_cast<int>(strip_faces_[i].size());
         longest_strip_id = i;
       }
     }

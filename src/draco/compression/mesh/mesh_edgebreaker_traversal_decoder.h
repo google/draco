@@ -138,7 +138,7 @@ class MeshEdgeBreakerTraversalDecoder {
     if (!symbol_buffer_.StartBitDecoding(true, &traversal_size))
       return false;
     buffer_ = symbol_buffer_;
-    if (traversal_size > buffer_.remaining_size())
+    if (traversal_size > static_cast<uint64_t>(buffer_.remaining_size()))
       return false;
     buffer_.Advance(traversal_size);
     return true;
@@ -153,7 +153,7 @@ class MeshEdgeBreakerTraversalDecoder {
       if (!start_face_buffer_.StartBitDecoding(true, &traversal_size))
         return false;
       buffer_ = start_face_buffer_;
-      if (traversal_size > buffer_.remaining_size())
+      if (traversal_size > static_cast<uint64_t>(buffer_.remaining_size()))
         return false;
       buffer_.Advance(traversal_size);
       return true;

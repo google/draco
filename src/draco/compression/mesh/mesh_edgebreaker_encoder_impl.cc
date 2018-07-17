@@ -323,7 +323,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   if (!InitAttributeData())
     return false;
 
-  const uint8_t num_attribute_data = attribute_data_.size();
+  const uint8_t num_attribute_data = static_cast<uint8_t>(attribute_data_.size());
   encoder_->buffer()->Encode(num_attribute_data);
   traversal_encoder_.SetNumAttributeData(num_attribute_data);
 
@@ -426,7 +426,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
 
 template <class TraversalEncoder>
 bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::EncodeSplitData() {
-  uint32_t num_events = topology_split_event_data_.size();
+  uint32_t num_events = static_cast<uint32_t>(topology_split_event_data_.size());
   EncodeVarint(num_events, encoder_->buffer());
   if (num_events > 0) {
     // Encode split symbols using delta and varint coding. Split edges are
@@ -706,7 +706,7 @@ bool MeshEdgeBreakerEncoderImpl<TraversalEncoder>::FindHoles() {
       }
       // Else we found a new open boundary and we are going to traverse along it
       // and mark all visited vertices.
-      const int boundary_id = visited_holes_.size();
+      const int boundary_id = static_cast<int>(visited_holes_.size());
       visited_holes_.push_back(false);
 
       CornerIndex corner_id = i;

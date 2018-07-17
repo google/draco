@@ -24,7 +24,7 @@ void DirectBitEncoder::StartEncoding() { Clear(); }
 
 void DirectBitEncoder::EndEncoding(EncoderBuffer *target_buffer) {
   bits_.push_back(local_bits_);
-  const uint32_t size_in_byte = bits_.size() * 4;
+  const uint32_t size_in_byte = static_cast<uint32_t>(bits_.size()) * 4;
   target_buffer->Encode(size_in_byte);
   target_buffer->Encode(bits_.data(), size_in_byte);
   Clear();

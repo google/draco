@@ -34,7 +34,7 @@ bool SequentialAttributeEncodersController::Initialize(
   if (!CreateSequentialEncoders())
     return false;
   // Initialize all value encoders.
-  for (int i = 0; i < num_attributes(); ++i) {
+  for (uint32_t i = 0; i < num_attributes(); ++i) {
     const int32_t att_id = GetAttributeId(i);
     if (!sequential_encoders_[i]->Initialize(encoder, att_id))
       return false;
@@ -92,7 +92,7 @@ bool SequentialAttributeEncodersController::
 
 bool SequentialAttributeEncodersController::CreateSequentialEncoders() {
   sequential_encoders_.resize(num_attributes());
-  for (int i = 0; i < num_attributes(); ++i) {
+  for (uint32_t i = 0; i < num_attributes(); ++i) {
     sequential_encoders_[i] = CreateSequentialEncoder(i);
     if (sequential_encoders_[i] == nullptr)
       return false;
