@@ -17,6 +17,7 @@
 
 #include "draco/compression/config/compression_shared.h"
 #include "draco/compression/decode.h"
+#include "draco/compression/encode.h"
 
 #ifdef BUILD_UNITY_PLUGIN
 
@@ -42,7 +43,10 @@ struct EXPORT_API DracoToUnityMesh {
         has_texcoord(false),
         texcoord(nullptr),
         has_color(false),
-        color(nullptr) {}
+        color(nullptr),
+		num_submesh(0),
+		submesh(nullptr)
+		{}
 
   int num_faces;
   int *indices;
@@ -54,6 +58,8 @@ struct EXPORT_API DracoToUnityMesh {
   float *texcoord;
   bool has_color;
   float *color;
+  int num_submesh;
+  int **submesh;
 };
 
 void EXPORT_API ReleaseUnityMesh(DracoToUnityMesh **mesh_ptr);
@@ -63,6 +69,12 @@ void EXPORT_API ReleaseUnityMesh(DracoToUnityMesh **mesh_ptr);
  */
 int EXPORT_API DecodeMeshForUnity(char *data, unsigned int length,
                                   DracoToUnityMesh **tmp_mesh);
+
+int EXPORT_API EncodeMeshForUnity(char **data, DracoToUnityMesh **tmp_mesh);
+
+int EXPORT_API EncodeMeshForObjBuff(char **data, char *ObjBuff, int BufSize);
+
+void EXPORT_API FreeDracoMesh(char **data);
 }  // extern "C"
 
 }  // namespace draco
