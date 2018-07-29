@@ -80,7 +80,7 @@ bool SequentialIntegerAttributeEncoder::TransformAttributeToPortableFormat(
     }
     // Go over all points of the original attribute and update the mapping in
     // the portable attribute.
-    for (PointIndex i(0); i < encoder()->point_cloud()->num_points(); ++i) {
+    for (PointIndex i(0); i < orig_att->size(); ++i) {
       portable_att->SetPointMapEntry(
           i, value_to_value_map[orig_att->mapped_index(i)]);
     }
