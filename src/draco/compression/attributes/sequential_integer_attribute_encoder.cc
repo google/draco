@@ -73,7 +73,7 @@ bool SequentialIntegerAttributeEncoder::TransformAttributeToPortableFormat(
     const PointAttribute *const orig_att = attribute();
     PointAttribute *const portable_att = portable_attribute();
     IndexTypeVector<AttributeValueIndex, AttributeValueIndex>
-        value_to_value_map(orig_att->size());
+        value_to_value_map(encoder()->point_cloud()->num_points());
     for (int i = 0; i < point_ids.size(); ++i) {
       value_to_value_map[orig_att->mapped_index(point_ids[i])] =
           AttributeValueIndex(i);
