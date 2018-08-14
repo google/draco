@@ -45,6 +45,11 @@ option(BUILD_UNITY_PLUGIN "Build plugin library for Unity" OFF)
 option(BUILD_FOR_GLTF "" OFF)
 option(BUILD_MAYA_PLUGIN "Build plugin library for Maya" OFF)
 
+if (WIN32 AND BUILD_SHARED_LIBS)
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+  include(GenerateExportHeader)
+endif ()
+
 if (BUILD_FOR_GLTF)
   # Override settings when building for GLTF.
   draco_enable_feature(FEATURE "DRACO_MESH_COMPRESSION_SUPPORTED")
@@ -115,14 +120,14 @@ if (BUILD_MAYA_PLUGIN)
   draco_enable_feature(FEATURE "BUILD_MAYA_PLUGIN")
 endif ()
 
-if(ENABLE_EXTRA_SPEED)
+if (ENABLE_EXTRA_SPEED)
   if(MSVC)
     # Maximum optimization in Release mode.
     add_compile_options("$<$<CONFIG:RELEASE>:/Ox>")
   else()
     add_compiler_flag_if_supported("-O3")
   endif()
-endif()
+endif ()
 
 # Generate a version file containing repository info.
 include(FindGit)
