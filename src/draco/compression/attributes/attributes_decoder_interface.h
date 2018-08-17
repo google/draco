@@ -35,7 +35,7 @@ class AttributesDecoderInterface {
 
   // Called after all attribute decoders are created. It can be used to perform
   // any custom initialization.
-  virtual bool Initialize(PointCloudDecoder *decoder, PointCloud *pc) = 0;
+  virtual bool Init(PointCloudDecoder *decoder, PointCloud *pc) = 0;
 
   // Decodes any attribute decoder specific data from the |in_buffer|.
   virtual bool DecodeAttributesDecoderData(DecoderBuffer *in_buffer) = 0;

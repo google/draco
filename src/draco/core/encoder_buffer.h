@@ -101,7 +101,7 @@ class EncoderBuffer {
 
     // Return the number of bits required to store the given number
     static uint32_t BitsRequired(uint32_t x) {
-      return static_cast<uint32_t>(bits::MostSignificantBit(x));
+      return static_cast<uint32_t>(MostSignificantBit(x));
     }
 
    private:

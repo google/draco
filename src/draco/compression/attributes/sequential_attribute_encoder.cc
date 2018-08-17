@@ -22,8 +22,8 @@ SequentialAttributeEncoder::SequentialAttributeEncoder()
       attribute_id_(-1),
       is_parent_encoder_(false) {}
 
-bool SequentialAttributeEncoder::Initialize(PointCloudEncoder *encoder,
-                                            int attribute_id) {
+bool SequentialAttributeEncoder::Init(PointCloudEncoder *encoder,
+                                      int attribute_id) {
   encoder_ = encoder;
   attribute_ = encoder_->point_cloud()->attribute(attribute_id);
   attribute_id_ = attribute_id;

@@ -32,7 +32,7 @@ class PredictionSchemeDecodingTransform {
   typedef CorrTypeT CorrType;
   PredictionSchemeDecodingTransform() : num_components_(0) {}
 
-  void Initialize(int num_components) { num_components_ = num_components; }
+  void Init(int num_components) { num_components_ = num_components; }
 
   // Computes the original value from the input predicted value and the decoded
   // corrections. The default implementation is equal to std:plus.
@@ -47,7 +47,7 @@ class PredictionSchemeDecodingTransform {
     }
   }
 
-  // Decodes any transform specific data. Called before Initialize() method.
+  // Decodes any transform specific data. Called before Init() method.
   bool DecodeTransformData(DecoderBuffer * /* buffer */) { return true; }
 
   // Should return true if all corrected values are guaranteed to be positive.

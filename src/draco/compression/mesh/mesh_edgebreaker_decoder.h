@@ -22,10 +22,10 @@
 
 namespace draco {
 
-// Class for decoding data encoded by MeshEdgeBreakerEncoder.
-class MeshEdgeBreakerDecoder : public MeshDecoder {
+// Class for decoding data encoded by MeshEdgebreakerEncoder.
+class MeshEdgebreakerDecoder : public MeshDecoder {
  public:
-  MeshEdgeBreakerDecoder();
+  MeshEdgebreakerDecoder();
 
   const CornerTable *GetCornerTable() const override {
     return impl_->GetCornerTable();
@@ -47,7 +47,7 @@ class MeshEdgeBreakerDecoder : public MeshDecoder {
   bool DecodeConnectivity() override;
   bool OnAttributesDecoded() override;
 
-  std::unique_ptr<MeshEdgeBreakerDecoderImplInterface> impl_;
+  std::unique_ptr<MeshEdgebreakerDecoderImplInterface> impl_;
 };
 
 }  // namespace draco

@@ -22,18 +22,18 @@
 namespace draco {
 
 // Forward declaration is necessary here to avoid circular dependencies.
-class MeshEdgeBreakerEncoder;
+class MeshEdgebreakerEncoder;
 
-// Abstract interface used by MeshEdgeBreakerEncoder to interact with the actual
+// Abstract interface used by MeshEdgebreakerEncoder to interact with the actual
 // implementation of the edgebreaker method. The implementations are in general
-// specializations of a template class MeshEdgeBreakerEncoderImpl where the
+// specializations of a template class MeshEdgebreakerEncoderImpl where the
 // template arguments control encoding of the connectivity data. Because the
 // choice of the implementation is done in run-time, we need to hide it behind
-// the abstract interface MeshEdgeBreakerEncoderImplInterface.
-class MeshEdgeBreakerEncoderImplInterface {
+// the abstract interface MeshEdgebreakerEncoderImplInterface.
+class MeshEdgebreakerEncoderImplInterface {
  public:
-  virtual ~MeshEdgeBreakerEncoderImplInterface() = default;
-  virtual bool Init(MeshEdgeBreakerEncoder *encoder) = 0;
+  virtual ~MeshEdgebreakerEncoderImplInterface() = default;
+  virtual bool Init(MeshEdgebreakerEncoder *encoder) = 0;
 
   virtual const MeshAttributeCornerTable *GetAttributeCornerTable(
       int att_id) const = 0;
@@ -49,7 +49,7 @@ class MeshEdgeBreakerEncoderImplInterface {
   // Returns true if a given face has been already encoded.
   virtual bool IsFaceEncoded(FaceIndex fi) const = 0;
 
-  virtual MeshEdgeBreakerEncoder *GetEncoder() const = 0;
+  virtual MeshEdgebreakerEncoder *GetEncoder() const = 0;
 };
 
 }  // namespace draco

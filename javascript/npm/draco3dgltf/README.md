@@ -16,6 +16,9 @@ TODO: Add glTF branch url.
 
 News
 =======
+### Version 1.3.4 release
+* Fixes for Unity
+
 ### Version 1.3.3 release
 * Added ExpertEncoder to the JavaScript API
   * Allows developers to set quantization options per attribute id

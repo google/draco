@@ -17,7 +17,7 @@
 
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_encoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_tex_coords_portable_predictor.h"
-#include "draco/core/bit_coders/rans_bit_encoder.h"
+#include "draco/compression/bit_coders/rans_bit_encoder.h"
 
 namespace draco {
 
@@ -87,11 +87,12 @@ bool MeshPredictionSchemeTexCoordsPortableEncoder<DataTypeT, TransformT,
                             int size, int num_components,
                             const PointIndex *entry_to_point_id_map) {
   predictor_.SetEntryToPointIdMap(entry_to_point_id_map);
-  this->transform().Initialize(in_data, size, num_components);
+  this->transform().Init(in_data, size, num_components);
   // We start processing from the end because this prediction uses data from
   // previous entries that could be overwritten when an entry is processed.
-  for (int p = static_cast<int>(this->mesh_data().data_to_corner_map()->size() - 1); p >= 0;
-       --p) {
+  for (int p =
+           static_cast<int>(this->mesh_data().data_to_corner_map()->size() - 1);
+       p >= 0; --p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     predictor_.template ComputePredictedValue<true>(corner_id, in_data, p);
 

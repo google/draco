@@ -21,14 +21,14 @@
 namespace draco {
 
 // Forward declaration is necessary here to avoid circular dependencies.
-class MeshEdgeBreakerDecoder;
+class MeshEdgebreakerDecoder;
 
-// Abstract interface used by MeshEdgeBreakerDecoder to interact with the actual
+// Abstract interface used by MeshEdgebreakerDecoder to interact with the actual
 // implementation of the edgebreaker decoding method.
-class MeshEdgeBreakerDecoderImplInterface {
+class MeshEdgebreakerDecoderImplInterface {
  public:
-  virtual ~MeshEdgeBreakerDecoderImplInterface() = default;
-  virtual bool Init(MeshEdgeBreakerDecoder *decoder) = 0;
+  virtual ~MeshEdgebreakerDecoderImplInterface() = default;
+  virtual bool Init(MeshEdgebreakerDecoder *decoder) = 0;
 
   virtual const MeshAttributeCornerTable *GetAttributeCornerTable(
       int att_id) const = 0;
@@ -38,7 +38,7 @@ class MeshEdgeBreakerDecoderImplInterface {
   virtual bool DecodeConnectivity() = 0;
   virtual bool OnAttributesDecoded() = 0;
 
-  virtual MeshEdgeBreakerDecoder *GetDecoder() const = 0;
+  virtual MeshEdgebreakerDecoder *GetDecoder() const = 0;
   virtual const CornerTable *GetCornerTable() const = 0;
 };
 

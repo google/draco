@@ -49,7 +49,9 @@ class PointCloudEncoder {
   // in the provided EncoderOptions.
   size_t num_encoded_points() const { return num_encoded_points_; }
 
-  int num_attributes_encoders() const { return static_cast<int>(attributes_encoders_.size()); }
+  int num_attributes_encoders() const {
+    return static_cast<int>(attributes_encoders_.size());
+  }
   AttributesEncoder *attributes_encoder(int i) {
     return attributes_encoders_[i].get();
   }
@@ -62,7 +64,7 @@ class PointCloudEncoder {
 
   // Marks one attribute as a parent of another attribute. Must be called after
   // all attribute encoders are created (usually in the
-  // AttributeEncoder::Initialize() method).
+  // AttributeEncoder::Init() method).
   bool MarkParentAttribute(int32_t parent_att_id);
 
   // Returns an attribute containing portable version of the attribute data that

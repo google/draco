@@ -52,7 +52,7 @@ bool PredictionSchemeDeltaEncoder<
                                                     int size,
                                                     int num_components,
                                                     const PointIndex *) {
-  this->transform().Initialize(in_data, size, num_components);
+  this->transform().Init(in_data, size, num_components);
   // Encode data from the back using D(i) = D(i) - D(i - 1).
   for (int i = size - num_components; i > 0; i -= num_components) {
     this->transform().ComputeCorrection(

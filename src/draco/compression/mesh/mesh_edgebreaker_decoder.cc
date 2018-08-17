@@ -19,34 +19,34 @@
 
 namespace draco {
 
-MeshEdgeBreakerDecoder::MeshEdgeBreakerDecoder() {}
+MeshEdgebreakerDecoder::MeshEdgebreakerDecoder() {}
 
-bool MeshEdgeBreakerDecoder::CreateAttributesDecoder(int32_t att_decoder_id) {
+bool MeshEdgebreakerDecoder::CreateAttributesDecoder(int32_t att_decoder_id) {
   return impl_->CreateAttributesDecoder(att_decoder_id);
 }
 
-bool MeshEdgeBreakerDecoder::InitializeDecoder() {
+bool MeshEdgebreakerDecoder::InitializeDecoder() {
   uint8_t traversal_decoder_type;
   if (!buffer()->Decode(&traversal_decoder_type))
     return false;
   impl_ = nullptr;
   if (traversal_decoder_type == MESH_EDGEBREAKER_STANDARD_ENCODING) {
 #ifdef DRACO_STANDARD_EDGEBREAKER_SUPPORTED
-    impl_ = std::unique_ptr<MeshEdgeBreakerDecoderImplInterface>(
-        new MeshEdgeBreakerDecoderImpl<MeshEdgeBreakerTraversalDecoder>());
+    impl_ = std::unique_ptr<MeshEdgebreakerDecoderImplInterface>(
+        new MeshEdgebreakerDecoderImpl<MeshEdgebreakerTraversalDecoder>());
 #endif
   } else if (traversal_decoder_type == MESH_EDGEBREAKER_PREDICTIVE_ENCODING) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
 #ifdef DRACO_PREDICTIVE_EDGEBREAKER_SUPPORTED
-    impl_ = std::unique_ptr<MeshEdgeBreakerDecoderImplInterface>(
-        new MeshEdgeBreakerDecoderImpl<
-            MeshEdgeBreakerTraversalPredictiveDecoder>());
+    impl_ = std::unique_ptr<MeshEdgebreakerDecoderImplInterface>(
+        new MeshEdgebreakerDecoderImpl<
+            MeshEdgebreakerTraversalPredictiveDecoder>());
 #endif
 #endif
   } else if (traversal_decoder_type == MESH_EDGEBREAKER_VALENCE_ENCODING) {
-    impl_ = std::unique_ptr<MeshEdgeBreakerDecoderImplInterface>(
-        new MeshEdgeBreakerDecoderImpl<
-            MeshEdgeBreakerTraversalValenceDecoder>());
+    impl_ = std::unique_ptr<MeshEdgebreakerDecoderImplInterface>(
+        new MeshEdgebreakerDecoderImpl<
+            MeshEdgebreakerTraversalValenceDecoder>());
   }
   if (!impl_) {
     return false;
@@ -56,11 +56,11 @@ bool MeshEdgeBreakerDecoder::InitializeDecoder() {
   return true;
 }
 
-bool MeshEdgeBreakerDecoder::DecodeConnectivity() {
+bool MeshEdgebreakerDecoder::DecodeConnectivity() {
   return impl_->DecodeConnectivity();
 }
 
-bool MeshEdgeBreakerDecoder::OnAttributesDecoded() {
+bool MeshEdgebreakerDecoder::OnAttributesDecoded() {
   return impl_->OnAttributesDecoded();
 }
 

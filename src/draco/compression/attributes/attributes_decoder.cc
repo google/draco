@@ -21,7 +21,7 @@ namespace draco {
 AttributesDecoder::AttributesDecoder()
     : point_cloud_decoder_(nullptr), point_cloud_(nullptr) {}
 
-bool AttributesDecoder::Initialize(PointCloudDecoder *decoder, PointCloud *pc) {
+bool AttributesDecoder::Init(PointCloudDecoder *decoder, PointCloud *pc) {
   point_cloud_decoder_ = decoder;
   point_cloud_ = pc;
   return true;

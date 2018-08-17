@@ -29,8 +29,8 @@ class PredictionSchemeWrapEncodingTransform
   typedef CorrTypeT CorrType;
   PredictionSchemeWrapEncodingTransform() {}
 
-  void Initialize(const DataTypeT *orig_data, int size, int num_components) {
-    PredictionSchemeWrapTransformBase<DataTypeT>::Initialize(num_components);
+  void Init(const DataTypeT *orig_data, int size, int num_components) {
+    PredictionSchemeWrapTransformBase<DataTypeT>::Init(num_components);
     // Go over the original values and compute the bounds.
     if (size == 0)
       return;

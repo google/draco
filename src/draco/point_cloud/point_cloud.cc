@@ -228,4 +228,28 @@ bool PointCloud::DeduplicateAttributeValues() {
 }
 #endif
 
+// TODO(xiaoxumeng): Consider to cash the BBox.
+BoundingBox PointCloud::ComputeBoundingBox() const {
+  BoundingBox bounding_box =
+      BoundingBox(Vector3f(std::numeric_limits<float>::max(),
+                           std::numeric_limits<float>::max(),
+                           std::numeric_limits<float>::max()),
+                  Vector3f(-std::numeric_limits<float>::max(),
+                           -std::numeric_limits<float>::max(),
+                           -std::numeric_limits<float>::max()));
+  auto pc_att = GetNamedAttribute(GeometryAttribute::POSITION);
+  // TODO(xiaoxumeng): Make the BoundingBox a template type, it may not be easy
+  // because PointCloud is not a template.
+  // Or simply add some preconditioning here to make sure the position attribute
+  // is valid, because the current code works only if the position attribute is
+  // defined with 3 components of DT_FLOAT32.
+  // Consider using pc_att->ConvertValue<float, 3>(i, &p[0]) (Enforced
+  // transformation from Vector with any dimension to Vector3f)
+  Vector3f p;
+  for (AttributeValueIndex i(0); i < pc_att->size(); ++i) {
+    pc_att->GetValue(i, &p[0]);
+    bounding_box.update_bounding_box(p);
+  }
+  return bounding_box;
+}
 }  // namespace draco

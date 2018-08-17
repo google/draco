@@ -46,7 +46,7 @@ StatusOr<std::unique_ptr<MeshDecoder>> CreateMeshDecoder(uint8_t method) {
   if (method == MESH_SEQUENTIAL_ENCODING) {
     return std::unique_ptr<MeshDecoder>(new MeshSequentialDecoder());
   } else if (method == MESH_EDGEBREAKER_ENCODING) {
-    return std::unique_ptr<MeshDecoder>(new MeshEdgeBreakerDecoder());
+    return std::unique_ptr<MeshDecoder>(new MeshEdgebreakerDecoder());
   }
   return Status(Status::ERROR, "Unsupported encoding method.");
 }

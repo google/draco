@@ -29,7 +29,7 @@ class SequentialAttributeDecoder {
   SequentialAttributeDecoder();
   virtual ~SequentialAttributeDecoder() = default;
 
-  virtual bool Initialize(PointCloudDecoder *decoder, int attribute_id);
+  virtual bool Init(PointCloudDecoder *decoder, int attribute_id);
 
   // Initialization for a specific attribute. This can be used mostly for
   // standalone decoding of an attribute without an PointCloudDecoder.

@@ -27,9 +27,9 @@ namespace draco {
 // Class implements the edge breaker geometry compression method as described
 // in "3D Compression Made Simple: Edgebreaker on a Corner-Table" by Rossignac
 // at al.'01. http://www.cc.gatech.edu/~jarek/papers/CornerTableSMI.pdf
-class MeshEdgeBreakerEncoder : public MeshEncoder {
+class MeshEdgebreakerEncoder : public MeshEncoder {
  public:
-  MeshEdgeBreakerEncoder();
+  MeshEdgebreakerEncoder();
 
   const CornerTable *GetCornerTable() const override {
     return impl_->GetCornerTable();
@@ -60,12 +60,12 @@ class MeshEdgeBreakerEncoder : public MeshEncoder {
  private:
   // The actual implementation of the edge breaker method. The implementations
   // are in general specializations of a template class
-  // MeshEdgeBreakerEncoderImpl where the template arguments control encoding
+  // MeshEdgebreakerEncoderImpl where the template arguments control encoding
   // of the connectivity data. The actual implementation is selected in this
   // class based on the provided encoding options. Because this choice is done
   // in run-time, the actual implementation has to be hidden behind the
-  // abstract interface MeshEdgeBreakerEncoderImplInterface.
-  std::unique_ptr<MeshEdgeBreakerEncoderImplInterface> impl_;
+  // abstract interface MeshEdgebreakerEncoderImplInterface.
+  std::unique_ptr<MeshEdgebreakerEncoderImplInterface> impl_;
 };
 
 }  // namespace draco

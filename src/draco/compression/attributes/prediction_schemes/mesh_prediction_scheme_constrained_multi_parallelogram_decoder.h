@@ -23,7 +23,7 @@
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_constrained_multi_parallelogram_shared.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram_shared.h"
-#include "draco/core/bit_coders/rans_bit_decoder.h"
+#include "draco/compression/bit_coders/rans_bit_decoder.h"
 #include "draco/core/varint_decoding.h"
 
 namespace draco {
@@ -84,7 +84,7 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
     ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
                           int /* size */, int num_components,
                           const PointIndex * /* entry_to_point_id_map */) {
-  this->transform().Initialize(num_components);
+  this->transform().Init(num_components);
 
   // Predicted values for all simple parallelograms encountered at any given
   // vertex.
@@ -105,7 +105,8 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
   // Used to store predicted value for multi-parallelogram prediction.
   std::vector<DataTypeT> multi_pred_vals(num_components);
 
-  const int corner_map_size = static_cast<int>(this->mesh_data().data_to_corner_map()->size());
+  const int corner_map_size =
+      static_cast<int>(this->mesh_data().data_to_corner_map()->size());
   for (int p = 1; p < corner_map_size; ++p) {
     const CornerIndex start_corner_id =
         this->mesh_data().data_to_corner_map()->at(p);

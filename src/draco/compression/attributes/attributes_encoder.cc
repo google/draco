@@ -25,8 +25,7 @@ AttributesEncoder::AttributesEncoder(int att_id) : AttributesEncoder() {
   AddAttributeId(att_id);
 }
 
-bool AttributesEncoder::Initialize(PointCloudEncoder *encoder,
-                                   const PointCloud *pc) {
+bool AttributesEncoder::Init(PointCloudEncoder *encoder, const PointCloud *pc) {
   point_cloud_encoder_ = encoder;
   point_cloud_ = pc;
   return true;

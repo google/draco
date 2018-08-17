@@ -15,8 +15,8 @@
 #ifndef DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_TRAVERSAL_VALENCE_ENCODER_H_
 #define DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_TRAVERSAL_VALENCE_ENCODER_H_
 
+#include "draco/compression/entropy/symbol_encoding.h"
 #include "draco/compression/mesh/mesh_edgebreaker_traversal_encoder.h"
-#include "draco/core/symbol_encoding.h"
 #include "draco/core/varint_encoding.h"
 
 namespace draco {
@@ -29,12 +29,12 @@ namespace draco {
 // Encoder can operate in various predefined modes that can be used to select
 // the way in which the entropy contexts are computed (e.g. using different
 // clamping for valences, or even using different inputs to compute the
-// contexts), see EdgeBreakerValenceCodingMode in mesh_edgebreaker_shared.h for
+// contexts), see EdgebreakerValenceCodingMode in mesh_edgebreaker_shared.h for
 // a list of supported modes.
-class MeshEdgeBreakerTraversalValenceEncoder
-    : public MeshEdgeBreakerTraversalEncoder {
+class MeshEdgebreakerTraversalValenceEncoder
+    : public MeshEdgebreakerTraversalEncoder {
  public:
-  MeshEdgeBreakerTraversalValenceEncoder()
+  MeshEdgebreakerTraversalValenceEncoder()
       : corner_table_(nullptr),
         prev_symbol_(-1),
         last_corner_(kInvalidCornerIndex),
@@ -42,8 +42,8 @@ class MeshEdgeBreakerTraversalValenceEncoder
         min_valence_(2),
         max_valence_(7) {}
 
-  bool Init(MeshEdgeBreakerEncoderImplInterface *encoder) {
-    if (!MeshEdgeBreakerTraversalEncoder::Init(encoder))
+  bool Init(MeshEdgebreakerEncoderImplInterface *encoder) {
+    if (!MeshEdgebreakerTraversalEncoder::Init(encoder))
       return false;
     min_valence_ = 2;
     max_valence_ = 7;
@@ -51,7 +51,8 @@ class MeshEdgeBreakerTraversalValenceEncoder
 
     // Initialize valences of all vertices.
     vertex_valences_.resize(corner_table_->num_vertices());
-    for (VertexIndex i(0); i < static_cast<uint32_t>(vertex_valences_.size()); ++i) {
+    for (VertexIndex i(0); i < static_cast<uint32_t>(vertex_valences_.size());
+         ++i) {
       vertex_valences_[i] = corner_table_->Valence(VertexIndex(i));
     }
 
@@ -70,7 +71,7 @@ class MeshEdgeBreakerTraversalValenceEncoder
 
   inline void NewCornerReached(CornerIndex corner) { last_corner_ = corner; }
 
-  inline void EncodeSymbol(EdgeBreakerTopologyBitPattern symbol) {
+  inline void EncodeSymbol(EdgebreakerTopologyBitPattern symbol) {
     ++num_symbols_;
     // Update valences on the mesh and compute the context that is going to be
     // used to encode the processed symbol.
@@ -182,15 +183,17 @@ class MeshEdgeBreakerTraversalValenceEncoder
 
   void Done() {
     // Store the init face configurations and attribute seam data
-    MeshEdgeBreakerTraversalEncoder::EncodeStartFaces();
-    MeshEdgeBreakerTraversalEncoder::EncodeAttributeSeams();
+    MeshEdgebreakerTraversalEncoder::EncodeStartFaces();
+    MeshEdgebreakerTraversalEncoder::EncodeAttributeSeams();
 
     // Store the contexts.
     for (int i = 0; i < context_symbols_.size(); ++i) {
-      EncodeVarint<uint32_t>(static_cast<uint32_t>(context_symbols_[i].size()), GetOutputBuffer());
+      EncodeVarint<uint32_t>(static_cast<uint32_t>(context_symbols_[i].size()),
+                             GetOutputBuffer());
       if (context_symbols_[i].size() > 0) {
-        EncodeSymbols(context_symbols_[i].data(), static_cast<int>(context_symbols_[i].size()), 1,
-                      nullptr, GetOutputBuffer());
+        EncodeSymbols(context_symbols_[i].data(),
+                      static_cast<int>(context_symbols_[i].size()), 1, nullptr,
+                      GetOutputBuffer());
       }
     }
   }

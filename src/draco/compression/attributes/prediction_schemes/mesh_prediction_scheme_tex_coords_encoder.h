@@ -17,7 +17,7 @@
 
 #include <math.h>
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_encoder.h"
-#include "draco/core/bit_coders/rans_bit_encoder.h"
+#include "draco/compression/bit_coders/rans_bit_encoder.h"
 #include "draco/core/varint_encoding.h"
 #include "draco/core/vector_d.h"
 #include "draco/mesh/corner_table.h"
@@ -90,7 +90,8 @@ class MeshPredictionSchemeTexCoordsEncoder
 
   Vector2f GetTexCoordForEntryId(int entry_id, const DataTypeT *data) const {
     const int data_offset = entry_id * num_components_;
-    return Vector2f(static_cast<float>(data[data_offset]), static_cast<float>(data[data_offset + 1]));
+    return Vector2f(static_cast<float>(data[data_offset]),
+                    static_cast<float>(data[data_offset + 1]));
   }
 
   void ComputePredictedValue(CornerIndex corner_id, const DataTypeT *data,
@@ -114,11 +115,12 @@ bool MeshPredictionSchemeTexCoordsEncoder<DataTypeT, TransformT, MeshDataT>::
   entry_to_point_id_map_ = entry_to_point_id_map;
   predicted_value_ =
       std::unique_ptr<DataTypeT[]>(new DataTypeT[num_components]);
-  this->transform().Initialize(in_data, size, num_components);
+  this->transform().Init(in_data, size, num_components);
   // We start processing from the end because this prediction uses data from
   // previous entries that could be overwritten when an entry is processed.
-  for (int p = static_cast<int>(this->mesh_data().data_to_corner_map()->size()) - 1; p >= 0;
-       --p) {
+  for (int p =
+           static_cast<int>(this->mesh_data().data_to_corner_map()->size()) - 1;
+       p >= 0; --p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     ComputePredictedValue(corner_id, in_data, p);
 

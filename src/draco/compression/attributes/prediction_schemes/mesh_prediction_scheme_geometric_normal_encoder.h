@@ -17,8 +17,8 @@
 
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_encoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_predictor_area.h"
+#include "draco/compression/bit_coders/rans_bit_encoder.h"
 #include "draco/compression/config/compression_shared.h"
-#include "draco/core/bit_coders/rans_bit_encoder.h"
 
 namespace draco {
 
@@ -102,7 +102,8 @@ bool MeshPredictionSchemeGeometricNormalEncoder<DataTypeT, TransformT,
 
   flip_normal_bit_encoder_.StartEncoding();
 
-  const int corner_map_size = static_cast<int>(this->mesh_data().data_to_corner_map()->size());
+  const int corner_map_size =
+      static_cast<int>(this->mesh_data().data_to_corner_map()->size());
 
   VectorD<int32_t, 3> pred_normal_3d;
   VectorD<int32_t, 2> pos_pred_normal_oct;

@@ -17,6 +17,8 @@
 
 #include <stdint.h>
 
+#include "draco/core/macros.h"
+
 #include "draco/draco_features.h"
 
 namespace draco {
@@ -26,11 +28,6 @@ static constexpr uint8_t kDracoPointCloudBitstreamVersionMajor = 2;
 static constexpr uint8_t kDracoPointCloudBitstreamVersionMinor = 3;
 static constexpr uint8_t kDracoMeshBitstreamVersionMajor = 2;
 static constexpr uint8_t kDracoMeshBitstreamVersionMinor = 2;
-
-// Macro that converts the Draco bit-stream into one uint16_t number.
-// Useful mostly when checking version numbers.
-#define DRACO_BITSTREAM_VERSION(MAJOR, MINOR) \
-  ((static_cast<uint16_t>(MAJOR) << 8) | MINOR)
 
 // Concatenated latest bit-stream version.
 static constexpr uint16_t kDracoPointCloudBitstreamVersion =
@@ -120,7 +117,7 @@ enum MeshTraversalMethod {
 
 // List of all variant of the edgebreaker method that is used for compression
 // of mesh connectivity.
-enum MeshEdgeBreakerConnectivityEncodingMethod {
+enum MeshEdgebreakerConnectivityEncodingMethod {
   MESH_EDGEBREAKER_STANDARD_ENCODING = 0,
   MESH_EDGEBREAKER_PREDICTIVE_ENCODING = 1,  // Deprecated.
   MESH_EDGEBREAKER_VALENCE_ENCODING = 2,

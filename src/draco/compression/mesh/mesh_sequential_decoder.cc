@@ -16,7 +16,7 @@
 
 #include "draco/compression/attributes/linear_sequencer.h"
 #include "draco/compression/attributes/sequential_attribute_decoders_controller.h"
-#include "draco/core/symbol_decoding.h"
+#include "draco/compression/entropy/symbol_decoding.h"
 #include "draco/core/varint_decoding.h"
 
 namespace draco {
@@ -32,6 +32,7 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
       return false;
     if (!buffer()->Decode(&num_points))
       return false;
+
   } else
 #endif
   {

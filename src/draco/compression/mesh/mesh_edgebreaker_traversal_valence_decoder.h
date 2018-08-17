@@ -17,28 +17,28 @@
 
 #include "draco/draco_features.h"
 
+#include "draco/compression/entropy/symbol_decoding.h"
 #include "draco/compression/mesh/mesh_edgebreaker_traversal_decoder.h"
-#include "draco/core/symbol_decoding.h"
 #include "draco/core/varint_decoding.h"
 
 namespace draco {
 
-// Decoder for traversal encoded with MeshEdgeBreakerTraversalValenceEncoder.
+// Decoder for traversal encoded with MeshEdgebreakerTraversalValenceEncoder.
 // The decoder maintains valences of the decoded portion of the traversed mesh
 // and it uses them to select entropy context used for decoding of the actual
 // symbols.
-class MeshEdgeBreakerTraversalValenceDecoder
-    : public MeshEdgeBreakerTraversalDecoder {
+class MeshEdgebreakerTraversalValenceDecoder
+    : public MeshEdgebreakerTraversalDecoder {
  public:
-  MeshEdgeBreakerTraversalValenceDecoder()
+  MeshEdgebreakerTraversalValenceDecoder()
       : corner_table_(nullptr),
         num_vertices_(0),
         last_symbol_(-1),
         active_context_(-1),
         min_valence_(2),
         max_valence_(7) {}
-  void Init(MeshEdgeBreakerDecoderImplInterface *decoder) {
-    MeshEdgeBreakerTraversalDecoder::Init(decoder);
+  void Init(MeshEdgebreakerDecoderImplInterface *decoder) {
+    MeshEdgebreakerTraversalDecoder::Init(decoder);
     corner_table_ = decoder->GetCornerTable();
   }
   void SetNumEncodedVertices(int num_vertices) { num_vertices_ = num_vertices; }
@@ -46,13 +46,13 @@ class MeshEdgeBreakerTraversalValenceDecoder
   bool Start(DecoderBuffer *out_buffer) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 2)) {
-      if (!MeshEdgeBreakerTraversalDecoder::DecodeTraversalSymbols())
+      if (!MeshEdgebreakerTraversalDecoder::DecodeTraversalSymbols())
         return false;
     }
 #endif
-    if (!MeshEdgeBreakerTraversalDecoder::DecodeStartFaces())
+    if (!MeshEdgebreakerTraversalDecoder::DecodeStartFaces())
       return false;
-    if (!MeshEdgeBreakerTraversalDecoder::DecodeAttributeSeams())
+    if (!MeshEdgebreakerTraversalDecoder::DecodeAttributeSeams())
       return false;
     *out_buffer = *buffer();
 
@@ -79,6 +79,7 @@ class MeshEdgeBreakerTraversalValenceDecoder
         // Unsupported mode.
         return false;
       }
+
     } else
 #endif
     {
@@ -122,7 +123,8 @@ class MeshEdgeBreakerTraversalValenceDecoder
       if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 2)) {
         // We don't have a predicted symbol or the symbol was mis-predicted.
         // Decode it directly.
-        last_symbol_ = MeshEdgeBreakerTraversalDecoder::DecodeSymbol();
+        last_symbol_ = MeshEdgebreakerTraversalDecoder::DecodeSymbol();
+
       } else
 #endif
       {

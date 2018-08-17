@@ -21,11 +21,11 @@
 #include <stack>
 #include <vector>
 
+#include "draco/compression/bit_coders/adaptive_rans_bit_encoder.h"
+#include "draco/compression/bit_coders/direct_bit_encoder.h"
+#include "draco/compression/bit_coders/folded_integer_bit_encoder.h"
+#include "draco/compression/bit_coders/rans_bit_encoder.h"
 #include "draco/compression/point_cloud/algorithms/point_cloud_types.h"
-#include "draco/core/bit_coders/adaptive_rans_bit_encoder.h"
-#include "draco/core/bit_coders/direct_bit_encoder.h"
-#include "draco/core/bit_coders/folded_integer_bit_encoder.h"
-#include "draco/core/bit_coders/rans_bit_encoder.h"
 #include "draco/core/bit_utils.h"
 #include "draco/core/encoder_buffer.h"
 #include "draco/core/math_utils.h"
@@ -332,7 +332,7 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
     DRACO_DCHECK_EQ(true, (end - begin) > 0);
 
     // Encode number of points in first and second half.
-    const int required_bits = bits::MostSignificantBit(num_remaining_points);
+    const int required_bits = MostSignificantBit(num_remaining_points);
 
     const uint32_t first_half = static_cast<uint32_t>(split - begin);
     const uint32_t second_half = static_cast<uint32_t>(end - split);

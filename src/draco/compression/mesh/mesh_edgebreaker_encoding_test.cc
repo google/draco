@@ -40,7 +40,7 @@ class MeshEdgebreakerEncodingTest : public ::testing::Test {
 
   void TestMesh(Mesh *mesh, int compression_level) {
     EncoderBuffer buffer;
-    MeshEdgeBreakerEncoder encoder;
+    MeshEdgebreakerEncoder encoder;
     EncoderOptions encoder_options = EncoderOptions::CreateDefaultOptions();
     encoder_options.SetSpeed(10 - compression_level, 10 - compression_level);
     encoder.SetMesh(*mesh);
@@ -48,7 +48,7 @@ class MeshEdgebreakerEncodingTest : public ::testing::Test {
 
     DecoderBuffer dec_buffer;
     dec_buffer.Init(buffer.data(), buffer.size());
-    MeshEdgeBreakerDecoder decoder;
+    MeshEdgebreakerDecoder decoder;
 
     std::unique_ptr<Mesh> decoded_mesh(new Mesh());
     DecoderOptions dec_options;
@@ -98,7 +98,7 @@ TEST_F(MeshEdgebreakerEncodingTest, TestEncoderReuse) {
   const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name));
   ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
 
-  MeshEdgeBreakerEncoder encoder;
+  MeshEdgebreakerEncoder encoder;
   EncoderOptions encoder_options = EncoderOptions::CreateDefaultOptions();
   encoder.SetMesh(*mesh);
   EncoderBuffer buffer_0, buffer_1;
@@ -119,7 +119,7 @@ TEST_F(MeshEdgebreakerEncodingTest, TestDecoderReuse) {
   const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name));
   ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
 
-  MeshEdgeBreakerEncoder encoder;
+  MeshEdgebreakerEncoder encoder;
   EncoderOptions encoder_options = EncoderOptions::CreateDefaultOptions();
   encoder.SetMesh(*mesh);
   EncoderBuffer buffer;
@@ -128,7 +128,7 @@ TEST_F(MeshEdgebreakerEncodingTest, TestDecoderReuse) {
   DecoderBuffer dec_buffer;
   dec_buffer.Init(buffer.data(), buffer.size());
 
-  MeshEdgeBreakerDecoder decoder;
+  MeshEdgebreakerDecoder decoder;
 
   // Decode the mesh two times.
   std::unique_ptr<Mesh> decoded_mesh_0(new Mesh());
@@ -237,7 +237,7 @@ TEST_F(MeshEdgebreakerEncodingTest, TestDegenerateMesh) {
   const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name));
   ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
   EncoderBuffer buffer;
-  MeshEdgeBreakerEncoder encoder;
+  MeshEdgebreakerEncoder encoder;
   EncoderOptions encoder_options = EncoderOptions::CreateDefaultOptions();
   encoder.SetMesh(*mesh);
   // We expect the encoding to fail as edgebreaker can only process valid faces.

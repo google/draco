@@ -16,20 +16,25 @@
 
 namespace draco {
 
-Quantizer::Quantizer() : range_(1.f), max_quantized_value_(1) {}
+Quantizer::Quantizer() : inverse_delta_(1.f) {}
 
 void Quantizer::Init(float range, int32_t max_quantized_value) {
-  max_quantized_value_ = max_quantized_value;
-  range_ = range;
+  inverse_delta_ = static_cast<float>(max_quantized_value) / range;
 }
 
-Dequantizer::Dequantizer() : range_(1.f), max_quantized_value_factor_(1.f) {}
+void Quantizer::Init(float delta) { inverse_delta_ = 1.f / delta; }
+
+Dequantizer::Dequantizer() : delta_(1.f) {}
 
 bool Dequantizer::Init(float range, int32_t max_quantized_value) {
   if (max_quantized_value <= 0)
     return false;
-  max_quantized_value_factor_ = 1.f / static_cast<float>(max_quantized_value);
-  range_ = range;
+  delta_ = range / static_cast<float>(max_quantized_value);
+  return true;
+}
+
+bool Dequantizer::Init(float delta) {
+  delta_ = delta;
   return true;
 }
 

@@ -28,30 +28,29 @@
 
 namespace draco {
 
-// Class for quantizing single precision floating point values. The values must
-// be centered around zero and be within interval (-range, +range), where the
-// range is specified in the Init() method.
+// Class for quantizing single precision floating point values. The values
+// should be centered around zero and be within interval (-range, +range), where
+// the range is specified in the Init() method. Alternatively, the quantization
+// can be defined by |delta| that specifies the distance between two quantized
+// values. Note that the quantizer always snaps the values to the nearest
+// integer value. E.g. for |delta| == 1.f, values -0.4f and 0.4f would be
+// both quantized to 0 while value 0.6f would be quantized to 1. If a value
+// lies exactly between two quantized states, it is always rounded up. E.g.,
+// for |delta| == 1.f, value -0.5f would be quantized to 0 while 0.5f would be
+// quantized to 1.
 class Quantizer {
  public:
   Quantizer();
   void Init(float range, int32_t max_quantized_value);
+  void Init(float delta);
   inline int32_t QuantizeFloat(float val) const {
-    const bool neg = (val < 0.f);
-    if (neg) {
-      val = -val;
-    }
-    val /= range_;
-    const int32_t ret = static_cast<int32_t>(
-        floor(val * static_cast<float>(max_quantized_value_) + 0.5f));
-    if (neg)
-      return -ret;
-    return ret;
+    val *= inverse_delta_;
+    return static_cast<int32_t>(floor(val + 0.5f));
   }
   inline int32_t operator()(float val) const { return QuantizeFloat(val); }
 
  private:
-  float range_;
-  int32_t max_quantized_value_;
+  float inverse_delta_;
 };
 
 // Class for dequantizing values that were previously quantized using the
@@ -64,23 +63,17 @@ class Dequantizer {
   // provided to the initializer of the Quantizer class.
   // Returns false when the initialization fails.
   bool Init(float range, int32_t max_quantized_value);
-  inline float DequantizeFloat(int32_t val) const {
-    if (val >= 0)
-      return static_cast<float>(val) * max_quantized_value_factor_ * range_;
 
-    // val was negative.
-    const int64_t neg_val = -static_cast<int64_t>(val);
-    float norm_value =
-        static_cast<float>(neg_val) * max_quantized_value_factor_;
-    norm_value = -norm_value;
-    return norm_value * range_;
+  // Initializes the dequantizer using the |delta| between two quantized values.
+  bool Init(float delta);
+
+  inline float DequantizeFloat(int32_t val) const {
+    return static_cast<float>(val) * delta_;
   }
   inline float operator()(int32_t val) const { return DequantizeFloat(val); }
 
  private:
-  float range_;
-  // Distance between two normalized dequantized values.
-  float max_quantized_value_factor_;
+  float delta_;
 };
 
 }  // namespace draco

@@ -103,7 +103,7 @@ Status ExpertEncoder::EncodeMeshToBuffer(const Mesh &m,
     }
   }
   if (encoding_method == MESH_EDGEBREAKER_ENCODING) {
-    encoder = std::unique_ptr<MeshEncoder>(new MeshEdgeBreakerEncoder());
+    encoder = std::unique_ptr<MeshEncoder>(new MeshEdgebreakerEncoder());
   } else {
     encoder = std::unique_ptr<MeshEncoder>(new MeshSequentialEncoder());
   }
@@ -149,6 +149,10 @@ void ExpertEncoder::SetUseBuiltInAttributeCompression(bool enabled) {
 
 void ExpertEncoder::SetEncodingMethod(int encoding_method) {
   Base::SetEncodingMethod(encoding_method);
+}
+
+void ExpertEncoder::SetEncodingSubmethod(int encoding_submethod) {
+  Base::SetEncodingSubmethod(encoding_submethod);
 }
 
 Status ExpertEncoder::SetAttributePredictionScheme(

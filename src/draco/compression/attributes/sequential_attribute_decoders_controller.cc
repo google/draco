@@ -38,7 +38,7 @@ bool SequentialAttributeDecodersController::DecodeAttributesDecoderData(
     sequential_decoders_[i] = CreateSequentialDecoder(decoder_type);
     if (!sequential_decoders_[i])
       return false;
-    if (!sequential_decoders_[i]->Initialize(GetDecoder(), GetAttributeId(i)))
+    if (!sequential_decoders_[i]->Init(GetDecoder(), GetAttributeId(i)))
       return false;
   }
   return true;

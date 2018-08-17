@@ -51,8 +51,8 @@ namespace draco {
 //     *-------*          *-------*
 //
 // TODO(ostava): Get rid of the topology bit pattern. It's important only for
-// encoding but the algorithms should use EdgeBreakerSymbol instead.
-enum EdgeBreakerTopologyBitPattern {
+// encoding but the algorithms should use EdgebreakerSymbol instead.
+enum EdgebreakerTopologyBitPattern {
   TOPOLOGY_C = 0x0,  // 0
   TOPOLOGY_S = 0x1,  // 1 0 0
   TOPOLOGY_L = 0x3,  // 1 1 0
@@ -66,7 +66,7 @@ enum EdgeBreakerTopologyBitPattern {
   TOPOLOGY_INVALID
 };
 
-enum EdgeBreakerSymbol {
+enum EdgebreakerSymbol {
   EDGEBREAKER_SYMBOL_C = 0,
   EDGEBREAKER_SYMBOL_S,
   EDGEBREAKER_SYMBOL_L,
@@ -75,20 +75,20 @@ enum EdgeBreakerSymbol {
   EDGEBREAKER_SYMBOL_INVALID
 };
 
-// Bit-length of symbols in the EdgeBreakerTopologyBitPattern stored as a
+// Bit-length of symbols in the EdgebreakerTopologyBitPattern stored as a
 // lookup table for faster indexing.
 constexpr int32_t edge_breaker_topology_bit_pattern_length[] = {1, 3, 0, 3,
                                                                 0, 3, 0, 3};
 
 // Zero-indexed symbol id for each of topology pattern.
-constexpr EdgeBreakerSymbol edge_breaker_topology_to_symbol_id[] = {
+constexpr EdgebreakerSymbol edge_breaker_topology_to_symbol_id[] = {
     EDGEBREAKER_SYMBOL_C,       EDGEBREAKER_SYMBOL_S,
     EDGEBREAKER_SYMBOL_INVALID, EDGEBREAKER_SYMBOL_L,
     EDGEBREAKER_SYMBOL_INVALID, EDGEBREAKER_SYMBOL_R,
     EDGEBREAKER_SYMBOL_INVALID, EDGEBREAKER_SYMBOL_E};
 
 // Reverse mapping between symbol id and topology pattern symbol.
-constexpr EdgeBreakerTopologyBitPattern edge_breaker_symbol_to_topology_id[] = {
+constexpr EdgebreakerTopologyBitPattern edge_breaker_symbol_to_topology_id[] = {
     TOPOLOGY_C, TOPOLOGY_S, TOPOLOGY_L, TOPOLOGY_R, TOPOLOGY_E};
 
 // Types of edges used during mesh traversal relative to the tip vertex of a
@@ -122,7 +122,7 @@ struct HoleEventData {
 };
 
 // List of supported modes for valence based edgebreaker coding.
-enum EdgeBreakerValenceCodingMode {
+enum EdgebreakerValenceCodingMode {
   EDGEBREAKER_VALENCE_MODE_2_7 = 0,  // Use contexts for valences in range 2-7.
 };
 

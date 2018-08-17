@@ -47,7 +47,7 @@ template <typename DataTypeT, class TransformT>
 bool PredictionSchemeDeltaDecoder<DataTypeT, TransformT>::ComputeOriginalValues(
     const CorrType *in_corr, DataTypeT *out_data, int size, int num_components,
     const PointIndex *) {
-  this->transform().Initialize(num_components);
+  this->transform().Init(num_components);
   // Decode the original value for the first element.
   std::unique_ptr<DataTypeT[]> zero_vals(new DataTypeT[num_components]());
   this->transform().ComputeOriginalValue(zero_vals.get(), in_corr, out_data);

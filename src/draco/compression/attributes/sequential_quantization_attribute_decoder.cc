@@ -22,9 +22,9 @@ namespace draco {
 SequentialQuantizationAttributeDecoder::SequentialQuantizationAttributeDecoder()
     : quantization_bits_(-1), max_value_dif_(0.f) {}
 
-bool SequentialQuantizationAttributeDecoder::Initialize(
-    PointCloudDecoder *decoder, int attribute_id) {
-  if (!SequentialIntegerAttributeDecoder::Initialize(decoder, attribute_id))
+bool SequentialQuantizationAttributeDecoder::Init(PointCloudDecoder *decoder,
+                                                  int attribute_id) {
+  if (!SequentialIntegerAttributeDecoder::Init(decoder, attribute_id))
     return false;
   const PointAttribute *const attribute =
       decoder->point_cloud()->attribute(attribute_id);

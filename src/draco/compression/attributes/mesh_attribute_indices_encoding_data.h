@@ -27,7 +27,7 @@ namespace draco {
 struct MeshAttributeIndicesEncodingData {
   MeshAttributeIndicesEncodingData() : num_values(0) {}
 
-  void Initialize(int num_vertices) {
+  void Init(int num_vertices) {
     vertex_to_encoded_attribute_value_index_map.resize(num_vertices);
 
     // We expect to store one value for each vertex.

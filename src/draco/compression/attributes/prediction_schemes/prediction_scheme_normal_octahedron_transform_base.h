@@ -62,7 +62,7 @@ class PredictionSchemeNormalOctahedronTransformBase {
   inline bool set_max_quantized_value(DataTypeT max_quantized_value) {
     if (max_quantized_value % 2 == 0)
       return false;
-    int q = bits::MostSignificantBit(max_quantized_value) + 1;
+    int q = MostSignificantBit(max_quantized_value) + 1;
     return octahedron_tool_box_.SetQuantizationBits(q);
   }
 

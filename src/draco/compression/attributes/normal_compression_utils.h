@@ -175,8 +175,12 @@ class OctahedronToolBox {
     if (abs_sum == 0) {
       vec[0] = center_value_;  // vec[1] == v[2] == 0
     } else {
-      vec[0] = (static_cast<int64_t>(vec[0]) * static_cast<int64_t>(center_value_)) / abs_sum;
-      vec[1] = (static_cast<int64_t>(vec[1]) * static_cast<int64_t>(center_value_)) / abs_sum;
+      vec[0] =
+          (static_cast<int64_t>(vec[0]) * static_cast<int64_t>(center_value_)) /
+          abs_sum;
+      vec[1] =
+          (static_cast<int64_t>(vec[1]) * static_cast<int64_t>(center_value_)) /
+          abs_sum;
       if (vec[2] >= 0) {
         vec[2] = center_value_ - std::abs(vec[0]) - std::abs(vec[1]);
       } else {

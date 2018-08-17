@@ -38,7 +38,7 @@ class SequentialAttributeEncoder {
   // This method is automatically called by the PointCloudEncoder after all
   // attribute encoders are created and it should not be called explicitly from
   // other places.
-  virtual bool Initialize(PointCloudEncoder *encoder, int attribute_id);
+  virtual bool Init(PointCloudEncoder *encoder, int attribute_id);
 
   // Initialization for a specific attribute. This can be used mostly for
   // standalone encoding of an attribute without an PointCloudEncoder.
@@ -58,7 +58,9 @@ class SequentialAttributeEncoder {
 
   virtual bool IsLossyEncoder() const { return false; }
 
-  int NumParentAttributes() const { return static_cast<int>(parent_attributes_.size()); }
+  int NumParentAttributes() const {
+    return static_cast<int>(parent_attributes_.size());
+  }
   int GetParentAttributeId(int i) const { return parent_attributes_[i]; }
 
   const PointAttribute *GetPortableAttribute() const {

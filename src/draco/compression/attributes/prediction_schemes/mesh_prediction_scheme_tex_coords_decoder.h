@@ -21,7 +21,7 @@
 #include "draco/draco_features.h"
 
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
-#include "draco/core/bit_coders/rans_bit_decoder.h"
+#include "draco/compression/bit_coders/rans_bit_decoder.h"
 #include "draco/core/varint_decoding.h"
 #include "draco/core/vector_d.h"
 #include "draco/mesh/corner_table.h"
@@ -97,7 +97,8 @@ class MeshPredictionSchemeTexCoordsDecoder
 
   Vector2f GetTexCoordForEntryId(int entry_id, const DataTypeT *data) const {
     const int data_offset = entry_id * num_components_;
-    return Vector2f(static_cast<float>(data[data_offset]), static_cast<float>(data[data_offset + 1]));
+    return Vector2f(static_cast<float>(data[data_offset]),
+                    static_cast<float>(data[data_offset + 1]));
   }
 
   void ComputePredictedValue(CornerIndex corner_id, const DataTypeT *data,
@@ -122,9 +123,10 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
   entry_to_point_id_map_ = entry_to_point_id_map;
   predicted_value_ =
       std::unique_ptr<DataTypeT[]>(new DataTypeT[num_components]);
-  this->transform().Initialize(num_components);
+  this->transform().Init(num_components);
 
-  const int corner_map_size = static_cast<int>(this->mesh_data().data_to_corner_map()->size());
+  const int corner_map_size =
+      static_cast<int>(this->mesh_data().data_to_corner_map()->size());
   for (int p = 0; p < corner_map_size; ++p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     ComputePredictedValue(corner_id, out_data, p);

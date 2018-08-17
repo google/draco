@@ -115,7 +115,7 @@ bool PointCloudDecoder::DecodePointAttributes() {
 
   // Initialize all attributes decoders. No data is decoded here.
   for (auto &att_dec : attributes_decoders_) {
-    if (!att_dec->Initialize(this, point_cloud_))
+    if (!att_dec->Init(this, point_cloud_))
       return false;
   }
 

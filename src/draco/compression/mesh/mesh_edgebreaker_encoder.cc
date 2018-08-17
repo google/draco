@@ -20,9 +20,9 @@
 
 namespace draco {
 
-MeshEdgeBreakerEncoder::MeshEdgeBreakerEncoder() {}
+MeshEdgebreakerEncoder::MeshEdgebreakerEncoder() {}
 
-bool MeshEdgeBreakerEncoder::InitializeEncoder() {
+bool MeshEdgebreakerEncoder::InitializeEncoder() {
   const bool is_standard_edgebreaker_available =
       options()->IsFeatureSupported(features::kEdgebreaker);
   const bool is_predictive_edgebreaker_available =
@@ -52,14 +52,14 @@ bool MeshEdgeBreakerEncoder::InitializeEncoder() {
     if (is_standard_edgebreaker_available) {
       buffer()->Encode(
           static_cast<uint8_t>(MESH_EDGEBREAKER_STANDARD_ENCODING));
-      impl_ = std::unique_ptr<MeshEdgeBreakerEncoderImplInterface>(
-          new MeshEdgeBreakerEncoderImpl<MeshEdgeBreakerTraversalEncoder>());
+      impl_ = std::unique_ptr<MeshEdgebreakerEncoderImplInterface>(
+          new MeshEdgebreakerEncoderImpl<MeshEdgebreakerTraversalEncoder>());
     }
   } else if (selected_edgebreaker_method == MESH_EDGEBREAKER_VALENCE_ENCODING) {
     buffer()->Encode(static_cast<uint8_t>(MESH_EDGEBREAKER_VALENCE_ENCODING));
-    impl_ = std::unique_ptr<MeshEdgeBreakerEncoderImplInterface>(
-        new MeshEdgeBreakerEncoderImpl<
-            MeshEdgeBreakerTraversalValenceEncoder>());
+    impl_ = std::unique_ptr<MeshEdgebreakerEncoderImplInterface>(
+        new MeshEdgebreakerEncoderImpl<
+            MeshEdgebreakerTraversalValenceEncoder>());
   }
   if (!impl_)
     return false;
@@ -68,24 +68,24 @@ bool MeshEdgeBreakerEncoder::InitializeEncoder() {
   return true;
 }
 
-bool MeshEdgeBreakerEncoder::GenerateAttributesEncoder(int32_t att_id) {
+bool MeshEdgebreakerEncoder::GenerateAttributesEncoder(int32_t att_id) {
   if (!impl_->GenerateAttributesEncoder(att_id))
     return false;
   return true;
 }
 
-bool MeshEdgeBreakerEncoder::EncodeAttributesEncoderIdentifier(
+bool MeshEdgebreakerEncoder::EncodeAttributesEncoderIdentifier(
     int32_t att_encoder_id) {
   if (!impl_->EncodeAttributesEncoderIdentifier(att_encoder_id))
     return false;
   return true;
 }
 
-bool MeshEdgeBreakerEncoder::EncodeConnectivity() {
+bool MeshEdgebreakerEncoder::EncodeConnectivity() {
   return impl_->EncodeConnectivity();
 }
 
-void MeshEdgeBreakerEncoder::ComputeNumberOfEncodedPoints() {
+void MeshEdgebreakerEncoder::ComputeNumberOfEncodedPoints() {
   if (!impl_)
     return;
   const CornerTable *const corner_table = impl_->GetCornerTable();
@@ -171,7 +171,7 @@ void MeshEdgeBreakerEncoder::ComputeNumberOfEncodedPoints() {
   set_num_encoded_points(num_points);
 }
 
-void MeshEdgeBreakerEncoder::ComputeNumberOfEncodedFaces() {
+void MeshEdgebreakerEncoder::ComputeNumberOfEncodedFaces() {
   if (!impl_)
     return;
   const CornerTable *const corner_table = impl_->GetCornerTable();

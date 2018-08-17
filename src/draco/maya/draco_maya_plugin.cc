@@ -162,14 +162,14 @@ DecodeResult drc2py_decode(char *data, unsigned int length,
   return DecodeResult::OK;
 }
 
-// As encode refereces see https://github.com/google/draco/issues/116
+// As encode references see https://github.com/google/draco/issues/116
 EncodeResult drc2py_encode(Drc2PyMesh *in_mesh, char *file_path) {
   if (in_mesh->faces_num == 0)
     return EncodeResult::KO_WRONG_INPUT;
   if (in_mesh->vertices_num == 0)
     return EncodeResult::KO_WRONG_INPUT;
-  // TODO: Add check to protect against quad faces. At the moment only Tringular
-  // faces are supported
+  // TODO: Add check to protect against quad faces. At the moment only
+  // Triangular faces are supported
 
   std::unique_ptr<draco::Mesh> drc_mesh(new draco::Mesh());
 
@@ -236,7 +236,7 @@ EncodeResult drc2py_encode(Drc2PyMesh *in_mesh, char *file_path) {
     }
   }
 
-// Deduplicate Attribs and Points
+// Deduplicate Attributes and Points
 #ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
   drc_mesh->DeduplicateAttributeValues();
   drc_mesh->DeduplicatePointIds();

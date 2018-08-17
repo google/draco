@@ -18,10 +18,10 @@
 #include <unordered_map>
 
 #include "draco/compression/attributes/mesh_attribute_indices_encoding_data.h"
-#include "draco/compression/attributes/mesh_traversal_sequencer.h"
 #include "draco/compression/config/compression_shared.h"
 #include "draco/compression/mesh/mesh_edgebreaker_encoder_impl_interface.h"
 #include "draco/compression/mesh/mesh_edgebreaker_shared.h"
+#include "draco/compression/mesh/traverser/mesh_traversal_sequencer.h"
 #include "draco/core/encoder_buffer.h"
 #include "draco/mesh/mesh_attribute_corner_table.h"
 
@@ -31,12 +31,12 @@ namespace draco {
 // Made Simple: Edgebreaker on a Corner-Table" by Rossignac at al.'01.
 // http://www.cc.gatech.edu/~jarek/papers/CornerTableSMI.pdf
 template <class TraversalEncoderT>
-class MeshEdgeBreakerEncoderImpl : public MeshEdgeBreakerEncoderImplInterface {
+class MeshEdgebreakerEncoderImpl : public MeshEdgebreakerEncoderImplInterface {
  public:
-  MeshEdgeBreakerEncoderImpl();
-  explicit MeshEdgeBreakerEncoderImpl(
+  MeshEdgebreakerEncoderImpl();
+  explicit MeshEdgebreakerEncoderImpl(
       const TraversalEncoderT &traversal_encoder);
-  bool Init(MeshEdgeBreakerEncoder *encoder) override;
+  bool Init(MeshEdgebreakerEncoder *encoder) override;
 
   const MeshAttributeCornerTable *GetAttributeCornerTable(
       int att_id) const override;
@@ -53,7 +53,7 @@ class MeshEdgeBreakerEncoderImpl : public MeshEdgeBreakerEncoderImplInterface {
   bool IsFaceEncoded(FaceIndex fi) const override {
     return visited_faces_[fi.value()];
   }
-  MeshEdgeBreakerEncoder *GetEncoder() const override { return encoder_; }
+  MeshEdgebreakerEncoder *GetEncoder() const override { return encoder_; }
 
  private:
   // Initializes data needed for encoding non-position attributes.
@@ -125,7 +125,7 @@ class MeshEdgeBreakerEncoderImpl : public MeshEdgeBreakerEncoderImplInterface {
   bool GenerateEncodingOrderForAttributes();
 
   // The main encoder that owns this class.
-  MeshEdgeBreakerEncoder *encoder_;
+  MeshEdgebreakerEncoder *encoder_;
   // Mesh that's being encoded.
   const Mesh *mesh_;
   // Corner table stores the mesh face connectivity data.

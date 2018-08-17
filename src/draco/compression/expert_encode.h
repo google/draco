@@ -100,6 +100,13 @@ class ExpertEncoder : public EncoderBase<EncoderOptions> {
   // call of EncodePointCloudToBuffer or EncodeMeshToBuffer is going to fail.
   void SetEncodingMethod(int encoding_method);
 
+  // Sets the desired encoding submethod, only for MESH_EDGEBREAKER_ENCODING.
+  // Valid values for |encoding_submethod| are:
+  //   MESH_EDGEBREAKER_STANDARD_ENCODING
+  //   MESH_EDGEBREAKER_VALENCE_ENCODING
+  // see also compression/config/compression_shared.h.
+  void SetEncodingSubmethod(int encoding_submethod);
+
   // Sets the desired prediction method for a given attribute. By default,
   // prediction scheme is selected automatically by the encoder using other
   // provided options (such as speed) and input geometry type (mesh, point

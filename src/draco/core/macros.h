@@ -88,4 +88,9 @@ namespace draco {
 #define DRACO_SELECT_NTH_FROM_3(_1, _2, _3, NAME) NAME
 #define DRACO_SELECT_NTH_FROM_4(_1, _2, _3, _4, NAME) NAME
 
+// Macro that converts the Draco bit-stream into one uint16_t number.
+// Useful mostly when checking version numbers.
+#define DRACO_BITSTREAM_VERSION(MAJOR, MINOR) \
+  ((static_cast<uint16_t>(MAJOR) << 8) | MINOR)
+
 #endif  // DRACO_CORE_MACROS_H_

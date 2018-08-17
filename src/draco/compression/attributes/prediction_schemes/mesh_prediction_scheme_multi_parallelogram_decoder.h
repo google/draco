@@ -61,8 +61,9 @@ bool MeshPredictionSchemeMultiParallelogramDecoder<DataTypeT, TransformT,
     ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
                           int /* size */, int num_components,
                           const PointIndex * /* entry_to_point_id_map */) {
-  this->transform().Initialize(num_components);
+  this->transform().Init(num_components);
 
+  // For storage of prediction values (already initialized to zero).
   std::unique_ptr<DataTypeT[]> pred_vals(new DataTypeT[num_components]());
   std::unique_ptr<DataTypeT[]> parallelogram_pred_vals(
       new DataTypeT[num_components]());
@@ -73,7 +74,8 @@ bool MeshPredictionSchemeMultiParallelogramDecoder<DataTypeT, TransformT,
   const std::vector<int32_t> *const vertex_to_data_map =
       this->mesh_data().vertex_to_data_map();
 
-  const int corner_map_size = static_cast<int>(this->mesh_data().data_to_corner_map()->size());
+  const int corner_map_size =
+      static_cast<int>(this->mesh_data().data_to_corner_map()->size());
   for (int p = 1; p < corner_map_size; ++p) {
     const CornerIndex start_corner_id =
         this->mesh_data().data_to_corner_map()->at(p);
@@ -93,6 +95,7 @@ bool MeshPredictionSchemeMultiParallelogramDecoder<DataTypeT, TransformT,
         ++num_parallelograms;
       }
 
+      // Proceed to the next corner attached to the vertex.
       corner_id = table->SwingRight(corner_id);
       if (corner_id == start_corner_id) {
         corner_id = kInvalidCornerIndex;

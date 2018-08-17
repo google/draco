@@ -31,7 +31,7 @@ class SequentialQuantizationAttributeEncoder
   uint8_t GetUniqueId() const override {
     return SEQUENTIAL_ATTRIBUTE_ENCODER_QUANTIZATION;
   }
-  bool Initialize(PointCloudEncoder *encoder, int attribute_id) override;
+  bool Init(PointCloudEncoder *encoder, int attribute_id) override;
 
   bool IsLossyEncoder() const override { return true; }
 

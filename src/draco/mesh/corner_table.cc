@@ -29,13 +29,12 @@ CornerTable::CornerTable()
 std::unique_ptr<CornerTable> CornerTable::Create(
     const IndexTypeVector<FaceIndex, FaceType> &faces) {
   std::unique_ptr<CornerTable> ct(new CornerTable());
-  if (!ct->Initialize(faces))
+  if (!ct->Init(faces))
     return nullptr;
   return ct;
 }
 
-bool CornerTable::Initialize(
-    const IndexTypeVector<FaceIndex, FaceType> &faces) {
+bool CornerTable::Init(const IndexTypeVector<FaceIndex, FaceType> &faces) {
   valence_cache_.ClearValenceCache();
   valence_cache_.ClearValenceCacheInaccurate();
   corner_to_vertex_map_.resize(faces.size() * 3);
@@ -59,7 +58,8 @@ bool CornerTable::Reset(int num_faces) {
 bool CornerTable::Reset(int num_faces, int num_vertices) {
   if (num_faces < 0 || num_vertices < 0)
     return false;
-  if (static_cast<unsigned int>(num_faces) > std::numeric_limits<CornerIndex::ValueType>::max() / 3)
+  if (static_cast<unsigned int>(num_faces) >
+      std::numeric_limits<CornerIndex::ValueType>::max() / 3)
     return false;
   corner_to_vertex_map_.assign(num_faces * 3, kInvalidVertexIndex);
   opposite_corners_.assign(num_faces * 3, kInvalidCornerIndex);

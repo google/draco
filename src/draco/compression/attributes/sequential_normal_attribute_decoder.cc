@@ -21,9 +21,9 @@ namespace draco {
 SequentialNormalAttributeDecoder::SequentialNormalAttributeDecoder()
     : quantization_bits_(-1) {}
 
-bool SequentialNormalAttributeDecoder::Initialize(PointCloudDecoder *decoder,
-                                                  int attribute_id) {
-  if (!SequentialIntegerAttributeDecoder::Initialize(decoder, attribute_id))
+bool SequentialNormalAttributeDecoder::Init(PointCloudDecoder *decoder,
+                                            int attribute_id) {
+  if (!SequentialIntegerAttributeDecoder::Init(decoder, attribute_id))
     return false;
   // Currently, this encoder works only for 3-component normal vectors.
   if (attribute()->num_components() != 3)

@@ -76,7 +76,8 @@ bool AttributeQuantizationTransform::ComputeParameters(
   attribute.GetValue(AttributeValueIndex(0), min_values_.data());
   attribute.GetValue(AttributeValueIndex(0), max_values.get());
 
-  for (AttributeValueIndex i(1); i < static_cast<uint32_t>(attribute.size()); ++i) {
+  for (AttributeValueIndex i(1); i < static_cast<uint32_t>(attribute.size());
+       ++i) {
     attribute.GetValue(i, att_val.get());
     for (int c = 0; c < num_components; ++c) {
       if (min_values_[c] > att_val[c])

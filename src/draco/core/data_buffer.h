@@ -37,8 +37,6 @@ class DataBuffer {
  public:
   DataBuffer();
   bool Update(const void *data, int64_t size);
-  // TODO(draco-eng): The two update functions should be combined. I will
-  // leave for now in case it breaks any geometry compression tools.
   bool Update(const void *data, int64_t size, int64_t offset);
 
   // Reallocate the buffer storage to a new size keeping the data unchanged.

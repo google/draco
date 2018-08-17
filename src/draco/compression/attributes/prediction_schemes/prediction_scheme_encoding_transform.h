@@ -38,8 +38,8 @@ class PredictionSchemeEncodingTransform {
   // Performs any custom initialization of the transform for the encoder.
   // |size| = total number of values in |orig_data| (i.e., number of entries *
   // number of components).
-  void Initialize(const DataTypeT * /* orig_data */, int /* size */,
-                  int num_components) {
+  void Init(const DataTypeT * /* orig_data */, int /* size */,
+            int num_components) {
     num_components_ = num_components;
   }
 

@@ -19,8 +19,8 @@ namespace draco {
 SequentialAttributeDecoder::SequentialAttributeDecoder()
     : decoder_(nullptr), attribute_(nullptr), attribute_id_(-1) {}
 
-bool SequentialAttributeDecoder::Initialize(PointCloudDecoder *decoder,
-                                            int attribute_id) {
+bool SequentialAttributeDecoder::Init(PointCloudDecoder *decoder,
+                                      int attribute_id) {
   decoder_ = decoder;
   attribute_ = decoder->point_cloud()->attribute(attribute_id);
   attribute_id_ = attribute_id;
@@ -61,7 +61,8 @@ const PointAttribute *SequentialAttributeDecoder::GetPortableAttribute() {
   if (!attribute_->is_mapping_identity() && portable_attribute_ &&
       portable_attribute_->is_mapping_identity()) {
     portable_attribute_->SetExplicitMapping(attribute_->indices_map_size());
-    for (PointIndex i(0); i < static_cast<uint32_t>(attribute_->indices_map_size()); ++i) {
+    for (PointIndex i(0);
+         i < static_cast<uint32_t>(attribute_->indices_map_size()); ++i) {
       portable_attribute_->SetPointMapEntry(i, attribute_->mapped_index(i));
     }
   }

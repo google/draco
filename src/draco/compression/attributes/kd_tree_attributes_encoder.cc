@@ -87,7 +87,8 @@ bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
       std::vector<int32_t> min_value(att->num_components(),
                                      std::numeric_limits<int32_t>::max());
       std::vector<int32_t> act_value(att->num_components());
-      for (AttributeValueIndex avi(0); avi < static_cast<uint32_t>(att->size()); ++avi) {
+      for (AttributeValueIndex avi(0); avi < static_cast<uint32_t>(att->size());
+           ++avi) {
         att->ConvertValue<int32_t>(avi, &act_value[0]);
         for (int c = 0; c < att->num_components(); ++c) {
           if (min_value[c] > act_value[c])
@@ -221,7 +222,7 @@ bool KdTreeAttributesEncoder::EncodePortableAttributes(
   const uint32_t *data = point_vector[0];
   for (int i = 0; i < num_points * num_components_; ++i) {
     if (data[i] > 0) {
-      const int msb = bits::MostSignificantBit(data[i]) + 1;
+      const int msb = MostSignificantBit(data[i]) + 1;
       if (msb > num_bits) {
         num_bits = msb;
       }

@@ -21,9 +21,9 @@ namespace draco {
 SequentialQuantizationAttributeEncoder::
     SequentialQuantizationAttributeEncoder() {}
 
-bool SequentialQuantizationAttributeEncoder::Initialize(
-    PointCloudEncoder *encoder, int attribute_id) {
-  if (!SequentialIntegerAttributeEncoder::Initialize(encoder, attribute_id))
+bool SequentialQuantizationAttributeEncoder::Init(PointCloudEncoder *encoder,
+                                                  int attribute_id) {
+  if (!SequentialIntegerAttributeEncoder::Init(encoder, attribute_id))
     return false;
   // This encoder currently works only for floating point attributes.
   const PointAttribute *const attribute =

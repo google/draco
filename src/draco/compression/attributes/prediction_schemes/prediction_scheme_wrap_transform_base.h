@@ -51,7 +51,7 @@ class PredictionSchemeWrapTransformBase {
     return PREDICTION_TRANSFORM_WRAP;
   }
 
-  void Initialize(int num_components) {
+  void Init(int num_components) {
     num_components_ = num_components;
     clamped_value_.resize(num_components);
   }

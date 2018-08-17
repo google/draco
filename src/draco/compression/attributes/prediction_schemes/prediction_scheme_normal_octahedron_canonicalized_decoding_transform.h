@@ -40,7 +40,7 @@ class PredictionSchemeNormalOctahedronCanonicalizedDecodingTransform
   PredictionSchemeNormalOctahedronCanonicalizedDecodingTransform() {}
 
   // Dummy to fulfill concept.
-  void Initialize(int num_components) {}
+  void Init(int num_components) {}
 
   bool DecodeTransformData(DecoderBuffer *buffer) {
     DataTypeT max_quantized_value, center_value;

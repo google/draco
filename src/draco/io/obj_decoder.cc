@@ -193,8 +193,8 @@ Status ObjDecoder::DecodeInternal() {
     } else {
       va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT32, false, 4, 0);
     }
-    sub_obj_att_id_ =
-        out_point_cloud_->AddAttribute(va, false, static_cast<uint32_t>(obj_name_to_id_.size()));
+    sub_obj_att_id_ = out_point_cloud_->AddAttribute(
+        va, false, static_cast<uint32_t>(obj_name_to_id_.size()));
     // Fill the sub object id entries.
     for (const auto &itr : obj_name_to_id_) {
       const AttributeValueIndex i(itr.second);

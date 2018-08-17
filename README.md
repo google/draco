@@ -5,6 +5,11 @@
 
 News
 =======
+### Version 1.3.4 release
+* Released Draco Animation code
+* Fixes for Unity
+* Various file location and name changes
+
 ### Version 1.3.3 release
 * Added ExpertEncoder to the Javascript API
   * Allows developers to set quantization options per attribute id
@@ -565,7 +570,7 @@ The Javascript decoder is built with dynamic memory. This will let the decoder
 work with all of the compressed data. But this option is not the fastest.
 Pre-allocating the memory sees about a 2x decoder speed improvement. If you
 know all of your project's memory requirements, you can turn on static memory
-by changing `Makefile.emcc` and running `make -f Makefile.emcc`.
+by changing `CMakeLists.txt` accordingly.
 
 Metadata API
 ------------

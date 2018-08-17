@@ -14,22 +14,22 @@
 //
 // File containing a basic set of bit manipulation utilities used within the
 // Draco library.
-// All functions are defined within its own namespace draco::bits::
 
 #ifndef DRACO_CORE_BIT_UTILS_H_
 #define DRACO_CORE_BIT_UTILS_H_
 
+#include <inttypes.h>
 #include <stdint.h>
+#include <type_traits>
 
 #if defined(_MSC_VER)
 #include <intrin.h>
 #endif  // defined(_MSC_VER)
 
 namespace draco {
-namespace bits {
 
 // Returns the number of '1' bits within the input 32 bit integer.
-inline int CountOnes32(uint32_t n) {
+inline int CountOneBits32(uint32_t n) {
   n -= ((n >> 1) & 0x55555555);
   n = ((n >> 2) & 0x33333333) + (n & 0x33333333);
   return (((n + (n >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
@@ -58,6 +58,7 @@ inline int MostSignificantBit(uint32_t n) {
 #if defined(__GNUC__)
   return 31 ^ __builtin_clz(n);
 #elif defined(_MSC_VER)
+
   unsigned long where;
   _BitScanReverse(&where, n);
   return (int)where;
@@ -72,7 +73,51 @@ inline int MostSignificantBit(uint32_t n) {
 #endif
 }
 
-}  // namespace bits
+// Helper function that converts signed integer values into unsigned integer
+// symbols that can be encoded using an entropy encoder.
+void ConvertSignedIntsToSymbols(const int32_t *in, int in_values,
+                                uint32_t *out);
+
+// Converts unsigned integer symbols encoded with an entropy encoder back to
+// signed values.
+void ConvertSymbolsToSignedInts(const uint32_t *in, int in_values,
+                                int32_t *out);
+
+// Helper function that converts a single signed integer value into an unsigned
+// integer symbol that can be encoded using an entropy encoder.
+template <class IntTypeT>
+typename std::make_unsigned<IntTypeT>::type ConvertSignedIntToSymbol(
+    IntTypeT val) {
+  typedef typename std::make_unsigned<IntTypeT>::type UnsignedType;
+  static_assert(std::is_integral<IntTypeT>::value, "IntTypeT is not integral.");
+  // Early exit if val is positive.
+  if (val >= 0) {
+    return static_cast<UnsignedType>(val) << 1;
+  }
+  val = -(val + 1);  // Map -1 to 0, -2 to -1, etc..
+  UnsignedType ret = static_cast<UnsignedType>(val);
+  ret <<= 1;
+  ret |= 1;
+  return ret;
+}
+
+// Converts a single unsigned integer symbol encoded with an entropy encoder
+// back to a signed value.
+template <class IntTypeT>
+typename std::make_signed<IntTypeT>::type ConvertSymbolToSignedInt(
+    IntTypeT val) {
+  static_assert(std::is_integral<IntTypeT>::value, "IntTypeT is not integral.");
+  typedef typename std::make_signed<IntTypeT>::type SignedType;
+  const bool is_positive = !static_cast<bool>(val & 1);
+  val >>= 1;
+  if (is_positive) {
+    return static_cast<SignedType>(val);
+  }
+  SignedType ret = static_cast<SignedType>(val);
+  ret = -ret - 1;
+  return ret;
+}
+
 }  // namespace draco
 
 #endif  // DRACO_CORE_BIT_UTILS_H_

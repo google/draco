@@ -23,25 +23,25 @@
 namespace draco {
 
 // Decoder for traversal encoded with the
-// MeshEdgeBreakerTraversalPredictiveEncoder. The decoder maintains valences
+// MeshEdgebreakerTraversalPredictiveEncoder. The decoder maintains valences
 // of the decoded portion of the traversed mesh and it uses them to predict
 // symbols that are about to be decoded.
-class MeshEdgeBreakerTraversalPredictiveDecoder
-    : public MeshEdgeBreakerTraversalDecoder {
+class MeshEdgebreakerTraversalPredictiveDecoder
+    : public MeshEdgebreakerTraversalDecoder {
  public:
-  MeshEdgeBreakerTraversalPredictiveDecoder()
+  MeshEdgebreakerTraversalPredictiveDecoder()
       : corner_table_(nullptr),
         num_vertices_(0),
         last_symbol_(-1),
         predicted_symbol_(-1) {}
-  void Init(MeshEdgeBreakerDecoderImplInterface *decoder) {
-    MeshEdgeBreakerTraversalDecoder::Init(decoder);
+  void Init(MeshEdgebreakerDecoderImplInterface *decoder) {
+    MeshEdgebreakerTraversalDecoder::Init(decoder);
     corner_table_ = decoder->GetCornerTable();
   }
   void SetNumEncodedVertices(int num_vertices) { num_vertices_ = num_vertices; }
 
   bool Start(DecoderBuffer *out_buffer) {
-    if (!MeshEdgeBreakerTraversalDecoder::Start(out_buffer))
+    if (!MeshEdgebreakerTraversalDecoder::Start(out_buffer))
       return false;
     int32_t num_split_symbols;
     if (!out_buffer->Decode(&num_split_symbols) || num_split_symbols < 0)
@@ -66,7 +66,7 @@ class MeshEdgeBreakerTraversalPredictiveDecoder
     }
     // We don't have a predicted symbol or the symbol was mis-predicted.
     // Decode it directly.
-    last_symbol_ = MeshEdgeBreakerTraversalDecoder::DecodeSymbol();
+    last_symbol_ = MeshEdgebreakerTraversalDecoder::DecodeSymbol();
     return last_symbol_;
   }
 

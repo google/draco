@@ -17,11 +17,11 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include "draco/compression/mesh/traverser/mesh_traversal_sequencer.h"
 
 #include "draco/draco_features.h"
 
 #include "draco/compression/attributes/mesh_attribute_indices_encoding_data.h"
-#include "draco/compression/attributes/mesh_traversal_sequencer.h"
 #include "draco/compression/mesh/mesh_edgebreaker_decoder_impl_interface.h"
 #include "draco/compression/mesh/mesh_edgebreaker_shared.h"
 #include "draco/core/decoder_buffer.h"
@@ -31,7 +31,7 @@
 namespace draco {
 
 // Implementation of the edgebreaker decoder that decodes data encoded with the
-// MeshEdgeBreakerEncoderImpl class. The implementation of the decoder is based
+// MeshEdgebreakerEncoderImpl class. The implementation of the decoder is based
 // on the algorithm presented in Isenburg et al'02 "Spirale Reversi: Reverse
 // decoding of the Edgebreaker encoding". Note that the encoding is still based
 // on the standard edgebreaker method as presented in "3D Compression
@@ -50,10 +50,10 @@ namespace draco {
 // known connectivity to predict encoded symbols that can improve the
 // compression rate.
 template <class TraversalDecoderT>
-class MeshEdgeBreakerDecoderImpl : public MeshEdgeBreakerDecoderImplInterface {
+class MeshEdgebreakerDecoderImpl : public MeshEdgebreakerDecoderImplInterface {
  public:
-  MeshEdgeBreakerDecoderImpl();
-  bool Init(MeshEdgeBreakerDecoder *decoder) override;
+  MeshEdgebreakerDecoderImpl();
+  bool Init(MeshEdgebreakerDecoder *decoder) override;
 
   const MeshAttributeCornerTable *GetAttributeCornerTable(
       int att_id) const override;
@@ -63,7 +63,7 @@ class MeshEdgeBreakerDecoderImpl : public MeshEdgeBreakerDecoderImplInterface {
   bool CreateAttributesDecoder(int32_t att_decoder_id) override;
   bool DecodeConnectivity() override;
   bool OnAttributesDecoded() override;
-  MeshEdgeBreakerDecoder *GetDecoder() const override { return decoder_; }
+  MeshEdgebreakerDecoder *GetDecoder() const override { return decoder_; }
   const CornerTable *GetCornerTable() const override {
     return corner_table_.get();
   }
@@ -87,7 +87,8 @@ class MeshEdgeBreakerDecoderImpl : public MeshEdgeBreakerDecoderImplInterface {
                        int *out_encoder_split_symbol_id) {
     if (topology_split_data_.size() == 0)
       return false;
-    if (topology_split_data_.back().source_symbol_id > static_cast<uint32_t>(encoder_symbol_id)) {
+    if (topology_split_data_.back().source_symbol_id >
+        static_cast<uint32_t>(encoder_symbol_id)) {
       // Something is wrong; if the desired source symbol is greater than the
       // current encoder_symbol_id, we missed it, or the input was tampered
       // (|encoder_symbol_id| keeps decreasing).
@@ -132,7 +133,7 @@ class MeshEdgeBreakerDecoderImpl : public MeshEdgeBreakerDecoderImplInterface {
     corner_table_->SetOppositeCorner(corner_1, corner_0);
   }
 
-  MeshEdgeBreakerDecoder *decoder_;
+  MeshEdgebreakerDecoder *decoder_;
 
   std::unique_ptr<CornerTable> corner_table_;
 

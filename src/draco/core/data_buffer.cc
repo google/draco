@@ -19,18 +19,8 @@ namespace draco {
 DataBuffer::DataBuffer() {}
 
 bool DataBuffer::Update(const void *data, int64_t size) {
-  if (size < 0)
-    return false;
-
-  if (data == nullptr) {
-    // If no data is provided, just resize the buffer.
-    data_.resize(size);
-  } else {
-    const uint8_t *const byte_data = static_cast<const uint8_t *>(data);
-    data_.assign(byte_data, byte_data + size);
-  }
-  descriptor_.buffer_update_count++;
-  return true;
+  const int64_t offset = 0;
+  return this->Update(data, size, offset);
 }
 
 bool DataBuffer::Update(const void *data, int64_t size, int64_t offset) {

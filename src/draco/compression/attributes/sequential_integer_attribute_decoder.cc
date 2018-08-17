@@ -16,15 +16,15 @@
 
 #include "draco/compression/attributes/prediction_schemes/prediction_scheme_decoder_factory.h"
 #include "draco/compression/attributes/prediction_schemes/prediction_scheme_wrap_decoding_transform.h"
-#include "draco/core/symbol_decoding.h"
+#include "draco/compression/entropy/symbol_decoding.h"
 
 namespace draco {
 
 SequentialIntegerAttributeDecoder::SequentialIntegerAttributeDecoder() {}
 
-bool SequentialIntegerAttributeDecoder::Initialize(PointCloudDecoder *decoder,
-                                                   int attribute_id) {
-  if (!SequentialAttributeDecoder::Initialize(decoder, attribute_id))
+bool SequentialIntegerAttributeDecoder::Init(PointCloudDecoder *decoder,
+                                             int attribute_id) {
+  if (!SequentialAttributeDecoder::Init(decoder, attribute_id))
     return false;
   return true;
 }
@@ -99,7 +99,8 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
     return false;
   if (compressed > 0) {
     // Decode compressed values.
-    if (!DecodeSymbols(static_cast<uint32_t>(num_values), num_components, in_buffer,
+    if (!DecodeSymbols(static_cast<uint32_t>(num_values), num_components,
+                       in_buffer,
                        reinterpret_cast<uint32_t *>(portable_attribute_data)))
       return false;
   } else {
@@ -118,7 +119,8 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
     } else {
       if (portable_attribute()->buffer()->data_size() < num_bytes * num_values)
         return false;
-      if (in_buffer->remaining_size() < static_cast<int64_t>(num_bytes) * static_cast<int64_t>(num_values))
+      if (in_buffer->remaining_size() <
+          static_cast<int64_t>(num_bytes) * static_cast<int64_t>(num_values))
         return false;
       for (size_t i = 0; i < num_values; ++i) {
         in_buffer->Decode(portable_attribute_data + i, num_bytes);
@@ -130,8 +132,8 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
                          !prediction_scheme_->AreCorrectionsPositive())) {
     // Convert the values back to the original signed format.
     ConvertSymbolsToSignedInts(
-        reinterpret_cast<const uint32_t *>(portable_attribute_data), static_cast<int>(num_values),
-        portable_attribute_data);
+        reinterpret_cast<const uint32_t *>(portable_attribute_data),
+        static_cast<int>(num_values), portable_attribute_data);
   }
 
   // If the data was encoded with a prediction scheme, we must revert it.
@@ -141,8 +143,8 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
 
     if (num_values > 0) {
       if (!prediction_scheme_->ComputeOriginalValues(
-              portable_attribute_data, portable_attribute_data, static_cast<int>(num_values),
-              num_components, point_ids.data())) {
+              portable_attribute_data, portable_attribute_data,
+              static_cast<int>(num_values), num_components, point_ids.data())) {
         return false;
       }
     }

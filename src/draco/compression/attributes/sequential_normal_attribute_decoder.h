@@ -29,7 +29,7 @@ class SequentialNormalAttributeDecoder
     : public SequentialIntegerAttributeDecoder {
  public:
   SequentialNormalAttributeDecoder();
-  bool Initialize(PointCloudDecoder *decoder, int attribute_id) override;
+  bool Init(PointCloudDecoder *decoder, int attribute_id) override;
 
  protected:
   int32_t GetNumValueComponents() const override {

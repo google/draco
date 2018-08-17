@@ -17,8 +17,8 @@
 
 #include <type_traits>
 
+#include "draco/core/bit_utils.h"
 #include "draco/core/decoder_buffer.h"
-#include "draco/core/symbol_coding_utils.h"
 
 namespace draco {
 

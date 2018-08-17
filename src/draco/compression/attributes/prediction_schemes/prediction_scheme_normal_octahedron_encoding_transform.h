@@ -55,7 +55,7 @@ class PredictionSchemeNormalOctahedronEncodingTransform
       DataType max_quantized_value)
       : Base(max_quantized_value) {}
 
-  void Initialize(const DataTypeT *orig_data, int size, int num_components) {}
+  void Init(const DataTypeT *orig_data, int size, int num_components) {}
 
   bool EncodeTransformData(EncoderBuffer *buffer) {
     buffer->Encode(this->max_quantized_value());

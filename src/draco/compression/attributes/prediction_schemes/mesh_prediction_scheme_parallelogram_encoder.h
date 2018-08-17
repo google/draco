@@ -69,7 +69,8 @@ bool MeshPredictionSchemeParallelogramEncoder<DataTypeT, TransformT,
     ComputeCorrectionValues(const DataTypeT *in_data, CorrType *out_corr,
                             int size, int num_components,
                             const PointIndex * /* entry_to_point_id_map */) {
-  this->transform().Initialize(in_data, size, num_components);
+  this->transform().Init(in_data, size, num_components);
+  // For storage of prediction values (already initialized to zero).
   std::unique_ptr<DataTypeT[]> pred_vals(new DataTypeT[num_components]());
 
   // We start processing from the end because this prediction uses data from
@@ -77,7 +78,9 @@ bool MeshPredictionSchemeParallelogramEncoder<DataTypeT, TransformT,
   const CornerTable *const table = this->mesh_data().corner_table();
   const std::vector<int32_t> *const vertex_to_data_map =
       this->mesh_data().vertex_to_data_map();
-  for (int p = static_cast<int>(this->mesh_data().data_to_corner_map()->size() - 1); p > 0; --p) {
+  for (int p =
+           static_cast<int>(this->mesh_data().data_to_corner_map()->size() - 1);
+       p > 0; --p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     const int dst_offset = p * num_components;
     if (!ComputeParallelogramPrediction(p, corner_id, table,

@@ -62,7 +62,7 @@ class CornerTable {
   // Initializes the CornerTable from provides set of indexed faces.
   // The input faces can represent a non-manifold topology, in which case the
   // non-manifold edges and vertices are going to be split.
-  bool Initialize(const IndexTypeVector<FaceIndex, FaceType> &faces);
+  bool Init(const IndexTypeVector<FaceIndex, FaceType> &faces);
 
   // Resets the corner table to the given number of invalid faces.
   bool Reset(int num_faces);
@@ -70,9 +70,15 @@ class CornerTable {
   // Resets the corner table to the given number of invalid faces and vertices.
   bool Reset(int num_faces, int num_vertices);
 
-  inline int num_vertices() const { return static_cast<int>(vertex_corners_.size()); }
-  inline int num_corners() const { return static_cast<int>(corner_to_vertex_map_.size()); }
-  inline int num_faces() const { return static_cast<int>(corner_to_vertex_map_.size() / 3); }
+  inline int num_vertices() const {
+    return static_cast<int>(vertex_corners_.size());
+  }
+  inline int num_corners() const {
+    return static_cast<int>(corner_to_vertex_map_.size());
+  }
+  inline int num_faces() const {
+    return static_cast<int>(corner_to_vertex_map_.size() / 3);
+  }
 
   inline CornerIndex Opposite(CornerIndex corner) const {
     if (corner == kInvalidCornerIndex)

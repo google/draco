@@ -102,7 +102,7 @@ bool PointCloudEncoder::EncodePointAttributes() {
   // Initialize all the encoders (this is used for example to init attribute
   // dependencies, no data is encoded in this step).
   for (auto &att_enc : attributes_encoders_) {
-    if (!att_enc->Initialize(this, point_cloud_))
+    if (!att_enc->Init(this, point_cloud_))
       return false;
   }
 

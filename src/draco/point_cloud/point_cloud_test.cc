@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "draco/point_cloud/point_cloud.h"
-
 #include "draco/core/draco_test_base.h"
+#include "draco/core/draco_test_utils.h"
+
+#include "draco/point_cloud/point_cloud.h"
 
 namespace {
 
@@ -126,4 +127,5 @@ TEST_F(PointCloudTest, TestPointCloudWithMetadata) {
   // Attribute id of material attribute is changed from 1 to 0.
   ASSERT_NE(pc.GetAttributeMetadataByAttributeId(0), nullptr);
 }
+
 }  // namespace

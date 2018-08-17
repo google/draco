@@ -56,7 +56,7 @@ struct EXPORT_API DracoToUnityMesh {
   float *color;
 };
 
-void ReleaseUnityMesh(DracoToUnityMesh **mesh_ptr);
+void EXPORT_API ReleaseUnityMesh(DracoToUnityMesh **mesh_ptr);
 
 /* To use this function, you do not allocate memory for |tmp_mesh|, just
  * define and pass a null pointer. Otherwise there will be memory leak.

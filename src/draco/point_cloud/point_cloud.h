@@ -18,6 +18,8 @@
 #include "draco/draco_features.h"
 
 #include "draco/attributes/point_attribute.h"
+#include "draco/core/bounding_box.h"
+#include "draco/core/vector_d.h"
 #include "draco/metadata/geometry_metadata.h"
 
 namespace draco {
@@ -56,7 +58,9 @@ class PointCloud {
   const PointAttribute *GetAttributeByUniqueId(uint32_t id) const;
   int32_t GetAttributeIdByUniqueId(uint32_t unique_id) const;
 
-  int32_t num_attributes() const { return static_cast<int32_t>(attributes_.size()); }
+  int32_t num_attributes() const {
+    return static_cast<int32_t>(attributes_.size());
+  }
   const PointAttribute *attribute(int32_t att_id) const {
     DRACO_DCHECK_LE(0, att_id);
     DRACO_DCHECK_LT(att_id, static_cast<int32_t>(attributes_.size()));
@@ -78,19 +82,19 @@ class PointCloud {
   // Creates and adds a new attribute to the point cloud. The attribute has
   // properties derived from the provided GeometryAttribute |att|.
   // If |identity_mapping| is set to true, the attribute will use identity
-  // mapping between point indices and attribute value indices (i.e., each point
-  // has a unique attribute value).
-  // If |identity_mapping| is false, the mapping between point indices and
-  // attribute value indices is set to explicit, and it needs to be initialized
-  // manually using the PointAttribute::SetPointMapEntry() method.
-  // |num_attribute_values| can be used to specify the number of attribute
-  // values that are going to be stored in the newly created attribute.
-  // Returns attribute id of the newly created attribute.
+  // mapping between point indices and attribute value indices (i.e., each
+  // point has a unique attribute value). If |identity_mapping| is false, the
+  // mapping between point indices and attribute value indices is set to
+  // explicit, and it needs to be initialized manually using the
+  // PointAttribute::SetPointMapEntry() method. |num_attribute_values| can be
+  // used to specify the number of attribute values that are going to be
+  // stored in the newly created attribute. Returns attribute id of the newly
+  // created attribute.
   int AddAttribute(const GeometryAttribute &att, bool identity_mapping,
                    AttributeValueIndex::ValueType num_attribute_values);
 
-  // Assigns an attribute id to a given PointAttribute. If an attribute with the
-  // same attribute id already exists, it is deleted.
+  // Assigns an attribute id to a given PointAttribute. If an attribute with
+  // the same attribute id already exists, it is deleted.
   virtual void SetAttribute(int att_id, std::unique_ptr<PointAttribute> pa);
 
   // Deletes an attribute with specified attribute id. Note that this changes
@@ -106,6 +110,9 @@ class PointCloud {
   // attributes are mapped to the same entry ids).
   virtual void DeduplicatePointIds();
 #endif
+
+  // Get bounding box.
+  BoundingBox ComputeBoundingBox() const;
 
   // Add metadata.
   void AddMetadata(std::unique_ptr<GeometryMetadata> metadata) {

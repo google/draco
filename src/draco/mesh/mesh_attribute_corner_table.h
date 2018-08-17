@@ -84,7 +84,9 @@ class MeshAttributeCornerTable {
     return Next(Opposite(Next(corner)));
   }
 
-  int num_vertices() const { return static_cast<int>(vertex_to_attribute_entry_id_map_.size()); }
+  int num_vertices() const {
+    return static_cast<int>(vertex_to_attribute_entry_id_map_.size());
+  }
   int num_faces() const { return static_cast<int>(corner_table_->num_faces()); }
 
   VertexIndex Vertex(CornerIndex corner) const {
@@ -139,7 +141,7 @@ class MeshAttributeCornerTable {
   // qualities.  If the mesh or table is modified the cache should be discarded
   // and not relied on as it does not automatically update or invalidate for
   // performance reasons.
-  const draco::ValenceCache<MeshAttributeCornerTable> &GetValenceCache() const {
+  const ValenceCache<MeshAttributeCornerTable> &GetValenceCache() const {
     return valence_cache_;
   }
 
@@ -168,7 +170,7 @@ class MeshAttributeCornerTable {
   // VertexParent() method.
   std::vector<AttributeValueIndex> vertex_to_attribute_entry_id_map_;
   const CornerTable *corner_table_;
-  draco::ValenceCache<MeshAttributeCornerTable> valence_cache_;
+  ValenceCache<MeshAttributeCornerTable> valence_cache_;
 };
 
 }  // namespace draco

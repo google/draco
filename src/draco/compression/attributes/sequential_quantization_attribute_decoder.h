@@ -27,7 +27,7 @@ class SequentialQuantizationAttributeDecoder
     : public SequentialIntegerAttributeDecoder {
  public:
   SequentialQuantizationAttributeDecoder();
-  bool Initialize(PointCloudDecoder *decoder, int attribute_id) override;
+  bool Init(PointCloudDecoder *decoder, int attribute_id) override;
 
  protected:
   bool DecodeIntegerValues(const std::vector<PointIndex> &point_ids,

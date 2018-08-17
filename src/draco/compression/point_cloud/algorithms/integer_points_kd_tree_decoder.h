@@ -22,12 +22,12 @@
 #include <array>
 #include <memory>
 
+#include "draco/compression/bit_coders/adaptive_rans_bit_decoder.h"
+#include "draco/compression/bit_coders/direct_bit_decoder.h"
+#include "draco/compression/bit_coders/folded_integer_bit_decoder.h"
+#include "draco/compression/bit_coders/rans_bit_decoder.h"
 #include "draco/compression/point_cloud/algorithms/point_cloud_types.h"
 #include "draco/compression/point_cloud/algorithms/queuing_policy.h"
-#include "draco/core/bit_coders/adaptive_rans_bit_decoder.h"
-#include "draco/core/bit_coders/direct_bit_decoder.h"
-#include "draco/core/bit_coders/folded_integer_bit_decoder.h"
-#include "draco/core/bit_coders/rans_bit_decoder.h"
 #include "draco/core/bit_utils.h"
 #include "draco/core/decoder_buffer.h"
 #include "draco/core/math_utils.h"
@@ -262,7 +262,7 @@ void IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodeInternal(
     PointDiT new_base(old_base);
     new_base[axis] += modifier;
 
-    const int incoming_bits = bits::MostSignificantBit(num_remaining_points);
+    const int incoming_bits = MostSignificantBit(num_remaining_points);
 
     uint32_t number = 0;
     DecodeNumber(incoming_bits, &number);

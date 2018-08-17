@@ -138,8 +138,8 @@ int DecodeMeshForUnity(char *data, unsigned int length,
     for (draco::PointIndex i(0); i < in_mesh->num_points(); ++i) {
       const draco::AttributeValueIndex val_index =
           texcoord_att->mapped_index(i);
-      if (!texcoord_att->ConvertValue<float, 3>(
-              val_index, unity_mesh->texcoord + i.value() * 3)) {
+      if (!texcoord_att->ConvertValue<float, 2>(
+              val_index, unity_mesh->texcoord + i.value() * 2)) {
         ReleaseUnityMesh(&unity_mesh);
         return -8;
       }

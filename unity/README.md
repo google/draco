@@ -74,7 +74,7 @@ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/armv7-android-ndk
 
 Change file extension
 ---------------------
-Because Unity can only recognize file extensions known to Unity, you need to change your compressed .drc file to .bytes so that Unity will recognize it as a binary file. For example, if you have file `bunny.drc` then change the file name to `bunny.bytes`.
+Because Unity can only recognize file extensions known to Unity, you need to change your compressed .drc file to .bytes so that Unity will recognize it as a binary file. For example, if you have file `bunny.drc` then change the file name to `bunny.drc.bytes`.
 
 Copy Library to Your Project
 ----------------------------
@@ -112,7 +112,7 @@ cp DracoMeshLoader.cs path/to/your/Unity/Project/Assets/
 
 Load Draco Assets in Runtime
 ============================
-For example, please see [DracoDecodingObject.cs](DracoDecodingObject.cs) for usage. To start, you can create an empty GameObject and attach this script to it. [DracoDecodingObject.cs](DracoDecodingObject.cs) will load `bunny.bytes` by default.
+For example, please see [DracoDecodingObject.cs](DracoDecodingObject.cs) for usage. To start, you can create an empty GameObject and attach this script to it. [DracoDecodingObject.cs](DracoDecodingObject.cs) will load `bunny.drc.bytes` by default.
 
 Enable Library in Script Debugging
 ----------------------------------

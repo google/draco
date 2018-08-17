@@ -61,6 +61,10 @@ class EncoderBase {
     options_.SetGlobalInt("encoding_method", encoding_method);
   }
 
+  void SetEncodingSubmethod(int encoding_submethod) {
+    options_.SetGlobalInt("encoding_submethod", encoding_submethod);
+  }
+
   Status CheckPredictionScheme(GeometryAttribute::Type att_type,
                                int prediction_scheme) const {
     // Out of bound checks:
@@ -79,9 +83,18 @@ class EncoderBase {
                       "Invalid prediction scheme for attribute type.");
     }
     if (prediction_scheme == MESH_PREDICTION_GEOMETRIC_NORMAL) {
-      if (att_type != GeometryAttribute::NORMAL)
+      if (att_type != GeometryAttribute::NORMAL) {
         return Status(Status::ERROR,
                       "Invalid prediction scheme for attribute type.");
+      }
+    }
+    // TODO(hemmer): Try to enable more prediction schemes for normals.
+    if (att_type == GeometryAttribute::NORMAL) {
+      if (!(prediction_scheme == PREDICTION_DIFFERENCE ||
+            prediction_scheme == MESH_PREDICTION_GEOMETRIC_NORMAL)) {
+        return Status(Status::ERROR,
+                      "Invalid prediction scheme for attribute type.");
+      }
     }
     return OkStatus();
   }

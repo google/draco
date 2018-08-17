@@ -18,7 +18,7 @@
 
 #include "draco/compression/attributes/linear_sequencer.h"
 #include "draco/compression/attributes/sequential_attribute_encoders_controller.h"
-#include "draco/core/symbol_encoding.h"
+#include "draco/compression/entropy/symbol_encoding.h"
 #include "draco/core/varint_encoding.h"
 
 namespace draco {
@@ -115,8 +115,8 @@ bool MeshSequentialEncoder::CompressAndEncodeIndices() {
       last_index_value = index_value;
     }
   }
-  EncodeSymbols(indices_buffer.data(), static_cast<int>(indices_buffer.size()), 1, nullptr,
-                buffer());
+  EncodeSymbols(indices_buffer.data(), static_cast<int>(indices_buffer.size()),
+                1, nullptr, buffer());
   return true;
 }
 

@@ -40,7 +40,7 @@ class SequentialNormalAttributeEncoder
   bool EncodeDataNeededByPortableTransform(EncoderBuffer *out_buffer) override;
 
  protected:
-  bool Initialize(PointCloudEncoder *encoder, int attribute_id) override;
+  bool Init(PointCloudEncoder *encoder, int attribute_id) override;
 
   // Put quantized values in portable attribute for sequential encoding.
   bool PrepareValues(const std::vector<PointIndex> &point_ids,
@@ -55,8 +55,11 @@ class SequentialNormalAttributeEncoder
         attribute_id(), "quantization_bits", -1);
     const int32_t max_value = (1 << quantization_bits) - 1;
     const Transform transform(max_value);
-    PredictionSchemeMethod prediction_method =
+    const PredictionSchemeMethod default_prediction_method =
         SelectPredictionMethod(attribute_id(), encoder());
+    const int32_t prediction_method = encoder()->options()->GetAttributeInt(
+        attribute_id(), "prediction_scheme", default_prediction_method);
+
     if (prediction_method == MESH_PREDICTION_GEOMETRIC_NORMAL) {
       return CreatePredictionSchemeForEncoder<int32_t, Transform>(
           MESH_PREDICTION_GEOMETRIC_NORMAL, attribute_id(), encoder(),

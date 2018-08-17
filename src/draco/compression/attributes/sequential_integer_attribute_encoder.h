@@ -30,7 +30,7 @@ class SequentialIntegerAttributeEncoder : public SequentialAttributeEncoder {
     return SEQUENTIAL_ATTRIBUTE_ENCODER_INTEGER;
   }
 
-  bool Initialize(PointCloudEncoder *encoder, int attribute_id) override;
+  bool Init(PointCloudEncoder *encoder, int attribute_id) override;
   bool TransformAttributeToPortableFormat(
       const std::vector<PointIndex> &point_ids) override;
 

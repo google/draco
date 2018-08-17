@@ -25,18 +25,18 @@ namespace draco {
 // the symbol preceding the one that is currently encoded. Predictions are
 // encoded using an arithmetic coding which can lead to less than 1 bit per
 // triangle encoding for highly regular meshes.
-class MeshEdgeBreakerTraversalPredictiveEncoder
-    : public MeshEdgeBreakerTraversalEncoder {
+class MeshEdgebreakerTraversalPredictiveEncoder
+    : public MeshEdgebreakerTraversalEncoder {
  public:
-  MeshEdgeBreakerTraversalPredictiveEncoder()
+  MeshEdgebreakerTraversalPredictiveEncoder()
       : corner_table_(nullptr),
         prev_symbol_(-1),
         num_split_symbols_(0),
         last_corner_(kInvalidCornerIndex),
         num_symbols_(0) {}
 
-  bool Init(MeshEdgeBreakerEncoderImplInterface *encoder) {
-    if (!MeshEdgeBreakerTraversalEncoder::Init(encoder))
+  bool Init(MeshEdgebreakerEncoderImplInterface *encoder) {
+    if (!MeshEdgebreakerTraversalEncoder::Init(encoder))
       return false;
     corner_table_ = encoder->GetCornerTable();
     // Initialize valences of all vertices.
@@ -62,7 +62,7 @@ class MeshEdgeBreakerTraversalPredictiveEncoder
     return TOPOLOGY_C;
   }
 
-  inline void EncodeSymbol(EdgeBreakerTopologyBitPattern symbol) {
+  inline void EncodeSymbol(EdgebreakerTopologyBitPattern symbol) {
     ++num_symbols_;
     // Update valences on the mesh. And compute the predicted preceding symbol.
     // Note that the valences are computed for the so far unencoded part of the
@@ -126,8 +126,8 @@ class MeshEdgeBreakerTraversalPredictiveEncoder
       }
     }
     if (store_prev_symbol && prev_symbol_ != -1) {
-      MeshEdgeBreakerTraversalEncoder::EncodeSymbol(
-          static_cast<EdgeBreakerTopologyBitPattern>(prev_symbol_));
+      MeshEdgebreakerTraversalEncoder::EncodeSymbol(
+          static_cast<EdgebreakerTopologyBitPattern>(prev_symbol_));
     }
     prev_symbol_ = symbol;
   }
@@ -135,11 +135,11 @@ class MeshEdgeBreakerTraversalPredictiveEncoder
   void Done() {
     // We still need to store the last encoded symbol.
     if (prev_symbol_ != -1) {
-      MeshEdgeBreakerTraversalEncoder::EncodeSymbol(
-          static_cast<EdgeBreakerTopologyBitPattern>(prev_symbol_));
+      MeshEdgebreakerTraversalEncoder::EncodeSymbol(
+          static_cast<EdgebreakerTopologyBitPattern>(prev_symbol_));
     }
     // Store the init face configurations and the explicitly encoded symbols.
-    MeshEdgeBreakerTraversalEncoder::Done();
+    MeshEdgebreakerTraversalEncoder::Done();
     // Encode the number of split symbols.
     GetOutputBuffer()->Encode(num_split_symbols_);
     // Store the predictions.

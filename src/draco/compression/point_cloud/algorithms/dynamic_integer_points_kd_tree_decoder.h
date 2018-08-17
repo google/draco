@@ -21,11 +21,11 @@
 #include <memory>
 #include <stack>
 
+#include "draco/compression/bit_coders/adaptive_rans_bit_decoder.h"
+#include "draco/compression/bit_coders/direct_bit_decoder.h"
+#include "draco/compression/bit_coders/folded_integer_bit_decoder.h"
+#include "draco/compression/bit_coders/rans_bit_decoder.h"
 #include "draco/compression/point_cloud/algorithms/point_cloud_types.h"
-#include "draco/core/bit_coders/adaptive_rans_bit_decoder.h"
-#include "draco/core/bit_coders/direct_bit_decoder.h"
-#include "draco/core/bit_coders/folded_integer_bit_decoder.h"
-#include "draco/core/bit_coders/rans_bit_decoder.h"
 #include "draco/core/bit_utils.h"
 #include "draco/core/decoder_buffer.h"
 #include "draco/core/math_utils.h"
@@ -273,7 +273,7 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
     base_stack_[stack_pos + 1] = old_base;         // copy
     base_stack_[stack_pos + 1][axis] += modifier;  // new base
 
-    const int incoming_bits = bits::MostSignificantBit(num_remaining_points);
+    const int incoming_bits = MostSignificantBit(num_remaining_points);
 
     uint32_t number = 0;
     DecodeNumber(incoming_bits, &number);

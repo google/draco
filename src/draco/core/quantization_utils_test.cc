@@ -29,7 +29,10 @@ TEST_F(QuantizationUtilsTest, TestQuantizer) {
   EXPECT_EQ(quantizer.QuantizeFloat(4.999f), 127);
   EXPECT_EQ(quantizer.QuantizeFloat(5.f), 128);
   EXPECT_EQ(quantizer.QuantizeFloat(-4.9999f), -127);
-  EXPECT_EQ(quantizer.QuantizeFloat(-5.f), -128);
+  // Note: Both -5.f and +5.f lie exactly on the boundary between two
+  // quantized values (127.5f and -127.5f). Due to rounding, both values are
+  // then converted to 128 and -127 respectively.
+  EXPECT_EQ(quantizer.QuantizeFloat(-5.f), -127);
   EXPECT_EQ(quantizer.QuantizeFloat(-5.0001f), -128);
 
   // Out of range quantization.
@@ -51,6 +54,38 @@ TEST_F(QuantizationUtilsTest, TestDequantizer) {
   // parameters.
   ASSERT_FALSE(dequantizer.Init(1.f, 0));
   ASSERT_FALSE(dequantizer.Init(1.f, -4));
+}
+
+TEST_F(QuantizationUtilsTest, TestDeltaQuantization) {
+  // Test verifies that the quantizer and dequantizer work correctly when
+  // initialized with a delta value.
+  Quantizer quantizer_delta;
+  quantizer_delta.Init(0.5f);
+
+  Quantizer quantizer_range;
+  quantizer_range.Init(50.f, 100);
+
+  EXPECT_EQ(quantizer_delta.QuantizeFloat(1.2f), 2);
+  EXPECT_EQ(quantizer_delta.QuantizeFloat(10.f),
+            quantizer_range.QuantizeFloat(10.f));
+  EXPECT_EQ(quantizer_delta.QuantizeFloat(-3.3f),
+            quantizer_range.QuantizeFloat(-3.3f));
+  EXPECT_EQ(quantizer_delta.QuantizeFloat(0.25f),
+            quantizer_range.QuantizeFloat(0.25f));
+
+  Dequantizer dequantizer_delta;
+  dequantizer_delta.Init(0.5f);
+
+  Dequantizer dequantizer_range;
+  dequantizer_range.Init(50.f, 100);
+
+  EXPECT_EQ(dequantizer_delta.DequantizeFloat(2), 1.f);
+  EXPECT_EQ(dequantizer_delta.DequantizeFloat(-4),
+            dequantizer_range.DequantizeFloat(-4));
+  EXPECT_EQ(dequantizer_delta.DequantizeFloat(9),
+            dequantizer_range.DequantizeFloat(9));
+  EXPECT_EQ(dequantizer_delta.DequantizeFloat(0),
+            dequantizer_range.DequantizeFloat(0));
 }
 
 }  // namespace draco

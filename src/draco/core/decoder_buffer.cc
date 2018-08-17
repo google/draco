@@ -14,7 +14,7 @@
 //
 #include "draco/core/decoder_buffer.h"
 
-#include "draco/compression/config/compression_shared.h"
+#include "draco/core/macros.h"
 #include "draco/core/varint_decoding.h"
 
 namespace draco {

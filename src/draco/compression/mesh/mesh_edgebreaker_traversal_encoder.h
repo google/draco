@@ -15,9 +15,9 @@
 #ifndef DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_TRAVERSAL_ENCODER_H_
 #define DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_TRAVERSAL_ENCODER_H_
 
+#include "draco/compression/bit_coders/rans_bit_encoder.h"
 #include "draco/compression/mesh/mesh_edgebreaker_encoder.h"
 #include "draco/compression/mesh/mesh_edgebreaker_encoder_impl_interface.h"
-#include "draco/core/bit_coders/rans_bit_encoder.h"
 #include "draco/core/macros.h"
 
 namespace draco {
@@ -28,13 +28,13 @@ typedef RAnsBitEncoder BinaryEncoder;
 // configurations are stored directly into the output buffer and the symbols
 // are first collected and then encoded in the reverse order to make the
 // decoding faster.
-class MeshEdgeBreakerTraversalEncoder {
+class MeshEdgebreakerTraversalEncoder {
  public:
-  MeshEdgeBreakerTraversalEncoder()
+  MeshEdgebreakerTraversalEncoder()
       : encoder_impl_(nullptr),
         attribute_connectivity_encoders_(nullptr),
         num_attribute_data_(0) {}
-  bool Init(MeshEdgeBreakerEncoderImplInterface *encoder) {
+  bool Init(MeshEdgebreakerEncoderImplInterface *encoder) {
     encoder_impl_ = encoder;
     return true;
   }
@@ -67,7 +67,7 @@ class MeshEdgeBreakerTraversalEncoder {
   inline void NewCornerReached(CornerIndex /* corner */) {}
 
   // Called whenever a new symbol is reached during the edgebreaker traversal.
-  inline void EncodeSymbol(EdgeBreakerTopologyBitPattern symbol) {
+  inline void EncodeSymbol(EdgebreakerTopologyBitPattern symbol) {
     // Store the symbol. It will be encoded after all symbols are processed.
     symbols_.push_back(symbol);
   }
@@ -118,16 +118,16 @@ class MeshEdgeBreakerTraversalEncoder {
   }
 
   EncoderBuffer *GetOutputBuffer() { return &traversal_buffer_; }
-  const MeshEdgeBreakerEncoderImplInterface *encoder_impl() const {
+  const MeshEdgebreakerEncoderImplInterface *encoder_impl() const {
     return encoder_impl_;
   }
 
  private:
   BinaryEncoder start_face_encoder_;
   EncoderBuffer traversal_buffer_;
-  const MeshEdgeBreakerEncoderImplInterface *encoder_impl_;
+  const MeshEdgebreakerEncoderImplInterface *encoder_impl_;
   // Symbols collected during the traversal.
-  std::vector<EdgeBreakerTopologyBitPattern> symbols_;
+  std::vector<EdgebreakerTopologyBitPattern> symbols_;
   // Arithmetic encoder for encoding attribute seams.
   // One context for each non-position attribute.
   std::unique_ptr<BinaryEncoder[]> attribute_connectivity_encoders_;

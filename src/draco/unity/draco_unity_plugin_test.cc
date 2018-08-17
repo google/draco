@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "third_party/draco/src/draco/unity/draco_unity_plugin.h"
+#include "draco/unity/draco_unity_plugin.h"
 
 #include <fstream>
 #include <memory>

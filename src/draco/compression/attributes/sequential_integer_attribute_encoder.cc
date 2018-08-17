@@ -16,16 +16,16 @@
 
 #include "draco/compression/attributes/prediction_schemes/prediction_scheme_encoder_factory.h"
 #include "draco/compression/attributes/prediction_schemes/prediction_scheme_wrap_encoding_transform.h"
+#include "draco/compression/entropy/symbol_encoding.h"
 #include "draco/core/bit_utils.h"
-#include "draco/core/symbol_encoding.h"
 
 namespace draco {
 
 SequentialIntegerAttributeEncoder::SequentialIntegerAttributeEncoder() {}
 
-bool SequentialIntegerAttributeEncoder::Initialize(PointCloudEncoder *encoder,
-                                                   int attribute_id) {
-  if (!SequentialAttributeEncoder::Initialize(encoder, attribute_id))
+bool SequentialIntegerAttributeEncoder::Init(PointCloudEncoder *encoder,
+                                             int attribute_id) {
+  if (!SequentialAttributeEncoder::Init(encoder, attribute_id))
     return false;
   if (GetUniqueId() == SEQUENTIAL_ATTRIBUTE_ENCODER_INTEGER) {
     // When encoding integers, this encoder currently works only for integer
@@ -118,7 +118,8 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
   }
 
   const int num_components = portable_attribute()->num_components();
-  const int num_values = static_cast<int>(num_components * portable_attribute()->size());
+  const int num_values =
+      static_cast<int>(num_components * portable_attribute()->size());
   const int32_t *const portable_attribute_data = GetPortableAttributeData();
 
   // We need to keep the portable data intact, but several encoding steps can
@@ -152,8 +153,8 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
                                         10 - encoder()->options()->GetSpeed());
     }
     if (!EncodeSymbols(reinterpret_cast<uint32_t *>(encoded_data.data()),
-                       static_cast<int>(point_ids.size()) * num_components, num_components,
-                       &symbol_encoding_options, out_buffer)) {
+                       static_cast<int>(point_ids.size()) * num_components,
+                       num_components, &symbol_encoding_options, out_buffer)) {
       return false;
     }
   } else {
@@ -168,7 +169,7 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
     // Compute the msb of the ORed value.
     int value_msb_pos = 0;
     if (masked_value != 0) {
-      value_msb_pos = bits::MostSignificantBit(masked_value);
+      value_msb_pos = MostSignificantBit(masked_value);
     }
     const int num_bytes = 1 + value_msb_pos / 8;
 

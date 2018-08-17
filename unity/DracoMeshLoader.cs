@@ -279,15 +279,7 @@ public unsafe class DracoMeshLoader
 			}
 		}
 
-		Marshal.FreeCoTaskMem (tmpMesh->indices);
-		Marshal.FreeCoTaskMem (tmpMesh->position);
-		if (tmpMesh->hasNormal)
-			Marshal.FreeCoTaskMem (tmpMesh->normal);
-		if (tmpMesh->hasTexcoord)
-			Marshal.FreeCoTaskMem (tmpMesh->texcoord);
-		if (tmpMesh->hasColor)
-			Marshal.FreeCoTaskMem (tmpMesh->color);
-		Marshal.FreeCoTaskMem ((IntPtr)tmpMesh);
+		ReleaseUnityMesh (&tmpMesh);
 
 		if (newVertices.Length > maxNumVerticesPerMesh) {
 			// Unity only support maximum 65534 vertices per mesh. So large meshes
@@ -341,10 +333,38 @@ public unsafe class DracoMeshLoader
 				mesh.colors = newColors;
 			}
 
+			// Scale and translate the decoded mesh so it would be visible to
+			// a new camera's default settings.
+			float scale = 0.5f / mesh.bounds.extents.x;
+			if (0.5f / mesh.bounds.extents.y < scale)
+				scale = 0.5f / mesh.bounds.extents.y;
+			if (0.5f / mesh.bounds.extents.z < scale)
+				scale = 0.5f / mesh.bounds.extents.z;
+
+			Vector3[] vertices = mesh.vertices;
+			int i = 0;
+			while (i < vertices.Length) {
+				vertices[i] *= scale;
+				i++;
+			}
+
+			mesh.vertices = vertices;
+			mesh.RecalculateBounds ();
+
+			Vector3 translate = mesh.bounds.center;
+			translate.x = 0 - mesh.bounds.center.x;
+			translate.y = 0 - mesh.bounds.center.y;
+			translate.z = 2 - mesh.bounds.center.z;
+
+			i = 0;
+			while (i < vertices.Length) {
+				vertices[i] += translate;
+				i++;
+			}
+			mesh.vertices = vertices;
 			mesh.RecalculateBounds ();
 			meshes.Add (mesh);
 		}
-		// TODO(zhafang): Resize mesh to the a proper scale.
 
 		return numFaces;
 	}

@@ -35,7 +35,7 @@ class SequentialAttributeEncodersController : public AttributesEncoder {
   SequentialAttributeEncodersController(
       std::unique_ptr<PointsSequencer> sequencer, int point_attrib_id);
 
-  bool Initialize(PointCloudEncoder *encoder, const PointCloud *pc) override;
+  bool Init(PointCloudEncoder *encoder, const PointCloud *pc) override;
   bool EncodeAttributesEncoderData(EncoderBuffer *out_buffer) override;
   bool EncodeAttributes(EncoderBuffer *buffer) override;
   uint8_t GetUniqueId() const override { return BASIC_ATTRIBUTE_ENCODER; }
