@@ -18,6 +18,8 @@ frustration later on.
 ### Code reviews
 All submissions, including submissions by project members, require review. We
 use GitHub pull requests for this purpose.
+Please make sure that your code is conform with our 
+[coding style guidelines](https://google.github.io/styleguide/cppguide.html).
 
 ### The small print
 Contributions made by corporations are covered by a different agreement than
