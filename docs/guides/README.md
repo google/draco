@@ -7,7 +7,7 @@
     * [Decode Draco File](COMMAND_LINE_APPLICATIONS.md#Decode-Draco-File)
   * [Browser](BROWSER.md)
     * [JavaScript Decode](BROWSER.md#JavaScript-Decode-Draco-File)
-    * [Three.js Render](../../javascript/example/README.md)
+    * [Basic Three.js Render](../../javascript/example/README.md)
 
 ## [glTF](GLTF.md)
   * [glTF to  Draco glTF Using gltf-pipeline](GLTF.md#Encode-Draco-glTF-Using-gltf-pipeline)
