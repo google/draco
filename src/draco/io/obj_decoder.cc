@@ -430,7 +430,7 @@ bool ObjDecoder::ParseFace(Status *status) {
       }
     }
     if (num_indices < 3 || num_indices > 4) {
-      *status = Status(Status::ERROR, "Invalid number of indices on a face");
+      *status = Status(Status::ERROR, "Invalid number of indices on a face. Maybe try to triangulate faces?");
       return false;
     }
     // Either one or two new triangles.
