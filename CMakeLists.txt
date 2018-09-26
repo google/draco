@@ -653,6 +653,9 @@ if (EMSCRIPTEN AND ENABLE_JS_GLUE)
   else ()
     require_compiler_flag("-s ELIMINATE_DUPLICATE_FUNCTIONS=1" YES)
   endif ()
+  if (IE_COMPATIBLE)
+    require_compiler_flag("-s LEGACY_VM_SUPPORT=1" YES)
+  endif ()
 
   if (CMAKE_BUILD_TYPE STREQUAL "")
     # Force -O3 when no build type is specified.
