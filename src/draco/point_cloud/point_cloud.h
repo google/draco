@@ -58,8 +58,8 @@ class PointCloud {
   const PointAttribute *GetAttributeByUniqueId(uint32_t id) const;
   int32_t GetAttributeIdByUniqueId(uint32_t unique_id) const;
 
-  int32_t num_attributes() const {
-    return static_cast<int32_t>(attributes_.size());
+  uint32_t num_attributes() const {
+    return static_cast<uint32_t>(attributes_.size());
   }
   const PointAttribute *attribute(int32_t att_id) const {
     DRACO_DCHECK_LE(0, att_id);

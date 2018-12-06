@@ -21,7 +21,7 @@ KeyframeAnimation::KeyframeAnimation() {}
 bool KeyframeAnimation::SetTimestamps(
     const std::vector<TimestampType> &timestamp) {
   // Already added attributes.
-  const int32_t num_frames = timestamp.size();
+  const uint32_t num_frames = static_cast<uint32_t>(timestamp.size());
   if (num_attributes() > 0) {
     // Timestamp attribute could be added only once.
     if (timestamps()->size()) {

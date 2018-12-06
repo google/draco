@@ -56,10 +56,10 @@ class KeyframeAnimation : public PointCloud {
   }
 
   // Number of frames should be equal to number points in the point cloud.
-  void set_num_frames(int32_t num_frames) { set_num_points(num_frames); }
-  int32_t num_frames() const { return static_cast<int32_t>(num_points()); }
+  void set_num_frames(uint32_t num_frames) { set_num_points(num_frames); }
+  uint32_t num_frames() const { return static_cast<int32_t>(num_points()); }
 
-  int32_t num_animations() const { return num_attributes() - 1; }
+  uint32_t num_animations() const { return num_attributes() - 1; }
 
  private:
   // Attribute id of timestamp is fixed to 0.
