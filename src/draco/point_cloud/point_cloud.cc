@@ -246,7 +246,7 @@ BoundingBox PointCloud::ComputeBoundingBox() const {
   // Consider using pc_att->ConvertValue<float, 3>(i, &p[0]) (Enforced
   // transformation from Vector with any dimension to Vector3f)
   Vector3f p;
-  for (AttributeValueIndex i(0); i < pc_att->size(); ++i) {
+  for (AttributeValueIndex i(0); i < static_cast<uint32_t>(pc_att->size()); ++i) {
     pc_att->GetValue(i, &p[0]);
     bounding_box.update_bounding_box(p);
   }
