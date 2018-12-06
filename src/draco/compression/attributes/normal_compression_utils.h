@@ -171,22 +171,20 @@ class OctahedronToolBox {
     const int64_t abs_sum = static_cast<int64_t>(std::abs(vec[0])) +
                             static_cast<int64_t>(std::abs(vec[1])) +
                             static_cast<int64_t>(std::abs(vec[2]));
+	
+	if (abs_sum == 0) {
+		// vec[1] == v[2] == 0
+		vec[0] = static_cast<T>(center_value_);
+		return;
+	}
+	
+	vec[0] = static_cast<T>((static_cast<int64_t>(vec[0])
+		* static_cast<int64_t>(center_value_)) / abs_sum);
+	vec[1] = static_cast<T>((static_cast<int64_t>(vec[1])
+		* static_cast<int64_t>(center_value_)) / abs_sum);
 
-    if (abs_sum == 0) {
-      vec[0] = center_value_;  // vec[1] == v[2] == 0
-    } else {
-      vec[0] =
-          (static_cast<int64_t>(vec[0]) * static_cast<int64_t>(center_value_)) /
-          abs_sum;
-      vec[1] =
-          (static_cast<int64_t>(vec[1]) * static_cast<int64_t>(center_value_)) /
-          abs_sum;
-      if (vec[2] >= 0) {
-        vec[2] = center_value_ - std::abs(vec[0]) - std::abs(vec[1]);
-      } else {
-        vec[2] = -(center_value_ - std::abs(vec[0]) - std::abs(vec[1]));
-      }
-    }
+	const T value_vec_2 = center_value_ - std::abs(vec[0]) - std::abs(vec[1]);
+	vec[2] = (vec[2] >= 0) ? value_vec_2 : -value_vec_2;
   }
 
   template <typename T>
@@ -195,55 +193,61 @@ class OctahedronToolBox {
     DRACO_DCHECK_GE(in_t, 0);
     DRACO_DCHECK_LE(in_s, 1);
     DRACO_DCHECK_LE(in_t, 1);
-    T s = in_s;
-    T t = in_t;
-    T spt = s + t;
-    T smt = s - t;
-    T x_sign = 1.0;
-    if (spt >= 0.5 && spt <= 1.5 && smt >= -0.5 && smt <= 0.5) {
-      // Right hemisphere. Don't do anything.
-    } else {
-      // Left hemisphere.
-      x_sign = -1.0;
-      if (spt <= 0.5) {
-        s = 0.5 - in_t;
-        t = 0.5 - in_s;
-      } else if (spt >= 1.5) {
-        s = 1.5 - in_t;
-        t = 1.5 - in_s;
-      } else if (smt <= -0.5) {
+
+    double s = static_cast<double>(in_s);
+    double t = static_cast<double>(in_t);
+    double spt = s + t;
+    double smt = s - t;
+    double x_sign = 1.0;
+
+	// Only on left hemisphere. On right hemisphere do nothing.
+	if (spt < 0.5 || spt > 1.5 || smt < -0.5 || smt > 0.5)
+	{
+	  x_sign = -1.0;
+	  if (spt <= 0.5) {
+	    s = 0.5 - in_t;
+		t = 0.5 - in_s;
+	  }
+	  else if (spt >= 1.5) {
+	    s = 1.5 - in_t;
+	    t = 1.5 - in_s;
+	  }
+	  else if (smt <= -0.5) {
         s = in_t - 0.5;
         t = in_s + 0.5;
-      } else {
+      }
+      else {
         s = in_t + 0.5;
         t = in_s - 0.5;
       }
       spt = s + t;
       smt = s - t;
-    }
-    const T y = 2.0 * s - 1.0;
-    const T z = 2.0 * t - 1.0;
-    const T x = std::min(std::min(2.0 * spt - 1.0, 3.0 - 2.0 * spt),
-                         std::min(2.0 * smt + 1.0, 1.0 - 2.0 * smt)) *
-                x_sign;
-    // Normalize the computed vector.
-    const T normSquared = x * x + y * y + z * z;
+	}
+
+    const double y = 2.0 * s - 1.0;
+    const double z = 2.0 * t - 1.0;
+    const double x = std::min(std::min(2.0 * spt - 1.0, 3.0 - 2.0 * spt),
+                         std::min(2.0 * smt + 1.0, 1.0 - 2.0 * smt)) * x_sign;
+    
+	// Normalize the computed vector.
+    const double normSquared = x * x + y * y + z * z;
     if (normSquared < 1e-6) {
-      out_vector[0] = 0;
-      out_vector[1] = 0;
-      out_vector[2] = 0;
-    } else {
-      const T d = 1.0 / std::sqrt(normSquared);
-      out_vector[0] = x * d;
-      out_vector[1] = y * d;
-      out_vector[2] = z * d;
+      out_vector[0] = static_cast<T>(0);
+      out_vector[1] = static_cast<T>(0);
+      out_vector[2] = static_cast<T>(0);
+    } 
+	else {
+      const double d = 1.0 / std::sqrt(normSquared);
+      out_vector[0] = static_cast<T>(x * d);
+      out_vector[1] = static_cast<T>(y * d);
+      out_vector[2] = static_cast<T>(z * d);
     }
   }
 
   template <typename T>
   void QuantizedOctaherdalCoordsToUnitVector(int32_t in_s, int32_t in_t,
                                              T *out_vector) const {
-    T scale = 1.0 / static_cast<T>(max_value_);
+    const T scale = static_cast<T>(1.0 / static_cast<double>(max_value_));
     OctaherdalCoordsToUnitVector(in_s * scale, in_t * scale, out_vector);
   }
 
