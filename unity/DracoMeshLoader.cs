@@ -46,6 +46,8 @@ public unsafe class DracoMeshLoader
 
 	[DllImport ("dracodec_unity")] private static extern int DecodeMeshForUnity (
 		byte[] buffer, int length, DracoToUnityMesh**tmpMesh);
+	
+	[DllImport("dracodec_unity")] private static extern int ReleaseUnityMesh(DracoToUnityMesh** tmpMesh);
 
 	static private int maxNumVerticesPerMesh = 60000;
 
