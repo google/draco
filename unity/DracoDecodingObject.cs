@@ -32,7 +32,7 @@ public class DracoDecodingObject : MonoBehaviour {
      * It's in unity/Resources/bunny.drc.bytes.
      * Please see README.md for details.
      */
-    int numFaces = dracoLoader.LoadMeshFromAsset("bunny", ref mesh);
+    int numFaces = dracoLoader.LoadMeshFromAsset("bunny.drc", ref mesh);
 
     /* Note: You need to add MeshFilter (and MeshRenderer) to your GameObject.
      * Or you can do something like the following in script:
