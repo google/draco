@@ -5,6 +5,11 @@
 
 News
 =======
+### Version 1.3.5 release
+* Added option to build Draco for Universal Scene Description
+* Code cleanup
+* Bug fixes
+
 ### Version 1.3.4 release
 * Fixes for Unity
 

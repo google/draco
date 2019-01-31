@@ -116,16 +116,10 @@ interface MetadataQuerier {
 
   boolean HasEntry([Ref, Const] Metadata metadata,
                    [Const] DOMString entry_name);
-  boolean HasIntEntry([Ref, Const] Metadata metadata,
-                      [Const] DOMString entry_name);
   long GetIntEntry([Ref, Const] Metadata metadata,
                    [Const] DOMString entry_name);
-  boolean HasDoubleEntry([Ref, Const] Metadata metadata,
-                         [Const] DOMString entry_name);
   double GetDoubleEntry([Ref, Const] Metadata metadata,
                         [Const] DOMString entry_name);
-  boolean HasStringEntry([Ref, Const] Metadata metadata,
-                         [Const] DOMString entry_name);
   [Const] DOMString GetStringEntry([Ref, Const] Metadata metadata,
                                    [Const] DOMString entry_name);
 

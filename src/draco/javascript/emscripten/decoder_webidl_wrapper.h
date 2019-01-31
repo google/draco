@@ -39,18 +39,18 @@ class MetadataQuerier {
   MetadataQuerier();
 
   bool HasEntry(const draco::Metadata &metadata, const char *entry_name) const;
-  bool HasIntEntry(const draco::Metadata &metadata,
-                   const char *entry_name) const;
+
+  // This function does not guarantee that entry's type is long.
   long GetIntEntry(const draco::Metadata &metadata,
                    const char *entry_name) const;
-  bool HasDoubleEntry(const draco::Metadata &metadata,
-                      const char *entry_name) const;
+
+  // This function does not guarantee that entry's type is double.
   double GetDoubleEntry(const draco::Metadata &metadata,
                         const char *entry_name) const;
-  bool HasStringEntry(const draco::Metadata &metadata,
-                      const char *entry_name) const;
+
+  // This function does not guarantee that entry's type is char*.
   const char *GetStringEntry(const draco::Metadata &metadata,
-                             const char *entry_name) const;
+                             const char *entry_name);
 
   long NumEntries(const draco::Metadata &metadata) const;
   const char *GetEntryName(const draco::Metadata &metadata, int entry_id);
@@ -59,6 +59,9 @@ class MetadataQuerier {
   // Cached values for metadata entries.
   std::vector<std::string> entry_names_;
   const draco::Metadata *entry_names_metadata_;
+
+  // Cached value for GetStringEntry() to avoid scoping issues.
+  std::string last_string_returned_;
 };
 
 class DracoFloat32Array {

@@ -43,8 +43,7 @@ Status PointCloudEncoder::Encode(const EncoderOptions &options,
     return Status(Status::ERROR, "Failed to initialize encoder.");
   if (!EncodeEncoderData())
     return Status(Status::ERROR, "Failed to encode internal data.");
-  if (!EncodeGeometryData())
-    return Status(Status::ERROR, "Failed to encode geometry data.");
+  DRACO_RETURN_IF_ERROR(EncodeGeometryData());
   if (!EncodePointAttributes())
     return Status(Status::ERROR, "Failed to encode point attributes.");
   if (options.GetGlobalBool("store_number_of_encoded_points", false))

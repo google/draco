@@ -16,8 +16,10 @@
 
 #include "draco/compression/mesh/mesh_edgebreaker_encoder.h"
 #include "draco/compression/mesh/mesh_sequential_encoder.h"
+#ifdef DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED
 #include "draco/compression/point_cloud/point_cloud_kd_tree_encoder.h"
 #include "draco/compression/point_cloud/point_cloud_sequential_encoder.h"
+#endif
 
 namespace draco {
 
@@ -38,6 +40,7 @@ Status ExpertEncoder::EncodeToBuffer(EncoderBuffer *out_buffer) {
 
 Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud &pc,
                                                EncoderBuffer *out_buffer) {
+#ifdef DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED
   std::unique_ptr<PointCloudEncoder> encoder;
   const int encoding_method = options().GetGlobalInt("encoding_method", -1);
 
@@ -87,6 +90,9 @@ Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud &pc,
   set_num_encoded_points(encoder->num_encoded_points());
   set_num_encoded_faces(0);
   return OkStatus();
+#else
+  return Status(Status::ERROR, "Point cloud encoding is not enabled.");
+#endif
 }
 
 Status ExpertEncoder::EncodeMeshToBuffer(const Mesh &m,

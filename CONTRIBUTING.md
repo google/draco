@@ -18,7 +18,7 @@ frustration later on.
 ### Code reviews
 All submissions, including submissions by project members, require review. We
 use GitHub pull requests for this purpose.
-Please make sure that your code is conform with our 
+Please make sure that your code conforms with our
 [coding style guidelines](https://google.github.io/styleguide/cppguide.html).
 
 ### The small print

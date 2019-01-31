@@ -68,7 +68,7 @@ class EncoderBase {
   Status CheckPredictionScheme(GeometryAttribute::Type att_type,
                                int prediction_scheme) const {
     // Out of bound checks:
-    if (prediction_scheme < 0)
+    if (prediction_scheme < PREDICTION_NONE)
       return Status(Status::ERROR, "Invalid prediction scheme requested.");
     if (prediction_scheme >= NUM_PREDICTION_SCHEMES)
       return Status(Status::ERROR, "Invalid prediction scheme requested.");
@@ -76,6 +76,9 @@ class EncoderBase {
     if (prediction_scheme == MESH_PREDICTION_TEX_COORDS_DEPRECATED)
       return Status(Status::ERROR,
                     "MESH_PREDICTION_TEX_COORDS_DEPRECATED is deprecated.");
+    if (prediction_scheme == MESH_PREDICTION_MULTI_PARALLELOGRAM)
+      return Status(Status::ERROR,
+                    "MESH_PREDICTION_MULTI_PARALLELOGRAM is deprecated.");
     // Attribute specific checks:
     if (prediction_scheme == MESH_PREDICTION_TEX_COORDS_PORTABLE) {
       if (att_type != GeometryAttribute::TEX_COORD)

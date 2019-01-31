@@ -32,30 +32,12 @@ bool MetadataQuerier::HasEntry(const Metadata &metadata,
   return metadata.entries().count(entry_name) > 0;
 }
 
-bool MetadataQuerier::HasIntEntry(const Metadata &metadata,
-                                  const char *entry_name) const {
-  int32_t value = 0;
-  const std::string name(entry_name);
-  if (!metadata.GetEntryInt(name, &value))
-    return false;
-  return true;
-}
-
 long MetadataQuerier::GetIntEntry(const Metadata &metadata,
                                   const char *entry_name) const {
   int32_t value = 0;
   const std::string name(entry_name);
   metadata.GetEntryInt(name, &value);
   return value;
-}
-
-bool MetadataQuerier::HasDoubleEntry(const Metadata &metadata,
-                                     const char *entry_name) const {
-  double value = 0;
-  const std::string name(entry_name);
-  if (!metadata.GetEntryDouble(name, &value))
-    return false;
-  return true;
 }
 
 double MetadataQuerier::GetDoubleEntry(const Metadata &metadata,
@@ -66,21 +48,13 @@ double MetadataQuerier::GetDoubleEntry(const Metadata &metadata,
   return value;
 }
 
-bool MetadataQuerier::HasStringEntry(const Metadata &metadata,
-                                     const char *entry_name) const {
-  std::string return_value;
-  const std::string name(entry_name);
-  if (!metadata.GetEntryString(name, &return_value))
-    return false;
-  return true;
-}
-
 const char *MetadataQuerier::GetStringEntry(const Metadata &metadata,
-                                            const char *entry_name) const {
-  std::string return_value;
+                                            const char *entry_name) {
   const std::string name(entry_name);
-  metadata.GetEntryString(name, &return_value);
-  const char *value = return_value.c_str();
+  if (!metadata.GetEntryString(name, &last_string_returned_))
+    return nullptr;
+
+  const char *value = last_string_returned_.c_str();
   return value;
 }
 

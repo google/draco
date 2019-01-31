@@ -1,4 +1,13 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+
+if (NOT CMAKE_BUILD_TYPE AND NOT IGNORE_EMPTY_BUILD_TYPE)
+  if (CMAKE_CURRENT_LIST_FILE STREQUAL CMAKE_PARENT_LIST_FILE)
+    message(INFO "|Draco: ignoring empty build type, forcing release mode.")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Draco overridden build type"
+        FORCE)
+  endif ()
+endif ()
+
 project(draco C CXX)
 
 set(draco_root "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -41,10 +50,11 @@ option(ENABLE_WASM "" OFF)
 option(ENABLE_WERROR "" OFF)
 option(ENABLE_WEXTRA "" OFF)
 option(IGNORE_EMPTY_BUILD_TYPE "" OFF)
-option(BUILD_UNITY_PLUGIN "Build plugin library for Unity" OFF)
+option(BUILD_UNITY_PLUGIN "Build plugin library for Unity." OFF)
 option(BUILD_ANIMATION_ENCODING "" OFF)
 option(BUILD_FOR_GLTF "" OFF)
-option(BUILD_MAYA_PLUGIN "Build plugin library for Maya" OFF)
+option(BUILD_MAYA_PLUGIN "Build plugin library for Maya." OFF)
+option(BUILD_USD_PLUGIN "Build plugin library for USD." OFF)
 
 if (WIN32 AND BUILD_SHARED_LIBS)
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
@@ -54,6 +64,7 @@ endif ()
 if (BUILD_FOR_GLTF)
   # Override settings when building for GLTF.
   draco_enable_feature(FEATURE "DRACO_MESH_COMPRESSION_SUPPORTED")
+  draco_enable_feature(FEATURE "DRACO_NORMAL_ENCODING_SUPPORTED")
   draco_enable_feature(FEATURE "DRACO_STANDARD_EDGEBREAKER_SUPPORTED")
 else ()
   if (ENABLE_POINT_CLOUD_COMPRESSION)
@@ -61,6 +72,7 @@ else ()
   endif ()
   if (ENABLE_MESH_COMPRESSION)
     draco_enable_feature(FEATURE "DRACO_MESH_COMPRESSION_SUPPORTED")
+    draco_enable_feature(FEATURE "DRACO_NORMAL_ENCODING_SUPPORTED")
 
     if (ENABLE_STANDARD_EDGEBREAKER)
       draco_enable_feature(FEATURE "DRACO_STANDARD_EDGEBREAKER_SUPPORTED")
@@ -120,6 +132,10 @@ if (BUILD_MAYA_PLUGIN)
   set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared library for maya plugin.")
   draco_enable_feature(FEATURE "BUILD_MAYA_PLUGIN")
 endif ()
+if (BUILD_USD_PLUGIN)
+  set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared library for USD plugin.")
+  draco_enable_feature(FEATURE "BUILD_USD_PLUGIN")
+endif ()
 
 if (ENABLE_EXTRA_SPEED)
   if (MSVC)
@@ -163,17 +179,6 @@ configure_file("${draco_root}/cmake/draco_version.cc.cmake"
                "${draco_build_dir}/draco_version.cc")
 configure_file("${draco_root}/cmake/draco_version.h.cmake"
                "${draco_build_dir}/draco_version.h" COPYONLY)
-
-# When a build type is not specified, default to producing a release mode Draco
-# library to avoid benchmarking shenanigans, but only when Draco is not being
-# pulled in via another cmake file.
-if (CMAKE_BUILD_TYPE STREQUAL "" AND NOT IGNORE_EMPTY_BUILD_TYPE)
-  if (CMAKE_CURRENT_LIST_FILE STREQUAL CMAKE_PARENT_LIST_FILE)
-    message(INFO "|Draco: ignoring empty build type, forcing release mode.")
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Draco overridden build type"
-        FORCE)
-  endif ()
-endif ()
 
 if (EMSCRIPTEN)
   include(FindPythonInterp)
@@ -468,12 +473,14 @@ set(draco_core_sources
     "${draco_src_root}/core/quantization_utils.cc"
     "${draco_src_root}/core/quantization_utils.h"
     "${draco_src_root}/core/status.h"
-    "${draco_src_root}/core/statusor.h"
+    "${draco_src_root}/core/status_or.h"
     "${draco_src_root}/core/varint_decoding.h"
     "${draco_src_root}/core/varint_encoding.h"
     "${draco_src_root}/core/vector_d.h")
 
 set(draco_io_sources
+    "${draco_src_root}/io/file_utils.cc"
+    "${draco_src_root}/io/file_utils.h"
     "${draco_src_root}/io/mesh_io.cc"
     "${draco_src_root}/io/mesh_io.h"
     "${draco_src_root}/io/obj_decoder.cc"
@@ -798,10 +805,14 @@ if (EMSCRIPTEN AND ENABLE_JS_GLUE)
   append_link_flag_to_target(draco_encoder
                              "-s EXPORT_NAME=\"'DracoEncoderModule'\"")
 
-  draco_enable_feature(FEATURE DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
+  draco_enable_feature(FEATURE DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
+                       TARGETS draco_encoder)
+  draco_enable_feature(FEATURE DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
                        TARGETS draco_encoder)
   if (ENABLE_DECODER_ATTRIBUTE_DEDUPLICATION)
-    draco_enable_feature(FEATURE DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
+    draco_enable_feature(FEATURE DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
+                         TARGETS draco_decoder)
+    draco_enable_feature(FEATURE DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
                          TARGETS draco_decoder)
   endif ()
 
@@ -1059,7 +1070,8 @@ else ()
   # For now, enable deduplication for both encoder and decoder.
   # TODO(ostava): Support for disabling attribute deduplication for the C++
   # decoder is planned in future releases.
-  draco_enable_feature(FEATURE DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED)
+  draco_enable_feature(FEATURE DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED)
+  draco_enable_feature(FEATURE DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED)
 
   if (BUILD_SHARED_LIBS)
     set_target_properties(dracodec PROPERTIES SOVERSION 1)

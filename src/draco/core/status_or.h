@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef DRACO_CORE_STATUSOR_H_
-#define DRACO_CORE_STATUSOR_H_
+#ifndef DRACO_CORE_STATUS_OR_H_
+#define DRACO_CORE_STATUS_OR_H_
 
 #include "draco/core/macros.h"
 #include "draco/core/status.h"
@@ -78,4 +78,4 @@ class StatusOr {
 
 }  // namespace draco
 
-#endif  // DRACO_CORE_STATUSOR_H_
+#endif  // DRACO_CORE_STATUS_OR_H_

@@ -40,8 +40,7 @@ StatusOr<std::unique_ptr<PointCloud>> ReadPointCloudFromFile(
   if (extension == ".ply") {
     // Wavefront PLY file format.
     PlyDecoder ply_decoder;
-    if (!ply_decoder.DecodeFromFile(file_name, pc.get()))
-      return Status(Status::ERROR, "Unknown error.");
+    DRACO_RETURN_IF_ERROR(ply_decoder.DecodeFromFile(file_name, pc.get()));
     return std::move(pc);
   }
 

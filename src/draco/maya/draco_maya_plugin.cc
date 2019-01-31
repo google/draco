@@ -237,8 +237,10 @@ EncodeResult drc2py_encode(Drc2PyMesh *in_mesh, char *file_path) {
   }
 
 // Deduplicate Attributes and Points
-#ifdef DRACO_ATTRIBUTE_DEDUPLICATION_SUPPORTED
+#ifdef DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
   drc_mesh->DeduplicateAttributeValues();
+#endif
+#ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
   drc_mesh->DeduplicatePointIds();
 #endif
 
