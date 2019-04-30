@@ -182,6 +182,27 @@ int EncodeMeshForUnity(char **data, DracoToUnityMesh **tmp_mesh)
 		}
 	}
 	
+	//设置子网格
+	if (mesh->num_submesh > 0)
+	{
+		//添加子网格映射信息
+		std::unique_ptr<GeometryMetadata> sub_mesh_mapdata = std::unique_ptr<GeometryMetadata>(new GeometryMetadata());
+		sub_mesh_mapdata->AddEntryString("submeshIndex", "submeshFaceArray");
+		sub_mesh_mapdata->AddEntryInt("submeshCount", mesh->num_submesh);
+
+		//设置子网格数据
+		for (int submeshIndex = 0; submeshIndex < mesh->num_submesh; submeshIndex++)
+		{
+			std::unique_ptr<std::vector<int>> submeshFaceArray = std::unique_ptr<std::vector<int>>(new std::vector<int>());
+			for (int submeshFaceIndex = 0; submeshFaceIndex < mesh->submesh[submeshIndex][0]; submeshFaceIndex++)
+			{
+				submeshFaceArray->push_back(mesh->submesh[submeshIndex][submeshFaceIndex + 1]);
+			}
+			sub_mesh_mapdata->AddEntryIntArray(std::to_string(submeshIndex), *submeshFaceArray);
+		}
+
+		encodeMesh.AddMetadata(std::move(sub_mesh_mapdata));
+	}
 
 	int posnum = encodeMesh.num_points();
 	int facenum = encodeMesh.num_faces();
@@ -195,7 +216,15 @@ int EncodeMeshForUnity(char **data, DracoToUnityMesh **tmp_mesh)
 	encoder.SetAttributeQuantization(draco::GeometryAttribute::GENERIC,
 		25);
 
-	encoder.SetSpeedOptions(-1, -1);
+	//support submesh need keep order;
+	if (mesh->num_submesh > 0)
+	{
+		encoder.SetSpeedOptions(10, 10);
+	}
+	else
+	{
+		encoder.SetSpeedOptions(-1, -1);
+	}
 
 	const draco::Status status = encoder.EncodeMeshToBuffer(encodeMesh, &buffer);
 	if (!status.ok()) {
@@ -323,14 +352,14 @@ int DecodeMeshForUnity(char *data, unsigned int length,
 		  int submeshIndex = 0;
 		  for (int submeshIndex = 0; submeshIndex < submeshCount; submeshIndex++)
 		  {
-			  std::vector<int>* submeshFaceArray = nullptr;
-			  if (sub_mesh_mapdata->GetEntryIntArray(std::to_string(submeshIndex), submeshFaceArray))
+			  std::vector<int> submeshFaceArray;
+			  if (sub_mesh_mapdata->GetEntryIntArray(std::to_string(submeshIndex), &submeshFaceArray))
 			  {
-				  unity_mesh->submesh[submeshIndex] = new int[submeshFaceArray->size() + 1];
-				  unity_mesh->submesh[submeshIndex][0] = submeshFaceArray->size();
+				  unity_mesh->submesh[submeshIndex] = new int[submeshFaceArray.size() + 1];
+				  unity_mesh->submesh[submeshIndex][0] = submeshFaceArray.size();
 				  for (int submeshFaceIndex = 0; submeshFaceIndex < unity_mesh->submesh[submeshIndex][0]; submeshFaceIndex++)
 				  {
-					  unity_mesh->submesh[submeshIndex][submeshFaceIndex + 1] = submeshFaceArray->at(submeshFaceIndex);
+					  unity_mesh->submesh[submeshIndex][submeshFaceIndex + 1] = submeshFaceArray.at(submeshFaceIndex);
 				  }
 			  }
 		  }

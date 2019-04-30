@@ -1027,7 +1027,7 @@ else ()
 				$<TARGET_OBJECTS:draco_metadata_enc>
                 $<TARGET_OBJECTS:draco_point_cloud>
                 $<TARGET_OBJECTS:draco_points_dec>
-                $<TARGET_OBJECTS:draco_points_dec>
+                $<TARGET_OBJECTS:draco_points_enc>
                 $<TARGET_OBJECTS:draco_unity_plugin>)
     # For Mac, we need to build a .bundle for plugin.
     if (APPLE)
