@@ -40,6 +40,15 @@ long MetadataQuerier::GetIntEntry(const Metadata &metadata,
   return value;
 }
 
+void MetadataQuerier::GetIntEntryArray(const draco::Metadata &metadata,
+                                       const char *entry_name,
+                                       DracoInt32Array *out_values) const {
+  const std::string name(entry_name);
+  std::vector<int32_t> values;
+  metadata.GetEntryIntArray(name, &values);
+  out_values->SetValues(values.data(), values.size());
+}
+
 double MetadataQuerier::GetDoubleEntry(const Metadata &metadata,
                                        const char *entry_name) const {
   double value = 0;
@@ -298,9 +307,6 @@ void Decoder::SkipAttributeTransform(draco_GeometryAttribute_Type att_type) {
 }
 
 const Metadata *Decoder::GetMetadata(const PointCloud &pc) const {
-  if (!pc.GetMetadata()) {
-    return nullptr;
-  }
   return pc.GetMetadata();
 }
 
