@@ -63,11 +63,11 @@ macro(require_variable var_name)
   set_variable_if_unset(${var_name} "")
 endmacro()
 
-# Sets $var_name to $default_value if not already set in the environment.
+# Sets $var_name to $default_value if not already set.
 macro(set_variable_if_unset var_name default_value)
   if(NOT "$ENV{${var_name}}" STREQUAL "")
     set(${var_name} $ENV{${var_name}})
-  else()
+  elseif(NOT ${var_name})
     set(${var_name} ${default_value})
   endif()
 endmacro()
