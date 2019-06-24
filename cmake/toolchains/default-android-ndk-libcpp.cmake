@@ -1,0 +1,7 @@
+if(DRACO_CMAKE_TOOLCHAINS_DEFAULT_ANDROID_NDK_LIBCPP_CMAKE_)
+  return()
+endif()
+set(DRACO_CMAKE_TOOLCHAINS_DEFAULT_ANDROID_NDK_LIBCPP_CMAKE_ 1)
+
+include("${CMAKE_CURRENT_LIST_DIR}/../util.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/android-ndk-common.cmake")
