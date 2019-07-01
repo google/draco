@@ -104,12 +104,12 @@ Status ObjDecoder::DecodeInternal() {
 
     // Ensure the number of all entries is same for all attributes.
     if (num_positions_ == 0)
-      return Status(Status::ERROR, "No position attribute");
+      return Status(Status::DRACO_ERROR, "No position attribute");
     if (num_tex_coords_ > 0 && num_tex_coords_ != num_positions_)
-      return Status(Status::ERROR,
+      return Status(Status::DRACO_ERROR,
                     "Invalid number of texture coordinates for a point cloud");
     if (num_normals_ > 0 && num_normals_ != num_positions_)
-      return Status(Status::ERROR,
+      return Status(Status::DRACO_ERROR,
                     "Invalid number of normals for a point cloud");
 
     out_mesh_ = nullptr;  // Treat the output geometry as a point cloud.
@@ -303,7 +303,7 @@ bool ObjDecoder::ParseVertexPosition(Status *status) {
     for (int i = 0; i < 3; ++i) {
       parser::SkipWhitespace(buffer());
       if (!parser::ParseFloat(buffer(), val + i)) {
-        *status = Status(Status::ERROR, "Failed to parse a float number");
+        *status = Status(Status::DRACO_ERROR, "Failed to parse a float number");
         // The definition is processed so return true.
         return true;
       }
@@ -331,7 +331,7 @@ bool ObjDecoder::ParseNormal(Status *status) {
     for (int i = 0; i < 3; ++i) {
       parser::SkipWhitespace(buffer());
       if (!parser::ParseFloat(buffer(), val + i)) {
-        *status = Status(Status::ERROR, "Failed to parse a float number");
+        *status = Status(Status::DRACO_ERROR, "Failed to parse a float number");
         // The definition is processed so return true.
         return true;
       }
@@ -359,7 +359,7 @@ bool ObjDecoder::ParseTexCoord(Status *status) {
     for (int i = 0; i < 2; ++i) {
       parser::SkipWhitespace(buffer());
       if (!parser::ParseFloat(buffer(), val + i)) {
-        *status = Status(Status::ERROR, "Failed to parse a float number");
+        *status = Status(Status::DRACO_ERROR, "Failed to parse a float number");
         // The definition is processed so return true.
         return true;
       }
@@ -390,7 +390,7 @@ bool ObjDecoder::ParseFace(Status *status) {
         if (i == 3) {
           break;  // It's OK if there is no fourth vertex index.
         }
-        *status = Status(Status::ERROR, "Failed to parse vertex indices");
+        *status = Status(Status::DRACO_ERROR, "Failed to parse vertex indices");
         return true;
       }
       ++num_valid_indices;
@@ -435,7 +435,8 @@ bool ObjDecoder::ParseFace(Status *status) {
       }
     }
     if (num_indices < 3 || num_indices > 4) {
-      *status = Status(Status::ERROR, "Invalid number of indices on a face");
+      *status =
+          Status(Status::DRACO_ERROR, "Invalid number of indices on a face");
       return false;
     }
     // Either one or two new triangles.
@@ -460,7 +461,7 @@ bool ObjDecoder::ParseMaterialLib(Status *status) {
   parser::SkipWhitespace(&line_buffer);
   material_file_name_.clear();
   if (!parser::ParseString(&line_buffer, &material_file_name_)) {
-    *status = Status(Status::ERROR, "Failed to parse material file name");
+    *status = Status(Status::DRACO_ERROR, "Failed to parse material file name");
     return true;
   }
   parser::SkipLine(&line_buffer);

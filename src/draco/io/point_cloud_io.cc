@@ -48,9 +48,9 @@ StatusOr<std::unique_ptr<PointCloud>> ReadPointCloudFromFile(
   // draco encoding methods.
   std::ifstream is(file_name.c_str(), std::ios::binary);
   if (!is)
-    return Status(Status::ERROR, "Invalid input stream.");
+    return Status(Status::DRACO_ERROR, "Invalid input stream.");
   if (!ReadPointCloudFromStream(&pc, is).good())
-    return Status(Status::ERROR,
+    return Status(Status::DRACO_ERROR,
                   "Unknown error.");  // Error reading the stream.
   return std::move(pc);
 }

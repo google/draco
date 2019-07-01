@@ -75,7 +75,8 @@ Status PlyDecoder::DecodeInternal() {
   if (out_mesh_ && out_mesh_->num_faces() != 0) {
 #ifdef DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
     if (!out_point_cloud_->DeduplicateAttributeValues())
-      return Status(Status::ERROR, "Could not deduplicate attribute values");
+      return Status(Status::DRACO_ERROR,
+                    "Could not deduplicate attribute values");
 #endif
 #ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
     out_point_cloud_->DeduplicatePointIds();
@@ -98,7 +99,7 @@ Status PlyDecoder::DecodeFaceData(const PlyElement *face_element) {
     vertex_indices = face_element->GetPropertyByName("vertex_index");
   }
   if (vertex_indices == nullptr || !vertex_indices->is_list()) {
-    return Status(Status::ERROR, "No faces defined");
+    return Status(Status::DRACO_ERROR, "No faces defined");
   }
 
   PlyPropertyReader<PointIndex::ValueType> vertex_index_reader(vertex_indices);
