@@ -1010,7 +1010,11 @@ else()
               $<TARGET_OBJECTS:draco_points_dec>
               $<TARGET_OBJECTS:draco_points_enc>)
   if(BUILD_UNITY_PLUGIN)
-    add_library(dracodec_unity MODULE
+    set(UNITY_TYPE MODULE)
+    if(IOS)
+      set(UNITY_TYPE STATIC)
+    endif()
+    add_library(dracodec_unity ${UNITY_TYPE}
                 ${draco_version_sources}
                 $<TARGET_OBJECTS:draco_attributes>
                 $<TARGET_OBJECTS:draco_compression_attributes_dec>
