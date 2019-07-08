@@ -31,7 +31,7 @@ ExpertEncoder::ExpertEncoder(const Mesh &mesh)
 
 Status ExpertEncoder::EncodeToBuffer(EncoderBuffer *out_buffer) {
   if (point_cloud_ == nullptr)
-    return Status(Status::ERROR, "Invalid input geometry.");
+    return Status(Status::DRACO_ERROR, "Invalid input geometry.");
   if (mesh_ == nullptr) {
     return EncodePointCloudToBuffer(*point_cloud_, out_buffer);
   }
@@ -77,7 +77,7 @@ Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud &pc,
     } else if (encoding_method == POINT_CLOUD_KD_TREE_ENCODING) {
       // Encoding method was explicitly specified but we cannot use it for
       // the given input (some of the checks above failed).
-      return Status(Status::ERROR, "Invalid encoding method.");
+      return Status(Status::DRACO_ERROR, "Invalid encoding method.");
     }
   }
   if (!encoder) {
@@ -91,7 +91,7 @@ Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud &pc,
   set_num_encoded_faces(0);
   return OkStatus();
 #else
-  return Status(Status::ERROR, "Point cloud encoding is not enabled.");
+  return Status(Status::DRACO_ERROR, "Point cloud encoding is not enabled.");
 #endif
 }
 

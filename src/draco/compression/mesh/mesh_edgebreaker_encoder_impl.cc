@@ -279,7 +279,7 @@ Status MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
       corner_table_->num_faces() == corner_table_->NumDegeneratedFaces()) {
     // Failed to construct the corner table.
     // TODO(ostava): Add better error reporting.
-    return Status(Status::ERROR, "All triangles are degenerate.");
+    return Status(Status::DRACO_ERROR, "All triangles are degenerate.");
   }
 
   traversal_encoder_.Init(this);
@@ -317,10 +317,10 @@ Status MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   pos_encoding_data_.num_values = 0;
 
   if (!FindHoles())
-    return Status(Status::ERROR, "Failed to process mesh holes.");
+    return Status(Status::DRACO_ERROR, "Failed to process mesh holes.");
 
   if (!InitAttributeData())
-    return Status(Status::ERROR, "Failed to initialize attribute data.");
+    return Status(Status::DRACO_ERROR, "Failed to initialize attribute data.");
 
   const uint8_t num_attribute_data =
       static_cast<uint8_t>(attribute_data_.size());
@@ -376,7 +376,7 @@ Status MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
       if (opp_face_id != kInvalidFaceIndex &&
           !visited_faces_[opp_face_id.value()]) {
         if (!EncodeConnectivityFromCorner(opp_id))
-          return Status(Status::ERROR, "Failed to encode mesh component.");
+          return Status(Status::DRACO_ERROR, "Failed to encode mesh component.");
       }
     } else {
       // Boundary configuration. We start on a boundary rather than on a face.
@@ -385,7 +385,7 @@ Status MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
       // Start processing the face opposite to the boundary edge (the face
       // containing the start_corner).
       if (!EncodeConnectivityFromCorner(start_corner))
-        return Status(Status::ERROR, "Failed to encode mesh component.");
+        return Status(Status::DRACO_ERROR, "Failed to encode mesh component.");
     }
   }
   // Reverse the order of connectivity corners to match the order in which
@@ -417,7 +417,7 @@ Status MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
 
   // Append the traversal buffer.
   if (!EncodeSplitData())
-    return Status(Status::ERROR, "Failed to encode split data.");
+    return Status(Status::DRACO_ERROR, "Failed to encode split data.");
   encoder_->buffer()->Encode(traversal_encoder_.buffer().data(),
                              traversal_encoder_.buffer().size());
 
