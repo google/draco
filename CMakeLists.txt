@@ -56,11 +56,6 @@ option(BUILD_FOR_GLTF "" OFF)
 option(BUILD_MAYA_PLUGIN "Build plugin library for Maya." OFF)
 option(BUILD_USD_PLUGIN "Build plugin library for USD." OFF)
 
-if(WIN32 AND BUILD_SHARED_LIBS)
-  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
-  include(GenerateExportHeader)
-endif()
-
 if(BUILD_FOR_GLTF)
   # Override settings when building for GLTF.
   draco_enable_feature(FEATURE "DRACO_MESH_COMPRESSION_SUPPORTED")
@@ -135,6 +130,10 @@ endif()
 if(BUILD_USD_PLUGIN)
   set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared library for USD plugin.")
   draco_enable_feature(FEATURE "BUILD_USD_PLUGIN")
+endif()
+
+if(WIN32 AND BUILD_SHARED_LIBS)
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 endif()
 
 if(ENABLE_EXTRA_SPEED)
