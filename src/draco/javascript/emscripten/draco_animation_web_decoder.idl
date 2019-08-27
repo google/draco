@@ -8,7 +8,7 @@ interface DecoderBuffer {
 
 enum draco_StatusCode {
   "draco_Status::OK",
-  "draco_Status::ERROR",
+  "draco_Status::DRACO_ERROR",
   "draco_Status::IO_ERROR",
   "draco_Status::INVALID_PARAMETER",
   "draco_Status::UNSUPPORTED_VERSION",
