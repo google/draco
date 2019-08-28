@@ -187,6 +187,11 @@ if(EMSCRIPTEN)
       FATAL_ERROR
         "Python required for Emscripten builds, but cmake cannot find it.")
   endif()
+  if(NOT EXISTS "$ENV{EMSCRIPTEN}")
+    message(
+      FATAL_ERROR
+        "The EMSCRIPTEN environment variable must be set. See README.md.")
+  endif()
 else()
   if(ENABLE_TESTS)
     if(MSVC)
@@ -1011,7 +1016,8 @@ else()
     if(IOS)
       set(UNITY_TYPE STATIC)
     endif()
-    add_library(dracodec_unity ${UNITY_TYPE}
+    add_library(dracodec_unity
+                ${UNITY_TYPE}
                 ${draco_version_sources}
                 $<TARGET_OBJECTS:draco_attributes>
                 $<TARGET_OBJECTS:draco_compression_attributes_dec>
