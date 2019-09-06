@@ -9,18 +9,12 @@ matrix:
       dist: xenial
       compiler: gcc
     - os: osx
-      osx_image: xcode8.3
       compiler: clang
 
 addons:
   apt:
     packages:
-    - ccache
     - cmake
-
-before_install:
-  - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then brew update; fi
-  - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then brew install ccache; fi
 
 script:
   # Output version info for compilers, cmake, and make
@@ -32,6 +26,6 @@ script:
   - pushd .. && git clone https://github.com/google/googletest.git && popd
   # Configure and build
   - mkdir _travis_build && cd _travis_build
-  - cmake -G "Unix Makefiles" -DENABLE_TESTS=ON -DENABLE_CCACHE=ON ..
+  - cmake -G "Unix Makefiles" -DENABLE_TESTS=ON ..
   - make -j10
   - ./draco_tests
