@@ -37,7 +37,7 @@ class FloatPointsTreeDecoder {
 #ifndef DRACO_OLD_GCC
   template <class OutputIteratorT>
   bool DecodePointCloud(DecoderBuffer *buffer, OutputIteratorT &&out);
-#endif  // BUILD_OLD_GCC
+#endif  // DRACO_OLD_GCC
 
   // Initializes a DecoderBuffer from |data|, and calls function above.
   template <class OutputIteratorT>
@@ -85,7 +85,7 @@ bool FloatPointsTreeDecoder::DecodePointCloud(DecoderBuffer *buffer,
   OutputIteratorT local = std::forward<OutputIteratorT>(out);
   return DecodePointCloud(buffer, local);
 }
-#endif  // BUILD_OLD_GCC
+#endif  // DRACO_OLD_GCC
 
 template <class OutputIteratorT>
 bool FloatPointsTreeDecoder::DecodePointCloud(DecoderBuffer *buffer,
