@@ -46,7 +46,7 @@ void MetadataQuerier::GetIntEntryArray(const draco::Metadata &metadata,
   const std::string name(entry_name);
   std::vector<int32_t> values;
   metadata.GetEntryIntArray(name, &values);
-  out_values->SetValues(values.data(), values.size());
+  out_values->MoveData(std::move(values));
 }
 
 double MetadataQuerier::GetDoubleEntry(const Metadata &metadata,
@@ -84,73 +84,6 @@ const char *MetadataQuerier::GetEntryName(const Metadata &metadata,
   if (entry_id < 0 || entry_id >= entry_names_.size())
     return nullptr;
   return entry_names_[entry_id].c_str();
-}
-
-DracoFloat32Array::DracoFloat32Array() {}
-
-float DracoFloat32Array::GetValue(int index) const { return values_[index]; }
-
-bool DracoFloat32Array::SetValues(const float *values, int count) {
-  if (values) {
-    values_.assign(values, values + count);
-  } else {
-    values_.resize(count);
-  }
-  return true;
-}
-
-DracoInt8Array::DracoInt8Array() {}
-
-int8_t DracoInt8Array::GetValue(int index) const { return values_[index]; }
-
-bool DracoInt8Array::SetValues(const int8_t *values, int count) {
-  values_.assign(values, values + count);
-  return true;
-}
-
-DracoUInt8Array::DracoUInt8Array() {}
-
-uint8_t DracoUInt8Array::GetValue(int index) const { return values_[index]; }
-
-bool DracoUInt8Array::SetValues(const uint8_t *values, int count) {
-  values_.assign(values, values + count);
-  return true;
-}
-
-DracoInt16Array::DracoInt16Array() {}
-
-int16_t DracoInt16Array::GetValue(int index) const { return values_[index]; }
-
-bool DracoInt16Array::SetValues(const int16_t *values, int count) {
-  values_.assign(values, values + count);
-  return true;
-}
-
-DracoUInt16Array::DracoUInt16Array() {}
-
-uint16_t DracoUInt16Array::GetValue(int index) const { return values_[index]; }
-
-bool DracoUInt16Array::SetValues(const uint16_t *values, int count) {
-  values_.assign(values, values + count);
-  return true;
-}
-
-DracoInt32Array::DracoInt32Array() {}
-
-int DracoInt32Array::GetValue(int index) const { return values_[index]; }
-
-bool DracoInt32Array::SetValues(const int *values, int count) {
-  values_.assign(values, values + count);
-  return true;
-}
-
-DracoUInt32Array::DracoUInt32Array() {}
-
-uint32_t DracoUInt32Array::GetValue(int index) const { return values_[index]; }
-
-bool DracoUInt32Array::SetValues(const uint32_t *values, int count) {
-  values_.assign(values, values + count);
-  return true;
 }
 
 Decoder::Decoder() {}
@@ -204,8 +137,9 @@ bool Decoder::GetFaceFromMesh(const Mesh &m,
                               draco::FaceIndex::ValueType face_id,
                               DracoInt32Array *out_values) {
   const Mesh::Face &face = m.face(draco::FaceIndex(face_id));
-  return out_values->SetValues(reinterpret_cast<const int *>(face.data()),
-                               face.size());
+  const auto ptr = reinterpret_cast<const int32_t *>(face.data());
+  out_values->MoveData(std::vector<int32_t>({ptr, ptr + face.size()}));
+  return true;
 }
 
 long Decoder::GetTriangleStripsFromMesh(const Mesh &m,
@@ -216,8 +150,7 @@ long Decoder::GetTriangleStripsFromMesh(const Mesh &m,
           m, std::back_inserter(strip_indices))) {
     return 0;
   }
-  if (!strip_values->SetValues(strip_indices.data(), strip_indices.size()))
-    return 0;
+  strip_values->MoveData(std::move(strip_indices));
   return stripifier.num_strips();
 }
 
@@ -229,7 +162,8 @@ bool Decoder::GetAttributeFloat(const PointAttribute &pa,
   float values[kMaxAttributeFloatValues] = {-2.0, -2.0, -2.0, -2.0};
   if (!pa.ConvertValue<float>(draco::AttributeValueIndex(val_index), values))
     return false;
-  return out_values->SetValues(values, components);
+  out_values->MoveData({values, values + components});
+  return true;
 }
 
 bool Decoder::GetAttributeFloatForAllPoints(const PointCloud &pc,
@@ -242,7 +176,7 @@ bool Decoder::GetAttributeFloatForAllPoints(const PointCloud &pc,
   float values[kMaxAttributeFloatValues] = {-2.0, -2.0, -2.0, -2.0};
   int entry_id = 0;
 
-  out_values->SetValues(nullptr, num_entries);
+  out_values->Resize(num_entries);
   for (draco::PointIndex i(0); i < num_points; ++i) {
     const draco::AttributeValueIndex val_index = pa.mapped_index(i);
     if (!pa.ConvertValue<float>(val_index, values))
