@@ -18,7 +18,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 #include "draco/core/hash_utils.h"
@@ -150,10 +150,10 @@ class Metadata {
   void RemoveEntry(const std::string &name);
 
   int num_entries() const { return static_cast<int>(entries_.size()); }
-  const std::unordered_map<std::string, EntryValue> &entries() const {
+  const std::map<std::string, EntryValue> &entries() const {
     return entries_;
   }
-  const std::unordered_map<std::string, std::unique_ptr<Metadata>>
+  const std::map<std::string, std::unique_ptr<Metadata>>
       &sub_metadatas() const {
     return sub_metadatas_;
   }
@@ -178,8 +178,8 @@ class Metadata {
     return itr->second.GetValue(entry_value);
   }
 
-  std::unordered_map<std::string, EntryValue> entries_;
-  std::unordered_map<std::string, std::unique_ptr<Metadata>> sub_metadatas_;
+  std::map<std::string, EntryValue> entries_;
+  std::map<std::string, std::unique_ptr<Metadata>> sub_metadatas_;
 
   friend struct MetadataHasher;
 };
