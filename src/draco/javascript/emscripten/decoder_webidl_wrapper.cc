@@ -46,7 +46,7 @@ void MetadataQuerier::GetIntEntryArray(const draco::Metadata &metadata,
   const std::string name(entry_name);
   std::vector<int32_t> values;
   metadata.GetEntryIntArray(name, &values);
-  out_values->SetValues(values.data(), values.size());
+  out_values->MoveData(std::move(values));
 }
 
 double MetadataQuerier::GetDoubleEntry(const Metadata &metadata,
