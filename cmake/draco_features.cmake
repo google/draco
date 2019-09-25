@@ -44,13 +44,18 @@ endmacro()
 
 # Function for generating draco_features.h.
 function(draco_generate_features_h)
-  file(WRITE "${draco_features_file_name}"
+  file(WRITE "${draco_features_file_name}.new"
        "// GENERATED FILE -- DO NOT EDIT\n\n" "#ifndef DRACO_FEATURES_H_\n"
        "#define DRACO_FEATURES_H_\n\n")
 
   foreach(feature ${draco_features_list})
-    file(APPEND "${draco_features_file_name}" "#define ${feature}\n")
+    file(APPEND "${draco_features_file_name}.new" "#define ${feature}\n")
   endforeach()
 
-  file(APPEND "${draco_features_file_name}" "\n#endif  // DRACO_FEATURES_H_")
+  file(APPEND "${draco_features_file_name}.new" "\n#endif  // DRACO_FEATURES_H_")
+
+  # Will replace ${draco_features_file_name} only if the file content has changed.
+  # This prevents forced Draco rebuilds after CMake runs.
+  configure_file("${draco_features_file_name}.new" "${draco_features_file_name}")
+  file(REMOVE "${draco_features_file_name}.new")
 endfunction()
