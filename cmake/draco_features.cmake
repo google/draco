@@ -52,10 +52,13 @@ function(draco_generate_features_h)
     file(APPEND "${draco_features_file_name}.new" "#define ${feature}\n")
   endforeach()
 
-  file(APPEND "${draco_features_file_name}.new" "\n#endif  // DRACO_FEATURES_H_")
+  file(APPEND "${draco_features_file_name}.new"
+       "\n#endif  // DRACO_FEATURES_H_")
 
-  # Will replace ${draco_features_file_name} only if the file content has changed.
-  # This prevents forced Draco rebuilds after CMake runs.
-  configure_file("${draco_features_file_name}.new" "${draco_features_file_name}")
+  # Will replace ${draco_features_file_name} only if the file content has
+  # changed. This prevents forced Draco rebuilds after CMake runs.
+  configure_file("${draco_features_file_name}.new"
+                 "${draco_features_file_name}")
   file(REMOVE "${draco_features_file_name}.new")
+
 endfunction()
