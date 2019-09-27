@@ -92,7 +92,18 @@ _**Contents**_
 
 Building
 ========
-For all platforms, you must first generate the project/make files and then
+
+You can download and install Draco using the [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
+
+    git clone https://github.com/Microsoft/vcpkg.git
+    cd vcpkg
+    ./bootstrap-vcpkg.sh
+    ./vcpkg integrate install
+    vcpkg install draco
+
+The Draco port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
+
+To build manually on all platforms, you must first generate the project/make files and then
 compile the examples.
 
 CMake Basics
