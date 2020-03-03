@@ -36,10 +36,13 @@ bool SequentialAttributeDecoder::InitializeStandalone(
 
 bool SequentialAttributeDecoder::DecodePortableAttribute(
     const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
-  if (attribute_->num_components() <= 0 || !attribute_->Reset(point_ids.size()))
+  if (attribute_->num_components() <= 0 ||
+      !attribute_->Reset(point_ids.size())) {
     return false;
-  if (!DecodeValues(point_ids, in_buffer))
+  }
+  if (!DecodeValues(point_ids, in_buffer)) {
     return false;
+  }
   return true;
 }
 
@@ -74,8 +77,9 @@ bool SequentialAttributeDecoder::InitPredictionScheme(
   for (int i = 0; i < ps->GetNumParentAttributes(); ++i) {
     const int att_id = decoder_->point_cloud()->GetNamedAttributeId(
         ps->GetParentAttributeType(i));
-    if (att_id == -1)
+    if (att_id == -1) {
       return false;  // Requested attribute does not exist.
+    }
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
       if (!ps->SetParentAttribute(decoder_->point_cloud()->attribute(att_id))) {
@@ -102,8 +106,9 @@ bool SequentialAttributeDecoder::DecodeValues(
   int out_byte_pos = 0;
   // Decode raw attribute values in their original format.
   for (int i = 0; i < num_values; ++i) {
-    if (!in_buffer->Decode(value_data, entry_size))
+    if (!in_buffer->Decode(value_data, entry_size)) {
       return false;
+    }
     attribute_->buffer()->Write(out_byte_pos, value_data, entry_size);
     out_byte_pos += entry_size;
   }

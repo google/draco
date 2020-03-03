@@ -59,23 +59,27 @@ bool MeshEdgebreakerEncoder::InitializeEncoder() {
         new MeshEdgebreakerEncoderImpl<
             MeshEdgebreakerTraversalValenceEncoder>());
   }
-  if (!impl_)
+  if (!impl_) {
     return false;
-  if (!impl_->Init(this))
+  }
+  if (!impl_->Init(this)) {
     return false;
+  }
   return true;
 }
 
 bool MeshEdgebreakerEncoder::GenerateAttributesEncoder(int32_t att_id) {
-  if (!impl_->GenerateAttributesEncoder(att_id))
+  if (!impl_->GenerateAttributesEncoder(att_id)) {
     return false;
+  }
   return true;
 }
 
 bool MeshEdgebreakerEncoder::EncodeAttributesEncoderIdentifier(
     int32_t att_encoder_id) {
-  if (!impl_->EncodeAttributesEncoderIdentifier(att_encoder_id))
+  if (!impl_->EncodeAttributesEncoderIdentifier(att_encoder_id)) {
     return false;
+  }
   return true;
 }
 
@@ -84,11 +88,13 @@ Status MeshEdgebreakerEncoder::EncodeConnectivity() {
 }
 
 void MeshEdgebreakerEncoder::ComputeNumberOfEncodedPoints() {
-  if (!impl_)
+  if (!impl_) {
     return;
+  }
   const CornerTable *const corner_table = impl_->GetCornerTable();
-  if (!corner_table)
+  if (!corner_table) {
     return;
+  }
   size_t num_points =
       corner_table->num_vertices() - corner_table->NumIsolatedVertices();
 
@@ -96,22 +102,26 @@ void MeshEdgebreakerEncoder::ComputeNumberOfEncodedPoints() {
     // Gather all corner tables for all non-position attributes.
     std::vector<const MeshAttributeCornerTable *> attribute_corner_tables;
     for (int i = 0; i < mesh()->num_attributes(); ++i) {
-      if (mesh()->attribute(i)->attribute_type() == GeometryAttribute::POSITION)
+      if (mesh()->attribute(i)->attribute_type() ==
+          GeometryAttribute::POSITION) {
         continue;
+      }
       const MeshAttributeCornerTable *const att_corner_table =
           GetAttributeCornerTable(i);
       // Attribute corner table may not be used in some configurations. For
       // these cases we can assume the attribute connectivity to be the same as
       // the connectivity of the position data.
-      if (att_corner_table)
+      if (att_corner_table) {
         attribute_corner_tables.push_back(att_corner_table);
+      }
     }
 
     // Add a new point based on the configuration of interior attribute seams
     // (replicating what the decoder would do).
     for (VertexIndex vi(0); vi < corner_table->num_vertices(); ++vi) {
-      if (corner_table->IsVertexIsolated(vi))
+      if (corner_table->IsVertexIsolated(vi)) {
         continue;
+      }
       // Go around all corners of the vertex and keep track of the observed
       // attribute seams.
       const CornerIndex first_corner_index = corner_table->LeftMostCorner(vi);
@@ -144,8 +154,9 @@ void MeshEdgebreakerEncoder::ComputeNumberOfEncodedPoints() {
           ++num_attribute_seams;
         }
 
-        if (corner_index == first_corner_index)
+        if (corner_index == first_corner_index) {
           break;
+        }
 
         // Proceed to the next corner
         last_corner_index = corner_index;
@@ -170,11 +181,13 @@ void MeshEdgebreakerEncoder::ComputeNumberOfEncodedPoints() {
 }
 
 void MeshEdgebreakerEncoder::ComputeNumberOfEncodedFaces() {
-  if (!impl_)
+  if (!impl_) {
     return;
+  }
   const CornerTable *const corner_table = impl_->GetCornerTable();
-  if (!corner_table)
+  if (!corner_table) {
     return;
+  }
   set_num_encoded_faces(corner_table->num_faces() -
                         corner_table->NumDegeneratedFaces());
 }

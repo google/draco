@@ -30,10 +30,9 @@ AnimationBuilder::AnimationBuilder() {}
 
 bool AnimationBuilder::SetTimestamps(draco::KeyframeAnimation *animation,
                                      long num_frames, const float *timestamps) {
-  if (!animation)
+  if (!animation || !timestamps) {
     return false;
-  if (!timestamps)
-    return false;
+  }
   std::vector<draco::KeyframeAnimation::TimestampType> timestamps_arr(
       timestamps, timestamps + num_frames);
   return animation->SetTimestamps(timestamps_arr);
@@ -42,10 +41,9 @@ bool AnimationBuilder::SetTimestamps(draco::KeyframeAnimation *animation,
 int AnimationBuilder::AddKeyframes(draco::KeyframeAnimation *animation,
                                    long num_frames, long num_components,
                                    const float *animation_data) {
-  if (!animation)
+  if (!animation || !animation_data) {
     return -1;
-  if (!animation_data)
-    return -1;
+  }
   std::vector<float> keyframes_arr(
       animation_data, animation_data + num_frames * num_components);
   return animation->AddKeyframes(draco::DT_FLOAT32, num_components,
@@ -67,8 +65,9 @@ void AnimationEncoder::SetKeyframesQuantization(long quantization_bits) {
 
 int AnimationEncoder::EncodeAnimationToDracoBuffer(
     draco::KeyframeAnimation *animation, DracoInt8Array *draco_buffer) {
-  if (!animation)
+  if (!animation) {
     return 0;
+  }
   draco::EncoderBuffer buffer;
 
   if (timestamps_quantization_bits_ > 0) {
@@ -81,8 +80,9 @@ int AnimationEncoder::EncodeAnimationToDracoBuffer(
                                keyframes_quantization_bits_);
     }
   }
-  if (!encoder_.EncodeKeyframeAnimation(*animation, options_, &buffer).ok())
+  if (!encoder_.EncodeKeyframeAnimation(*animation, options_, &buffer).ok()) {
     return 0;
+  }
 
   draco_buffer->SetValues(buffer.data(), buffer.size());
   return buffer.size();

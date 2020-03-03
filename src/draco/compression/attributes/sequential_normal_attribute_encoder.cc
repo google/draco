@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/compression/attributes/sequential_normal_attribute_encoder.h"
+
 #include "draco/compression/attributes/normal_compression_utils.h"
 
 namespace draco {
@@ -22,14 +23,16 @@ bool SequentialNormalAttributeEncoder::Init(PointCloudEncoder *encoder,
   if (!SequentialIntegerAttributeEncoder::Init(encoder, attribute_id))
     return false;
   // Currently this encoder works only for 3-component normal vectors.
-  if (attribute()->num_components() != 3)
+  if (attribute()->num_components() != 3) {
     return false;
+  }
 
   // Initialize AttributeOctahedronTransform.
   const int quantization_bits = encoder->options()->GetAttributeInt(
       attribute_id, "quantization_bits", -1);
-  if (quantization_bits < 1)
+  if (quantization_bits < 1) {
     return false;
+  }
   attribute_octahedron_transform_.SetParameters(quantization_bits);
   return true;
 }

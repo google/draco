@@ -27,20 +27,23 @@ int64_t ComputeShannonEntropy(const uint32_t *symbols, int num_symbols,
           log2(static_cast<double>(symbol_frequencies[i]) / num_symbols_d);
     }
   }
-  if (out_num_unique_symbols)
+  if (out_num_unique_symbols) {
     *out_num_unique_symbols = num_unique_symbols;
+  }
   // Entropy is always negative.
   return static_cast<int64_t>(-total_bits);
 }
 
 double ComputeBinaryShannonEntropy(uint32_t num_values,
                                    uint32_t num_true_values) {
-  if (num_values == 0)
+  if (num_values == 0) {
     return 0;
+  }
 
   // We can exit early if the data set has 0 entropy.
-  if (num_true_values == 0 || num_values == num_true_values)
+  if (num_true_values == 0 || num_values == num_true_values) {
     return 0;
+  }
   const double true_freq =
       static_cast<double>(num_true_values) / static_cast<double>(num_values);
   const double false_freq = 1.0 - true_freq;
@@ -120,8 +123,9 @@ ShannonEntropyTracker::EntropyData ShannonEntropyTracker::UpdateSymbols(
 
 int64_t ShannonEntropyTracker::GetNumberOfDataBits(
     const EntropyData &entropy_data) {
-  if (entropy_data.num_values < 2)
+  if (entropy_data.num_values < 2) {
     return 0;
+  }
   // We need to compute the number of bits required to represent the stream
   // using the entropy norm. Note that:
   //

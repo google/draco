@@ -63,8 +63,9 @@ class MaxPredictionDegreeTraverser
   void OnTraversalEnd() {}
 
   bool TraverseFromCorner(CornerIndex corner_id) {
-    if (prediction_degree_.size() == 0)
+    if (prediction_degree_.size() == 0) {
       return true;
+    }
 
     // Traversal starts from the |corner_id|. It's going to follow either the
     // right or the left neighboring faces to |corner_id| based on their
@@ -184,8 +185,9 @@ class MaxPredictionDegreeTraverser
   inline void AddCornerToTraversalStack(CornerIndex ci, int priority) {
     traversal_stacks_[priority].push_back(ci);
     // Make sure that the best available priority is up to date.
-    if (priority < best_priority_)
+    if (priority < best_priority_) {
       best_priority_ = priority;
+    }
   }
 
   // Returns the priority of traversing edge leading to |corner_id|.
@@ -199,8 +201,9 @@ class MaxPredictionDegreeTraverser
       priority = (degree > 1 ? 1 : 2);
     }
     // Clamp the priority to the maximum number of buckets.
-    if (priority >= kMaxPriority)
+    if (priority >= kMaxPriority) {
       priority = kMaxPriority - 1;
+    }
     return priority;
   }
 

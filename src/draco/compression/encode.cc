@@ -85,8 +85,9 @@ void Encoder::SetEncodingMethod(int encoding_method) {
 Status Encoder::SetAttributePredictionScheme(GeometryAttribute::Type type,
                                              int prediction_scheme_method) {
   Status status = CheckPredictionScheme(type, prediction_scheme_method);
-  if (!status.ok())
+  if (!status.ok()) {
     return status;
+  }
   options().SetAttributeInt(type, "prediction_scheme",
                             prediction_scheme_method);
   return status;

@@ -60,5 +60,4 @@ function(draco_generate_features_h)
   configure_file("${draco_features_file_name}.new"
                  "${draco_features_file_name}")
   file(REMOVE "${draco_features_file_name}.new")
-
 endfunction()

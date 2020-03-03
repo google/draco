@@ -14,6 +14,7 @@
 #define DRACO_MAYA_PLUGIN_H_
 
 #include <fstream>
+
 #include "draco/compression/decode.h"
 #include "draco/compression/encode.h"
 

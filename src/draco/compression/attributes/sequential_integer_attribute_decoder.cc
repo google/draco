@@ -24,8 +24,9 @@ SequentialIntegerAttributeDecoder::SequentialIntegerAttributeDecoder() {}
 
 bool SequentialIntegerAttributeDecoder::Init(PointCloudDecoder *decoder,
                                              int attribute_id) {
-  if (!SequentialAttributeDecoder::Init(decoder, attribute_id))
+  if (!SequentialAttributeDecoder::Init(decoder, attribute_id)) {
     return false;
+  }
   return true;
 }
 
@@ -33,8 +34,9 @@ bool SequentialIntegerAttributeDecoder::TransformAttributeToOriginalFormat(
     const std::vector<PointIndex> &point_ids) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder() &&
-      decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0))
+      decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     return true;  // Don't revert the transform here for older files.
+  }
 #endif
   return StoreValues(static_cast<uint32_t>(point_ids.size()));
 }
@@ -43,30 +45,37 @@ bool SequentialIntegerAttributeDecoder::DecodeValues(
     const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
   // Decode prediction scheme.
   int8_t prediction_scheme_method;
-  in_buffer->Decode(&prediction_scheme_method);
+  if (!in_buffer->Decode(&prediction_scheme_method)) {
+    return false;
+  }
   if (prediction_scheme_method != PREDICTION_NONE) {
     int8_t prediction_transform_type;
-    in_buffer->Decode(&prediction_transform_type);
+    if (!in_buffer->Decode(&prediction_transform_type)) {
+      return false;
+    }
     prediction_scheme_ = CreateIntPredictionScheme(
         static_cast<PredictionSchemeMethod>(prediction_scheme_method),
         static_cast<PredictionSchemeTransformType>(prediction_transform_type));
   }
 
   if (prediction_scheme_) {
-    if (!InitPredictionScheme(prediction_scheme_.get()))
+    if (!InitPredictionScheme(prediction_scheme_.get())) {
       return false;
+    }
   }
 
-  if (!DecodeIntegerValues(point_ids, in_buffer))
+  if (!DecodeIntegerValues(point_ids, in_buffer)) {
     return false;
+  }
 
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   const int32_t num_values = static_cast<uint32_t>(point_ids.size());
   if (decoder() &&
       decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     // For older files, revert the transform right after we decode the data.
-    if (!StoreValues(num_values))
+    if (!StoreValues(num_values)) {
       return false;
+    }
   }
 #endif
   return true;
@@ -76,8 +85,9 @@ std::unique_ptr<PredictionSchemeTypedDecoderInterface<int32_t>>
 SequentialIntegerAttributeDecoder::CreateIntPredictionScheme(
     PredictionSchemeMethod method,
     PredictionSchemeTransformType transform_type) {
-  if (transform_type != PREDICTION_TRANSFORM_WRAP)
+  if (transform_type != PREDICTION_TRANSFORM_WRAP) {
     return nullptr;  // For now we support only wrap transform.
+  }
   return CreatePredictionSchemeForDecoder<
       int32_t, PredictionSchemeWrapDecodingTransform<int32_t>>(
       method, attribute_id(), decoder());
@@ -86,44 +96,55 @@ SequentialIntegerAttributeDecoder::CreateIntPredictionScheme(
 bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
     const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
   const int num_components = GetNumValueComponents();
-  if (num_components <= 0)
+  if (num_components <= 0) {
     return false;
+  }
   const size_t num_entries = point_ids.size();
   const size_t num_values = num_entries * num_components;
   PreparePortableAttribute(static_cast<int>(num_entries), num_components);
   int32_t *const portable_attribute_data = GetPortableAttributeData();
-  if (portable_attribute_data == nullptr)
+  if (portable_attribute_data == nullptr) {
     return false;
+  }
   uint8_t compressed;
-  if (!in_buffer->Decode(&compressed))
+  if (!in_buffer->Decode(&compressed)) {
     return false;
+  }
   if (compressed > 0) {
     // Decode compressed values.
     if (!DecodeSymbols(static_cast<uint32_t>(num_values), num_components,
                        in_buffer,
-                       reinterpret_cast<uint32_t *>(portable_attribute_data)))
+                       reinterpret_cast<uint32_t *>(portable_attribute_data))) {
       return false;
+    }
   } else {
     // Decode the integer data directly.
     // Get the number of bytes for a given entry.
     uint8_t num_bytes;
-    if (!in_buffer->Decode(&num_bytes))
+    if (!in_buffer->Decode(&num_bytes)) {
       return false;
+    }
     if (num_bytes == DataTypeLength(DT_INT32)) {
       if (portable_attribute()->buffer()->data_size() <
-          sizeof(int32_t) * num_values)
+          sizeof(int32_t) * num_values) {
         return false;
+      }
       if (!in_buffer->Decode(portable_attribute_data,
-                             sizeof(int32_t) * num_values))
+                             sizeof(int32_t) * num_values)) {
         return false;
+      }
     } else {
-      if (portable_attribute()->buffer()->data_size() < num_bytes * num_values)
+      if (portable_attribute()->buffer()->data_size() <
+          num_bytes * num_values) {
         return false;
+      }
       if (in_buffer->remaining_size() <
-          static_cast<int64_t>(num_bytes) * static_cast<int64_t>(num_values))
+          static_cast<int64_t>(num_bytes) * static_cast<int64_t>(num_values)) {
         return false;
+      }
       for (size_t i = 0; i < num_values; ++i) {
-        in_buffer->Decode(portable_attribute_data + i, num_bytes);
+        if (!in_buffer->Decode(portable_attribute_data + i, num_bytes))
+          return false;
       }
     }
   }
@@ -138,8 +159,9 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
 
   // If the data was encoded with a prediction scheme, we must revert it.
   if (prediction_scheme_) {
-    if (!prediction_scheme_->DecodePredictionData(in_buffer))
+    if (!prediction_scheme_->DecodePredictionData(in_buffer)) {
       return false;
+    }
 
     if (num_values > 0) {
       if (!prediction_scheme_->ComputeOriginalValues(

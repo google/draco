@@ -24,13 +24,15 @@ SequentialQuantizationAttributeDecoder::SequentialQuantizationAttributeDecoder()
 
 bool SequentialQuantizationAttributeDecoder::Init(PointCloudDecoder *decoder,
                                                   int attribute_id) {
-  if (!SequentialIntegerAttributeDecoder::Init(decoder, attribute_id))
+  if (!SequentialIntegerAttributeDecoder::Init(decoder, attribute_id)) {
     return false;
+  }
   const PointAttribute *const attribute =
       decoder->point_cloud()->attribute(attribute_id);
   // Currently we can quantize only floating point arguments.
-  if (attribute->data_type() != DT_FLOAT32)
+  if (attribute->data_type() != DT_FLOAT32) {
     return false;
+  }
   return true;
 }
 
@@ -38,8 +40,9 @@ bool SequentialQuantizationAttributeDecoder::DecodeIntegerValues(
     const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0) &&
-      !DecodeQuantizedDataInfo())
+      !DecodeQuantizedDataInfo()) {
     return false;
+  }
 #endif
   return SequentialIntegerAttributeDecoder::DecodeIntegerValues(point_ids,
                                                                 in_buffer);
@@ -50,8 +53,9 @@ bool SequentialQuantizationAttributeDecoder::
         const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
   if (decoder()->bitstream_version() >= DRACO_BITSTREAM_VERSION(2, 0)) {
     // Decode quantization data here only for files with bitstream version 2.0+
-    if (!DecodeQuantizedDataInfo())
+    if (!DecodeQuantizedDataInfo()) {
       return false;
+    }
   }
 
   // Store the decoded transform data in portable attribute;
@@ -69,14 +73,17 @@ bool SequentialQuantizationAttributeDecoder::DecodeQuantizedDataInfo() {
   const int num_components = attribute()->num_components();
   min_value_ = std::unique_ptr<float[]>(new float[num_components]);
   if (!decoder()->buffer()->Decode(min_value_.get(),
-                                   sizeof(float) * num_components))
+                                   sizeof(float) * num_components)) {
     return false;
-  if (!decoder()->buffer()->Decode(&max_value_dif_))
+  }
+  if (!decoder()->buffer()->Decode(&max_value_dif_)) {
     return false;
+  }
   uint8_t quantization_bits;
   if (!decoder()->buffer()->Decode(&quantization_bits) ||
-      quantization_bits > 31)
+      quantization_bits > 31) {
     return false;
+  }
   quantization_bits_ = quantization_bits;
   return true;
 }
@@ -92,8 +99,9 @@ bool SequentialQuantizationAttributeDecoder::DequantizeValues(
   int quant_val_id = 0;
   int out_byte_pos = 0;
   Dequantizer dequantizer;
-  if (!dequantizer.Init(max_value_dif_, max_quantized_value))
+  if (!dequantizer.Init(max_value_dif_, max_quantized_value)) {
     return false;
+  }
   const int32_t *const portable_attribute_data = GetPortableAttributeData();
   for (uint32_t i = 0; i < num_values; ++i) {
     for (int c = 0; c < num_components; ++c) {

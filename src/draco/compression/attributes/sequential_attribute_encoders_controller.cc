@@ -31,23 +31,27 @@ SequentialAttributeEncodersController::SequentialAttributeEncodersController(
 
 bool SequentialAttributeEncodersController::Init(PointCloudEncoder *encoder,
                                                  const PointCloud *pc) {
-  if (!AttributesEncoder::Init(encoder, pc))
+  if (!AttributesEncoder::Init(encoder, pc)) {
     return false;
-  if (!CreateSequentialEncoders())
+  }
+  if (!CreateSequentialEncoders()) {
     return false;
+  }
   // Initialize all value encoders.
   for (uint32_t i = 0; i < num_attributes(); ++i) {
     const int32_t att_id = GetAttributeId(i);
-    if (!sequential_encoders_[i]->Init(encoder, att_id))
+    if (!sequential_encoders_[i]->Init(encoder, att_id)) {
       return false;
+    }
   }
   return true;
 }
 
 bool SequentialAttributeEncodersController::EncodeAttributesEncoderData(
     EncoderBuffer *out_buffer) {
-  if (!AttributesEncoder::EncodeAttributesEncoderData(out_buffer))
+  if (!AttributesEncoder::EncodeAttributesEncoderData(out_buffer)) {
     return false;
+  }
   // Encode a unique id of every sequential encoder.
   for (uint32_t i = 0; i < sequential_encoders_.size(); ++i) {
     out_buffer->Encode(sequential_encoders_[i]->GetUniqueId());
@@ -57,8 +61,9 @@ bool SequentialAttributeEncodersController::EncodeAttributesEncoderData(
 
 bool SequentialAttributeEncodersController::EncodeAttributes(
     EncoderBuffer *buffer) {
-  if (!sequencer_ || !sequencer_->GenerateSequence(&point_ids_))
+  if (!sequencer_ || !sequencer_->GenerateSequence(&point_ids_)) {
     return false;
+  }
   return AttributesEncoder::EncodeAttributes(buffer);
 }
 
@@ -66,8 +71,9 @@ bool SequentialAttributeEncodersController::
     TransformAttributesToPortableFormat() {
   for (uint32_t i = 0; i < sequential_encoders_.size(); ++i) {
     if (!sequential_encoders_[i]->TransformAttributeToPortableFormat(
-            point_ids_))
+            point_ids_)) {
       return false;
+    }
   }
   return true;
 }
@@ -76,8 +82,9 @@ bool SequentialAttributeEncodersController::EncodePortableAttributes(
     EncoderBuffer *out_buffer) {
   for (uint32_t i = 0; i < sequential_encoders_.size(); ++i) {
     if (!sequential_encoders_[i]->EncodePortableAttribute(point_ids_,
-                                                          out_buffer))
+                                                          out_buffer)) {
       return false;
+    }
   }
   return true;
 }
@@ -86,8 +93,9 @@ bool SequentialAttributeEncodersController::
     EncodeDataNeededByPortableTransforms(EncoderBuffer *out_buffer) {
   for (uint32_t i = 0; i < sequential_encoders_.size(); ++i) {
     if (!sequential_encoders_[i]->EncodeDataNeededByPortableTransform(
-            out_buffer))
+            out_buffer)) {
       return false;
+    }
   }
   return true;
 }
@@ -96,11 +104,13 @@ bool SequentialAttributeEncodersController::CreateSequentialEncoders() {
   sequential_encoders_.resize(num_attributes());
   for (uint32_t i = 0; i < num_attributes(); ++i) {
     sequential_encoders_[i] = CreateSequentialEncoder(i);
-    if (sequential_encoders_[i] == nullptr)
+    if (sequential_encoders_[i] == nullptr) {
       return false;
+    }
     if (i < sequential_encoder_marked_as_parent_.size()) {
-      if (sequential_encoder_marked_as_parent_[i])
+      if (sequential_encoder_marked_as_parent_[i]) {
         sequential_encoders_[i]->MarkParentAttribute();
+      }
     }
   }
   return true;

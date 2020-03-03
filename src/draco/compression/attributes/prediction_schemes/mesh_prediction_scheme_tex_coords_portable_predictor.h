@@ -16,6 +16,7 @@
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_TEX_COORDS_PORTABLE_PREDICTOR_H_
 
 #include <math.h>
+
 #include "draco/attributes/point_attribute.h"
 #include "draco/core/math_utils.h"
 #include "draco/core/vector_d.h"
@@ -28,6 +29,8 @@ namespace draco {
 template <typename DataTypeT, class MeshDataT>
 class MeshPredictionSchemeTexCoordsPortablePredictor {
  public:
+  static constexpr int kNumComponents = 2;
+
   explicit MeshPredictionSchemeTexCoordsPortablePredictor(const MeshDataT &md)
       : pos_attribute_(nullptr),
         entry_to_point_id_map_(nullptr),
@@ -71,7 +74,6 @@ class MeshPredictionSchemeTexCoordsPortablePredictor {
  private:
   const PointAttribute *pos_attribute_;
   const PointIndex *entry_to_point_id_map_;
-  static constexpr int kNumComponents = 2;
   DataTypeT predicted_value_[kNumComponents];
   // Encoded / decoded array of UV flips.
   // TODO(ostava): We should remove this and replace this with in-place encoding
@@ -203,14 +205,16 @@ bool MeshPredictionSchemeTexCoordsPortablePredictor<
         }
       } else {
         // When decoding the data, we already know which orientation to use.
-        if (orientations_.empty())
+        if (orientations_.empty()) {
           return false;
+        }
         const bool orientation = orientations_.back();
         orientations_.pop_back();
-        if (orientation)
+        if (orientation) {
           predicted_uv = (x_uv + cx_uv) / pn_norm2_squared;
-        else
+        } else {
           predicted_uv = (x_uv - cx_uv) / pn_norm2_squared;
+        }
       }
       predicted_value_[0] = static_cast<int>(predicted_uv[0]);
       predicted_value_[1] = static_cast<int>(predicted_uv[1]);

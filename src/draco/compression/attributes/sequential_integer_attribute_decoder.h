@@ -15,10 +15,9 @@
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_INTEGER_ATTRIBUTE_DECODER_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_INTEGER_ATTRIBUTE_DECODER_H_
 
-#include "draco/draco_features.h"
-
 #include "draco/compression/attributes/prediction_schemes/prediction_scheme_decoder.h"
 #include "draco/compression/attributes/sequential_attribute_decoder.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 
@@ -56,8 +55,9 @@ class SequentialIntegerAttributeDecoder : public SequentialAttributeDecoder {
   void PreparePortableAttribute(int num_entries, int num_components);
 
   int32_t *GetPortableAttributeData() {
-    if (portable_attribute()->size() == 0)
+    if (portable_attribute()->size() == 0) {
       return nullptr;
+    }
     return reinterpret_cast<int32_t *>(
         portable_attribute()->GetAddress(AttributeValueIndex(0)));
   }

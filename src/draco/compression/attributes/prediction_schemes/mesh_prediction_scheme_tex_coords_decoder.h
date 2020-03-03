@@ -18,12 +18,11 @@
 
 #include <math.h>
 
-#include "draco/draco_features.h"
-
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
 #include "draco/compression/bit_coders/rans_bit_decoder.h"
 #include "draco/core/varint_decoding.h"
 #include "draco/core/vector_d.h"
+#include "draco/draco_features.h"
 #include "draco/mesh/corner_table.h"
 
 namespace draco {
@@ -60,10 +59,12 @@ class MeshPredictionSchemeTexCoordsDecoder
   }
 
   bool IsInitialized() const override {
-    if (pos_attribute_ == nullptr)
+    if (pos_attribute_ == nullptr) {
       return false;
-    if (!this->mesh_data().IsInitialized())
+    }
+    if (!this->mesh_data().IsInitialized()) {
       return false;
+    }
     return true;
   }
 
@@ -76,12 +77,15 @@ class MeshPredictionSchemeTexCoordsDecoder
   }
 
   bool SetParentAttribute(const PointAttribute *att) override {
-    if (att == nullptr)
+    if (att == nullptr) {
       return false;
-    if (att->attribute_type() != GeometryAttribute::POSITION)
+    }
+    if (att->attribute_type() != GeometryAttribute::POSITION) {
       return false;  // Invalid attribute type.
-    if (att->num_components() != 3)
+    }
+    if (att->num_components() != 3) {
       return false;  // Currently works only for 3 component positions.
+    }
     pos_attribute_ = att;
     return true;
   }
@@ -144,22 +148,27 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
   // Decode the delta coded orientations.
   uint32_t num_orientations = 0;
   if (buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
-    if (!buffer->Decode(&num_orientations))
+    if (!buffer->Decode(&num_orientations)) {
       return false;
+    }
   } else {
-    if (!DecodeVarint(&num_orientations, buffer))
+    if (!DecodeVarint(&num_orientations, buffer)) {
       return false;
+    }
   }
-  if (num_orientations == 0)
+  if (num_orientations == 0) {
     return false;
+  }
   orientations_.resize(num_orientations);
   bool last_orientation = true;
   RAnsBitDecoder decoder;
-  if (!decoder.StartDecoding(buffer))
+  if (!decoder.StartDecoding(buffer)) {
     return false;
+  }
   for (uint32_t i = 0; i < num_orientations; ++i) {
-    if (!decoder.DecodeNextBit())
+    if (!decoder.DecodeNextBit()) {
       last_orientation = !last_orientation;
+    }
     orientations_[i] = last_orientation;
   }
   decoder.EndDecoding();

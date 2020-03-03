@@ -18,10 +18,9 @@
 #include <string>
 #include <unordered_map>
 
-#include "draco/draco_features.h"
-
 #include "draco/core/decoder_buffer.h"
 #include "draco/core/status.h"
+#include "draco/draco_features.h"
 #include "draco/mesh/mesh.h"
 
 namespace draco {
@@ -82,7 +81,7 @@ class ObjDecoder {
 
   // Maps specified point index to the parsed vertex indices (triplet of
   // position, texture coordinate, and normal indices) .
-  void MapPointToVertexIndices(PointIndex pi,
+  void MapPointToVertexIndices(PointIndex vert_id,
                                const std::array<int32_t, 3> &indices);
 
   // Parses material file definitions from a separate file.

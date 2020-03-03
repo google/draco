@@ -28,34 +28,42 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
   uint32_t num_points;
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
-    if (!buffer()->Decode(&num_faces))
+    if (!buffer()->Decode(&num_faces)) {
       return false;
-    if (!buffer()->Decode(&num_points))
+    }
+    if (!buffer()->Decode(&num_points)) {
       return false;
+    }
 
   } else
 #endif
   {
-    if (!DecodeVarint(&num_faces, buffer()))
+    if (!DecodeVarint(&num_faces, buffer())) {
       return false;
-    if (!DecodeVarint(&num_points, buffer()))
+    }
+    if (!DecodeVarint(&num_points, buffer())) {
       return false;
+    }
   }
 
   // Check that num_faces and num_points are valid values.
   const uint64_t faces_64 = static_cast<uint64_t>(num_faces);
   const uint64_t points_64 = static_cast<uint64_t>(num_points);
   // Compressed sequential encoding can only handle (2^32 - 1) / 3 indices.
-  if (faces_64 > 0xffffffff / 3)
+  if (faces_64 > 0xffffffff / 3) {
     return false;
-  if (points_64 > faces_64 * 3)
+  }
+  if (points_64 > faces_64 * 3) {
     return false;
+  }
   uint8_t connectivity_method;
-  if (!buffer()->Decode(&connectivity_method))
+  if (!buffer()->Decode(&connectivity_method)) {
     return false;
+  }
   if (connectivity_method == 0) {
-    if (!DecodeAndDecompressIndices(num_faces))
+    if (!DecodeAndDecompressIndices(num_faces)) {
       return false;
+    }
   } else {
     if (num_points < 256) {
       // Decode indices as uint8_t.
@@ -63,8 +71,9 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
         Mesh::Face face;
         for (int j = 0; j < 3; ++j) {
           uint8_t val;
-          if (!buffer()->Decode(&val))
+          if (!buffer()->Decode(&val)) {
             return false;
+          }
           face[j] = val;
         }
         mesh()->AddFace(face);
@@ -75,8 +84,9 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
         Mesh::Face face;
         for (int j = 0; j < 3; ++j) {
           uint16_t val;
-          if (!buffer()->Decode(&val))
+          if (!buffer()->Decode(&val)) {
             return false;
+          }
           face[j] = val;
         }
         mesh()->AddFace(face);
@@ -88,8 +98,9 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
         Mesh::Face face;
         for (int j = 0; j < 3; ++j) {
           uint32_t val;
-          if (!DecodeVarint(&val, buffer()))
+          if (!DecodeVarint(&val, buffer())) {
             return false;
+          }
           face[j] = val;
         }
         mesh()->AddFace(face);
@@ -100,8 +111,9 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
         Mesh::Face face;
         for (int j = 0; j < 3; ++j) {
           uint32_t val;
-          if (!buffer()->Decode(&val))
+          if (!buffer()->Decode(&val)) {
             return false;
+          }
           face[j] = val;
         }
         mesh()->AddFace(face);
@@ -125,8 +137,9 @@ bool MeshSequentialDecoder::CreateAttributesDecoder(int32_t att_decoder_id) {
 bool MeshSequentialDecoder::DecodeAndDecompressIndices(uint32_t num_faces) {
   // Get decoded indices differences that were encoded with an entropy code.
   std::vector<uint32_t> indices_buffer(num_faces * 3);
-  if (!DecodeSymbols(num_faces * 3, 1, buffer(), indices_buffer.data()))
+  if (!DecodeSymbols(num_faces * 3, 1, buffer(), indices_buffer.data())) {
     return false;
+  }
   // Reconstruct the indices from the differences.
   // See MeshSequentialEncoder::CompressAndEncodeIndices() for more details.
   int32_t last_index_value = 0;
@@ -136,8 +149,9 @@ bool MeshSequentialDecoder::DecodeAndDecompressIndices(uint32_t num_faces) {
     for (int j = 0; j < 3; ++j) {
       const uint32_t encoded_val = indices_buffer[vertex_index++];
       int32_t index_diff = (encoded_val >> 1);
-      if (encoded_val & 1)
+      if (encoded_val & 1) {
         index_diff = -index_diff;
+      }
       const int32_t index_value = index_diff + last_index_value;
       face[j] = index_value;
       last_index_value = index_value;

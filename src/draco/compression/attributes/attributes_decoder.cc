@@ -33,31 +33,42 @@ bool AttributesDecoder::DecodeAttributesDecoderData(DecoderBuffer *in_buffer) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (point_cloud_decoder_->bitstream_version() <
       DRACO_BITSTREAM_VERSION(2, 0)) {
-    if (!in_buffer->Decode(&num_attributes))
+    if (!in_buffer->Decode(&num_attributes)) {
       return false;
+    }
   } else
 #endif
   {
-    if (!DecodeVarint(&num_attributes, in_buffer))
+    if (!DecodeVarint(&num_attributes, in_buffer)) {
       return false;
+    }
   }
-  if (num_attributes == 0)
+  if (num_attributes == 0) {
     return false;
+  }
   point_attribute_ids_.resize(num_attributes);
   PointCloud *pc = point_cloud_;
   for (uint32_t i = 0; i < num_attributes; ++i) {
     // Decode attribute descriptor data.
     uint8_t att_type, data_type, num_components, normalized;
-    if (!in_buffer->Decode(&att_type))
+    if (!in_buffer->Decode(&att_type)) {
       return false;
-    if (!in_buffer->Decode(&data_type))
+    }
+    if (!in_buffer->Decode(&data_type)) {
       return false;
-    if (!in_buffer->Decode(&num_components))
+    }
+    if (!in_buffer->Decode(&num_components)) {
       return false;
-    if (!in_buffer->Decode(&normalized))
+    }
+    if (!in_buffer->Decode(&normalized)) {
       return false;
-    if (data_type <= DT_INVALID || data_type >= DT_TYPES_COUNT)
+    }
+    if (att_type >= GeometryAttribute::NAMED_ATTRIBUTES_COUNT) {
       return false;
+    }
+    if (data_type == DT_INVALID || data_type >= DT_TYPES_COUNT) {
+      return false;
+    }
     const DataType draco_dt = static_cast<DataType>(data_type);
 
     // Add the attribute to the point cloud
@@ -70,8 +81,9 @@ bool AttributesDecoder::DecodeAttributesDecoderData(DecoderBuffer *in_buffer) {
     if (point_cloud_decoder_->bitstream_version() <
         DRACO_BITSTREAM_VERSION(1, 3)) {
       uint16_t custom_id;
-      if (!in_buffer->Decode(&custom_id))
+      if (!in_buffer->Decode(&custom_id)) {
         return false;
+      }
       // TODO(draco-eng): Add "custom_id" to attribute metadata.
       unique_id = static_cast<uint32_t>(custom_id);
       ga.set_unique_id(unique_id);
@@ -87,8 +99,10 @@ bool AttributesDecoder::DecodeAttributesDecoderData(DecoderBuffer *in_buffer) {
     point_attribute_ids_[i] = att_id;
 
     // Update the inverse map.
-    if (att_id >= static_cast<int32_t>(point_attribute_to_local_id_map_.size()))
+    if (att_id >=
+        static_cast<int32_t>(point_attribute_to_local_id_map_.size())) {
       point_attribute_to_local_id_map_.resize(att_id + 1, -1);
+    }
     point_attribute_to_local_id_map_[att_id] = i;
   }
   return true;

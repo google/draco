@@ -13,9 +13,8 @@
 // limitations under the License.
 //
 #include "draco/core/decoder_buffer.h"
-#include "draco/core/encoder_buffer.h"
-
 #include "draco/core/draco_test_base.h"
+#include "draco/core/encoder_buffer.h"
 
 namespace draco {
 

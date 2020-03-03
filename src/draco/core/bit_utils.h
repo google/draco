@@ -20,6 +20,7 @@
 
 #include <inttypes.h>
 #include <stdint.h>
+
 #include <type_traits>
 
 #if defined(_MSC_VER)

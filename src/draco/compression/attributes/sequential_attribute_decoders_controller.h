@@ -37,8 +37,9 @@ class SequentialAttributeDecodersController : public AttributesDecoder {
   const PointAttribute *GetPortableAttribute(
       int32_t point_attribute_id) override {
     const int32_t loc_id = GetLocalIdForPointAttribute(point_attribute_id);
-    if (loc_id < 0)
+    if (loc_id < 0) {
       return nullptr;
+    }
     return sequential_decoders_[loc_id]->GetPortableAttribute();
   }
 

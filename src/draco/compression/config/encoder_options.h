@@ -15,11 +15,10 @@
 #ifndef DRACO_COMPRESSION_CONFIG_ENCODER_OPTIONS_H_
 #define DRACO_COMPRESSION_CONFIG_ENCODER_OPTIONS_H_
 
-#include "draco/draco_features.h"
-
 #include "draco/attributes/geometry_attribute.h"
 #include "draco/compression/config/draco_options.h"
 #include "draco/compression/config/encoding_features.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 
@@ -56,8 +55,9 @@ class EncoderOptionsBase : public DracoOptions<AttributeKeyT> {
     const int encoding_speed = this->GetGlobalInt("encoding_speed", -1);
     const int decoding_speed = this->GetGlobalInt("decoding_speed", -1);
     const int max_speed = std::max(encoding_speed, decoding_speed);
-    if (max_speed == -1)
+    if (max_speed == -1) {
       return 5;  // Default value.
+    }
     return max_speed;
   }
 

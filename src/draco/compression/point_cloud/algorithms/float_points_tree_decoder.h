@@ -43,8 +43,9 @@ class FloatPointsTreeDecoder {
   template <class OutputIteratorT>
   bool DecodePointCloud(const char *data, size_t data_size,
                         OutputIteratorT out) {
-    if (data == 0 || data_size <= 0)
+    if (data == 0 || data_size <= 0) {
       return false;
+    }
 
     DecoderBuffer buffer;
     buffer.Init(data, data_size);
@@ -65,6 +66,10 @@ class FloatPointsTreeDecoder {
     }
   }
 
+  void set_num_points_from_header(uint32_t num_points) {
+    num_points_from_header_ = num_points;
+  }
+
  private:
   bool DecodePointCloudKdTreeInternal(DecoderBuffer *buffer,
                                       std::vector<Point3ui> *qpoints);
@@ -74,6 +79,11 @@ class FloatPointsTreeDecoder {
   PointCloudCompressionMethod method_;
   uint32_t num_points_;
   uint32_t compression_level_;
+
+  // Member variable to check if the number of points from the file header
+  // matches the number of points in the compression header. If
+  // |num_points_from_header_| is 0, do not perform the check. Defaults to 0.
+  uint32_t num_points_from_header_;
 };
 
 #ifndef DRACO_OLD_GCC
@@ -93,26 +103,30 @@ bool FloatPointsTreeDecoder::DecodePointCloud(DecoderBuffer *buffer,
   std::vector<Point3ui> qpoints;
 
   uint32_t decoded_version;
-  if (!buffer->Decode(&decoded_version))
+  if (!buffer->Decode(&decoded_version)) {
     return false;
+  }
 
   if (decoded_version == 3) {
     int8_t method_number;
-    if (!buffer->Decode(&method_number))
+    if (!buffer->Decode(&method_number)) {
       return false;
+    }
 
     method_ = static_cast<PointCloudCompressionMethod>(method_number);
 
     if (method_ == KDTREE) {
-      if (!DecodePointCloudKdTreeInternal(buffer, &qpoints))
+      if (!DecodePointCloudKdTreeInternal(buffer, &qpoints)) {
         return false;
+      }
     } else {  // Unsupported method.
       fprintf(stderr, "Method not supported. \n");
       return false;
     }
   } else if (decoded_version == 2) {  // Version 2 only uses KDTREE method.
-    if (!DecodePointCloudKdTreeInternal(buffer, &qpoints))
+    if (!DecodePointCloudKdTreeInternal(buffer, &qpoints)) {
       return false;
+    }
   } else {  // Unsupported version.
     fprintf(stderr, "Version not supported. \n");
     return false;

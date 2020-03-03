@@ -6,12 +6,14 @@ namespace draco {
 
 bool SymbolBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
   uint32_t size;
-  if (!source_buffer->Decode(&size))
+  if (!source_buffer->Decode(&size)) {
     return false;
+  }
 
   symbols_.resize(size);
-  if (!DecodeSymbols(size, 1, source_buffer, symbols_.data()))
+  if (!DecodeSymbols(size, 1, source_buffer, symbols_.data())) {
     return false;
+  }
   std::reverse(symbols_.begin(), symbols_.end());
   return true;
 }

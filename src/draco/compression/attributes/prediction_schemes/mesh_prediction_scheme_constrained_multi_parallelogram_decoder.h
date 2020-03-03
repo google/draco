@@ -18,13 +18,12 @@
 #include <algorithm>
 #include <cmath>
 
-#include "draco/draco_features.h"
-
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_constrained_multi_parallelogram_shared.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram_shared.h"
 #include "draco/compression/bit_coders/rans_bit_decoder.h"
 #include "draco/core/varint_decoding.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 
@@ -123,8 +122,9 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
         ++num_parallelograms;
         // Stop processing when we reach the maximum number of allowed
         // parallelograms.
-        if (num_parallelograms == kMaxNumParallelograms)
+        if (num_parallelograms == kMaxNumParallelograms) {
           break;
+        }
       }
 
       // Proceed to the next corner attached to the vertex. First swing left
@@ -154,8 +154,9 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
       for (int i = 0; i < num_parallelograms; ++i) {
         const int context = num_parallelograms - 1;
         const int pos = is_crease_edge_pos[context]++;
-        if (is_crease_edge_[context].size() <= pos)
+        if (is_crease_edge_[context].size() <= pos) {
           return false;
+        }
         const bool is_crease = is_crease_edge_[context][pos];
         if (!is_crease) {
           ++num_used_parallelograms;
@@ -206,12 +207,15 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
   // Encode selected edges using separate rans bit coder for each context.
   for (int i = 0; i < kMaxNumParallelograms; ++i) {
     uint32_t num_flags;
-    DecodeVarint<uint32_t>(&num_flags, buffer);
+    if (!DecodeVarint<uint32_t>(&num_flags, buffer)) {
+      return false;
+    }
     if (num_flags > 0) {
       is_crease_edge_[i].resize(num_flags);
       RAnsBitDecoder decoder;
-      if (!decoder.StartDecoding(buffer))
+      if (!decoder.StartDecoding(buffer)) {
         return false;
+      }
       for (uint32_t j = 0; j < num_flags; ++j) {
         is_crease_edge_[i][j] = decoder.DecodeNextBit();
       }

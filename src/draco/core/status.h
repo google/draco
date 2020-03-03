@@ -31,6 +31,7 @@ class Status {
     UNSUPPORTED_VERSION = -4,  // Input not compatible with the current version.
     UNKNOWN_VERSION = -5,      // Input was created with an unknown version of
                                // the library.
+    UNSUPPORTED_FEATURE = -6,  // Input contains feature that is not supported.
   };
 
   Status() : code_(OK) {}
@@ -66,8 +67,9 @@ inline Status OkStatus() { return Status(Status::OK); }
 #define DRACO_RETURN_IF_ERROR(expression)             \
   {                                                   \
     const draco::Status _local_status = (expression); \
-    if (!_local_status.ok())                          \
+    if (!_local_status.ok()) {                        \
       return _local_status;                           \
+    }                                                 \
   }
 
 }  // namespace draco

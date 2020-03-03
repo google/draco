@@ -28,7 +28,7 @@ class PlyDecoderTest : public ::testing::Test {
     std::unique_ptr<Geometry> geometry(new Geometry());
     Status status = decoder.DecodeFromFile(path, geometry.get());
     if (!status.ok()) {
-      LOG(DRACO_ERROR) << "Failed to decode " << file_name << ": " << status;
+      LOG(ERROR) << "Failed to decode " << file_name << ": " << status;
       return nullptr;
     }
     return geometry;
@@ -41,8 +41,9 @@ class PlyDecoderTest : public ::testing::Test {
       std::unique_ptr<Mesh> mesh(DecodePly<Mesh>(file_name));
       ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
       ASSERT_EQ(mesh->num_faces(), num_faces);
-      if (out_mesh)
+      if (out_mesh) {
         *out_mesh = std::move(mesh);
+      }
     }
 
     const std::unique_ptr<PointCloud> pc(DecodePly<PointCloud>(file_name));

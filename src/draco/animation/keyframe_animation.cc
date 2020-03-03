@@ -29,8 +29,9 @@ bool KeyframeAnimation::SetTimestamps(
     } else {
       // Check if the number of frames is consistent with
       // the existing keyframes.
-      if (num_frames != num_points())
+      if (num_frames != num_points()) {
         return false;
+      }
     }
   } else {
     // This is the first attribute.
@@ -40,10 +41,8 @@ bool KeyframeAnimation::SetTimestamps(
   // Add attribute for time stamp data.
   std::unique_ptr<PointAttribute> timestamp_att =
       std::unique_ptr<PointAttribute>(new PointAttribute());
-  timestamp_att->Init(GeometryAttribute::GENERIC, nullptr, 1, DT_FLOAT32, false,
-                      sizeof(float), 0);
-  timestamp_att->SetIdentityMapping();
-  timestamp_att->Reset(num_frames);
+  timestamp_att->Init(GeometryAttribute::GENERIC, 1, DT_FLOAT32, false,
+                      num_frames);
   for (PointIndex i(0); i < num_frames; ++i) {
     timestamp_att->SetAttributeValue(timestamp_att->mapped_index(i),
                                      &timestamp[i.value()]);

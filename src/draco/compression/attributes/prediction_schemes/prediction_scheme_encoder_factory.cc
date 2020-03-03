@@ -62,10 +62,12 @@ PredictionSchemeMethod GetPredictionMethodFromOptions(
     int att_id, const EncoderOptions &options) {
   const int pred_type =
       options.GetAttributeInt(att_id, "prediction_scheme", -1);
-  if (pred_type == -1)
+  if (pred_type == -1) {
     return PREDICTION_UNDEFINED;
-  if (pred_type < 0 || pred_type >= NUM_PREDICTION_SCHEMES)
+  }
+  if (pred_type < 0 || pred_type >= NUM_PREDICTION_SCHEMES) {
     return PREDICTION_NONE;
+  }
   return static_cast<PredictionSchemeMethod>(pred_type);
 }
 

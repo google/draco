@@ -382,8 +382,9 @@ TEST_F(PointCloudKdTreeEncodingTest, TestIntKdTreeEncodingSignedTypes) {
     std::array<int32_t, 2> pos;
     // Generate some pseudo-random points.
     pos[0] = 8 * ((i * 7) % 127) + 1;
-    if (i % 3 == 0)
+    if (i % 3 == 0) {
       pos[0] = -pos[0];
+    }
     pos[1] = 13 * ((i * 3) % 321) + 1;
     points2[i] = pos;
   }
@@ -392,8 +393,9 @@ TEST_F(PointCloudKdTreeEncodingTest, TestIntKdTreeEncodingSignedTypes) {
     std::array<int16_t, 1> pos;
     // Generate some pseudo-random points.
     pos[0] = 8 * ((i * 7) % 127) + 11;
-    if (i % 5 == 0)
+    if (i % 5 == 0) {
       pos[0] = -pos[0];
+    }
     points1[i] = pos;
   }
 

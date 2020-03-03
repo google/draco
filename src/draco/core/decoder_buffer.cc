@@ -41,13 +41,15 @@ bool DecoderBuffer::StartBitDecoding(bool decode_size, uint64_t *out_size) {
   if (decode_size) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (bitstream_version_ < DRACO_BITSTREAM_VERSION(2, 2)) {
-      if (!Decode(out_size))
+      if (!Decode(out_size)) {
         return false;
+      }
     } else
 #endif
     {
-      if (!DecodeVarint(out_size, this))
+      if (!DecodeVarint(out_size, this)) {
         return false;
+      }
     }
   }
   bit_mode_ = true;

@@ -15,9 +15,8 @@
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_QUANTIZATION_ATTRIBUTE_DECODER_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_QUANTIZATION_ATTRIBUTE_DECODER_H_
 
-#include "draco/draco_features.h"
-
 #include "draco/compression/attributes/sequential_integer_attribute_decoder.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 

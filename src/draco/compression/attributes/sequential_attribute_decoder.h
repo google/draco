@@ -15,10 +15,9 @@
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_ATTRIBUTE_DECODER_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_SEQUENTIAL_ATTRIBUTE_DECODER_H_
 
-#include "draco/draco_features.h"
-
 #include "draco/compression/attributes/prediction_schemes/prediction_scheme_interface.h"
 #include "draco/compression/point_cloud/point_cloud_decoder.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 

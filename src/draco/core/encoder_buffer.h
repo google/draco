@@ -47,8 +47,9 @@ class EncoderBuffer {
   // Encode up to 32 bits into the buffer. Can be called only in between
   // StartBitEncoding and EndBitEncoding. Otherwise returns false.
   bool EncodeLeastSignificantBits32(int nbits, uint32_t value) {
-    if (!bit_encoder_active())
+    if (!bit_encoder_active()) {
       return false;
+    }
     bit_encoder_->PutBits(value, nbits);
     return true;
   }
@@ -57,15 +58,17 @@ class EncoderBuffer {
   // Returns false when the value couldn't be encoded.
   template <typename T>
   bool Encode(const T &data) {
-    if (bit_encoder_active())
+    if (bit_encoder_active()) {
       return false;
+    }
     const uint8_t *src_data = reinterpret_cast<const uint8_t *>(&data);
     buffer_.insert(buffer_.end(), src_data, src_data + sizeof(T));
     return true;
   }
   bool Encode(const void *data, size_t data_size) {
-    if (bit_encoder_active())
+    if (bit_encoder_active()) {
       return false;
+    }
     const uint8_t *src_data = reinterpret_cast<const uint8_t *>(data);
     buffer_.insert(buffer_.end(), src_data, src_data + data_size);
     return true;
@@ -87,8 +90,9 @@ class EncoderBuffer {
     void PutBits(uint32_t data, int32_t nbits) {
       DRACO_DCHECK_GE(nbits, 0);
       DRACO_DCHECK_LE(nbits, 32);
-      for (int32_t bit = 0; bit < nbits; ++bit)
+      for (int32_t bit = 0; bit < nbits; ++bit) {
         PutBit((data >> bit) & 1);
+      }
     }
 
     // Return number of bits encoded so far.

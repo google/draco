@@ -42,23 +42,26 @@ class SequentialAttributeEncodersController : public AttributesEncoder {
 
   int NumParentAttributes(int32_t point_attribute_id) const override {
     const int32_t loc_id = GetLocalIdForPointAttribute(point_attribute_id);
-    if (loc_id < 0)
+    if (loc_id < 0) {
       return 0;
+    }
     return sequential_encoders_[loc_id]->NumParentAttributes();
   }
 
   int GetParentAttributeId(int32_t point_attribute_id,
                            int32_t parent_i) const override {
     const int32_t loc_id = GetLocalIdForPointAttribute(point_attribute_id);
-    if (loc_id < 0)
+    if (loc_id < 0) {
       return -1;
+    }
     return sequential_encoders_[loc_id]->GetParentAttributeId(parent_i);
   }
 
   bool MarkParentAttribute(int32_t point_attribute_id) override {
     const int32_t loc_id = GetLocalIdForPointAttribute(point_attribute_id);
-    if (loc_id < 0)
+    if (loc_id < 0) {
       return false;
+    }
     // Mark the attribute encoder as parent (even when if it is not created
     // yet).
     if (sequential_encoder_marked_as_parent_.size() <= loc_id) {
@@ -66,8 +69,9 @@ class SequentialAttributeEncodersController : public AttributesEncoder {
     }
     sequential_encoder_marked_as_parent_[loc_id] = true;
 
-    if (sequential_encoders_.size() <= loc_id)
+    if (sequential_encoders_.size() <= loc_id) {
       return true;  // Sequential encoders not generated yet.
+    }
     sequential_encoders_[loc_id]->MarkParentAttribute();
     return true;
   }
@@ -75,8 +79,9 @@ class SequentialAttributeEncodersController : public AttributesEncoder {
   const PointAttribute *GetPortableAttribute(
       int32_t point_attribute_id) override {
     const int32_t loc_id = GetLocalIdForPointAttribute(point_attribute_id);
-    if (loc_id < 0)
+    if (loc_id < 0) {
       return nullptr;
+    }
     return sequential_encoders_[loc_id]->GetPortableAttribute();
   }
 

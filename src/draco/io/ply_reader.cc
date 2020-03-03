@@ -76,13 +76,16 @@ Status PlyReader::Read(DecoderBuffer *buffer) {
 Status PlyReader::ParseHeader(DecoderBuffer *buffer) {
   while (true) {
     DRACO_ASSIGN_OR_RETURN(bool end, ParseEndHeader(buffer));
-    if (end)
+    if (end) {
       break;
-    if (ParseElement(buffer))
+    }
+    if (ParseElement(buffer)) {
       continue;
+    }
     DRACO_ASSIGN_OR_RETURN(bool property_parsed, ParseProperty(buffer));
-    if (property_parsed)
+    if (property_parsed) {
       continue;
+    }
     parser::SkipLine(buffer);
   }
   return OkStatus();
@@ -95,8 +98,9 @@ StatusOr<bool> PlyReader::ParseEndHeader(DecoderBuffer *buffer) {
     return Status(Status::INVALID_PARAMETER,
                   "End of file reached before the end_header");
   }
-  if (std::memcmp(&c[0], "end_header", 10) != 0)
+  if (std::memcmp(&c[0], "end_header", 10) != 0) {
     return false;
+  }
   parser::SkipLine(buffer);
   return true;
 }
@@ -123,8 +127,9 @@ bool PlyReader::ParseElement(DecoderBuffer *buffer) {
 }
 
 StatusOr<bool> PlyReader::ParseProperty(DecoderBuffer *buffer) {
-  if (elements_.empty())
+  if (elements_.empty()) {
     return false;  // Ignore properties if there is no active element.
+  }
   DecoderBuffer line_buffer(*buffer);
   std::string line;
   parser::ParseLine(&line_buffer, &line);
@@ -222,8 +227,9 @@ bool PlyReader::ParseElementDataAscii(DecoderBuffer *buffer,
       if (prop.is_list()) {
         parser::SkipWhitespace(buffer);
         // Parse the number of entries for the list element.
-        if (!parser::ParseSignedInt(buffer, &num_entries))
+        if (!parser::ParseSignedInt(buffer, &num_entries)) {
           return false;
+        }
 
         // Store offset to the main data entry.
         prop.list_data_.push_back(prop.data_.size() /
@@ -236,13 +242,15 @@ bool PlyReader::ParseElementDataAscii(DecoderBuffer *buffer,
         parser::SkipWhitespace(buffer);
         if (prop.data_type() == DT_FLOAT32 || prop.data_type() == DT_FLOAT64) {
           float val;
-          if (!parser::ParseFloat(buffer, &val))
+          if (!parser::ParseFloat(buffer, &val)) {
             return false;
+          }
           prop_writer.PushBackValue(val);
         } else {
           int32_t val;
-          if (!parser::ParseSignedInt(buffer, &val))
+          if (!parser::ParseSignedInt(buffer, &val)) {
             return false;
+          }
           prop_writer.PushBackValue(val);
         }
       }
@@ -260,32 +268,41 @@ std::vector<std::string> PlyReader::SplitWords(const std::string &line) {
   while ((end = line.find_first_of(" \t\n\v\f\r", start)) !=
          std::string::npos) {
     const std::string word(line.substr(start, end - start));
-    if (!std::all_of(word.begin(), word.end(), isspace))
+    if (!std::all_of(word.begin(), word.end(), isspace)) {
       output.push_back(word);
+    }
     start = end + 1;
   }
 
   const std::string last_word(line.substr(start));
-  if (!std::all_of(last_word.begin(), last_word.end(), isspace))
+  if (!std::all_of(last_word.begin(), last_word.end(), isspace)) {
     output.push_back(last_word);
+  }
   return output;
 }
 
 DataType PlyReader::GetDataTypeFromString(const std::string &name) const {
-  if (name == "char" || name == "int8")
+  if (name == "char" || name == "int8") {
     return DT_INT8;
-  if (name == "uchar" || name == "uint8")
+  }
+  if (name == "uchar" || name == "uint8") {
     return DT_UINT8;
-  if (name == "short" || name == "int16")
+  }
+  if (name == "short" || name == "int16") {
     return DT_INT16;
-  if (name == "ushort" || name == "uint16")
+  }
+  if (name == "ushort" || name == "uint16") {
     return DT_UINT16;
-  if (name == "int" || name == "int32")
+  }
+  if (name == "int" || name == "int32") {
     return DT_INT32;
-  if (name == "uint" || name == "uint32")
+  }
+  if (name == "uint" || name == "uint32") {
     return DT_UINT32;
-  if (name == "float" || name == "float32")
+  }
+  if (name == "float" || name == "float32") {
     return DT_FLOAT32;
+  }
   if (name == "double" || name == "float64") {
     return DT_FLOAT64;
   }

@@ -18,13 +18,12 @@
 
 #include <cmath>
 
-#include "draco/draco_features.h"
-
 #include "draco/compression/attributes/normal_compression_utils.h"
 #include "draco/compression/attributes/prediction_schemes/prediction_scheme_normal_octahedron_transform_base.h"
 #include "draco/core/decoder_buffer.h"
 #include "draco/core/macros.h"
 #include "draco/core/vector_d.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 
@@ -45,11 +44,13 @@ class PredictionSchemeNormalOctahedronDecodingTransform
   void Init(int num_components) {}
   bool DecodeTransformData(DecoderBuffer *buffer) {
     DataTypeT max_quantized_value, center_value;
-    if (!buffer->Decode(&max_quantized_value))
+    if (!buffer->Decode(&max_quantized_value)) {
       return false;
+    }
     if (buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
-      if (!buffer->Decode(&center_value))
+      if (!buffer->Decode(&center_value)) {
         return false;
+      }
     }
     (void)center_value;
     return this->set_max_quantized_value(max_quantized_value);

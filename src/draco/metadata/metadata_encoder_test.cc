@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/metadata/metadata_encoder.h"
+
 #include "draco/core/decoder_buffer.h"
 #include "draco/core/draco_test_base.h"
 #include "draco/core/encoder_buffer.h"
@@ -48,8 +49,9 @@ class MetadataEncoderTest : public ::testing::Test {
   void CheckBlobOfDataAreEqual(const std::vector<uint8_t> &data0,
                                const std::vector<uint8_t> &data1) {
     ASSERT_EQ(data0.size(), data1.size());
-    for (int i = 0; i < data0.size(); ++i)
+    for (int i = 0; i < data0.size(); ++i) {
       ASSERT_EQ(data0[i], data1[i]);
+    }
   }
 
   void CheckGeometryMetadatasAreEqual(

@@ -30,8 +30,9 @@ ExpertEncoder::ExpertEncoder(const Mesh &mesh)
     : point_cloud_(&mesh), mesh_(&mesh) {}
 
 Status ExpertEncoder::EncodeToBuffer(EncoderBuffer *out_buffer) {
-  if (point_cloud_ == nullptr)
+  if (point_cloud_ == nullptr) {
     return Status(Status::DRACO_ERROR, "Invalid input geometry.");
+  }
   if (mesh_ == nullptr) {
     return EncodePointCloudToBuffer(*point_cloud_, out_buffer);
   }
@@ -62,13 +63,16 @@ Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud &pc,
       if (kd_tree_possible && att->data_type() != DT_FLOAT32 &&
           att->data_type() != DT_UINT32 && att->data_type() != DT_UINT16 &&
           att->data_type() != DT_UINT8 && att->data_type() != DT_INT32 &&
-          att->data_type() != DT_INT16 && att->data_type() != DT_INT8)
+          att->data_type() != DT_INT16 && att->data_type() != DT_INT8) {
         kd_tree_possible = false;
+      }
       if (kd_tree_possible && att->data_type() == DT_FLOAT32 &&
-          options().GetAttributeInt(0, "quantization_bits", -1) <= 0)
+          options().GetAttributeInt(0, "quantization_bits", -1) <= 0) {
         kd_tree_possible = false;  // Quantization not enabled.
-      if (!kd_tree_possible)
+      }
+      if (!kd_tree_possible) {
         break;
+      }
     }
 
     if (kd_tree_possible) {
@@ -167,8 +171,9 @@ Status ExpertEncoder::SetAttributePredictionScheme(
   auto att_type = att->attribute_type();
   const Status status =
       CheckPredictionScheme(att_type, prediction_scheme_method);
-  if (!status.ok())
+  if (!status.ok()) {
     return status;
+  }
   options().SetAttributeInt(attribute_id, "prediction_scheme",
                             prediction_scheme_method);
   return status;

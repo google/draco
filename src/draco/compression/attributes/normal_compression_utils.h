@@ -39,6 +39,7 @@
 #define DRACO_COMPRESSION_ATTRIBUTES_NORMAL_COMPRESSION_UTILS_H_
 
 #include <inttypes.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -55,8 +56,9 @@ class OctahedronToolBox {
         center_value_(-1) {}
 
   bool SetQuantizationBits(int32_t q) {
-    if (q < 2 || q > 30)
+    if (q < 2 || q > 30) {
       return false;
+    }
     quantization_bits_ = q;
     max_quantized_value_ = (1 << quantization_bits_) - 1;
     max_value_ = max_quantized_value_ - 1;
@@ -157,8 +159,9 @@ class OctahedronToolBox {
       int_vec[2] = 0;
     }
     // Take care of the sign.
-    if (scaled_vector[2] < 0)
+    if (scaled_vector[2] < 0) {
       int_vec[2] *= -1;
+    }
 
     IntegerVectorToQuantizedOctahedralCoords(int_vec, out_s, out_t);
   }
@@ -189,6 +192,8 @@ class OctahedronToolBox {
     }
   }
 
+  // TODO(b/149328891): Change function to not use templates as |T| is only
+  // float.
   template <typename T>
   void OctaherdalCoordsToUnitVector(T in_s, T in_t, T *out_vector) const {
     DRACO_DCHECK_GE(in_s, 0);
@@ -304,18 +309,21 @@ class OctahedronToolBox {
 
   // For correction values.
   int32_t ModMax(int32_t x) const {
-    if (x > this->center_value())
+    if (x > this->center_value()) {
       return x - this->max_quantized_value();
-    if (x < -this->center_value())
+    }
+    if (x < -this->center_value()) {
       return x + this->max_quantized_value();
+    }
     return x;
   }
 
   // For correction values.
   int32_t MakePositive(int32_t x) const {
     DRACO_DCHECK_LE(x, this->center_value() * 2);
-    if (x < 0)
+    if (x < 0) {
       return x + this->max_quantized_value();
+    }
     return x;
   }
 

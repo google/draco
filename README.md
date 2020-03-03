@@ -5,6 +5,25 @@
 
 News
 =======
+### Version 1.3.6 release
+* WASM and JavaScript decoders are now hosted from a static URL
+  * It is recommended to always pull your Draco WASM and JavaScript decoders from this URL:
+  * https://www.gstatic.com/draco/v1/decoders/
+  * Users will benefit from having the Draco decoder in cache as more sites start using the static URL
+* Changed web examples to pull Draco decoders from static URL
+* Added new API to Draco WASM decoder, which increased performance by ~15%
+* Decreased Draco WASM decoder size by ~20%
+* Added support for generic and multiple attributes to Draco Unity plug-ins
+* Added new API to Draco Unity, which increased decoder performance by ~15%
+* Changed quantization defaults:
+  * POSITION: 11
+  * NORMAL: 7
+  * TEX_COORD: 10
+  * COLOR: 8
+  * GENERIC: 8
+* Code cleanup
+* Bug fixes
+
 ### Version 1.3.5 release
 * Added option to build Draco for Universal Scene Description
 * Code cleanup
@@ -64,16 +83,9 @@ as well as C++ and Javascript decoders for the encoded data.
 _**Contents**_
 
   * [Building](#building)
-    * [CMake Basics](#cmake-basics)
-    * [Mac OS X](#mac-os-x)
-    * [Windows](#windows)
-    * [CMake Build Configuration](#cmake-build-configuration)
-      * [Debugging and Optimization](#debugging-and-optimization)
-      * [Googletest Integration](#googletest-integration)
-      * [Javascript Encoder/Decoder](#javascript-encoderdecoder)
-    * [Android Studio Project Integration](#android-studio-project-integration)
-    * [Native Android Builds](#native-android-builds)
   * [Usage](#usage)
+    * [Unity](#unity)
+    * [WASM and JavaScript Decoders](#WASM-and-JavaScript-Decoders)
     * [Command Line Applications](#command-line-applications)
     * [Encoding Tool](#encoding-tool)
     * [Encoding Point Clouds](#encoding-point-clouds)
@@ -92,279 +104,28 @@ _**Contents**_
 
 Building
 ========
-For all platforms, you must first generate the project/make files and then
-compile the examples.
-
-CMake Basics
-------------
-
-To generate project/make files for the default toolchain on your system, run
-`cmake` from a directory where you would like to generate build files, and pass
-it the path to your Draco repository.
-
-~~~~~ bash
-$ cmake path/to/draco
-~~~~~
-
-On Windows, the above command will produce Visual Studio project files for the
-newest Visual Studio detected on the system. On Mac OS X and Linux systems,
-the above command will produce a `makefile`.
-
-To control what types of projects are generated, add the `-G` parameter to the
-`cmake` command. This argument must be followed by the name of a generator.
-Running `cmake` with the `--help` argument will list the available
-generators for your system.
-
-Mac OS X
----------
-
-On Mac OS X, run the following command to generate Xcode projects:
-
-~~~~~ bash
-$ cmake path/to/draco -G Xcode
-~~~~~
-
-Windows
--------
-
-On a Windows box you would run the following command to generate Visual Studio
-2015 projects:
-
-~~~~~ bash
-C:\Users\nobody> cmake path/to/draco -G "Visual Studio 14 2015"
-~~~~~
-
-To generate 64-bit Windows Visual Studio 2015 projects:
-
-~~~~~ bash
-C:\Users\nobody> cmake path/to/draco -G "Visual Studio 14 2015 Win64"
-~~~~~
-
-
-CMake Build Configuration
--------------------------
-
-Debugging and Optimization
---------------------------
-
-Unlike Visual Studio and Xcode projects, the build configuration for make
-builds is controlled when you run `cmake`. The following examples demonstrate
-various build configurations.
-
-Omitting the build type produces makefiles that use release build flags
-by default:
-
-~~~~~ bash
-$ cmake path/to/draco
-~~~~~
-
-A makefile using release (optimized) flags is produced like this:
-
-~~~~~ bash
-$ cmake path/to/draco -DCMAKE_BUILD_TYPE=release
-~~~~~
-
-A release build with debug info can be produced as well:
-
-~~~~~ bash
-$ cmake path/to/draco -DCMAKE_BUILD_TYPE=relwithdebinfo
-~~~~~
-
-And your standard debug build will be produced using:
-
-~~~~~ bash
-$ cmake path/to/draco -DCMAKE_BUILD_TYPE=debug
-~~~~~
-
-To enable the use of sanitizers when the compiler in use supports them, set the
-sanitizer type when running CMake:
-
-~~~~~ bash
-$ cmake path/to/draco -DSANITIZE=address
-~~~~~
-
-Googletest Integration
-----------------------
-
-Draco includes testing support built using Googletest. To enable Googletest unit
-test support the ENABLE_TESTS cmake variable must be turned on at cmake
-generation time:
-
-~~~~~ bash
-$ cmake path/to/draco -DENABLE_TESTS=ON
-~~~~~
-
-When cmake is used as shown in the above example the Draco cmake file assumes
-that the Googletest source directory is a sibling of the Draco repository. To
-change the location to something else use the GTEST_SOURCE_DIR cmake variable:
-
-~~~~~ bash
-$ cmake path/to/draco -DENABLE_TESTS=ON -DGTEST_SOURCE_DIR=path/to/googletest
-~~~~~
-
-To run the tests just execute `draco_tests` from your toolchain's build output
-directory.
-
-
-Javascript Encoder/Decoder
-------------------
-
-The javascript encoder and decoder can be built using the existing cmake build
-file by passing the path the Emscripten's cmake toolchain file at cmake
-generation time in the CMAKE_TOOLCHAIN_FILE variable.
-In addition, the EMSCRIPTEN environment variable must be set to the local path
-of the parent directory of the Emscripten tools directory.
-
-~~~~~ bash
-# Make the path to emscripten available to cmake.
-$ export EMSCRIPTEN=/path/to/emscripten/tools/parent
-
-# Emscripten.cmake can be found within your Emscripten installation directory,
-# it should be the subdir: cmake/Modules/Platform/Emscripten.cmake
-$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake
-
-# Build the Javascript encoder and decoder.
-$ make
-~~~~~
-
-WebAssembly Decoder
--------------------
-
-The WebAssembly decoder can be built using the existing cmake build file by
-passing the path the Emscripten's cmake toolchain file at cmake generation time
-in the CMAKE_TOOLCHAIN_FILE variable and enabling the WASM build option.
-In addition, the EMSCRIPTEN environment variable must be set to the local path
-of the parent directory of the Emscripten tools directory.
-
-Make sure to have the correct version of Emscripten installed for WebAssembly
-builds. See https://developer.mozilla.org/en-US/docs/WebAssembly.
-
-~~~~~ bash
-# Make the path to emscripten available to cmake.
-$ export EMSCRIPTEN=/path/to/emscripten/tools/parent
-
-# Emscripten.cmake can be found within your Emscripten installation directory,
-# it should be the subdir: cmake/Modules/Platform/Emscripten.cmake
-$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake -DENABLE_WASM=ON
-
-# Build the WebAssembly decoder.
-$ make
-
-# Run the Javascript wrapper through Closure.
-$ java -jar closure.jar --compilation_level SIMPLE --js draco_decoder.js --js_output_file draco_wasm_wrapper.js
-
-~~~~~
-
-WebAssembly Mesh Only Decoder
------------------------------
-
-~~~~~ bash
-
-# cmake command line for mesh only WebAssembly decoder.
-$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake -DENABLE_WASM=ON -DENABLE_POINT_CLOUD_COMPRESSION=OFF
-
-~~~~~
-
-WebAssembly Point Cloud Only Decoder
------------------------------
-
-~~~~~ bash
-
-# cmake command line for point cloud only WebAssembly decoder.
-$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake -DENABLE_WASM=ON -DENABLE_MESH_COMPRESSION=OFF
-
-~~~~~
-
-
-Android Studio Project Integration
-----------------------------------
-
-To include Draco in an existing or new Android Studio project, reference it
-from the `cmake` file of an existing native project that has a minimum SDK
-version of 18 or higher. The project must support C++11.
-To add Draco to your project:
-
-  1. Add the following somewhere within the `CMakeLists.txt` for your project
-     before the `add_library()` for your project's native-lib:
-
-     ~~~~~ cmake
-     # Note "/path/to/draco" must be changed to the path where you have cloned
-     # the Draco sources.
-
-     add_subdirectory(/path/to/draco
-                      ${CMAKE_BINARY_DIR}/draco_build)
-     include_directories("${CMAKE_BINARY_DIR}" /path/to/draco)
-     ~~~~~
-
-  2. Add the library target "draco" to the `target_link_libraries()` call for
-     your project's native-lib. The `target_link_libraries()` call for an
-     empty activity native project looks like this after the addition of
-     Draco:
-
-     ~~~~~ cmake
-     target_link_libraries( # Specifies the target library.
-                            native-lib
-
-                            # Tells cmake this build depends on libdraco.
-                            draco
-
-                            # Links the target library to the log library
-                            # included in the NDK.
-                            ${log-lib} )
-     ~~~~~
-  3. Add macro to build.gradle for the features you need:
-     ~~~~~ cmake
-     android {
-         ...
-         defaultConfig {
-             ...
-             externalNativeBuild {
-                 cmake {
-                     cppFlags "-std=c++11"
-                     arguments "-DANDROID_STL=c++_shared"
-                 }
-             }
-         }
-         externalNativeBuild {
-             cmake {
-                 path "CMakeLists.txt"
-             }
-         }
-     }
-
-Native Android Builds
----------------------
-
-It's sometimes useful to build Draco command line tools and run them directly on
-Android devices via adb.
-
-~~~~~ bash
-# All targets require CMAKE_ANDROID_NDK. It must be set in the environment.
-$ export CMAKE_ANDROID_NDK=path/to/ndk
-
-# arm
-$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=path/to/draco/cmake/toolchains/armv7-android-ndk-libcpp.cmake
-$ make
-
-# arm64
-$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=path/to/draco/cmake/toolchains/arm64-android-ndk-libcpp.cmake
-$ make
-
-# x86
-$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=path/to/draco/cmake/toolchains/x86-android-ndk-libcpp.cmake
-$ make
-
-# x86_64
-$ cmake path/to/draco -DCMAKE_TOOLCHAIN_FILE=path/to/draco/cmake/toolchains/x86_64-android-ndk-libcpp.cmake
-$ make
-~~~~~
-
-After building the tools they can be moved to an android device via the use of
-`adb push`, and then run within an `adb shell` instance.
+See [BUILDING](BUILDING.md) for building instructions.
 
 
 Usage
 ======
+
+Unity
+-----
+For the best information about using Unity with Draco please visit https://gitlab.com/atteneder/DracoUnity
+
+For a simple example of using Unity with Draco see [README](unity/README.md) in the unity folder.
+
+WASM and JavaScript Decoders
+----------------------------
+
+It is recommended to always pull your Draco WASM and JavaScript decoders from:
+
+~~~~~ bash
+https://www.gstatic.com/draco/v1/decoders/
+~~~~~
+
+Users will benefit from having the Draco decoder in cache as more sites start using the static URL.
 
 Command Line Applications
 ------------------------
@@ -393,11 +154,12 @@ values for the specified attribute to that number of bits. For example:
 ./draco_encoder -i testdata/bun_zipper.ply -o out.drc -qp 14
 ~~~~~
 
-will quantize the positions to 14 bits (default for the position coordinates).
+will quantize the positions to 14 bits (default is 11 for the position
+coordinates).
 
 In general, the more you quantize your attributes the better compression rate
 you will get. It is up to your project to decide how much deviation it will
-tolerate. In general, most projects can set quantization values of about `14`
+tolerate. In general, most projects can set quantization values of about `11`
 without any noticeable difference in quality.
 
 The compression level (`-cl`) parameter turns on/off different compression

@@ -18,18 +18,23 @@ namespace draco {
 
 std::unique_ptr<CornerTable> CreateCornerTableFromPositionAttribute(
     const Mesh *mesh) {
+  return CreateCornerTableFromAttribute(mesh, GeometryAttribute::POSITION);
+}
+
+std::unique_ptr<CornerTable> CreateCornerTableFromAttribute(
+    const Mesh *mesh, GeometryAttribute::Type type) {
   typedef CornerTable::FaceType FaceType;
 
-  const PointAttribute *const att =
-      mesh->GetNamedAttribute(GeometryAttribute::POSITION);
-  if (att == nullptr)
+  const PointAttribute *const att = mesh->GetNamedAttribute(type);
+  if (att == nullptr) {
     return nullptr;
+  }
   IndexTypeVector<FaceIndex, FaceType> faces(mesh->num_faces());
   FaceType new_face;
   for (FaceIndex i(0); i < mesh->num_faces(); ++i) {
     const Mesh::Face &face = mesh->face(i);
     for (int j = 0; j < 3; ++j) {
-      // Map general vertex indices to position indices.
+      // Map general vertex indices to attribute indices.
       new_face[j] = att->mapped_index(face[j]).value();
     }
     faces[FaceIndex(i)] = new_face;

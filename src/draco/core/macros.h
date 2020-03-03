@@ -16,7 +16,6 @@
 #define DRACO_CORE_MACROS_H_
 
 #include "assert.h"
-
 #include "draco/draco_features.h"
 
 #ifdef ANDROID_LOGGING

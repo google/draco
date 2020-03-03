@@ -46,8 +46,9 @@ bool SequentialAttributeEncoder::TransformAttributeToPortableFormat(
 bool SequentialAttributeEncoder::EncodePortableAttribute(
     const std::vector<PointIndex> &point_ids, EncoderBuffer *out_buffer) {
   // Lossless encoding of the input values.
-  if (!EncodeValues(point_ids, out_buffer))
+  if (!EncodeValues(point_ids, out_buffer)) {
     return false;
+  }
   return true;
 }
 
@@ -80,8 +81,9 @@ bool SequentialAttributeEncoder::InitPredictionScheme(
   for (int i = 0; i < ps->GetNumParentAttributes(); ++i) {
     const int att_id = encoder_->point_cloud()->GetNamedAttributeId(
         ps->GetParentAttributeType(i));
-    if (att_id == -1)
+    if (att_id == -1) {
       return false;  // Requested attribute does not exist.
+    }
     parent_attributes_.push_back(att_id);
     encoder_->MarkParentAttribute(att_id);
   }
@@ -93,10 +95,12 @@ bool SequentialAttributeEncoder::SetPredictionSchemeParentAttributes(
   for (int i = 0; i < ps->GetNumParentAttributes(); ++i) {
     const int att_id = encoder_->point_cloud()->GetNamedAttributeId(
         ps->GetParentAttributeType(i));
-    if (att_id == -1)
+    if (att_id == -1) {
       return false;  // Requested attribute does not exist.
-    if (!ps->SetParentAttribute(encoder_->GetPortableAttribute(att_id)))
+    }
+    if (!ps->SetParentAttribute(encoder_->GetPortableAttribute(att_id))) {
       return false;
+    }
   }
   return true;
 }

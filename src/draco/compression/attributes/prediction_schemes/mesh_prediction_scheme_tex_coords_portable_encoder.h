@@ -51,10 +51,12 @@ class MeshPredictionSchemeTexCoordsPortableEncoder
   }
 
   bool IsInitialized() const override {
-    if (!predictor_.IsInitialized())
+    if (!predictor_.IsInitialized()) {
       return false;
-    if (!this->mesh_data().IsInitialized())
+    }
+    if (!this->mesh_data().IsInitialized()) {
       return false;
+    }
     return true;
   }
 
@@ -67,10 +69,12 @@ class MeshPredictionSchemeTexCoordsPortableEncoder
   }
 
   bool SetParentAttribute(const PointAttribute *att) override {
-    if (att->attribute_type() != GeometryAttribute::POSITION)
+    if (att->attribute_type() != GeometryAttribute::POSITION) {
       return false;  // Invalid attribute type.
-    if (att->num_components() != 3)
+    }
+    if (att->num_components() != 3) {
       return false;  // Currently works only for 3 component positions.
+    }
     predictor_.SetPositionAttribute(*att);
     return true;
   }

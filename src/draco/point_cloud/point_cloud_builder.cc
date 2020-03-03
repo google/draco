@@ -43,8 +43,9 @@ void PointCloudBuilder::SetAttributeValuesForAllPoints(
   PointAttribute *const att = point_cloud_->attribute(att_id);
   const int data_stride =
       DataTypeLength(att->data_type()) * att->num_components();
-  if (stride == 0)
+  if (stride == 0) {
     stride = data_stride;
+  }
   if (stride == data_stride) {
     // Fast copy path.
     att->buffer()->Write(0, attribute_values,

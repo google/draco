@@ -13,13 +13,14 @@
 // limitations under the License.
 //
 
+#include "draco/compression/encode.h"
+
 #include <cinttypes>
 #include <fstream>
 #include <sstream>
 
 #include "draco/attributes/attribute_quantization_transform.h"
 #include "draco/compression/decode.h"
-#include "draco/compression/encode.h"
 #include "draco/compression/expert_encode.h"
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
@@ -105,11 +106,13 @@ class EncodeTest : public ::testing::Test {
   }
 
   int GetQuantizationBitsFromAttribute(const draco::PointAttribute *att) const {
-    if (att == nullptr)
+    if (att == nullptr) {
       return -1;
+    }
     draco::AttributeQuantizationTransform transform;
-    if (!transform.InitFromAttribute(*att))
+    if (!transform.InitFromAttribute(*att)) {
       return -1;
+    }
     return transform.quantization_bits();
   }
 
@@ -148,8 +151,9 @@ class EncodeTest : public ::testing::Test {
       std::unique_ptr<draco::Mesh> mesh_tmp =
           draco::ReadMeshFromTestFile(file_name);
       mesh = mesh_tmp.get();
-      if (!mesh->DeduplicateAttributeValues())
+      if (!mesh->DeduplicateAttributeValues()) {
         return;
+      }
       mesh->DeduplicatePointIds();
       geometry = std::move(mesh_tmp);
     } else {

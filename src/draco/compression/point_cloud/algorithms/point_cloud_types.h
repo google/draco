@@ -16,6 +16,7 @@
 #define DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_POINT_CLOUD_TYPES_H_
 
 #include <inttypes.h>
+
 #include <vector>
 
 #include "draco/core/vector_d.h"

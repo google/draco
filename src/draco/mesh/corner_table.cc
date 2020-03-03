@@ -30,8 +30,9 @@ CornerTable::CornerTable()
 std::unique_ptr<CornerTable> CornerTable::Create(
     const IndexTypeVector<FaceIndex, FaceType> &faces) {
   std::unique_ptr<CornerTable> ct(new CornerTable());
-  if (!ct->Init(faces))
+  if (!ct->Init(faces)) {
     return nullptr;
+  }
   return ct;
 }
 
@@ -45,12 +46,15 @@ bool CornerTable::Init(const IndexTypeVector<FaceIndex, FaceType> &faces) {
     }
   }
   int num_vertices = -1;
-  if (!ComputeOppositeCorners(&num_vertices))
+  if (!ComputeOppositeCorners(&num_vertices)) {
     return false;
-  if (!BreakNonManifoldEdges())
+  }
+  if (!BreakNonManifoldEdges()) {
     return false;
-  if (!ComputeVertexCorners(num_vertices))
+  }
+  if (!ComputeVertexCorners(num_vertices)) {
     return false;
+  }
   return true;
 }
 
@@ -59,11 +63,13 @@ bool CornerTable::Reset(int num_faces) {
 }
 
 bool CornerTable::Reset(int num_faces, int num_vertices) {
-  if (num_faces < 0 || num_vertices < 0)
+  if (num_faces < 0 || num_vertices < 0) {
     return false;
+  }
   if (static_cast<unsigned int>(num_faces) >
-      std::numeric_limits<CornerIndex::ValueType>::max() / 3)
+      std::numeric_limits<CornerIndex::ValueType>::max() / 3) {
     return false;
+  }
   corner_to_vertex_map_.assign(num_faces * 3, kInvalidVertexIndex);
   opposite_corners_.assign(num_faces * 3, kInvalidCornerIndex);
   vertex_corners_.reserve(num_vertices);
@@ -74,8 +80,9 @@ bool CornerTable::Reset(int num_faces, int num_vertices) {
 
 bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
   DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
-  if (num_vertices == nullptr)
+  if (num_vertices == nullptr) {
     return false;
+  }
   opposite_corners_.resize(num_corners(), kInvalidCornerIndex);
 
   // Out implementation for finding opposite corners is based on keeping track
@@ -92,8 +99,9 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
   num_corners_on_vertices.reserve(num_corners());
   for (CornerIndex c(0); c < num_corners(); ++c) {
     const VertexIndex v1 = Vertex(c);
-    if (v1.value() >= static_cast<int>(num_corners_on_vertices.size()))
+    if (v1.value() >= static_cast<int>(num_corners_on_vertices.size())) {
       num_corners_on_vertices.resize(v1.value() + 1, 0);
+    }
     // For each corner there is always exactly one outgoing half-edge attached
     // to its vertex.
     num_corners_on_vertices[v1.value()]++;
@@ -150,11 +158,13 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
     offset = vertex_offset[sink_v.value()];
     for (int i = 0; i < num_corners_on_vert; ++i, ++offset) {
       const VertexIndex other_v = vertex_edges[offset].sink_vert;
-      if (other_v == kInvalidVertexIndex)
+      if (other_v == kInvalidVertexIndex) {
         break;  // No matching half-edge found on the sink vertex.
+      }
       if (other_v == source_v) {
-        if (tip_v == Vertex(vertex_edges[offset].edge_corner))
+        if (tip_v == Vertex(vertex_edges[offset].edge_corner)) {
           continue;  // Don't connect mirrored faces.
+        }
         // A matching half-edge was found on the sink vertex. Mark the
         // half-edge's opposite corner.
         opposite_c = vertex_edges[offset].edge_corner;
@@ -165,8 +175,9 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
         // slot.
         for (int j = i + 1; j < num_corners_on_vert; ++j, ++offset) {
           vertex_edges[offset] = vertex_edges[offset + 1];
-          if (vertex_edges[offset].sink_vert == kInvalidVertexIndex)
+          if (vertex_edges[offset].sink_vert == kInvalidVertexIndex) {
             break;  // Unused half-edge reached.
+          }
         }
         // Mark the last entry as unused.
         vertex_edges[offset].sink_vert = kInvalidVertexIndex;
@@ -217,8 +228,9 @@ bool CornerTable::BreakNonManifoldEdges() {
   do {
     mesh_connectivity_updated = false;
     for (CornerIndex c(0); c < num_corners(); ++c) {
-      if (visited_corners[c.value()])
+      if (visited_corners[c.value()]) {
         continue;
+      }
       sink_vertices.clear();
 
       // First swing all the way to find the left-most corner connected to the
@@ -267,10 +279,12 @@ bool CornerTable::BreakNonManifoldEdges() {
             // that the final surface would be manifold.
             const CornerIndex opp_other_edge_corner =
                 Opposite(other_edge_corner);
-            if (opp_edge_corner != kInvalidCornerIndex)
+            if (opp_edge_corner != kInvalidCornerIndex) {
               SetOppositeCorner(opp_edge_corner, kInvalidCornerIndex);
-            if (opp_other_edge_corner != kInvalidCornerIndex)
+            }
+            if (opp_other_edge_corner != kInvalidCornerIndex) {
               SetOppositeCorner(opp_other_edge_corner, kInvalidCornerIndex);
+            }
 
             SetOppositeCorner(edge_corner, kInvalidCornerIndex);
             SetOppositeCorner(other_edge_corner, kInvalidCornerIndex);
@@ -312,13 +326,15 @@ bool CornerTable::ComputeVertexCorners(int num_vertices) {
   for (FaceIndex f(0); f < num_faces(); ++f) {
     const CornerIndex first_face_corner = FirstCorner(f);
     // Check whether the face is degenerated. If so ignore it.
-    if (IsDegenerated(f))
+    if (IsDegenerated(f)) {
       continue;
+    }
 
     for (int k = 0; k < 3; ++k) {
       const CornerIndex c = first_face_corner + k;
-      if (visited_corners[c.value()])
+      if (visited_corners[c.value()]) {
         continue;
+      }
       VertexIndex v = corner_to_vertex_map_[c];
       // Note that one vertex maps to many corners, but we just keep track
       // of the vertex which has a boundary on the left if the vertex lies on
@@ -350,8 +366,9 @@ bool CornerTable::ComputeVertexCorners(int num_vertices) {
           corner_to_vertex_map_[act_c] = v;
         }
         act_c = SwingLeft(act_c);
-        if (act_c == c)
+        if (act_c == c) {
           break;  // Full circle reached.
+        }
       }
       if (act_c == kInvalidCornerIndex) {
         // If we have reached an open boundary we need to swing right from the
@@ -372,27 +389,31 @@ bool CornerTable::ComputeVertexCorners(int num_vertices) {
   // Count the number of isolated (unprocessed) vertices.
   num_isolated_vertices_ = 0;
   for (bool visited : visited_vertices) {
-    if (!visited)
+    if (!visited) {
       ++num_isolated_vertices_;
+    }
   }
   return true;
 }
 
 bool CornerTable::IsDegenerated(FaceIndex face) const {
-  if (face == kInvalidFaceIndex)
+  if (face == kInvalidFaceIndex) {
     return true;
+  }
   const CornerIndex first_face_corner = FirstCorner(face);
   const VertexIndex v0 = Vertex(first_face_corner);
   const VertexIndex v1 = Vertex(Next(first_face_corner));
   const VertexIndex v2 = Vertex(Previous(first_face_corner));
-  if (v0 == v1 || v0 == v2 || v1 == v2)
+  if (v0 == v1 || v0 == v2 || v1 == v2) {
     return true;
+  }
   return false;
 }
 
 int CornerTable::Valence(VertexIndex v) const {
-  if (v == kInvalidVertexIndex)
+  if (v == kInvalidVertexIndex) {
     return -1;
+  }
   return ConfidentValence(v);
 }
 

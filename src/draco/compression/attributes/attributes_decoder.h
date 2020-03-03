@@ -17,11 +17,10 @@
 
 #include <vector>
 
-#include "draco/draco_features.h"
-
 #include "draco/compression/attributes/attributes_decoder_interface.h"
 #include "draco/compression/point_cloud/point_cloud_decoder.h"
 #include "draco/core/decoder_buffer.h"
+#include "draco/draco_features.h"
 #include "draco/point_cloud/point_cloud.h"
 
 namespace draco {
@@ -54,12 +53,15 @@ class AttributesDecoder : public AttributesDecoderInterface {
 
   // Decodes attribute data from the source buffer.
   bool DecodeAttributes(DecoderBuffer *in_buffer) override {
-    if (!DecodePortableAttributes(in_buffer))
+    if (!DecodePortableAttributes(in_buffer)) {
       return false;
-    if (!DecodeDataNeededByPortableTransforms(in_buffer))
+    }
+    if (!DecodeDataNeededByPortableTransforms(in_buffer)) {
       return false;
-    if (!TransformAttributesToOriginalFormat())
+    }
+    if (!TransformAttributesToOriginalFormat()) {
       return false;
+    }
     return true;
   }
 
@@ -67,8 +69,9 @@ class AttributesDecoder : public AttributesDecoderInterface {
   int32_t GetLocalIdForPointAttribute(int32_t point_attribute_id) const {
     const int id_map_size =
         static_cast<int>(point_attribute_to_local_id_map_.size());
-    if (point_attribute_id >= id_map_size)
+    if (point_attribute_id >= id_map_size) {
       return -1;
+    }
     return point_attribute_to_local_id_map_[point_attribute_id];
   }
   virtual bool DecodePortableAttributes(DecoderBuffer *in_buffer) = 0;

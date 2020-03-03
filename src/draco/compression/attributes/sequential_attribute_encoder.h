@@ -64,8 +64,9 @@ class SequentialAttributeEncoder {
   int GetParentAttributeId(int i) const { return parent_attributes_[i]; }
 
   const PointAttribute *GetPortableAttribute() const {
-    if (portable_attribute_ != nullptr)
+    if (portable_attribute_ != nullptr) {
       return portable_attribute_.get();
+    }
     return attribute();
   }
 

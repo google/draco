@@ -32,8 +32,9 @@ class LinearSequencer : public PointsSequencer {
 
  protected:
   bool GenerateSequenceInternal() override {
-    if (num_points_ < 0)
+    if (num_points_ < 0) {
       return false;
+    }
     out_point_ids()->resize(num_points_);
     for (int i = 0; i < num_points_; ++i) {
       out_point_ids()->at(i) = PointIndex(i);

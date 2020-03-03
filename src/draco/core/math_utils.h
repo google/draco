@@ -27,8 +27,9 @@
 // replacement for std::sqrt() for general cases. IntSqrt is in fact about 3X
 // slower compared to most implementation of std::sqrt().
 inline uint64_t IntSqrt(uint64_t number) {
-  if (number == 0)
+  if (number == 0) {
     return 0;
+  }
   // First estimate good initial value of the square root as log2(number).
   uint64_t act_number = number;
   uint64_t square_root = 1;

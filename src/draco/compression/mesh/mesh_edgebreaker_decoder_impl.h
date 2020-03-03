@@ -17,14 +17,13 @@
 
 #include <unordered_map>
 #include <unordered_set>
-#include "draco/compression/mesh/traverser/mesh_traversal_sequencer.h"
-
-#include "draco/draco_features.h"
 
 #include "draco/compression/attributes/mesh_attribute_indices_encoding_data.h"
 #include "draco/compression/mesh/mesh_edgebreaker_decoder_impl_interface.h"
 #include "draco/compression/mesh/mesh_edgebreaker_shared.h"
+#include "draco/compression/mesh/traverser/mesh_traversal_sequencer.h"
 #include "draco/core/decoder_buffer.h"
+#include "draco/draco_features.h"
 #include "draco/mesh/corner_table.h"
 #include "draco/mesh/mesh_attribute_corner_table.h"
 
@@ -85,8 +84,9 @@ class MeshEdgebreakerDecoderImpl : public MeshEdgebreakerDecoderImplInterface {
   // symbol.
   bool IsTopologySplit(int encoder_symbol_id, EdgeFaceName *out_face_edge,
                        int *out_encoder_split_symbol_id) {
-    if (topology_split_data_.size() == 0)
+    if (topology_split_data_.size() == 0) {
       return false;
+    }
     if (topology_split_data_.back().source_symbol_id >
         static_cast<uint32_t>(encoder_symbol_id)) {
       // Something is wrong; if the desired source symbol is greater than the
@@ -97,8 +97,9 @@ class MeshEdgebreakerDecoderImpl : public MeshEdgebreakerDecoderImplInterface {
       *out_encoder_split_symbol_id = -1;
       return true;
     }
-    if (topology_split_data_.back().source_symbol_id != encoder_symbol_id)
+    if (topology_split_data_.back().source_symbol_id != encoder_symbol_id) {
       return false;
+    }
     *out_face_edge =
         static_cast<EdgeFaceName>(topology_split_data_.back().source_edge);
     *out_encoder_split_symbol_id = topology_split_data_.back().split_symbol_id;
@@ -123,8 +124,9 @@ class MeshEdgebreakerDecoderImpl : public MeshEdgebreakerDecoderImplInterface {
   bool AssignPointsToCorners(int num_connectivity_verts);
 
   bool IsFaceVisited(CornerIndex corner_id) const {
-    if (corner_id < 0)
+    if (corner_id < 0) {
       return true;  // Invalid corner signalizes that the face does not exist.
+    }
     return visited_faces_[corner_table_->Face(corner_id).value()];
   }
 

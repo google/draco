@@ -43,15 +43,17 @@ class TraverserBase {
   const CornerTable &GetCornerTable() const { return *corner_table_; }
 
   inline bool IsFaceVisited(FaceIndex face_id) const {
-    if (face_id == kInvalidFaceIndex)
+    if (face_id == kInvalidFaceIndex) {
       return true;  // Invalid faces are always considered as visited.
+    }
     return is_face_visited_[face_id.value()];
   }
 
   // Returns true if the face containing the given corner was visited.
   inline bool IsFaceVisited(CornerIndex corner_id) const {
-    if (corner_id == kInvalidCornerIndex)
+    if (corner_id == kInvalidCornerIndex) {
       return true;  // Invalid faces are always considered as visited.
+    }
     return is_face_visited_[corner_id.value() / 3];
   }
 

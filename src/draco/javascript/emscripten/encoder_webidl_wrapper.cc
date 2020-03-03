@@ -34,8 +34,9 @@ MetadataBuilder::MetadataBuilder() {}
 
 bool MetadataBuilder::AddStringEntry(Metadata *metadata, const char *entry_name,
                                      const char *entry_value) {
-  if (!metadata)
+  if (!metadata) {
     return false;
+  }
   const std::string name{entry_name};
   const std::string value{entry_value};
   metadata->AddEntryString(entry_name, entry_value);
@@ -44,8 +45,9 @@ bool MetadataBuilder::AddStringEntry(Metadata *metadata, const char *entry_name,
 
 bool MetadataBuilder::AddIntEntry(Metadata *metadata, const char *entry_name,
                                   long entry_value) {
-  if (!metadata)
+  if (!metadata) {
     return false;
+  }
   const std::string name{entry_name};
   metadata->AddEntryInt(name, entry_value);
   return true;
@@ -53,8 +55,9 @@ bool MetadataBuilder::AddIntEntry(Metadata *metadata, const char *entry_name,
 
 bool MetadataBuilder::AddDoubleEntry(Metadata *metadata, const char *entry_name,
                                      double entry_value) {
-  if (!metadata)
+  if (!metadata) {
     return false;
+  }
   const std::string name{entry_name};
   metadata->AddEntryDouble(name, entry_value);
   return true;
@@ -119,11 +122,13 @@ int PointCloudBuilder::AddUInt32Attribute(PointCloud *pc,
 }
 
 bool PointCloudBuilder::AddMetadata(PointCloud *pc, const Metadata *metadata) {
-  if (!pc)
+  if (!pc) {
     return false;
+  }
   // Not allow write over metadata.
-  if (pc->metadata())
+  if (pc->metadata()) {
     return false;
+  }
   std::unique_ptr<draco::GeometryMetadata> new_metadata =
       std::unique_ptr<draco::GeometryMetadata>(
           new draco::GeometryMetadata(*metadata));
@@ -134,13 +139,16 @@ bool PointCloudBuilder::AddMetadata(PointCloud *pc, const Metadata *metadata) {
 bool PointCloudBuilder::SetMetadataForAttribute(PointCloud *pc,
                                                 long attribute_id,
                                                 const Metadata *metadata) {
-  if (!pc)
+  if (!pc) {
     return false;
+  }
   // If empty metadata, just ignore.
-  if (!metadata)
+  if (!metadata) {
     return false;
-  if (attribute_id < 0 || attribute_id >= pc->num_attributes())
+  }
+  if (attribute_id < 0 || attribute_id >= pc->num_attributes()) {
     return false;
+  }
 
   if (!pc->metadata()) {
     std::unique_ptr<draco::GeometryMetadata> geometry_metadata =
@@ -162,8 +170,9 @@ bool PointCloudBuilder::SetMetadataForAttribute(PointCloud *pc,
 MeshBuilder::MeshBuilder() {}
 
 bool MeshBuilder::AddFacesToMesh(Mesh *mesh, long num_faces, const int *faces) {
-  if (!mesh)
+  if (!mesh) {
     return false;
+  }
   mesh->SetNumFaces(num_faces);
   for (draco::FaceIndex i(0); i < num_faces; ++i) {
     draco::Mesh::Face face;
@@ -222,13 +231,16 @@ void Encoder::SetTrackEncodedProperties(bool flag) {
 }
 
 int Encoder::EncodeMeshToDracoBuffer(Mesh *mesh, DracoInt8Array *draco_buffer) {
-  if (!mesh)
+  if (!mesh) {
     return 0;
+  }
   draco::EncoderBuffer buffer;
-  if (mesh->GetNamedAttributeId(draco::GeometryAttribute::POSITION) == -1)
+  if (mesh->GetNamedAttributeId(draco::GeometryAttribute::POSITION) == -1) {
     return 0;
-  if (!mesh->DeduplicateAttributeValues())
+  }
+  if (!mesh->DeduplicateAttributeValues()) {
     return 0;
+  }
   mesh->DeduplicatePointIds();
   if (!encoder_.EncodeMeshToBuffer(*mesh, &buffer).ok()) {
     return 0;
@@ -241,14 +253,17 @@ int Encoder::EncodePointCloudToDracoBuffer(draco::PointCloud *pc,
                                            bool deduplicate_values,
                                            DracoInt8Array *draco_buffer) {
   // TODO(ostava): Refactor common functionality with EncodeMeshToDracoBuffer().
-  if (!pc)
+  if (!pc) {
     return 0;
+  }
   draco::EncoderBuffer buffer;
-  if (pc->GetNamedAttributeId(draco::GeometryAttribute::POSITION) == -1)
+  if (pc->GetNamedAttributeId(draco::GeometryAttribute::POSITION) == -1) {
     return 0;
+  }
   if (deduplicate_values) {
-    if (!pc->DeduplicateAttributeValues())
+    if (!pc->DeduplicateAttributeValues()) {
       return 0;
+    }
     pc->DeduplicatePointIds();
   }
   if (!encoder_.EncodePointCloudToBuffer(*pc, &buffer).ok()) {
@@ -268,12 +283,13 @@ ExpertEncoder::ExpertEncoder(PointCloud *pc) : pc_(pc) {
   // Web-IDL interface does not support constructor overloading so instead we
   // use RTTI to determine whether the input is a mesh or a point cloud.
   Mesh *mesh = dynamic_cast<Mesh *>(pc);
-  if (mesh)
+  if (mesh) {
     encoder_ =
         std::unique_ptr<draco::ExpertEncoder>(new draco::ExpertEncoder(*mesh));
-  else
+  } else {
     encoder_ =
         std::unique_ptr<draco::ExpertEncoder>(new draco::ExpertEncoder(*pc));
+  }
 }
 
 void ExpertEncoder::SetEncodingMethod(long method) {
@@ -304,11 +320,13 @@ void ExpertEncoder::SetTrackEncodedProperties(bool flag) {
 
 int ExpertEncoder::EncodeToDracoBuffer(bool deduplicate_values,
                                        DracoInt8Array *draco_buffer) {
-  if (!pc_)
+  if (!pc_) {
     return 0;
+  }
   if (deduplicate_values) {
-    if (!pc_->DeduplicateAttributeValues())
+    if (!pc_->DeduplicateAttributeValues()) {
       return 0;
+    }
     pc_->DeduplicatePointIds();
   }
 

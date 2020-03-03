@@ -80,23 +80,27 @@ class CornerTable {
   }
 
   inline CornerIndex Opposite(CornerIndex corner) const {
-    if (corner == kInvalidCornerIndex)
+    if (corner == kInvalidCornerIndex) {
       return corner;
+    }
     return opposite_corners_[corner];
   }
   inline CornerIndex Next(CornerIndex corner) const {
-    if (corner == kInvalidCornerIndex)
+    if (corner == kInvalidCornerIndex) {
       return corner;
+    }
     return LocalIndex(++corner) ? corner : corner - 3;
   }
   inline CornerIndex Previous(CornerIndex corner) const {
-    if (corner == kInvalidCornerIndex)
+    if (corner == kInvalidCornerIndex) {
       return corner;
+    }
     return LocalIndex(corner) ? corner - 1 : corner + 2;
   }
   inline VertexIndex Vertex(CornerIndex corner) const {
-    if (corner == kInvalidCornerIndex)
+    if (corner == kInvalidCornerIndex) {
       return kInvalidVertexIndex;
+    }
     return ConfidentVertex(corner);
   }
   inline VertexIndex ConfidentVertex(CornerIndex corner) const {
@@ -105,13 +109,15 @@ class CornerTable {
     return corner_to_vertex_map_[corner];
   }
   inline FaceIndex Face(CornerIndex corner) const {
-    if (corner == kInvalidCornerIndex)
+    if (corner == kInvalidCornerIndex) {
       return kInvalidFaceIndex;
+    }
     return FaceIndex(corner.value() / 3);
   }
   inline CornerIndex FirstCorner(FaceIndex face) const {
-    if (face == kInvalidFaceIndex)
+    if (face == kInvalidFaceIndex) {
       return kInvalidCornerIndex;
+    }
     return CornerIndex(face.value() * 3);
   }
   inline std::array<CornerIndex, 3> AllCorners(FaceIndex face) const {
@@ -146,8 +152,9 @@ class CornerTable {
 
   // Returns the parent vertex index of a given corner table vertex.
   VertexIndex VertexParent(VertexIndex vertex) const {
-    if (vertex.value() < static_cast<uint32_t>(num_original_vertices_))
+    if (vertex.value() < static_cast<uint32_t>(num_original_vertices_)) {
       return vertex;
+    }
     return non_manifold_vertex_parents_[vertex - num_original_vertices_];
   }
 
@@ -163,8 +170,9 @@ class CornerTable {
   int ConfidentValence(VertexIndex v) const;
   // Returns the valence of the vertex at the given corner.
   inline int Valence(CornerIndex c) const {
-    if (c == kInvalidCornerIndex)
+    if (c == kInvalidCornerIndex) {
       return -1;
+    }
     return ConfidentValence(c);
   }
   inline int ConfidentValence(CornerIndex c) const {
@@ -175,8 +183,9 @@ class CornerTable {
   // Returns true if the specified vertex is on a boundary.
   inline bool IsOnBoundary(VertexIndex vert) const {
     const CornerIndex corner = LeftMostCorner(vert);
-    if (SwingLeft(corner) == kInvalidCornerIndex)
+    if (SwingLeft(corner) == kInvalidCornerIndex) {
       return true;
+    }
     return false;
   }
 
@@ -205,13 +214,15 @@ class CornerTable {
   //    \ /     \ /
   //     *-------*
   inline CornerIndex GetLeftCorner(CornerIndex corner_id) const {
-    if (corner_id == kInvalidCornerIndex)
+    if (corner_id == kInvalidCornerIndex) {
       return kInvalidCornerIndex;
+    }
     return Opposite(Previous(corner_id));
   }
   inline CornerIndex GetRightCorner(CornerIndex corner_id) const {
-    if (corner_id == kInvalidCornerIndex)
+    if (corner_id == kInvalidCornerIndex) {
       return kInvalidCornerIndex;
+    }
     return Opposite(Next(corner_id));
   }
 
@@ -241,10 +252,12 @@ class CornerTable {
   // Sets opposite corners for both input corners.
   inline void SetOppositeCorners(CornerIndex corner_0, CornerIndex corner_1) {
     DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
-    if (corner_0 != kInvalidCornerIndex)
+    if (corner_0 != kInvalidCornerIndex) {
       SetOppositeCorner(corner_0, corner_1);
-    if (corner_1 != kInvalidCornerIndex)
+    }
+    if (corner_1 != kInvalidCornerIndex) {
       SetOppositeCorner(corner_1, corner_0);
+    }
   }
 
   // Updates mapping between a corner and a vertex.
@@ -260,11 +273,26 @@ class CornerTable {
     return VertexIndex(static_cast<uint32_t>(vertex_corners_.size() - 1));
   }
 
+  // Adds a new face connected to three vertices. Note that connectivity is not
+  // automatically updated and all opposite corners need to be set explicitly.
+  FaceIndex AddNewFace(const std::array<VertexIndex, 3> &vertices) {
+    // Add a new invalid face.
+    const FaceIndex new_face_index(num_faces());
+    for (int i = 0; i < 3; ++i) {
+      corner_to_vertex_map_.push_back(vertices[i]);
+      SetLeftMostCorner(vertices[i],
+                        CornerIndex(corner_to_vertex_map_.size() - 1));
+    }
+    opposite_corners_.resize(corner_to_vertex_map_.size(), kInvalidCornerIndex);
+    return new_face_index;
+  }
+
   // Sets a new left most corner for a given vertex.
   void SetLeftMostCorner(VertexIndex vert, CornerIndex corner) {
     DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
-    if (vert != kInvalidVertexIndex)
+    if (vert != kInvalidVertexIndex) {
       vertex_corners_[vert] = corner;
+    }
   }
 
   // Updates the vertex to corner map on a specified vertex. This should be
@@ -273,8 +301,9 @@ class CornerTable {
   void UpdateVertexToCornerMap(VertexIndex vert) {
     DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
     const CornerIndex first_c = vertex_corners_[vert];
-    if (first_c == kInvalidCornerIndex)
+    if (first_c == kInvalidCornerIndex) {
       return;  // Isolated vertex.
+    }
     CornerIndex act_c = SwingLeft(first_c);
     CornerIndex c = first_c;
     while (act_c != kInvalidCornerIndex && act_c != first_c) {

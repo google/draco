@@ -16,356 +16,362 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
 public unsafe class DracoMeshLoader
 {
-	// Must stay the order to be consistent with C++ interface.
-	[StructLayout (LayoutKind.Sequential)] private struct DracoToUnityMesh
-	{
-		public int numFaces;
-		public IntPtr indices;
-		public int numVertices;
-		public IntPtr position;
-		public bool hasNormal;
-		public IntPtr normal;
-		public bool hasTexcoord;
-		public IntPtr texcoord;
-		public bool hasColor;
-		public IntPtr color;
-	}
+  // These values must be exactly the same as the values in draco_types.h.
+  // Attribute data type.
+  enum DataType {
+    DT_INVALID = 0,
+    DT_INT8,
+    DT_UINT8,
+    DT_INT16,
+    DT_UINT16,
+    DT_INT32,
+    DT_UINT32,
+    DT_INT64,
+    DT_UINT64,
+    DT_FLOAT32,
+    DT_FLOAT64,
+    DT_BOOL
+  };
 
-	private struct DecodedMesh
-	{
-		public int[] indices;
-		public Vector3[] vertices;
-		public Vector3[] normals;
-		public Vector2[] uvs;
-		public Color[] colors;
-	}
+  // These values must be exactly the same as the values in
+  // geometry_attribute.h.
+  // Attribute type.
+  enum AttributeType {
+    INVALID = -1,
+    POSITION = 0,
+    NORMAL,
+    COLOR,
+    TEX_COORD,
+    // A special id used to mark attributes that are not assigned to any known
+    // predefined use case. Such attributes are often used for a shader specific
+    // data.
+    GENERIC
+  };
 
-	[DllImport ("dracodec_unity")] private static extern int DecodeMeshForUnity (
-		byte[] buffer, int length, DracoToUnityMesh**tmpMesh);
+  // The order must be consistent with C++ interface.
+  [StructLayout (LayoutKind.Sequential)] public struct DracoData
+  {
+    public int dataType;
+    public IntPtr data;
+  }
 
-	static private int maxNumVerticesPerMesh = 60000;
+  [StructLayout (LayoutKind.Sequential)] public struct DracoAttribute
+  {
+    public int attributeType;
+    public int dataType;
+    public int numComponents;
+    public int uniqueId;
+  }
 
-	// Unity only support maximum 65534 vertices per mesh. So large meshes need
-	// to be splitted.
-	private void SplitMesh (DecodedMesh mesh, ref List<DecodedMesh> splittedMeshes)
-	{
-		// Map between new indices on a splitted mesh and old indices on the
-		// original mesh.
-		int[] newToOldIndexMap = new int[maxNumVerticesPerMesh];
+  [StructLayout (LayoutKind.Sequential)] public struct DracoMesh
+  {
+    public int numFaces;
+    public int numVertices;
+    public int numAttributes;
+  }
 
-		// Index of the first unprocessed corner.
-		int baseCorner = 0;
-		int indicesCount = mesh.indices.Length;
+  // Release data associated with DracoMesh.
+  [DllImport ("dracodec_unity")] private static extern void ReleaseDracoMesh(
+      DracoMesh**mesh);
+  // Release data associated with DracoAttribute.
+  [DllImport ("dracodec_unity")] private static extern void
+      ReleaseDracoAttribute(DracoAttribute**attr);
+  // Release attribute data.
+  [DllImport ("dracodec_unity")] private static extern void ReleaseDracoData(
+      DracoData**data);
 
-		// Map between old indices of the original mesh and indices on the currently
-		// processed sub-mesh. Inverse of |newToOldIndexMap|.
-		int[] oldToNewIndexMap = new int[indicesCount];
-		int[] newIndices = new int[indicesCount];
+  // Decodes compressed Draco::Mesh in buffer to mesh. On input, mesh
+  // must be null. The returned mesh must released with ReleaseDracoMesh.
+  [DllImport ("dracodec_unity")] private static extern int DecodeDracoMesh(
+      byte[] buffer, int length, DracoMesh**mesh);
 
+  // Returns the DracoAttribute at index in mesh. On input, attribute must be
+  // null. The returned attr must be released with ReleaseDracoAttribute.
+  [DllImport ("dracodec_unity")] private static extern bool GetAttribute(
+      DracoMesh* mesh, int index, DracoAttribute**attr);
+  // Returns the DracoAttribute of type at index in mesh. On input, attribute
+  // must be null. E.g. If the mesh has two texture coordinates then
+  // GetAttributeByType(mesh, AttributeType.TEX_COORD, 1, &attr); will return
+  // the second TEX_COORD attribute. The returned attr must be released with
+  // ReleaseDracoAttribute.
+  [DllImport ("dracodec_unity")] private static extern bool GetAttributeByType(
+      DracoMesh* mesh, AttributeType type, int index, DracoAttribute**attr);
+  // Returns the DracoAttribute with unique_id in mesh. On input, attribute
+  // must be null.The returned attr must be released with
+  // ReleaseDracoAttribute.
+  [DllImport ("dracodec_unity")] private static extern bool
+      GetAttributeByUniqueId(DracoMesh* mesh, int unique_id,
+                             DracoAttribute**attr);
 
-		// Set mapping between existing vertex indices and new vertex indices to
-		// a default value.
-		for (int i = 0; i < indicesCount; i++)
-		{
-			oldToNewIndexMap[i] = -1;
-		}
+  // Returns an array of indices as well as the type of data in data_type. On
+  // input, indices must be null. The returned indices must be released with
+  // ReleaseDracoData.
+  [DllImport ("dracodec_unity")] private static extern bool GetMeshIndices(
+      DracoMesh* mesh, DracoData**indices);
+  // Returns an array of attribute data as well as the type of data in
+  // data_type. On input, data must be null. The returned data must be
+  // released with ReleaseDracoData.
+  [DllImport ("dracodec_unity")] private static extern bool GetAttributeData(
+      DracoMesh* mesh, DracoAttribute* attr, DracoData**data);
 
-		// Number of added vertices for the currently processed sub-mesh.
-		int numAddedVertices = 0;
+  public int LoadMeshFromAsset(string assetName, ref List<Mesh> meshes)
+  {
+    TextAsset asset =
+        Resources.Load(assetName, typeof(TextAsset)) as TextAsset;
+    if (asset == null) {
+      Debug.Log ("Didn't load file!");
+      return -1;
+    }
+    byte[] encodedData = asset.bytes;
+    Debug.Log(encodedData.Length.ToString());
+    if (encodedData.Length == 0) {
+      Debug.Log ("Didn't load encoded data!");
+      return -1;
+    }
+    return ConvertDracoMeshToUnity(encodedData, ref meshes);
+  }
 
-		// Process all corners (faces) of the original mesh.
-		while (baseCorner < indicesCount)
-		{
-			// Reset the old to new indices map that may have been set by previously
-			// processed sub-meshes.
-			for (int i = 0; i < numAddedVertices; i++)
-			{
-				oldToNewIndexMap[newToOldIndexMap[i]] = -1;
-			}
-			numAddedVertices = 0;
+  // Decodes a Draco mesh, creates a Unity mesh from the decoded data and
+  // adds the Unity mesh to meshes. encodedData is the compressed Draco mesh.
+  public unsafe int ConvertDracoMeshToUnity(byte[] encodedData,
+                                            ref List<Mesh> meshes)
+  {
+    float startTime = Time.realtimeSinceStartup;
+    DracoMesh *mesh = null;
+    if (DecodeDracoMesh(encodedData, encodedData.Length, &mesh) <= 0) {
+      Debug.Log("Failed: Decoding error.");
+      return -1;
+    }
 
-			// Number of processed corners on the current sub-mesh.
-			int numProcessedCorners = 0;
+    float decodeTimeMilli =
+        (Time.realtimeSinceStartup - startTime) * 1000.0f;
+    Debug.Log("decodeTimeMilli: " + decodeTimeMilli.ToString());
 
-			// Local storage for indices added to the new sub-mesh for a currently
-			// processed face.
-			int[] newlyAddedIndices = new int[3];
+    Debug.Log("Num indices: " + mesh->numFaces.ToString());
+    Debug.Log("Num vertices: " + mesh->numVertices.ToString());
+    Debug.Log("Num attributes: " + mesh->numAttributes.ToString());
 
-			// Sub-mesh processing starts here.
-			for (; baseCorner + numProcessedCorners < indicesCount;)
-			{
-				// Number of vertices that we need to add to the current sub-mesh.
-				int verticesAdded = 0;
-				for (int i = 0; i < 3; i++)
-				{
-					if (oldToNewIndexMap[mesh.indices[baseCorner + numProcessedCorners + i]] == -1)
-					{
-						newlyAddedIndices[verticesAdded] = mesh.indices[baseCorner + numProcessedCorners + i];
-						verticesAdded++;
-					}
-				}
+    Mesh unityMesh = CreateUnityMesh(mesh);
+    UnityMeshToCamera(ref unityMesh);
+    meshes.Add(unityMesh);
 
-				// If the number of new vertices that we need to add is larger than the
-				// allowed limit, we need to stop processing the current sub-mesh.
-				// The current face will be processed again for the next sub-mesh.
-				if (numAddedVertices + verticesAdded > maxNumVerticesPerMesh)
-				{
-					break;
-				}
+    int numFaces = mesh->numFaces;
+    ReleaseDracoMesh(&mesh);
+    return numFaces;
+  }
 
-				// Update mapping between old an new vertex indices.
-				for (int i = 0; i < verticesAdded; i++)
-				{
-					oldToNewIndexMap[newlyAddedIndices[i]] = numAddedVertices;
-					newToOldIndexMap[numAddedVertices] = newlyAddedIndices[i];
-					numAddedVertices++;
-				}
+  // Creates a Unity mesh from the decoded Draco mesh.
+  public unsafe Mesh CreateUnityMesh(DracoMesh *dracoMesh)
+  {
+    float startTime = Time.realtimeSinceStartup;
+    int numFaces = dracoMesh->numFaces;
+    int[] newTriangles = new int[dracoMesh->numFaces * 3];
+    Vector3[] newVertices = new Vector3[dracoMesh->numVertices];
+    Vector2[] newUVs = null;
+    Vector3[] newNormals = null;
+    Color[] newColors = null;
+    byte[] newGenerics = null;
 
-				for (int i = 0; i < 3; i++)
-				{
-					newIndices[numProcessedCorners] = oldToNewIndexMap[mesh.indices[baseCorner + numProcessedCorners]];
-					numProcessedCorners++;
-				}
-			}
-			// Sub-mesh processing done.
-			DecodedMesh subMesh = new DecodedMesh();
-			subMesh.indices = new int[numProcessedCorners];
-			Array.Copy(newIndices, subMesh.indices, numProcessedCorners);
-			subMesh.vertices = new Vector3[numAddedVertices];
-			for (int i = 0; i < numAddedVertices; i++)
-			{
-				subMesh.vertices[i] = mesh.vertices[newToOldIndexMap[i]];
-			}
-			if (mesh.normals != null)
-			{
-				subMesh.normals = new Vector3[numAddedVertices];
-				for (int i = 0; i < numAddedVertices; i++)
-				{
-					subMesh.normals[i] = mesh.normals[newToOldIndexMap[i]];
-				}
-			}
+    // Copy face indices.
+    DracoData *indicesData;
+    GetMeshIndices(dracoMesh, &indicesData);
+    int elementSize =
+        DataTypeSize((DracoMeshLoader.DataType)indicesData->dataType);
+    int *indices = (int*)(indicesData->data);
+    var indicesPtr = UnsafeUtility.AddressOf(ref newTriangles[0]);
+    UnsafeUtility.MemCpy(indicesPtr, indices,
+                         newTriangles.Length * elementSize);
+    ReleaseDracoData(&indicesData);
 
-			if (mesh.colors != null)
-			{
-				subMesh.colors = new Color[numAddedVertices];
-				for (int i = 0; i < numAddedVertices; i++)
-				{
-					subMesh.colors[i] = mesh.colors[newToOldIndexMap[i]];
-				}
-			}
+    // Copy positions.
+    DracoAttribute *attr = null;
+    GetAttributeByType(dracoMesh, AttributeType.POSITION, 0, &attr);
+    DracoData* posData = null;
+    GetAttributeData(dracoMesh, attr, &posData);
+    elementSize = DataTypeSize((DracoMeshLoader.DataType)posData->dataType) *
+        attr->numComponents;
+    var newVerticesPtr = UnsafeUtility.AddressOf(ref newVertices[0]);
+    UnsafeUtility.MemCpy(newVerticesPtr, (void*)posData->data,
+                         dracoMesh->numVertices * elementSize);
+    ReleaseDracoData(&posData);
+    ReleaseDracoAttribute(&attr);
 
-			if (mesh.uvs != null)
-			{
-				subMesh.uvs = new Vector2[numAddedVertices];
-				for (int i = 0; i < numAddedVertices; i++)
-				{
-					subMesh.uvs[i] = mesh.uvs[newToOldIndexMap[i]];
-				}
-			}
+    // Copy normals.
+    if (GetAttributeByType(dracoMesh, AttributeType.NORMAL, 0, &attr)) {
+      DracoData* normData = null;
+      if (GetAttributeData(dracoMesh, attr, &normData)) {
+        elementSize =
+            DataTypeSize((DracoMeshLoader.DataType)normData->dataType) *
+                attr->numComponents;
+        newNormals = new Vector3[dracoMesh->numVertices];
+        var newNormalsPtr = UnsafeUtility.AddressOf(ref newNormals[0]);
+        UnsafeUtility.MemCpy(newNormalsPtr, (void*)normData->data,
+                             dracoMesh->numVertices * elementSize);
+        Debug.Log("Decoded mesh normals.");
+        ReleaseDracoData(&normData);
+        ReleaseDracoAttribute(&attr);
+      }
+    }
 
-			splittedMeshes.Add(subMesh);
-			baseCorner += numProcessedCorners;
-		}
-	}
+    // Copy texture coordinates.
+    if (GetAttributeByType(dracoMesh, AttributeType.TEX_COORD, 0, &attr)) {
+      DracoData* texData = null;
+      if (GetAttributeData(dracoMesh, attr, &texData)) {
+        elementSize =
+            DataTypeSize((DracoMeshLoader.DataType)texData->dataType) *
+            attr->numComponents;
+        newUVs = new Vector2[dracoMesh->numVertices];
+        var newUVsPtr = UnsafeUtility.AddressOf(ref newUVs[0]);
+        UnsafeUtility.MemCpy(newUVsPtr, (void*)texData->data,
+                             dracoMesh->numVertices * elementSize);
+        Debug.Log("Decoded mesh texcoords.");
+        ReleaseDracoData(&texData);
+        ReleaseDracoAttribute(&attr);
+      }
+    }
 
-	private float ReadFloatFromIntPtr (IntPtr data, int offset)
-	{
-		byte[] byteArray = new byte[4];
-		for (int j = 0; j < 4; ++j) {
-			byteArray [j] = Marshal.ReadByte (data, offset + j);
-		}
-		return BitConverter.ToSingle (byteArray, 0);
-	}
+    // Copy colors.
+    if (GetAttributeByType(dracoMesh, AttributeType.COLOR, 0, &attr)) {
+      DracoData* colorData = null;
+      if (GetAttributeData(dracoMesh, attr, &colorData)) {
+        elementSize =
+            DataTypeSize((DracoMeshLoader.DataType)colorData->dataType) *
+            attr->numComponents;
+        newColors = new Color[dracoMesh->numVertices];
+        var newColorsPtr = UnsafeUtility.AddressOf(ref newColors[0]);
+        UnsafeUtility.MemCpy(newColorsPtr, (void*)colorData->data,
+                             dracoMesh->numVertices * elementSize);
+        Debug.Log("Decoded mesh colors.");
+        ReleaseDracoData(&colorData);
+        ReleaseDracoAttribute(&attr);
+      }
+    }
 
-	// TODO(zhafang): Add back LoadFromURL.
-	public int LoadMeshFromAsset (string assetName, ref List<Mesh> meshes)
-	{
-		TextAsset asset = Resources.Load (assetName, typeof(TextAsset)) as TextAsset;
-		if (asset == null) {
-			Debug.Log ("Didn't load file!");
-			return -1;
-		}
-		byte[] encodedData = asset.bytes;
-		Debug.Log (encodedData.Length.ToString ());
-		if (encodedData.Length == 0) {
-			Debug.Log ("Didn't load encoded data!");
-			return -1;
-		}
-		return DecodeMesh (encodedData, ref meshes);
-	}
+    // Copy generic data. This script does not do anyhting with the generic
+    // data.
+    if (GetAttributeByType(dracoMesh, AttributeType.GENERIC, 0, &attr)) {
+      DracoData* genericData = null;
+      if (GetAttributeData(dracoMesh, attr, &genericData)) {
+        elementSize =
+            DataTypeSize((DracoMeshLoader.DataType)genericData->dataType) *
+                attr->numComponents;
+        newGenerics = new byte[dracoMesh->numVertices * elementSize];
+        var newGenericPtr = UnsafeUtility.AddressOf(ref newGenerics[0]);
+        UnsafeUtility.MemCpy(newGenericPtr, (void*)genericData->data,
+                             dracoMesh->numVertices * elementSize);
+        Debug.Log("Decoded mesh generic data.");
+        ReleaseDracoData(&genericData);
+        ReleaseDracoAttribute(&attr);
+      }
+    }
 
-	public unsafe int DecodeMesh (byte[] data, ref List<Mesh> meshes)
-	{
-		DracoToUnityMesh* tmpMesh;
-		if (DecodeMeshForUnity (data, data.Length, &tmpMesh) <= 0) {
-			Debug.Log ("Failed: Decoding error.");
-			return -1;
-		}
+    float copyDecodedDataTimeMilli =
+        (Time.realtimeSinceStartup - startTime) * 1000.0f;
+    Debug.Log("copyDecodedDataTimeMilli: " +
+              copyDecodedDataTimeMilli.ToString());
 
-		Debug.Log ("Num indices: " + tmpMesh->numFaces.ToString ());
-		Debug.Log ("Num vertices: " + tmpMesh->numVertices.ToString ());
-		if (tmpMesh->hasNormal)
-			Debug.Log ("Decoded mesh normals.");
-		if (tmpMesh->hasTexcoord)
-			Debug.Log ("Decoded mesh texcoords.");
-		if (tmpMesh->hasColor)
-			Debug.Log ("Decoded mesh colors.");
+    startTime = Time.realtimeSinceStartup;
+    Mesh mesh = new Mesh();
 
-		int numFaces = tmpMesh->numFaces;
-		int[] newTriangles = new int[tmpMesh->numFaces * 3];
-		for (int i = 0; i < tmpMesh->numFaces; ++i) {
-			byte* addr = (byte*)tmpMesh->indices + i * 3 * 4;
-			newTriangles[i * 3] = *((int*)addr);
-			newTriangles[i * 3 + 1] = *((int*)(addr + 4));
-			newTriangles[i * 3 + 2] = *((int*)(addr + 8));
-		}
+#if UNITY_2017_3_OR_NEWER
+    mesh.indexFormat = (newVertices.Length > System.UInt16.MaxValue)
+        ? UnityEngine.Rendering.IndexFormat.UInt32
+        : UnityEngine.Rendering.IndexFormat.UInt16;
+#else
+    if (newVertices.Length > System.UInt16.MaxValue) {
+      throw new System.Exception("Draco meshes with more than 65535 vertices are only supported from Unity 2017.3 onwards.");
+    }
+#endif
 
-		// For floating point numbers, there's no Marshal functions could directly
-		// read from the unmanaged data.
-		// TODO(zhafang): Find better way to read float numbers.
-		Vector3[] newVertices = new Vector3[tmpMesh->numVertices];
-		Vector2[] newUVs = new Vector2[0];
-		if (tmpMesh->hasTexcoord)
-			newUVs = new Vector2[tmpMesh->numVertices];
-		Vector3[] newNormals = new Vector3[0];
-		if (tmpMesh->hasNormal)
-			newNormals = new Vector3[tmpMesh->numVertices];
-		Color[] newColors = new Color[0];
-		if (tmpMesh->hasColor)
-			newColors = new Color[tmpMesh->numVertices];
-		int byteStridePerValue = 4;
+    mesh.vertices = newVertices;
+    mesh.SetTriangles(newTriangles, 0, true);
+    if (newUVs != null) {
+      mesh.uv = newUVs;
+    }
+    if (newNormals != null) {
+      mesh.normals = newNormals;
+    } else {
+      mesh.RecalculateNormals();
+      Debug.Log("Mesh doesn't have normals, recomputed.");
+    }
+    if (newColors != null) {
+      mesh.colors = newColors;
+    }
 
-		byte* posaddr = (byte*)tmpMesh->position;
-		byte* normaladdr = (byte*)tmpMesh->normal;
-		byte* coloraddr = (byte*)tmpMesh->color;
-		byte* uvaddr = (byte*)tmpMesh->texcoord;
-		for (int i = 0; i < tmpMesh->numVertices; ++i)
-		{
-			int numValuePerVertex = 3;
-			for (int j = 0; j < numValuePerVertex; ++j)
-			{
-				int byteStridePerVertex = byteStridePerValue * numValuePerVertex;
-				int OffSet = i * byteStridePerVertex + byteStridePerValue * j;
+    float convertTimeMilli =
+        (Time.realtimeSinceStartup - startTime) * 1000.0f;
+    Debug.Log("convertTimeMilli: " + convertTimeMilli.ToString());
+    return mesh;
+  }
 
-				newVertices[i][j] = *((float*)(posaddr + OffSet));
-				if (tmpMesh->hasNormal)
-				{
-					newNormals[i][j] = *((float*)(normaladdr + OffSet));
-				}
-			}
+  // Scale and translate the decoded mesh so it will be visible to
+  // a new camera's default settings.
+  public unsafe void UnityMeshToCamera(ref Mesh mesh)
+  {
+    float startTime = Time.realtimeSinceStartup;
+    mesh.RecalculateBounds();
 
-			if (tmpMesh->hasColor)
-			{
-				numValuePerVertex = 4;
-				for (int j = 0; j < numValuePerVertex; ++j)
-				{
-					int byteStridePerVertex = byteStridePerValue * numValuePerVertex;
-					newColors[i][j] = *((float*)(coloraddr + (i * byteStridePerVertex + byteStridePerValue * j)));
-				}
-			}
+    float scale = 0.5f / mesh.bounds.extents.x;
+    if (0.5f / mesh.bounds.extents.y < scale) {
+      scale = 0.5f / mesh.bounds.extents.y;
+    }
+    if (0.5f / mesh.bounds.extents.z < scale) {
+      scale = 0.5f / mesh.bounds.extents.z;
+    }
 
-			if (tmpMesh->hasTexcoord)
-			{
-				numValuePerVertex = 2;
-				for (int j = 0; j < numValuePerVertex; ++j)
-				{
-					int byteStridePerVertex = byteStridePerValue * numValuePerVertex;
-					newUVs[i][j] = *((float*)(uvaddr + (i * byteStridePerVertex + byteStridePerValue * j)));
-				}
-			}
-		}
+    Vector3[] vertices = mesh.vertices;
+    int i = 0;
+    while (i < vertices.Length) {
+      vertices[i] *= scale;
+      i++;
+    }
 
-		ReleaseUnityMesh (&tmpMesh);
+    mesh.vertices = vertices;
+    mesh.RecalculateBounds();
 
-		if (newVertices.Length > maxNumVerticesPerMesh) {
-			// Unity only support maximum 65534 vertices per mesh. So large meshes
-			// need to be splitted.
+    Vector3 translate = mesh.bounds.center;
+    translate.x = 0 - mesh.bounds.center.x;
+    translate.y = 0 - mesh.bounds.center.y;
+    translate.z = 2 - mesh.bounds.center.z;
 
-			DecodedMesh decodedMesh = new DecodedMesh ();
-			decodedMesh.vertices = newVertices;
-			decodedMesh.indices = newTriangles;
-			if (newUVs.Length != 0)
-				decodedMesh.uvs = newUVs;
-			if (newNormals.Length != 0)
-				decodedMesh.normals = newNormals;
-			if (newColors.Length != 0)
-				decodedMesh.colors = newColors;
-			List<DecodedMesh> splittedMeshes = new List<DecodedMesh> ();
+    i = 0;
+    while (i < vertices.Length) {
+      vertices[i] += translate;
+      i++;
+    }
+    mesh.vertices = vertices;
+    float transformTimeMilli =
+        (Time.realtimeSinceStartup - startTime) * 1000.0f;
+    Debug.Log("transformTimeMilli: " + transformTimeMilli.ToString());
+  }
 
-			SplitMesh (decodedMesh, ref splittedMeshes);
-			for (int i = 0; i < splittedMeshes.Count; ++i) {
-				Mesh mesh = new Mesh ();
-				mesh.vertices = splittedMeshes [i].vertices;
-				mesh.triangles = splittedMeshes [i].indices;
-				if (splittedMeshes [i].uvs != null)
-					mesh.uv = splittedMeshes [i].uvs;
-
-				if (splittedMeshes [i].colors != null) {
-					mesh.colors = splittedMeshes[i].colors;
-				}
-
-				if (splittedMeshes [i].normals != null) {
-					mesh.normals = splittedMeshes [i].normals;
-				} else {
-					Debug.Log ("Sub mesh doesn't have normals, recomputed.");
-					mesh.RecalculateNormals ();
-				}
-				mesh.RecalculateBounds ();
-				meshes.Add (mesh);
-			}
-		} else {
-			Mesh mesh = new Mesh ();
-			mesh.vertices = newVertices;
-			mesh.triangles = newTriangles;
-			if (newUVs.Length != 0)
-				mesh.uv = newUVs;
-			if (newNormals.Length != 0) {
-				mesh.normals = newNormals;
-			} else {
-				mesh.RecalculateNormals ();
-				Debug.Log ("Mesh doesn't have normals, recomputed.");
-			}
-			if (newColors.Length != 0) {
-				mesh.colors = newColors;
-			}
-
-			// Scale and translate the decoded mesh so it would be visible to
-			// a new camera's default settings.
-			float scale = 0.5f / mesh.bounds.extents.x;
-			if (0.5f / mesh.bounds.extents.y < scale)
-				scale = 0.5f / mesh.bounds.extents.y;
-			if (0.5f / mesh.bounds.extents.z < scale)
-				scale = 0.5f / mesh.bounds.extents.z;
-
-			Vector3[] vertices = mesh.vertices;
-			int i = 0;
-			while (i < vertices.Length) {
-				vertices[i] *= scale;
-				i++;
-			}
-
-			mesh.vertices = vertices;
-			mesh.RecalculateBounds ();
-
-			Vector3 translate = mesh.bounds.center;
-			translate.x = 0 - mesh.bounds.center.x;
-			translate.y = 0 - mesh.bounds.center.y;
-			translate.z = 2 - mesh.bounds.center.z;
-
-			i = 0;
-			while (i < vertices.Length) {
-				vertices[i] += translate;
-				i++;
-			}
-			mesh.vertices = vertices;
-			mesh.RecalculateBounds ();
-			meshes.Add (mesh);
-		}
-
-		return numFaces;
-	}
+  private int DataTypeSize(DataType dt) {
+    switch (dt) {
+      case DataType.DT_INT8:
+      case DataType.DT_UINT8:
+        return 1;
+      case DataType.DT_INT16:
+      case DataType.DT_UINT16:
+        return 2;
+      case DataType.DT_INT32:
+      case DataType.DT_UINT32:
+        return 4;
+      case DataType.DT_INT64:
+      case DataType.DT_UINT64:
+        return 8;
+      case DataType.DT_FLOAT32:
+        return 4;
+      case DataType.DT_FLOAT64:
+        return 8;
+      case DataType.DT_BOOL:
+        return 1;
+      default:
+        return -1;
+    }
+  }
 }

@@ -81,8 +81,9 @@ void Options::SetVector(const std::string &name, const DataTypeT *vec,
                         int num_dims) {
   std::string out;
   for (int i = 0; i < num_dims; ++i) {
-    if (i > 0)
+    if (i > 0) {
       out += " ";
+    }
 
 // GNU STL on android doesn't include a proper std::to_string, but the libc++
 // version does
@@ -107,11 +108,13 @@ template <typename DataTypeT>
 bool Options::GetVector(const std::string &name, int num_dims,
                         DataTypeT *out_val) const {
   const auto it = options_.find(name);
-  if (it == options_.end())
+  if (it == options_.end()) {
     return false;
+  }
   const std::string value = it->second;
-  if (value.length() == 0)
+  if (value.length() == 0) {
     return true;  // Option set but no data is present
+  }
   const char *act_str = value.c_str();
   char *next_str;
   for (int i = 0; i < num_dims; ++i) {
@@ -119,10 +122,11 @@ bool Options::GetVector(const std::string &name, int num_dims,
 #ifdef ANDROID
       const int val = strtol(act_str, &next_str, 10);
 #else
-      const int val = std::strtol(act_str, &next_str, 10);
+      const int val = static_cast<int>(std::strtol(act_str, &next_str, 10));
 #endif
-      if (act_str == next_str)
+      if (act_str == next_str) {
         return true;  // End reached.
+      }
       act_str = next_str;
       out_val[i] = static_cast<DataTypeT>(val);
     } else {
@@ -131,8 +135,9 @@ bool Options::GetVector(const std::string &name, int num_dims,
 #else
       const float val = std::strtof(act_str, &next_str);
 #endif
-      if (act_str == next_str)
+      if (act_str == next_str) {
         return true;  // End reached.
+      }
       act_str = next_str;
       out_val[i] = static_cast<DataTypeT>(val);
     }

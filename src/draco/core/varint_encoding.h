@@ -34,20 +34,24 @@ bool EncodeVarint(IntTypeT val, EncoderBuffer *out_buffer) {
     out |= val & ((1 << 7) - 1);
     if (val >= (1 << 7)) {
       out |= (1 << 7);
-      if (!out_buffer->Encode(out))
+      if (!out_buffer->Encode(out)) {
         return false;
-      if (!EncodeVarint<IntTypeT>(val >> 7, out_buffer))
+      }
+      if (!EncodeVarint<IntTypeT>(val >> 7, out_buffer)) {
         return false;
+      }
       return true;
     }
-    if (!out_buffer->Encode(out))
+    if (!out_buffer->Encode(out)) {
       return false;
+    }
   } else {
     // IntTypeT is a signed value. Convert to unsigned symbol and encode.
     const typename std::make_unsigned<IntTypeT>::type symbol =
         ConvertSignedIntToSymbol(val);
-    if (!EncodeVarint(symbol, out_buffer))
+    if (!EncodeVarint(symbol, out_buffer)) {
       return false;
+    }
   }
   return true;
 }

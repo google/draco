@@ -25,10 +25,12 @@ Status MeshDecoder::Decode(const DecoderOptions &options,
 }
 
 bool MeshDecoder::DecodeGeometryData() {
-  if (mesh_ == nullptr)
+  if (mesh_ == nullptr) {
     return false;
-  if (!DecodeConnectivity())
+  }
+  if (!DecodeConnectivity()) {
     return false;
+  }
   return PointCloudDecoder::DecodeGeometryData();
 }
 

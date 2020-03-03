@@ -105,11 +105,13 @@ bool FloatPointsTreeEncoder::EncodePointCloud(InputIteratorT points_begin,
   buffer()->Encode(qinfo_.range);
   buffer()->Encode(num_points_);
 
-  if (method_ == KDTREE)
+  if (method_ == KDTREE) {
     buffer()->Encode(compression_level_);
+  }
 
-  if (num_points_ == 0)
+  if (num_points_ == 0) {
     return true;
+  }
 
   if (method_ == KDTREE) {
     return EncodePointCloudKdTreeInternal(&qpoints);

@@ -62,23 +62,20 @@ class ConversionOutputIterator {
 };
 
 FloatPointsTreeDecoder::FloatPointsTreeDecoder()
-    : num_points_(0), compression_level_(0) {
+    : num_points_(0), compression_level_(0), num_points_from_header_(0) {
   qinfo_.quantization_bits = 0;
   qinfo_.range = 0;
 }
 
 bool FloatPointsTreeDecoder::DecodePointCloudKdTreeInternal(
     DecoderBuffer *buffer, std::vector<Point3ui> *qpoints) {
-  if (!buffer->Decode(&qinfo_.quantization_bits))
+  if (!buffer->Decode(&qinfo_.quantization_bits)) return false;
+  if (qinfo_.quantization_bits > 31) return false;
+  if (!buffer->Decode(&qinfo_.range)) return false;
+  if (!buffer->Decode(&num_points_)) return false;
+  if (num_points_from_header_ > 0 && num_points_ != num_points_from_header_)
     return false;
-  if (qinfo_.quantization_bits > 31)
-    return false;
-  if (!buffer->Decode(&qinfo_.range))
-    return false;
-  if (!buffer->Decode(&num_points_))
-    return false;
-  if (!buffer->Decode(&compression_level_))
-    return false;
+  if (!buffer->Decode(&compression_level_)) return false;
 
   // Only allow compression level in [0..6].
   if (6 < compression_level_) {
@@ -135,8 +132,9 @@ bool FloatPointsTreeDecoder::DecodePointCloudKdTreeInternal(
     }
   }
 
-  if (qpoints->size() != num_points_)
+  if (qpoints->size() != num_points_) {
     return false;
+  }
   return true;
 }
 

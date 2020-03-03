@@ -14,8 +14,6 @@
 //
 #include "draco/attributes/geometry_attribute.h"
 
-using std::array;
-
 namespace draco {
 
 GeometryAttribute::GeometryAttribute()
@@ -45,8 +43,9 @@ void GeometryAttribute::Init(GeometryAttribute::Type attribute_type,
 }
 
 bool GeometryAttribute::CopyFrom(const GeometryAttribute &src_att) {
-  if (buffer_ == nullptr || src_att.buffer_ == nullptr)
+  if (buffer_ == nullptr || src_att.buffer_ == nullptr) {
     return false;
+  }
   buffer_->Update(src_att.buffer_->data(), src_att.buffer_->data_size());
   num_components_ = src_att.num_components_;
   data_type_ = src_att.data_type_;
@@ -55,27 +54,35 @@ bool GeometryAttribute::CopyFrom(const GeometryAttribute &src_att) {
   byte_offset_ = src_att.byte_offset_;
   attribute_type_ = src_att.attribute_type_;
   buffer_descriptor_ = src_att.buffer_descriptor_;
+  unique_id_ = src_att.unique_id_;
   return true;
 }
 
 bool GeometryAttribute::operator==(const GeometryAttribute &va) const {
-  if (attribute_type_ != va.attribute_type_)
+  if (attribute_type_ != va.attribute_type_) {
     return false;
+  }
   // It's OK to compare just the buffer descriptors here. We don't need to
   // compare the buffers themselves.
-  if (buffer_descriptor_.buffer_id != va.buffer_descriptor_.buffer_id)
+  if (buffer_descriptor_.buffer_id != va.buffer_descriptor_.buffer_id) {
     return false;
+  }
   if (buffer_descriptor_.buffer_update_count !=
-      va.buffer_descriptor_.buffer_update_count)
+      va.buffer_descriptor_.buffer_update_count) {
     return false;
-  if (num_components_ != va.num_components_)
+  }
+  if (num_components_ != va.num_components_) {
     return false;
-  if (data_type_ != va.data_type_)
+  }
+  if (data_type_ != va.data_type_) {
     return false;
-  if (byte_stride_ != va.byte_stride_)
+  }
+  if (byte_stride_ != va.byte_stride_) {
     return false;
-  if (byte_offset_ != va.byte_offset_)
+  }
+  if (byte_offset_ != va.byte_offset_) {
     return false;
+  }
   return true;
 }
 

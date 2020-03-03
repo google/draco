@@ -14,8 +14,11 @@
 //
 #include "draco/io/ply_encoder.h"
 
-#include <fstream>
+#include <memory>
 #include <sstream>
+
+#include "draco/io/file_writer_factory.h"
+#include "draco/io/file_writer_interface.h"
 
 namespace draco {
 
@@ -24,15 +27,18 @@ PlyEncoder::PlyEncoder()
 
 bool PlyEncoder::EncodeToFile(const PointCloud &pc,
                               const std::string &file_name) {
-  std::ofstream file(file_name, std::ios::binary);
-  if (!file)
+  std::unique_ptr<FileWriterInterface> file =
+      FileWriterFactory::OpenWriter(file_name);
+  if (!file) {
     return false;  // File couldn't be opened.
+  }
   // Encode the mesh into a buffer.
   EncoderBuffer buffer;
-  if (!EncodeToBuffer(pc, &buffer))
+  if (!EncodeToBuffer(pc, &buffer)) {
     return false;
+  }
   // Write the buffer into the file.
-  file.write(buffer.data(), buffer.size());
+  file->Write(buffer.data(), buffer.size());
   return true;
 }
 
@@ -45,8 +51,9 @@ bool PlyEncoder::EncodeToBuffer(const PointCloud &pc,
                                 EncoderBuffer *out_buffer) {
   in_point_cloud_ = &pc;
   out_buffer_ = out_buffer;
-  if (!EncodeInternal())
+  if (!EncodeInternal()) {
     return ExitAndCleanup(false);
+  }
   return ExitAndCleanup(true);
 }
 
@@ -71,19 +78,22 @@ bool PlyEncoder::EncodeInternal() {
   const int color_att_id =
       in_point_cloud_->GetNamedAttributeId(GeometryAttribute::COLOR);
 
-  if (pos_att_id < 0)
+  if (pos_att_id < 0) {
     return false;
+  }
 
   // Ensure normals are 3 component. Don't encode them otherwise.
   if (normal_att_id >= 0 &&
-      in_point_cloud_->attribute(normal_att_id)->num_components() != 3)
+      in_point_cloud_->attribute(normal_att_id)->num_components() != 3) {
     normal_att_id = -1;
+  }
 
   // Ensure texture coordinates have only 2 components. Don't encode them
   // otherwise. TODO(ostava): Add support for 3 component normals (uvw).
   if (tex_coord_att_id >= 0 &&
-      in_point_cloud_->attribute(tex_coord_att_id)->num_components() != 2)
+      in_point_cloud_->attribute(tex_coord_att_id)->num_components() != 2) {
     tex_coord_att_id = -1;
+  }
 
   out << "property " << GetAttributeDataType(pos_att_id) << " x" << std::endl;
   out << "property " << GetAttributeDataType(pos_att_id) << " y" << std::endl;

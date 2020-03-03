@@ -15,11 +15,11 @@
 #include "draco/compression/decode.h"
 
 #include <cinttypes>
-#include <fstream>
 #include <sstream>
 
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
+#include "draco/io/file_utils.h"
 
 namespace {
 
@@ -32,18 +32,9 @@ class DecodeTest : public ::testing::Test {
 TEST_F(DecodeTest, TestSkipAttributeTransform) {
   const std::string file_name = "test_nm_quant.0.9.0.drc";
   // Tests that decoders can successfully skip attribute transform.
-  std::ifstream input_file(draco::GetTestFileFullPath(file_name),
-                           std::ios::binary);
-  ASSERT_TRUE(input_file);
-
-  // Read the file stream into a buffer.
-  std::streampos file_size = 0;
-  input_file.seekg(0, std::ios::end);
-  file_size = input_file.tellg() - file_size;
-  input_file.seekg(0, std::ios::beg);
-  std::vector<char> data(file_size);
-  input_file.read(data.data(), file_size);
-
+  std::vector<char> data;
+  ASSERT_TRUE(
+      draco::ReadFileToBuffer(draco::GetTestFileFullPath(file_name), &data));
   ASSERT_FALSE(data.empty());
 
   // Create a draco decoding buffer. Note that no data is copied in this step.
@@ -77,17 +68,8 @@ TEST_F(DecodeTest, TestSkipAttributeTransform) {
 #endif
 
 void TestSkipAttributeTransformOnPointCloudWithColor(const std::string &file) {
-  std::ifstream input_file(draco::GetTestFileFullPath(file), std::ios::binary);
-  ASSERT_TRUE(input_file);
-
-  // Read the file stream into a buffer.
-  std::streampos file_size = 0;
-  input_file.seekg(0, std::ios::end);
-  file_size = input_file.tellg() - file_size;
-  input_file.seekg(0, std::ios::beg);
-  std::vector<char> data(file_size);
-  input_file.read(data.data(), file_size);
-
+  std::vector<char> data;
+  ASSERT_TRUE(draco::ReadFileToBuffer(draco::GetTestFileFullPath(file), &data));
   ASSERT_FALSE(data.empty());
 
   // Create a draco decoding buffer. Note that no data is copied in this step.
@@ -154,18 +136,9 @@ TEST_F(DecodeTest, TestSkipAttributeTransformWithNoQuantization) {
   // Tests that decoders can successfully skip attribute transform even though
   // the input model was not quantized (it has no attribute transform).
   const std::string file_name = "point_cloud_no_qp.drc";
-  std::ifstream input_file(draco::GetTestFileFullPath(file_name),
-                           std::ios::binary);
-  ASSERT_TRUE(input_file);
-
-  // Read the file stream into a buffer.
-  std::streampos file_size = 0;
-  input_file.seekg(0, std::ios::end);
-  file_size = input_file.tellg() - file_size;
-  input_file.seekg(0, std::ios::beg);
-  std::vector<char> data(file_size);
-  input_file.read(data.data(), file_size);
-
+  std::vector<char> data;
+  ASSERT_TRUE(
+      draco::ReadFileToBuffer(draco::GetTestFileFullPath(file_name), &data));
   ASSERT_FALSE(data.empty());
 
   // Create a draco decoding buffer. Note that no data is copied in this step.

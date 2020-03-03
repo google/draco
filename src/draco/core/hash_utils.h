@@ -16,6 +16,7 @@
 #define DRACO_CORE_HASH_UTILS_H_
 
 #include <stdint.h>
+
 #include <functional>
 
 // TODO(fgalligan): Move this to core.

@@ -26,21 +26,21 @@ class PointAttributeTest : public ::testing::Test {
 TEST_F(PointAttributeTest, TestCopy) {
   // This test verifies that PointAttribute can copy data from another point
   // attribute.
-  draco::GeometryAttribute pos_att;
-  pos_att.Init(draco::GeometryAttribute::POSITION, nullptr, 1, draco::DT_INT32,
-               false, 4, 0);
-  draco::PointAttribute pa(pos_att);
-  pa.SetIdentityMapping();
-  pa.Reset(10);
+  draco::PointAttribute pa;
+  pa.Init(draco::GeometryAttribute::POSITION, 1, draco::DT_INT32, false, 10);
+
   for (int32_t i = 0; i < 10; ++i) {
     pa.SetAttributeValue(draco::AttributeValueIndex(i), &i);
   }
+
+  pa.set_unique_id(12);
 
   draco::PointAttribute other_pa;
   other_pa.CopyFrom(pa);
 
   draco::PointAttributeHasher hasher;
   ASSERT_EQ(hasher(pa), hasher(other_pa));
+  ASSERT_EQ(pa.unique_id(), other_pa.unique_id());
 
   // The hash function does not actually compute the hash from attribute values,
   // so ensure the data got copied correctly as well.
@@ -52,12 +52,8 @@ TEST_F(PointAttributeTest, TestCopy) {
 }
 
 TEST_F(PointAttributeTest, TestGetValueFloat) {
-  draco::GeometryAttribute pos_att;
-  pos_att.Init(draco::GeometryAttribute::POSITION, nullptr, 3,
-               draco::DT_FLOAT32, false, 4, 0);
-  draco::PointAttribute pa(pos_att);
-  pa.SetIdentityMapping();
-  pa.Reset(5);
+  draco::PointAttribute pa;
+  pa.Init(draco::GeometryAttribute::POSITION, 3, draco::DT_FLOAT32, false, 5);
   float points[3];
   for (int32_t i = 0; i < 5; ++i) {
     points[0] = i * 3.0;
@@ -75,12 +71,8 @@ TEST_F(PointAttributeTest, TestGetValueFloat) {
 }
 
 TEST_F(PointAttributeTest, TestGetArray) {
-  draco::GeometryAttribute pos_att;
-  pos_att.Init(draco::GeometryAttribute::POSITION, nullptr, 3,
-               draco::DT_FLOAT32, false, 4, 0);
-  draco::PointAttribute pa(pos_att);
-  pa.SetIdentityMapping();
-  pa.Reset(5);
+  draco::PointAttribute pa;
+  pa.Init(draco::GeometryAttribute::POSITION, 3, draco::DT_FLOAT32, false, 5);
   float points[3];
   for (int32_t i = 0; i < 5; ++i) {
     points[0] = i * 3.0;
@@ -107,12 +99,8 @@ TEST_F(PointAttributeTest, TestGetArray) {
 }
 
 TEST_F(PointAttributeTest, TestArrayReadError) {
-  draco::GeometryAttribute pos_att;
-  pos_att.Init(draco::GeometryAttribute::POSITION, nullptr, 3,
-               draco::DT_FLOAT32, false, 4, 0);
-  draco::PointAttribute pa(pos_att);
-  pa.SetIdentityMapping();
-  pa.Reset(5);
+  draco::PointAttribute pa;
+  pa.Init(draco::GeometryAttribute::POSITION, 3, draco::DT_FLOAT32, false, 5);
   float points[3];
   for (int32_t i = 0; i < 5; ++i) {
     points[0] = i * 3.0;
@@ -124,6 +112,17 @@ TEST_F(PointAttributeTest, TestArrayReadError) {
   std::array<float, 3> att_value;
   EXPECT_FALSE(
       (pa.GetValue<float, 3>(draco::AttributeValueIndex(5), &att_value)));
+}
+
+TEST_F(PointAttributeTest, TestResize) {
+  draco::PointAttribute pa;
+  pa.Init(draco::GeometryAttribute::POSITION, 3, draco::DT_FLOAT32, false, 5);
+  ASSERT_EQ(pa.size(), 5);
+  ASSERT_EQ(pa.buffer()->data_size(), 4 * 3 * 5);
+
+  pa.Resize(10);
+  ASSERT_EQ(pa.size(), 10);
+  ASSERT_EQ(pa.buffer()->data_size(), 4 * 3 * 10);
 }
 
 }  // namespace

@@ -86,15 +86,13 @@ class PointCloudBuilder {
                    long num_vertices, long num_components,
                    const DataTypeT *att_values,
                    draco::DataType draco_data_type) {
-    if (!pc)
+    if (!pc) {
       return -1;
-    draco::PointAttribute att;
-    att.Init(type, NULL, num_components, draco_data_type,
-             /* normalized */ false,
-             /* stride */ sizeof(DataTypeT) * num_components,
-             /* byte_offset */ 0);
-    const int att_id =
-        pc->AddAttribute(att, /* identity_mapping */ true, num_vertices);
+    }
+    std::unique_ptr<draco::PointAttribute> att(new draco::PointAttribute());
+    att->Init(type, num_components, draco_data_type,
+              /* normalized */ false, num_vertices);
+    const int att_id = pc->AddAttribute(std::move(att));
     draco::PointAttribute *const att_ptr = pc->attribute(att_id);
 
     for (draco::PointIndex i(0); i < num_vertices; ++i) {

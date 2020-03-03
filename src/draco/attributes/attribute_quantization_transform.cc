@@ -25,8 +25,9 @@ bool AttributeQuantizationTransform::InitFromAttribute(
   const AttributeTransformData *const transform_data =
       attribute.GetAttributeTransformData();
   if (!transform_data ||
-      transform_data->transform_type() != ATTRIBUTE_QUANTIZATION_TRANSFORM)
+      transform_data->transform_type() != ATTRIBUTE_QUANTIZATION_TRANSFORM) {
     return false;  // Wrong transform type.
+  }
   int32_t byte_offset = 0;
   quantization_bits_ = transform_data->GetParameterValue<int32_t>(byte_offset);
   byte_offset += 4;
@@ -80,22 +81,30 @@ bool AttributeQuantizationTransform::ComputeParameters(
        ++i) {
     attribute.GetValue(i, att_val.get());
     for (int c = 0; c < num_components; ++c) {
-      if (min_values_[c] > att_val[c])
+      if (min_values_[c] > att_val[c]) {
         min_values_[c] = att_val[c];
-      if (max_values[c] < att_val[c])
+      }
+      if (max_values[c] < att_val[c]) {
         max_values[c] = att_val[c];
+      }
     }
   }
   for (int c = 0; c < num_components; ++c) {
+    if (std::isnan(min_values_[c]) || std::isinf(min_values_[c]) ||
+        std::isnan(max_values[c]) || std::isinf(max_values[c])) {
+      return false;
+    }
     const float dif = max_values[c] - min_values_[c];
-    if (dif > range_)
+    if (dif > range_) {
       range_ = dif;
+    }
   }
 
   // In case all values are the same, initialize the range to unit length. This
   // will ensure that all values are quantized properly to the same value.
-  if (range_ == 0.f)
+  if (range_ == 0.f) {
     range_ = 1.f;
+  }
 
   return true;
 }

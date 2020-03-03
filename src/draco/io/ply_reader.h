@@ -83,14 +83,16 @@ class PlyElement {
   void AddProperty(const PlyProperty &prop) {
     property_index_[prop.name()] = static_cast<int>(properties_.size());
     properties_.emplace_back(prop);
-    if (!properties_.back().is_list())
+    if (!properties_.back().is_list()) {
       properties_.back().ReserveData(static_cast<int>(num_entries_));
+    }
   }
 
   const PlyProperty *GetPropertyByName(const std::string &name) const {
     const auto it = property_index_.find(name);
-    if (it != property_index_.end())
+    if (it != property_index_.end()) {
       return &properties_[it->second];
+    }
     return nullptr;
   }
 
@@ -117,8 +119,9 @@ class PlyReader {
 
   const PlyElement *GetElementByName(const std::string &name) const {
     const auto it = element_index_.find(name);
-    if (it != element_index_.end())
+    if (it != element_index_.end()) {
       return &elements_[it->second];
+    }
     return nullptr;
   }
 

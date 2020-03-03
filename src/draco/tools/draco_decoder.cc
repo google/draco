@@ -13,10 +13,10 @@
 // limitations under the License.
 //
 #include <cinttypes>
-#include <fstream>
 
 #include "draco/compression/decode.h"
 #include "draco/core/cycle_timer.h"
+#include "draco/io/file_utils.h"
 #include "draco/io/obj_encoder.h"
 #include "draco/io/parser_utils.h"
 #include "draco/io/ply_encoder.h"
@@ -66,19 +66,11 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  std::ifstream input_file(options.input, std::ios::binary);
-  if (!input_file) {
+  std::vector<char> data;
+  if (!draco::ReadFileToBuffer(options.input, &data)) {
     printf("Failed opening the input file.\n");
     return -1;
   }
-
-  // Read the file stream into a buffer.
-  std::streampos file_size = 0;
-  input_file.seekg(0, std::ios::end);
-  file_size = input_file.tellg() - file_size;
-  input_file.seekg(0, std::ios::beg);
-  std::vector<char> data(file_size);
-  input_file.read(data.data(), file_size);
 
   if (data.empty()) {
     printf("Empty input file.\n");
@@ -167,9 +159,7 @@ int main(int argc, char **argv) {
       }
     }
   } else {
-    printf(
-        "Invalid extension of the output file. Use either .ply, .obj, or "
-        ".gltf\n");
+    printf("Invalid extension of the output file. Use either .ply or .obj.\n");
     return -1;
   }
   printf("Decoded geometry saved to %s (%" PRId64 " ms to decode)\n",

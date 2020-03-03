@@ -14,10 +14,10 @@
 //
 #include <cinttypes>
 #include <cstdlib>
-#include <fstream>
 
 #include "draco/compression/encode.h"
 #include "draco/core/cycle_timer.h"
+#include "draco/io/file_utils.h"
 #include "draco/io/mesh_io.h"
 #include "draco/io/point_cloud_io.h"
 
@@ -42,10 +42,10 @@ struct Options {
 
 Options::Options()
     : is_point_cloud(false),
-      pos_quantization_bits(14),
-      tex_coords_quantization_bits(12),
+      pos_quantization_bits(11),
+      tex_coords_quantization_bits(10),
       tex_coords_deleted(false),
-      normals_quantization_bits(10),
+      normals_quantization_bits(7),
       normals_deleted(false),
       generic_quantization_bits(8),
       generic_deleted(false),
@@ -64,13 +64,13 @@ void Usage() {
       "cloud.\n");
   printf(
       "  -qp <value>           quantization bits for the position "
-      "attribute, default=14.\n");
+      "attribute, default=11.\n");
   printf(
       "  -qt <value>           quantization bits for the texture coordinate "
-      "attribute, default=12.\n");
+      "attribute, default=10.\n");
   printf(
       "  -qn <value>           quantization bits for the normal vector "
-      "attribute, default=10.\n");
+      "attribute, default=7.\n");
   printf(
       "  -qg <value>           quantization bits for any generic attribute, "
       "default=8.\n");
@@ -151,12 +151,10 @@ int EncodePointCloudToFile(const draco::PointCloud &pc, const std::string &file,
   }
   timer.Stop();
   // Save the encoded geometry into a file.
-  std::ofstream out_file(file, std::ios::binary);
-  if (!out_file) {
-    printf("Failed to create the output file.\n");
+  if (!draco::WriteBufferToFile(buffer.data(), buffer.size(), file)) {
+    printf("Failed to write the output file.\n");
     return -1;
   }
-  out_file.write(buffer.data(), buffer.size());
   printf("Encoded point cloud saved to %s (%" PRId64 " ms to encode).\n",
          file.c_str(), timer.GetInMs());
   printf("\nEncoded size = %zu bytes\n\n", buffer.size());
@@ -177,12 +175,10 @@ int EncodeMeshToFile(const draco::Mesh &mesh, const std::string &file,
   }
   timer.Stop();
   // Save the encoded geometry into a file.
-  std::ofstream out_file(file, std::ios::binary);
-  if (!out_file) {
+  if (!draco::WriteBufferToFile(buffer.data(), buffer.size(), file)) {
     printf("Failed to create the output file.\n");
     return -1;
   }
-  out_file.write(buffer.data(), buffer.size());
   printf("Encoded mesh saved to %s (%" PRId64 " ms to encode).\n", file.c_str(),
          timer.GetInMs());
   printf("\nEncoded size = %zu bytes\n\n", buffer.size());

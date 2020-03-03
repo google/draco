@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#include "draco/io/obj_decoder.h"
+
 #include <sstream>
 
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
-#include "draco/io/obj_decoder.h"
 
 namespace draco {
 
@@ -34,8 +35,9 @@ class ObjDecoderTest : public ::testing::Test {
     ObjDecoder decoder;
     decoder.set_deduplicate_input_values(deduplicate_input_values);
     std::unique_ptr<Geometry> geometry(new Geometry());
-    if (!decoder.DecodeFromFile(path, geometry.get()).ok())
+    if (!decoder.DecodeFromFile(path, geometry.get()).ok()) {
       return nullptr;
+    }
     return geometry;
   }
 
@@ -46,8 +48,9 @@ class ObjDecoderTest : public ::testing::Test {
     ObjDecoder decoder;
     decoder.set_use_metadata(true);
     std::unique_ptr<Geometry> geometry(new Geometry());
-    if (!decoder.DecodeFromFile(path, geometry.get()).ok())
+    if (!decoder.DecodeFromFile(path, geometry.get()).ok()) {
       return nullptr;
+    }
     return geometry;
   }
 

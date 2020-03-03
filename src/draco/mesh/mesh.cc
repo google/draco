@@ -15,11 +15,8 @@
 #include "draco/mesh/mesh.h"
 
 #include <array>
-#include <unordered_map>
 
 namespace draco {
-
-using std::unordered_map;
 
 // Shortcut for typed conditionals.
 template <bool B, class T, class F>

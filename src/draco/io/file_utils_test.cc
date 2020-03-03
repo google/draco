@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/io/file_utils.h"
+
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 

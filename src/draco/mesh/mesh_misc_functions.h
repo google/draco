@@ -29,6 +29,11 @@ namespace draco {
 std::unique_ptr<CornerTable> CreateCornerTableFromPositionAttribute(
     const Mesh *mesh);
 
+// Creates a CornerTable from the first named attribute of |mesh| with a given
+// type. Returns nullptr on error.
+std::unique_ptr<CornerTable> CreateCornerTableFromAttribute(
+    const Mesh *mesh, GeometryAttribute::Type type);
+
 // Creates a CornerTable from all attributes of |mesh|. Boundaries are
 // automatically introduced on all attribute seams. Returns nullptr on error.
 std::unique_ptr<CornerTable> CreateCornerTableFromAllAttributes(
@@ -40,19 +45,22 @@ inline bool IsCornerOppositeToAttributeSeam(CornerIndex ci,
                                             const Mesh &mesh,
                                             const CornerTable &ct) {
   const CornerIndex opp_ci = ct.Opposite(ci);
-  if (opp_ci == kInvalidCornerIndex)
+  if (opp_ci == kInvalidCornerIndex) {
     return false;  // No opposite corner == no attribute seam.
+  }
   // Compare attribute value indices on both ends of the opposite edge.
   CornerIndex c0 = ct.Next(ci);
   CornerIndex c1 = ct.Previous(opp_ci);
   if (att.mapped_index(mesh.CornerToPointId(c0)) !=
-      att.mapped_index(mesh.CornerToPointId(c1)))
+      att.mapped_index(mesh.CornerToPointId(c1))) {
     return true;
+  }
   c0 = ct.Previous(ci);
   c1 = ct.Next(opp_ci);
   if (att.mapped_index(mesh.CornerToPointId(c0)) !=
-      att.mapped_index(mesh.CornerToPointId(c1)))
+      att.mapped_index(mesh.CornerToPointId(c1))) {
     return true;
+  }
   return false;
 }
 
@@ -71,8 +79,18 @@ InterpolatedVectorT ComputeInterpolatedAttributeValueOnMeshFace(
     attribute.GetMappedValue(face[c], &(val[c][0]));
   }
   // Return an interpolated value.
-  return barycentric_coord[0] * val[0] + barycentric_coord[1] * val[1] +
-         barycentric_coord[2] * val[2];
+  InterpolatedVectorT res;
+  for (int d = 0; d < InterpolatedVectorT::dimension; ++d) {
+    const float interpolated_component = barycentric_coord[0] * val[0][d] +
+                                         barycentric_coord[1] * val[1][d] +
+                                         barycentric_coord[2] * val[2][d];
+    if (std::is_integral<typename InterpolatedVectorT::Scalar>::value) {
+      res[d] = std::floor(interpolated_component + 0.5f);
+    } else {
+      res[d] = interpolated_component;
+    }
+  }
+  return res;
 }
 
 }  // namespace draco

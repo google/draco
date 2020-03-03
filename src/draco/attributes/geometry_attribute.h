@@ -91,8 +91,9 @@ class GeometryAttribute {
     // Byte address of the attribute index.
     const int64_t byte_pos = byte_offset_ + byte_stride_ * att_index.value();
     // Check we are not reading past end of data.
-    if (byte_pos + sizeof(*out) > buffer_->data_size())
+    if (byte_pos + sizeof(*out) > buffer_->data_size()) {
       return false;
+    }
     buffer_->Read(byte_pos, &((*out)[0]), sizeof(*out));
     return true;
   }
@@ -118,6 +119,13 @@ class GeometryAttribute {
     buffer_->Read(byte_pos, out_data, byte_stride_);
   }
 
+  // Sets a value of an attribute entry. The input value must be allocated to
+  // cover all components of a single attribute entry.
+  void SetAttributeValue(AttributeValueIndex entry_index, const void *value) {
+    const int64_t byte_pos = entry_index.value() * byte_stride();
+    buffer_->Write(byte_pos, value, byte_stride());
+  }
+
   // DEPRECATED: Use
   //   ConvertValue(AttributeValueIndex att_id,
   //               int out_num_components,
@@ -139,8 +147,9 @@ class GeometryAttribute {
   template <typename OutT>
   bool ConvertValue(AttributeValueIndex att_id, int8_t out_num_components,
                     OutT *out_val) const {
-    if (out_val == nullptr)
+    if (out_val == nullptr) {
       return false;
+    }
     switch (data_type_) {
       case DT_INT8:
         return ConvertTypedValue<int8_t, OutT>(att_id, out_num_components,
@@ -189,6 +198,26 @@ class GeometryAttribute {
   template <typename OutT>
   bool ConvertValue(AttributeValueIndex att_index, OutT *out_value) const {
     return ConvertValue<OutT>(att_index, num_components_, out_value);
+  }
+
+  // Utility function. Returns |attribute_type| as std::string.
+  static std::string TypeToString(Type attribute_type) {
+    switch (attribute_type) {
+      case INVALID:
+        return "INVALID";
+      case POSITION:
+        return "POSITION";
+      case NORMAL:
+        return "NORMAL";
+      case COLOR:
+        return "COLOR";
+      case TEX_COORD:
+        return "TEX_COORD";
+      case GENERIC:
+        return "GENERIC";
+      default:
+        return "UNKNOWN";
+    }
   }
 
   bool operator==(const GeometryAttribute &va) const;
@@ -285,8 +314,8 @@ struct GeometryAttributeHasher {
     size_t hash = HashCombine(va.buffer_descriptor_.buffer_id,
                               va.buffer_descriptor_.buffer_update_count);
     hash = HashCombine(va.num_components_, hash);
-    hash = HashCombine((int8_t)va.data_type_, hash);
-    hash = HashCombine((int8_t)va.attribute_type_, hash);
+    hash = HashCombine(static_cast<int8_t>(va.data_type_), hash);
+    hash = HashCombine(static_cast<int8_t>(va.attribute_type_), hash);
     hash = HashCombine(va.byte_stride_, hash);
     return HashCombine(va.byte_offset_, hash);
   }

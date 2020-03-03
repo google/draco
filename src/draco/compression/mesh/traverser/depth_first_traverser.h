@@ -57,8 +57,9 @@ class DepthFirstTraverser
   void OnTraversalEnd() {}
 
   bool TraverseFromCorner(CornerIndex corner_id) {
-    if (this->IsFaceVisited(corner_id))
+    if (this->IsFaceVisited(corner_id)) {
       return true;  // Already traversed.
+    }
 
     corner_traversal_stack_.clear();
     corner_traversal_stack_.push_back(corner_id);
@@ -68,8 +69,9 @@ class DepthFirstTraverser
         this->corner_table()->Vertex(this->corner_table()->Next(corner_id));
     const VertexIndex prev_vert =
         this->corner_table()->Vertex(this->corner_table()->Previous(corner_id));
-    if (next_vert == kInvalidVertexIndex || prev_vert == kInvalidVertexIndex)
+    if (next_vert == kInvalidVertexIndex || prev_vert == kInvalidVertexIndex) {
       return false;
+    }
     if (!this->IsVertexVisited(next_vert)) {
       this->MarkVertexVisited(next_vert);
       this->traversal_observer().OnNewVertexVisited(
@@ -96,8 +98,9 @@ class DepthFirstTraverser
         this->MarkFaceVisited(face_id);
         this->traversal_observer().OnNewFaceVisited(face_id);
         const VertexIndex vert_id = this->corner_table()->Vertex(corner_id);
-        if (vert_id == kInvalidVertexIndex)
+        if (vert_id == kInvalidVertexIndex) {
           return false;
+        }
         if (!this->IsVertexVisited(vert_id)) {
           const bool on_boundary = this->corner_table()->IsOnBoundary(vert_id);
           this->MarkVertexVisited(vert_id);

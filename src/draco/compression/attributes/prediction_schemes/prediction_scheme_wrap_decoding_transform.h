@@ -39,25 +39,30 @@ class PredictionSchemeWrapDecodingTransform
     predicted_vals = this->ClampPredictedValue(predicted_vals);
     for (int i = 0; i < this->num_components(); ++i) {
       out_original_vals[i] = predicted_vals[i] + corr_vals[i];
-      if (out_original_vals[i] > this->max_value())
+      if (out_original_vals[i] > this->max_value()) {
         out_original_vals[i] -= this->max_dif();
-      else if (out_original_vals[i] < this->min_value())
+      } else if (out_original_vals[i] < this->min_value()) {
         out_original_vals[i] += this->max_dif();
+      }
     }
   }
 
   bool DecodeTransformData(DecoderBuffer *buffer) {
     DataTypeT min_value, max_value;
-    if (!buffer->Decode(&min_value))
+    if (!buffer->Decode(&min_value)) {
       return false;
-    if (!buffer->Decode(&max_value))
+    }
+    if (!buffer->Decode(&max_value)) {
       return false;
-    if (min_value > max_value)
+    }
+    if (min_value > max_value) {
       return false;
+    }
     this->set_min_value(min_value);
     this->set_max_value(max_value);
-    if (!this->InitCorrectionBounds())
+    if (!this->InitCorrectionBounds()) {
       return false;
+    }
     return true;
   }
 };

@@ -19,6 +19,7 @@
 // This file is based off libvpx's divide.h.
 
 #include <stdint.h>
+
 #include <climits>
 
 namespace draco {

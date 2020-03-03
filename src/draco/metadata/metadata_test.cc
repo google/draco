@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#include "draco/metadata/metadata.h"
+
 #include <memory>
 #include <string>
 
 #include "draco/core/draco_test_base.h"
 #include "draco/metadata/geometry_metadata.h"
-#include "draco/metadata/metadata.h"
 
 namespace {
 

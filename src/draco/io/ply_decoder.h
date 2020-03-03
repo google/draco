@@ -17,10 +17,9 @@
 
 #include <string>
 
-#include "draco/draco_features.h"
-
 #include "draco/core/decoder_buffer.h"
 #include "draco/core/status.h"
+#include "draco/draco_features.h"
 #include "draco/io/ply_reader.h"
 #include "draco/mesh/mesh.h"
 

@@ -39,14 +39,11 @@
   </div>
   <script src="https://cdn.rawgit.com/mrdoob/three.js/dev/build/three.min.js"></script>
   <script src="DRACOLoader.js"></script>
-  <script src="geometry_helper.js"></script>
   <script>
 
     var camera, scene, renderer;
 
     // Configure decoder and create loader.
-    THREE.DRACOLoader.setDecoderPath( '../' );
-    THREE.DRACOLoader.setDecoderConfig( { type: 'js' } );
     var dracoLoader = new THREE.DRACOLoader();
 
     init();
@@ -92,17 +89,12 @@
         mesh.receiveShadow = true;
         scene.add( mesh );
 
-        // Release the cached decoder module.
-        THREE.DRACOLoader.releaseDecoderModule();
-
       } );
 
       // renderer
       renderer = new THREE.WebGLRenderer( { antialias: true } );
       renderer.setPixelRatio( window.devicePixelRatio );
       renderer.setSize( window.innerWidth, window.innerHeight );
-      renderer.gammaInput = true;
-      renderer.gammaOutput = true;
       renderer.shadowMap.enabled = true;
       container.appendChild( renderer.domElement );
 

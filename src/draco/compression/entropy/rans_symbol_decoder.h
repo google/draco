@@ -15,12 +15,11 @@
 #ifndef DRACO_COMPRESSION_ENTROPY_RANS_SYMBOL_DECODER_H_
 #define DRACO_COMPRESSION_ENTROPY_RANS_SYMBOL_DECODER_H_
 
-#include "draco/draco_features.h"
-
 #include "draco/compression/config/compression_shared.h"
 #include "draco/compression/entropy/rans_symbol_coding.h"
 #include "draco/core/decoder_buffer.h"
 #include "draco/core/varint_decoding.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 
@@ -59,30 +58,35 @@ template <int unique_symbols_bit_length_t>
 bool RAnsSymbolDecoder<unique_symbols_bit_length_t>::Create(
     DecoderBuffer *buffer) {
   // Check that the DecoderBuffer version is set.
-  if (buffer->bitstream_version() == 0)
+  if (buffer->bitstream_version() == 0) {
     return false;
-    // Decode the number of alphabet symbols.
+  }
+  // Decode the number of alphabet symbols.
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
-    if (!buffer->Decode(&num_symbols_))
+    if (!buffer->Decode(&num_symbols_)) {
       return false;
+    }
 
   } else
 #endif
   {
-    if (!DecodeVarint(&num_symbols_, buffer))
+    if (!DecodeVarint(&num_symbols_, buffer)) {
       return false;
+    }
   }
   probability_table_.resize(num_symbols_);
-  if (num_symbols_ == 0)
+  if (num_symbols_ == 0) {
     return true;
+  }
   // Decode the table.
   for (uint32_t i = 0; i < num_symbols_; ++i) {
     uint8_t prob_data = 0;
     // Decode the first byte and extract the number of extra bytes we need to
     // get, or the offset to the next symbol with non-zero probability.
-    if (!buffer->Decode(&prob_data))
+    if (!buffer->Decode(&prob_data)) {
       return false;
+    }
     // Token is stored in the first two bits of the first byte. Values 0-2 are
     // used to indicate the number of extra bytes, and value 3 is a special
     // symbol used to denote run-length coding of zero probability entries.
@@ -90,8 +94,9 @@ bool RAnsSymbolDecoder<unique_symbols_bit_length_t>::Create(
     const int token = prob_data & 3;
     if (token == 3) {
       const uint32_t offset = prob_data >> 2;
-      if (i + offset >= num_symbols_)
+      if (i + offset >= num_symbols_) {
         return false;
+      }
       // Set zero probability for all symbols in the specified range.
       for (uint32_t j = 0; j < offset + 1; ++j) {
         probability_table_[i + j] = 0;
@@ -102,8 +107,9 @@ bool RAnsSymbolDecoder<unique_symbols_bit_length_t>::Create(
       uint32_t prob = prob_data >> 2;
       for (int b = 0; b < extra_bytes; ++b) {
         uint8_t eb;
-        if (!buffer->Decode(&eb))
+        if (!buffer->Decode(&eb)) {
           return false;
+        }
         // Shift 8 bits for each extra byte and subtract 2 for the two first
         // bits.
         prob |= static_cast<uint32_t>(eb) << (8 * (b + 1) - 2);
@@ -111,8 +117,9 @@ bool RAnsSymbolDecoder<unique_symbols_bit_length_t>::Create(
       probability_table_[i] = prob;
     }
   }
-  if (!ans_.rans_build_look_up_table(&probability_table_[0], num_symbols_))
+  if (!ans_.rans_build_look_up_table(&probability_table_[0], num_symbols_)) {
     return false;
+  }
   return true;
 }
 
@@ -123,23 +130,27 @@ bool RAnsSymbolDecoder<unique_symbols_bit_length_t>::StartDecoding(
   // Decode the number of bytes encoded by the encoder.
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
-    if (!buffer->Decode(&bytes_encoded))
+    if (!buffer->Decode(&bytes_encoded)) {
       return false;
+    }
 
   } else
 #endif
   {
-    if (!DecodeVarint<uint64_t>(&bytes_encoded, buffer))
+    if (!DecodeVarint<uint64_t>(&bytes_encoded, buffer)) {
       return false;
+    }
   }
-  if (bytes_encoded > static_cast<uint64_t>(buffer->remaining_size()))
+  if (bytes_encoded > static_cast<uint64_t>(buffer->remaining_size())) {
     return false;
+  }
   const uint8_t *const data_head =
       reinterpret_cast<const uint8_t *>(buffer->data_head());
   // Advance the buffer past the rANS data.
   buffer->Advance(bytes_encoded);
-  if (ans_.read_init(data_head, static_cast<int>(bytes_encoded)) != 0)
+  if (ans_.read_init(data_head, static_cast<int>(bytes_encoded)) != 0) {
     return false;
+  }
   return true;
 }
 

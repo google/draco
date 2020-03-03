@@ -21,8 +21,9 @@ Status KeyframeAnimationDecoder::Decode(const DecoderOptions &options,
                                         KeyframeAnimation *animation) {
   const auto status = PointCloudSequentialDecoder::Decode(
       options, in_buffer, static_cast<PointCloud *>(animation));
-  if (!status.ok())
+  if (!status.ok()) {
     return status;
+  }
   return OkStatus();
 }
 

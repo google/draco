@@ -36,8 +36,9 @@ void SetSymbolEncodingMethod(Options *options, SymbolCodingMethod method) {
 
 bool SetSymbolEncodingCompressionLevel(Options *options,
                                        int compression_level) {
-  if (compression_level < 0 || compression_level > 10)
+  if (compression_level < 0 || compression_level > 10) {
     return false;
+  }
   options->SetInt("symbol_encoding_compression_level", compression_level);
   return true;
 }
@@ -56,8 +57,9 @@ static void ComputeBitLengths(const uint32_t *symbols, int num_values,
     // Get the maximum value for a given entry across all attribute components.
     uint32_t max_component_value = symbols[i];
     for (int j = 1; j < num_components; ++j) {
-      if (max_component_value < symbols[i + j])
+      if (max_component_value < symbols[i + j]) {
         max_component_value = symbols[i + j];
+      }
     }
     int value_msb_pos = 0;
     if (max_component_value > 0) {
@@ -113,12 +115,15 @@ bool EncodeRawSymbols(const uint32_t *symbols, int num_values,
 
 bool EncodeSymbols(const uint32_t *symbols, int num_values, int num_components,
                    const Options *options, EncoderBuffer *target_buffer) {
-  if (num_values < 0)
+  if (num_values < 0) {
     return false;
-  if (num_values == 0)
+  }
+  if (num_values == 0) {
     return true;
-  if (num_components <= 0)
+  }
+  if (num_components <= 0) {
     num_components = 1;
+  }
   std::vector<uint32_t> bit_lengths;
   uint32_t max_value;
   ComputeBitLengths(symbols, num_values, num_components, &bit_lengths,
@@ -275,8 +280,9 @@ bool EncodeRawSymbols(const uint32_t *symbols, int num_values,
   }
   int unique_symbols_bit_length = symbol_bits + 1;
   // Currently, we don't support encoding of more than 2^18 unique symbols.
-  if (unique_symbols_bit_length > kMaxRawEncodingBitLength)
+  if (unique_symbols_bit_length > kMaxRawEncodingBitLength) {
     return false;
+  }
   int compression_level = kDefaultSymbolCodingCompressionLevel;
   if (options != nullptr &&
       options->IsOptionSet("symbol_encoding_compression_level")) {
