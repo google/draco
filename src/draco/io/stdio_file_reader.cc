@@ -11,6 +11,7 @@
 #include <io.h>
 #endif
 
+#include "draco/draco_features.h"
 #include "draco/io/file_reader_factory.h"
 
 namespace draco {
@@ -46,7 +47,11 @@ std::unique_ptr<FileReaderInterface> StdioFileReader::Open(
     return nullptr;
   }
 
+#ifndef DRACO_OLD_GCC
   return file;
+#else
+  return std::move(file);
+#endif
 }
 
 bool StdioFileReader::ReadFileToBuffer(std::vector<char> *buffer) {

@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 
+#include "draco/draco_features.h"
 #include "draco/io/file_writer_factory.h"
 
 namespace draco {
@@ -41,7 +42,11 @@ std::unique_ptr<FileWriterInterface> StdioFileWriter::Open(
     return nullptr;
   }
 
+#ifndef DRACO_OLD_GCC
   return file;
+#else
+  return std::move(file);
+#endif
 }
 
 bool StdioFileWriter::Write(const char *buffer, size_t size) {
