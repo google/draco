@@ -1003,7 +1003,7 @@ else()
   endif()
 
   list(APPEND draco_header_only_targets
-       draco_compression_attributes_pred_schemes_dec
+       draco dracodec dracoenc draco_compression_attributes_pred_schemes_dec
        draco_compression_mesh_traverser draco_dec_config draco_enc_config)
 
   # For now, enable deduplication for both encoder and decoder.
