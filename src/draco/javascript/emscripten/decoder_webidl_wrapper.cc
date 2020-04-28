@@ -49,6 +49,16 @@ void MetadataQuerier::GetIntEntryArray(const draco::Metadata &metadata,
   out_values->MoveData(std::move(values));
 }
 
+void MetadataQuerier::GetDoubleEntryArray(const draco::Metadata &metadata,
+                                       const char *entry_name,
+                                       DracoFloat32Array *out_values) const {
+  const std::string name(entry_name);
+  std::vector<double> values;
+  metadata.GetEntryDoubleArray(name, &values);
+  std::vector<float> floats(values.begin(), values.end());
+  out_values->MoveData(std::move(floats));
+}
+
 double MetadataQuerier::GetDoubleEntry(const Metadata &metadata,
                                        const char *entry_name) const {
   double value = 0;
