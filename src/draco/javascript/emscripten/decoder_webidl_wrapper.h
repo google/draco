@@ -48,6 +48,8 @@ class DracoArray {
 
   int size() const { return values_.size(); }
 
+  T* data() { return values_.data(); }
+
  private:
   std::vector<T> values_;
 };
