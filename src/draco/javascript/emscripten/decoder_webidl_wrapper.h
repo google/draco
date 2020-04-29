@@ -54,7 +54,6 @@ class DracoArray {
   std::vector<T> values_;
 };
 
-using DracoDoubleArray = DracoArray<double>;
 using DracoFloat32Array = DracoArray<float>;
 using DracoInt8Array = DracoArray<int8_t>;
 using DracoUInt8Array = DracoArray<uint8_t>;
