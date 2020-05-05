@@ -197,6 +197,32 @@ $ cmake ../ -DCMAKE_TOOLCHAIN_FILE=/path/to/Emscripten.cmake
 $ make
 ~~~~~
 
+iOS Builds
+---------------------
+To build Draco for different iOS architectures and simulators for iphone and the simulators
+
+~~~~~ bash
+
+#arm64
+$ cmake ../ -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/arm64-ios.cmake
+$ make
+
+#x86_64
+$ cmake ../ -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/x86_64-ios.cmake
+$ make
+
+#armv7
+$ cmake ../ -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/armv7-ios.cmake
+$ make
+
+#i386
+$ cmake ../ -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/i386-ios.cmake
+$ make
+~~~~~~
+
+After building the tools they can be merged into fat lib and used in Iphone applications.
+
+
 Native Android Builds
 ---------------------
 
