@@ -87,6 +87,10 @@ class MetadataQuerier {
   const char *GetStringEntry(const draco::Metadata &metadata,
                              const char *entry_name);
 
+  void GetBinaryEntry(const draco::Metadata &metadata,
+                             const char *entry_name,
+                             DracoUInt8Array *out_values) const;
+
   long NumEntries(const draco::Metadata &metadata) const;
   const char *GetEntryName(const draco::Metadata &metadata, int entry_id);
 

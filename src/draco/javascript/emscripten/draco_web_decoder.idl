@@ -194,6 +194,9 @@ interface MetadataQuerier {
                         DracoFloat32Array out_values);
   double GetDoubleEntry([Ref, Const] Metadata metadata,
                         [Const] DOMString entry_name);
+  void GetBinaryEntry([Ref, Const] Metadata metadata,
+                        [Const] DOMString entry_name,
+                        DracoUInt8Array out_values);
   [Const] DOMString GetStringEntry([Ref, Const] Metadata metadata,
                                    [Const] DOMString entry_name);
 

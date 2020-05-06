@@ -78,6 +78,15 @@ const char *MetadataQuerier::GetStringEntry(const Metadata &metadata,
   return value;
 }
 
+void MetadataQuerier::GetBinaryEntry(const Metadata &metadata,
+                                            const char *entry_name,
+                                            DracoUInt8Array *out_values) const {
+  const std::string name(entry_name);
+  std::vector<uint8_t> values;
+  metadata.GetEntryBinary(name, &values);
+  out_values->MoveData(std::move(values));
+}
+
 long MetadataQuerier::NumEntries(const Metadata &metadata) const {
   return metadata.num_entries();
 }
