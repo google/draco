@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/core/data_buffer.h"
+
 #include <algorithm>
 
 namespace draco {
@@ -26,15 +27,18 @@ bool DataBuffer::Update(const void *data, int64_t size) {
 
 bool DataBuffer::Update(const void *data, int64_t size, int64_t offset) {
   if (data == nullptr) {
-    if (size + offset < 0)
+    if (size + offset < 0) {
       return false;
+    }
     // If no data is provided, just resize the buffer.
     data_.resize(size + offset);
   } else {
-    if (size < 0)
+    if (size < 0) {
       return false;
-    if (size + offset > static_cast<int64_t>(data_.size()))
+    }
+    if (size + offset > static_cast<int64_t>(data_.size())) {
       data_.resize(size + offset);
+    }
     const uint8_t *const byte_data = static_cast<const uint8_t *>(data);
     std::copy(byte_data, byte_data + size, data_.data() + offset);
   }
@@ -48,8 +52,9 @@ void DataBuffer::Resize(int64_t size) {
 }
 
 void DataBuffer::WriteDataToStream(std::ostream &stream) {
-  if (data_.size() == 0)
+  if (data_.size() == 0) {
     return;
+  }
   stream.write(reinterpret_cast<char *>(data_.data()), data_.size());
 }
 

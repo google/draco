@@ -68,26 +68,33 @@ class EncoderBase {
   Status CheckPredictionScheme(GeometryAttribute::Type att_type,
                                int prediction_scheme) const {
     // Out of bound checks:
-    if (prediction_scheme < PREDICTION_NONE)
-      return Status(Status::ERROR, "Invalid prediction scheme requested.");
-    if (prediction_scheme >= NUM_PREDICTION_SCHEMES)
-      return Status(Status::ERROR, "Invalid prediction scheme requested.");
+    if (prediction_scheme < PREDICTION_NONE) {
+      return Status(Status::DRACO_ERROR,
+                    "Invalid prediction scheme requested.");
+    }
+    if (prediction_scheme >= NUM_PREDICTION_SCHEMES) {
+      return Status(Status::DRACO_ERROR,
+                    "Invalid prediction scheme requested.");
+    }
     // Deprecated prediction schemes:
-    if (prediction_scheme == MESH_PREDICTION_TEX_COORDS_DEPRECATED)
-      return Status(Status::ERROR,
+    if (prediction_scheme == MESH_PREDICTION_TEX_COORDS_DEPRECATED) {
+      return Status(Status::DRACO_ERROR,
                     "MESH_PREDICTION_TEX_COORDS_DEPRECATED is deprecated.");
-    if (prediction_scheme == MESH_PREDICTION_MULTI_PARALLELOGRAM)
-      return Status(Status::ERROR,
+    }
+    if (prediction_scheme == MESH_PREDICTION_MULTI_PARALLELOGRAM) {
+      return Status(Status::DRACO_ERROR,
                     "MESH_PREDICTION_MULTI_PARALLELOGRAM is deprecated.");
+    }
     // Attribute specific checks:
     if (prediction_scheme == MESH_PREDICTION_TEX_COORDS_PORTABLE) {
-      if (att_type != GeometryAttribute::TEX_COORD)
-        return Status(Status::ERROR,
+      if (att_type != GeometryAttribute::TEX_COORD) {
+        return Status(Status::DRACO_ERROR,
                       "Invalid prediction scheme for attribute type.");
+      }
     }
     if (prediction_scheme == MESH_PREDICTION_GEOMETRIC_NORMAL) {
       if (att_type != GeometryAttribute::NORMAL) {
-        return Status(Status::ERROR,
+        return Status(Status::DRACO_ERROR,
                       "Invalid prediction scheme for attribute type.");
       }
     }
@@ -95,7 +102,7 @@ class EncoderBase {
     if (att_type == GeometryAttribute::NORMAL) {
       if (!(prediction_scheme == PREDICTION_DIFFERENCE ||
             prediction_scheme == MESH_PREDICTION_GEOMETRIC_NORMAL)) {
-        return Status(Status::ERROR,
+        return Status(Status::DRACO_ERROR,
                       "Invalid prediction scheme for attribute type.");
       }
     }

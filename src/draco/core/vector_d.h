@@ -16,6 +16,7 @@
 #define DRACO_CORE_VECTOR_D_H_
 
 #include <inttypes.h>
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -36,8 +37,9 @@ class VectorD {
   typedef ScalarT CoefficientType;
 
   VectorD() {
-    for (int i = 0; i < dimension; ++i)
+    for (int i = 0; i < dimension; ++i) {
       (*this)[i] = Scalar(0);
+    }
   }
 
   // The following constructor does not compile in opt mode, which for now led
@@ -83,8 +85,9 @@ class VectorD {
   }
 
   VectorD(const Self &o) {
-    for (int i = 0; i < dimension; ++i)
+    for (int i = 0; i < dimension; ++i) {
       (*this)[i] = o[i];
+    }
   }
 
   // Constructs the vector from another vector with a different data type or a
@@ -97,10 +100,11 @@ class VectorD {
   template <class OtherScalarT, int other_dimension_t>
   explicit VectorD(const VectorD<OtherScalarT, other_dimension_t> &src_vector) {
     for (int i = 0; i < dimension; ++i) {
-      if (i < other_dimension_t)
+      if (i < other_dimension_t) {
         v_[i] = Scalar(src_vector[i]);
-      else
+      } else {
         v_[i] = Scalar(0);
+      }
     }
   }
 
@@ -137,6 +141,35 @@ class VectorD {
     return ret;
   }
 
+  Self operator*(const Self &o) const {
+    Self ret;
+    for (int i = 0; i < dimension; ++i) {
+      ret[i] = (*this)[i] * o[i];
+    }
+    return ret;
+  }
+
+  Self &operator+=(const Self &o) {
+    for (int i = 0; i < dimension; ++i) {
+      (*this)[i] += o[i];
+    }
+    return *this;
+  }
+
+  Self &operator-=(const Self &o) {
+    for (int i = 0; i < dimension; ++i) {
+      (*this)[i] -= o[i];
+    }
+    return *this;
+  }
+
+  Self &operator*=(const Self &o) {
+    for (int i = 0; i < dimension; ++i) {
+      (*this)[i] *= o[i];
+    }
+    return *this;
+  }
+
   Self operator*(const Scalar &o) const {
     Self ret;
     for (int i = 0; i < dimension; ++i) {
@@ -171,8 +204,9 @@ class VectorD {
 
   bool operator==(const Self &o) const {
     for (int i = 0; i < dimension; ++i) {
-      if ((*this)[i] != o[i])
+      if ((*this)[i] != o[i]) {
         return false;
+      }
     }
     return true;
   }
@@ -181,14 +215,17 @@ class VectorD {
 
   bool operator<(const Self &x) const {
     for (int i = 0; i < dimension - 1; ++i) {
-      if (v_[i] < x.v_[i])
+      if (v_[i] < x.v_[i]) {
         return true;
-      if (v_[i] > x.v_[i])
+      }
+      if (v_[i] > x.v_[i]) {
         return false;
+      }
     }
     // Only one check needed for the last dimension.
-    if (v_[dimension - 1] < x.v_[dimension - 1])
+    if (v_[dimension - 1] < x.v_[dimension - 1]) {
       return true;
+    }
     return false;
   }
 
@@ -222,6 +259,12 @@ class VectorD {
     }
   }
 
+  Self GetNormalized() const {
+    Self ret(*this);
+    ret.Normalize();
+    return ret;
+  }
+
   const Scalar &MaxCoeff() const {
     return *std::max_element(v_.begin(), v_.end());
   }
@@ -231,6 +274,7 @@ class VectorD {
   }
 
   Scalar *data() { return &(v_[0]); }
+  const Scalar *data() const { return &(v_[0]); }
 
  private:
   std::array<Scalar, dimension> v_;

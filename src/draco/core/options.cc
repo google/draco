@@ -23,8 +23,9 @@ namespace draco {
 Options::Options() {}
 
 void Options::MergeAndReplace(const Options &other_options) {
-  for (const auto &item : other_options.options_)
+  for (const auto &item : other_options.options_) {
     options_[item.first] = item.second;
+  }
 }
 
 void Options::SetInt(const std::string &name, int val) {
@@ -47,8 +48,9 @@ int Options::GetInt(const std::string &name) const { return GetInt(name, -1); }
 
 int Options::GetInt(const std::string &name, int default_val) const {
   const auto it = options_.find(name);
-  if (it == options_.end())
+  if (it == options_.end()) {
     return default_val;
+  }
   return std::atoi(it->second.c_str());
 }
 
@@ -58,8 +60,9 @@ float Options::GetFloat(const std::string &name) const {
 
 float Options::GetFloat(const std::string &name, float default_val) const {
   const auto it = options_.find(name);
-  if (it == options_.end())
+  if (it == options_.end()) {
     return default_val;
+  }
   return static_cast<float>(std::atof(it->second.c_str()));
 }
 
@@ -69,8 +72,9 @@ bool Options::GetBool(const std::string &name) const {
 
 bool Options::GetBool(const std::string &name, bool default_val) const {
   const int ret = GetInt(name, -1);
-  if (ret == -1)
+  if (ret == -1) {
     return default_val;
+  }
   return static_cast<bool>(ret);
 }
 
@@ -81,8 +85,9 @@ std::string Options::GetString(const std::string &name) const {
 std::string Options::GetString(const std::string &name,
                                const std::string &default_val) const {
   const auto it = options_.find(name);
-  if (it == options_.end())
+  if (it == options_.end()) {
     return default_val;
+  }
   return it->second;
 }
 

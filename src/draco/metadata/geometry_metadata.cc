@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/metadata/geometry_metadata.h"
+
 #include <utility>
 
 namespace draco {
@@ -21,10 +22,12 @@ const AttributeMetadata *GeometryMetadata::GetAttributeMetadataByStringEntry(
     const std::string &entry_name, const std::string &entry_value) const {
   for (auto &&att_metadata : att_metadatas_) {
     std::string value;
-    if (!att_metadata->GetEntryString(entry_name, &value))
+    if (!att_metadata->GetEntryString(entry_name, &value)) {
       continue;
-    if (value == entry_value)
+    }
+    if (value == entry_value) {
       return att_metadata.get();
+    }
   }
   // No attribute has the requested entry.
   return nullptr;
@@ -32,8 +35,9 @@ const AttributeMetadata *GeometryMetadata::GetAttributeMetadataByStringEntry(
 
 bool GeometryMetadata::AddAttributeMetadata(
     std::unique_ptr<AttributeMetadata> att_metadata) {
-  if (!att_metadata.get())
+  if (!att_metadata.get()) {
     return false;
+  }
   att_metadatas_.push_back(std::move(att_metadata));
   return true;
 }

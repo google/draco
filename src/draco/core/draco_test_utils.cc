@@ -17,6 +17,7 @@
 #include <fstream>
 
 #include "draco/core/macros.h"
+#include "draco/io/file_utils.h"
 #include "draco_test_base.h"
 
 namespace draco {
@@ -37,20 +38,16 @@ std::string GetTestTempFileFullPath(const std::string &file_name) {
 bool GenerateGoldenFile(const std::string &golden_file_name, const void *data,
                         int data_size) {
   const std::string path = GetTestFileFullPath(golden_file_name);
-  std::ofstream file(path, std::ios::binary);
-  if (!file)
-    return false;
-  file.write(static_cast<const char *>(data), data_size);
-  file.close();
-  return true;
+  return WriteBufferToFile(data, data_size, path);
 }
 
 bool CompareGoldenFile(const std::string &golden_file_name, const void *data,
                        int data_size) {
   const std::string golden_path = GetTestFileFullPath(golden_file_name);
-  std::ifstream in_file(golden_path);
-  if (!in_file || data_size < 0)
+  std::ifstream in_file(golden_path, std::ios::binary);
+  if (!in_file || data_size < 0) {
     return false;
+  }
   const char *const data_c8 = static_cast<const char *>(data);
   constexpr int buffer_size = 1024;
   char buffer[buffer_size];

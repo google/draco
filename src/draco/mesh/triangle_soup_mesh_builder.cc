@@ -60,15 +60,17 @@ void TriangleSoupMeshBuilder::SetPerFaceAttributeValueForFace(
                  {{PointIndex(start_index), PointIndex(start_index + 1),
                    PointIndex(start_index + 2)}});
   int8_t &element_type = attribute_element_types_[att_id];
-  if (element_type < 0)
+  if (element_type < 0) {
     element_type = MESH_FACE_ATTRIBUTE;
+  }
 }
 
 std::unique_ptr<Mesh> TriangleSoupMeshBuilder::Finalize() {
 #ifdef DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
   // First deduplicate attribute values.
-  if (!mesh_->DeduplicateAttributeValues())
+  if (!mesh_->DeduplicateAttributeValues()) {
     return nullptr;
+  }
 #endif
 #ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
   // Also deduplicate vertex indices.

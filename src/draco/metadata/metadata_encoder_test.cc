@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/metadata/metadata_encoder.h"
+
 #include "draco/core/decoder_buffer.h"
 #include "draco/core/draco_test_base.h"
 #include "draco/core/encoder_buffer.h"
@@ -48,8 +49,9 @@ class MetadataEncoderTest : public ::testing::Test {
   void CheckBlobOfDataAreEqual(const std::vector<uint8_t> &data0,
                                const std::vector<uint8_t> &data1) {
     ASSERT_EQ(data0.size(), data1.size());
-    for (int i = 0; i < data0.size(); ++i)
+    for (int i = 0; i < data0.size(); ++i) {
       ASSERT_EQ(data0[i], data1[i]);
+    }
   }
 
   void CheckGeometryMetadatasAreEqual(
@@ -75,9 +77,9 @@ class MetadataEncoderTest : public ::testing::Test {
   void CheckMetadatasAreEqual(const draco::Metadata &metadata0,
                               const draco::Metadata &metadata1) {
     ASSERT_EQ(metadata0.num_entries(), metadata1.num_entries());
-    const std::unordered_map<std::string, draco::EntryValue> &entries0 =
+    const std::map<std::string, draco::EntryValue> &entries0 =
         metadata0.entries();
-    const std::unordered_map<std::string, draco::EntryValue> &entries1 =
+    const std::map<std::string, draco::EntryValue> &entries1 =
         metadata1.entries();
     for (const auto &entry : entries0) {
       const std::string &entry_name = entry.first;
@@ -90,7 +92,7 @@ class MetadataEncoderTest : public ::testing::Test {
     // Check nested metadata.
     ASSERT_EQ(metadata0.sub_metadatas().size(),
               metadata1.sub_metadatas().size());
-    const std::unordered_map<std::string, std::unique_ptr<draco::Metadata>>
+    const std::map<std::string, std::unique_ptr<draco::Metadata>>
         &sub_metadatas0 = metadata0.sub_metadatas();
     // Encode each sub-metadata
     for (auto &&sub_metadata_entry0 : sub_metadatas0) {

@@ -15,11 +15,10 @@
 #ifndef DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_TRAVERSAL_VALENCE_DECODER_H_
 #define DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_TRAVERSAL_VALENCE_DECODER_H_
 
-#include "draco/draco_features.h"
-
 #include "draco/compression/entropy/symbol_decoding.h"
 #include "draco/compression/mesh/mesh_edgebreaker_traversal_decoder.h"
 #include "draco/core/varint_decoding.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 
@@ -46,32 +45,39 @@ class MeshEdgebreakerTraversalValenceDecoder
   bool Start(DecoderBuffer *out_buffer) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 2)) {
-      if (!MeshEdgebreakerTraversalDecoder::DecodeTraversalSymbols())
+      if (!MeshEdgebreakerTraversalDecoder::DecodeTraversalSymbols()) {
         return false;
+      }
     }
 #endif
-    if (!MeshEdgebreakerTraversalDecoder::DecodeStartFaces())
+    if (!MeshEdgebreakerTraversalDecoder::DecodeStartFaces()) {
       return false;
-    if (!MeshEdgebreakerTraversalDecoder::DecodeAttributeSeams())
+    }
+    if (!MeshEdgebreakerTraversalDecoder::DecodeAttributeSeams()) {
       return false;
+    }
     *out_buffer = *buffer();
 
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 2)) {
       uint32_t num_split_symbols;
       if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 0)) {
-        if (!out_buffer->Decode(&num_split_symbols))
+        if (!out_buffer->Decode(&num_split_symbols)) {
           return false;
+        }
       } else {
-        if (!DecodeVarint(&num_split_symbols, out_buffer))
+        if (!DecodeVarint(&num_split_symbols, out_buffer)) {
           return false;
+        }
       }
-      if (num_split_symbols >= static_cast<uint32_t>(num_vertices_))
+      if (num_split_symbols >= static_cast<uint32_t>(num_vertices_)) {
         return false;
+      }
 
       int8_t mode;
-      if (!out_buffer->Decode(&mode))
+      if (!out_buffer->Decode(&mode)) {
         return false;
+      }
       if (mode == EDGEBREAKER_VALENCE_MODE_2_7) {
         min_valence_ = 2;
         max_valence_ = 7;
@@ -87,8 +93,9 @@ class MeshEdgebreakerTraversalValenceDecoder
       max_valence_ = 7;
     }
 
-    if (num_vertices_ < 0)
+    if (num_vertices_ < 0) {
       return false;
+    }
     // Set the valences of all initial vertices to 0.
     vertex_valences_.resize(num_vertices_, 0);
 
@@ -114,8 +121,9 @@ class MeshEdgebreakerTraversalValenceDecoder
     // First check if we have a valid context.
     if (active_context_ != -1) {
       const int context_counter = --context_counters_[active_context_];
-      if (context_counter < 0)
+      if (context_counter < 0) {
         return TOPOLOGY_INVALID;
+      }
       const int symbol_id = context_symbols_[active_context_][context_counter];
       last_symbol_ = edge_breaker_symbol_to_topology_id[symbol_id];
     } else {

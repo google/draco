@@ -21,8 +21,9 @@ namespace draco {
 
 bool PointCloudSequentialDecoder::DecodeGeometryData() {
   int32_t num_points;
-  if (!buffer()->Decode(&num_points))
+  if (!buffer()->Decode(&num_points)) {
     return false;
+  }
   point_cloud()->set_num_points(num_points);
   return true;
 }

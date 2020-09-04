@@ -15,6 +15,7 @@
 #include "draco/io/mesh_io.h"
 
 #include <fstream>
+#include <string>
 
 #include "draco/io/file_utils.h"
 #include "draco/io/obj_decoder.h"
@@ -24,28 +25,40 @@ namespace draco {
 
 StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name) {
   const Options options;
-  return ReadMeshFromFile(file_name, options);
+  return ReadMeshFromFile(file_name, options, nullptr);
 }
 
 StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
                                                  bool use_metadata) {
   Options options;
   options.SetBool("use_metadata", use_metadata);
-  return ReadMeshFromFile(file_name, options);
+  return ReadMeshFromFile(file_name, options, nullptr);
 }
 
 StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
                                                  const Options &options) {
+  return ReadMeshFromFile(file_name, options, nullptr);
+}
+
+StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(
+    const std::string &file_name, const Options &options,
+    std::vector<std::string> *mesh_files) {
   std::unique_ptr<Mesh> mesh(new Mesh());
   // Analyze file extension.
   const std::string extension = LowercaseFileExtension(file_name);
+  if (extension != "gltf" && mesh_files) {
+    // The GLTF decoder will fill |mesh_files|, but for other file types we set
+    // the root file here to avoid duplicating code.
+    mesh_files->push_back(file_name);
+  }
   if (extension == "obj") {
     // Wavefront OBJ file format.
     ObjDecoder obj_decoder;
     obj_decoder.set_use_metadata(options.GetBool("use_metadata", false));
     const Status obj_status = obj_decoder.DecodeFromFile(file_name, mesh.get());
-    if (!obj_status.ok())
+    if (!obj_status.ok()) {
       return obj_status;
+    }
     return std::move(mesh);
   }
   if (extension == "ply") {
@@ -57,13 +70,18 @@ StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
 
   // Otherwise not an obj file. Assume the file was encoded with one of the
   // draco encoding methods.
-  std::ifstream is(file_name.c_str(), std::ios::binary);
-  if (!is)
-    return Status(Status::ERROR, "Invalid input stream.");
-  if (!ReadMeshFromStream(&mesh, is).good())
-    return Status(Status::ERROR,
-                  "Unknown error.");  // Error reading the stream.
-  return std::move(mesh);
+  std::vector<char> file_data;
+  if (!ReadFileToBuffer(file_name, &file_data)) {
+    return Status(Status::DRACO_ERROR, "Unable to read input file.");
+  }
+  DecoderBuffer buffer;
+  buffer.Init(file_data.data(), file_data.size());
+  Decoder decoder;
+  auto statusor = decoder.DecodeMeshFromBuffer(&buffer);
+  if (!statusor.ok() || statusor.value() == nullptr) {
+    return Status(Status::DRACO_ERROR, "Error decoding input.");
+  }
+  return std::move(statusor).value();
 }
 
 }  // namespace draco

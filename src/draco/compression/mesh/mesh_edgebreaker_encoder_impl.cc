@@ -67,8 +67,9 @@ MeshEdgebreakerEncoderImpl<TraversalEncoder>::GetAttributeCornerTable(
     int att_id) const {
   for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
     if (attribute_data_[i].attribute_index == att_id) {
-      if (attribute_data_[i].is_connectivity_used)
+      if (attribute_data_[i].is_connectivity_used) {
         return &attribute_data_[i].connectivity_data;
+      }
       return nullptr;
     }
   }
@@ -80,8 +81,9 @@ const MeshAttributeIndicesEncodingData *
 MeshEdgebreakerEncoderImpl<TraversalEncoder>::GetAttributeEncodingData(
     int att_id) const {
   for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
-    if (attribute_data_[i].attribute_index == att_id)
+    if (attribute_data_[i].attribute_index == att_id) {
       return &attribute_data_[i].encoding_data;
+    }
   }
   return &pos_encoding_data_;
 }
@@ -212,8 +214,9 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
     sequencer = std::move(traversal_sequencer);
   }
 
-  if (!sequencer)
+  if (!sequencer) {
     return false;
+  }
 
   if (att_data_id == -1) {
     pos_traversal_method_ = traversal_method;
@@ -279,7 +282,7 @@ Status MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
       corner_table_->num_faces() == corner_table_->NumDegeneratedFaces()) {
     // Failed to construct the corner table.
     // TODO(ostava): Add better error reporting.
-    return Status(Status::ERROR, "All triangles are degenerate.");
+    return Status(Status::DRACO_ERROR, "All triangles are degenerate.");
   }
 
   traversal_encoder_.Init(this);
@@ -316,11 +319,13 @@ Status MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   processed_connectivity_corners_.reserve(corner_table_->num_faces());
   pos_encoding_data_.num_values = 0;
 
-  if (!FindHoles())
-    return Status(Status::ERROR, "Failed to process mesh holes.");
+  if (!FindHoles()) {
+    return Status(Status::DRACO_ERROR, "Failed to process mesh holes.");
+  }
 
-  if (!InitAttributeData())
-    return Status(Status::ERROR, "Failed to initialize attribute data.");
+  if (!InitAttributeData()) {
+    return Status(Status::DRACO_ERROR, "Failed to initialize attribute data.");
+  }
 
   const uint8_t num_attribute_data =
       static_cast<uint8_t>(attribute_data_.size());
@@ -336,10 +341,12 @@ Status MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   for (int c_id = 0; c_id < num_corners; ++c_id) {
     CornerIndex corner_index(c_id);
     const FaceIndex face_id = corner_table_->Face(corner_index);
-    if (visited_faces_[face_id.value()])
+    if (visited_faces_[face_id.value()]) {
       continue;  // Face has been already processed.
-    if (corner_table_->IsDegenerated(face_id))
+    }
+    if (corner_table_->IsDegenerated(face_id)) {
       continue;  // Ignore degenerated faces.
+    }
 
     CornerIndex start_corner;
     const bool interior_config =
@@ -375,8 +382,10 @@ Status MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
       const FaceIndex opp_face_id = corner_table_->Face(opp_id);
       if (opp_face_id != kInvalidFaceIndex &&
           !visited_faces_[opp_face_id.value()]) {
-        if (!EncodeConnectivityFromCorner(opp_id))
-          return Status(Status::ERROR, "Failed to encode mesh component.");
+        if (!EncodeConnectivityFromCorner(opp_id)) {
+          return Status(Status::DRACO_ERROR,
+                        "Failed to encode mesh component.");
+        }
       }
     } else {
       // Boundary configuration. We start on a boundary rather than on a face.
@@ -384,8 +393,9 @@ Status MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
       EncodeHole(corner_table_->Next(start_corner), true);
       // Start processing the face opposite to the boundary edge (the face
       // containing the start_corner).
-      if (!EncodeConnectivityFromCorner(start_corner))
-        return Status(Status::ERROR, "Failed to encode mesh component.");
+      if (!EncodeConnectivityFromCorner(start_corner)) {
+        return Status(Status::DRACO_ERROR, "Failed to encode mesh component.");
+      }
     }
   }
   // Reverse the order of connectivity corners to match the order in which
@@ -416,8 +426,9 @@ Status MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeConnectivity() {
   EncodeVarint(num_split_symbols_, encoder_->buffer());
 
   // Append the traversal buffer.
-  if (!EncodeSplitData())
-    return Status(Status::ERROR, "Failed to encode split data.");
+  if (!EncodeSplitData()) {
+    return Status(Status::DRACO_ERROR, "Failed to encode split data.");
+  }
   encoder_->buffer()->Encode(traversal_encoder_.buffer().data(),
                              traversal_encoder_.buffer().size());
 
@@ -542,17 +553,19 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeConnectivityFromCorner(
       if (IsRightFaceVisited(corner_id)) {
         // Right face has been already visited.
         // Check whether there is a topology split event.
-        if (right_face_id != kInvalidFaceIndex)
+        if (right_face_id != kInvalidFaceIndex) {
           CheckAndStoreTopologySplitEvent(last_encoded_symbol_id_,
                                           face_id.value(), RIGHT_FACE_EDGE,
                                           right_face_id.value());
+        }
         if (IsLeftFaceVisited(corner_id)) {
           // Both neighboring faces are visited. End reached.
           // Check whether there is a topology split event on the left face.
-          if (left_face_id != kInvalidFaceIndex)
+          if (left_face_id != kInvalidFaceIndex) {
             CheckAndStoreTopologySplitEvent(last_encoded_symbol_id_,
                                             face_id.value(), LEFT_FACE_EDGE,
                                             left_face_id.value());
+          }
           traversal_encoder_.EncodeSymbol(TOPOLOGY_E);
           corner_traversal_stack_.pop_back();
           break;  // Break from the while (num_visited_faces < num_faces) loop.
@@ -565,10 +578,11 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeConnectivityFromCorner(
         // Right face was not visited.
         if (IsLeftFaceVisited(corner_id)) {
           // Check whether there is a topology split event on the left face.
-          if (left_face_id != kInvalidFaceIndex)
+          if (left_face_id != kInvalidFaceIndex) {
             CheckAndStoreTopologySplitEvent(last_encoded_symbol_id_,
                                             face_id.value(), LEFT_FACE_EDGE,
                                             left_face_id.value());
+          }
           traversal_encoder_.EncodeSymbol(TOPOLOGY_L);
           // Left face visited, go to the right one.
           corner_id = right_corner_id;
@@ -669,8 +683,9 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::IsRightFaceVisited(
     CornerIndex corner_id) const {
   const CornerIndex next_corner_id = corner_table_->Next(corner_id);
   const CornerIndex opp_corner_id = corner_table_->Opposite(next_corner_id);
-  if (opp_corner_id != kInvalidCornerIndex)
+  if (opp_corner_id != kInvalidCornerIndex) {
     return visited_faces_[corner_table_->Face(opp_corner_id).value()];
+  }
   // Else we are on a boundary.
   return true;
 }
@@ -680,8 +695,9 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::IsLeftFaceVisited(
     CornerIndex corner_id) const {
   const CornerIndex prev_corner_id = corner_table_->Previous(corner_id);
   const CornerIndex opp_corner_id = corner_table_->Opposite(prev_corner_id);
-  if (opp_corner_id != kInvalidCornerIndex)
+  if (opp_corner_id != kInvalidCornerIndex) {
     return visited_faces_[corner_table_->Face(opp_corner_id).value()];
+  }
   // Else we are on a boundary.
   return true;
 }
@@ -692,8 +708,9 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::FindHoles() {
   const int num_corners = corner_table_->num_corners();
   // Go over all corners and detect non-visited open boundaries
   for (CornerIndex i(0); i < num_corners; ++i) {
-    if (corner_table_->IsDegenerated(corner_table_->Face(i)))
+    if (corner_table_->IsDegenerated(corner_table_->Face(i))) {
       continue;  // Don't process corners assigned to degenerated faces.
+    }
     if (corner_table_->Opposite(i) == kInvalidCornerIndex) {
       // No opposite corner means no opposite face, so the opposite edge
       // of the corner is an open boundary.
@@ -733,8 +750,9 @@ template <class TraversalEncoder>
 int MeshEdgebreakerEncoderImpl<TraversalEncoder>::GetSplitSymbolIdOnFace(
     int face_id) const {
   auto it = face_to_split_symbol_map_.find(face_id);
-  if (it == face_to_split_symbol_map_.end())
+  if (it == face_to_split_symbol_map_.end()) {
     return -1;
+  }
   return it->second;
 }
 
@@ -745,8 +763,9 @@ void MeshEdgebreakerEncoderImpl<
                                                        EdgeFaceName src_edge,
                                                        int neighbor_face_id) {
   const int symbol_id = GetSplitSymbolIdOnFace(neighbor_face_id);
-  if (symbol_id == -1)
+  if (symbol_id == -1) {
     return;  // Not a split symbol, no topology split event could happen.
+  }
   TopologySplitEventData event_data;
 
   event_data.split_symbol_id = symbol_id;
@@ -757,20 +776,23 @@ void MeshEdgebreakerEncoderImpl<
 
 template <class TraversalEncoder>
 bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::InitAttributeData() {
-  if (use_single_connectivity_)
+  if (use_single_connectivity_) {
     return true;  // All attributes use the same connectivity.
+  }
 
   const int num_attributes = mesh_->num_attributes();
   // Ignore the position attribute. It's decoded separately.
   attribute_data_.resize(num_attributes - 1);
-  if (num_attributes == 1)
+  if (num_attributes == 1) {
     return true;
+  }
   int data_index = 0;
   for (int i = 0; i < num_attributes; ++i) {
     const int32_t att_index = i;
     if (mesh_->attribute(att_index)->attribute_type() ==
-        GeometryAttribute::POSITION)
+        GeometryAttribute::POSITION) {
       continue;
+    }
     const PointAttribute *const att = mesh_->attribute(att_index);
     attribute_data_[data_index].attribute_index = att_index;
     attribute_data_[data_index]
@@ -802,12 +824,14 @@ bool MeshEdgebreakerEncoderImpl<
   visited_faces_[src_face_id.value()] = true;
   for (int c = 0; c < 3; ++c) {
     const CornerIndex opp_corner = corner_table_->Opposite(corners[c]);
-    if (opp_corner == kInvalidCornerIndex)
+    if (opp_corner == kInvalidCornerIndex) {
       continue;  // Don't encode attribute seams on boundary edges.
+    }
     const FaceIndex opp_face_id = corner_table_->Face(opp_corner);
     // Don't encode edges when the opposite face has been already processed.
-    if (visited_faces_[opp_face_id.value()])
+    if (visited_faces_[opp_face_id.value()]) {
       continue;
+    }
 
     for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
       if (attribute_data_[i].connectivity_data.IsCornerOppositeToSeamEdge(

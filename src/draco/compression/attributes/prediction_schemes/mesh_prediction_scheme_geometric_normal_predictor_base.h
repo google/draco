@@ -45,10 +45,12 @@ class MeshPredictionSchemeGeometricNormalPredictorBase {
     entry_to_point_id_map_ = map;
   }
   bool IsInitialized() const {
-    if (pos_attribute_ == nullptr)
+    if (pos_attribute_ == nullptr) {
       return false;
-    if (entry_to_point_id_map_ == nullptr)
+    }
+    if (entry_to_point_id_map_ == nullptr) {
       return false;
+    }
     return true;
   }
 

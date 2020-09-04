@@ -19,7 +19,7 @@ void DracoTimer::Start() {
 #ifdef _WIN32
   QueryPerformanceCounter(&tv_start);
 #else
-  gettimeofday(&tv_start, NULL);
+  gettimeofday(&tv_start, nullptr);
 #endif
 }
 
@@ -27,7 +27,7 @@ void DracoTimer::Stop() {
 #ifdef _WIN32
   QueryPerformanceCounter(&tv_end);
 #else
-  gettimeofday(&tv_end, NULL);
+  gettimeofday(&tv_end, nullptr);
 #endif
 }
 

@@ -93,8 +93,9 @@ class Mesh : public PointCloud {
 
   // Returns the point id of for a corner |ci|.
   inline PointIndex CornerToPointId(int ci) const {
-    if (ci == kInvalidCornerIndex.value())
+    if (ci < 0 || static_cast<uint32_t>(ci) == kInvalidCornerIndex.value()) {
       return kInvalidPointIndex;
+    }
     return this->face(FaceIndex(ci / 3))[ci % 3];
   }
 

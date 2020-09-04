@@ -16,9 +16,8 @@
 #ifndef DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_TRAVERSAL_PREDICTIVE_DECODER_H_
 #define DRACO_COMPRESSION_MESH_MESH_EDGEBREAKER_TRAVERSAL_PREDICTIVE_DECODER_H_
 
-#include "draco/draco_features.h"
-
 #include "draco/compression/mesh/mesh_edgebreaker_traversal_decoder.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 
@@ -41,17 +40,20 @@ class MeshEdgebreakerTraversalPredictiveDecoder
   void SetNumEncodedVertices(int num_vertices) { num_vertices_ = num_vertices; }
 
   bool Start(DecoderBuffer *out_buffer) {
-    if (!MeshEdgebreakerTraversalDecoder::Start(out_buffer))
+    if (!MeshEdgebreakerTraversalDecoder::Start(out_buffer)) {
       return false;
+    }
     int32_t num_split_symbols;
     if (!out_buffer->Decode(&num_split_symbols) || num_split_symbols < 0)
       return false;
-    if (num_split_symbols >= num_vertices_)
+    if (num_split_symbols >= num_vertices_) {
       return false;
+    }
     // Set the valences of all initial vertices to 0.
     vertex_valences_.resize(num_vertices_, 0);
-    if (!prediction_decoder_.StartDecoding(out_buffer))
+    if (!prediction_decoder_.StartDecoding(out_buffer)) {
       return false;
+    }
     return true;
   }
 

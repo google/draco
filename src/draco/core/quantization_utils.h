@@ -22,6 +22,7 @@
 #define DRACO_CORE_QUANTIZATION_UTILS_H_
 
 #include <stdint.h>
+
 #include <cmath>
 
 #include "draco/core/macros.h"

@@ -14,8 +14,7 @@
 //
 #include "draco/io/point_cloud_io.h"
 
-#include <fstream>
-
+#include "draco/io/file_utils.h"
 #include "draco/io/obj_decoder.h"
 #include "draco/io/parser_utils.h"
 #include "draco/io/ply_decoder.h"
@@ -33,8 +32,9 @@ StatusOr<std::unique_ptr<PointCloud>> ReadPointCloudFromFile(
     // Wavefront OBJ file format.
     ObjDecoder obj_decoder;
     const Status obj_status = obj_decoder.DecodeFromFile(file_name, pc.get());
-    if (!obj_status.ok())
+    if (!obj_status.ok()) {
       return obj_status;
+    }
     return std::move(pc);
   }
   if (extension == ".ply") {
@@ -44,15 +44,15 @@ StatusOr<std::unique_ptr<PointCloud>> ReadPointCloudFromFile(
     return std::move(pc);
   }
 
-  // Otherwise not an obj file. Assume the file was encoded with one of the
-  // draco encoding methods.
-  std::ifstream is(file_name.c_str(), std::ios::binary);
-  if (!is)
-    return Status(Status::ERROR, "Invalid input stream.");
-  if (!ReadPointCloudFromStream(&pc, is).good())
-    return Status(Status::ERROR,
-                  "Unknown error.");  // Error reading the stream.
-  return std::move(pc);
+  std::vector<char> buffer;
+  if (!ReadFileToBuffer(file_name, &buffer)) {
+    return Status(Status::DRACO_ERROR, "Unable to read input file.");
+  }
+  DecoderBuffer decoder_buffer;
+  decoder_buffer.Init(buffer.data(), buffer.size());
+  Decoder decoder;
+  auto status_or = decoder.DecodePointCloudFromBuffer(&decoder_buffer);
+  return std::move(status_or).value();
 }
 
 }  // namespace draco

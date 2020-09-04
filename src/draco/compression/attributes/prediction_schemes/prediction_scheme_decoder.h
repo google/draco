@@ -46,8 +46,9 @@ class PredictionSchemeDecoder : public PredictionSchemeTypedDecoderInterface<
       : attribute_(attribute), transform_(transform) {}
 
   bool DecodePredictionData(DecoderBuffer *buffer) override {
-    if (!transform_.DecodeTransformData(buffer))
+    if (!transform_.DecodeTransformData(buffer)) {
       return false;
+    }
     return true;
   }
 

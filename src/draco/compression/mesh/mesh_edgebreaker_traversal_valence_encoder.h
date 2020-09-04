@@ -43,8 +43,9 @@ class MeshEdgebreakerTraversalValenceEncoder
         max_valence_(7) {}
 
   bool Init(MeshEdgebreakerEncoderImplInterface *encoder) {
-    if (!MeshEdgebreakerTraversalEncoder::Init(encoder))
+    if (!MeshEdgebreakerTraversalEncoder::Init(encoder)) {
       return false;
+    }
     min_valence_ = 2;
     max_valence_ = 7;
     corner_table_ = encoder->GetCornerTable();
@@ -117,8 +118,9 @@ class MeshEdgebreakerTraversalValenceEncoder
           int num_left_faces = 0;
           CornerIndex act_c = corner_table_->Opposite(prev);
           while (act_c != kInvalidCornerIndex) {
-            if (encoder_impl()->IsFaceEncoded(corner_table_->Face(act_c)))
+            if (encoder_impl()->IsFaceEncoded(corner_table_->Face(act_c))) {
               break;  // Stop when we reach the first visited face.
+            }
             ++num_left_faces;
             act_c = corner_table_->Opposite(corner_table_->Next(act_c));
           }
@@ -132,8 +134,9 @@ class MeshEdgebreakerTraversalValenceEncoder
 
           act_c = corner_table_->Opposite(next);
           while (act_c != kInvalidCornerIndex) {
-            if (encoder_impl()->IsFaceEncoded(corner_table_->Face(act_c)))
+            if (encoder_impl()->IsFaceEncoded(corner_table_->Face(act_c))) {
               break;  // Stop when we reach the first visited face.
+            }
             ++num_right_faces;
             // Map corners on the right side to the newly created vertex.
             corner_to_vertex_map_[corner_table_->Next(act_c)] = new_vert_id;

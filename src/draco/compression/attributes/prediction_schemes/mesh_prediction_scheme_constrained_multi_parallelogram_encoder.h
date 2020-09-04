@@ -108,10 +108,12 @@ class MeshPredictionSchemeConstrainedMultiParallelogramEncoder
     int residual_error;
 
     bool operator<(const Error &e) const {
-      if (num_bits < e.num_bits)
+      if (num_bits < e.num_bits) {
         return true;
-      if (num_bits > e.num_bits)
+      }
+      if (num_bits > e.num_bits) {
         return false;
+      }
       return residual_error < e.residual_error;
     }
   };
@@ -231,8 +233,9 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
         ++num_parallelograms;
         // Stop processing when we reach the maximum number of allowed
         // parallelograms.
-        if (num_parallelograms == kMaxNumParallelograms)
+        if (num_parallelograms == kMaxNumParallelograms) {
           break;
+        }
       }
 
       // Proceed to the next corner attached to the vertex. First swing left
@@ -304,8 +307,9 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
         }
         uint8_t configuration = 0;
         for (int j = 0; j < num_parallelograms; ++j) {
-          if (exluded_parallelograms[j])
+          if (exluded_parallelograms[j]) {
             continue;
+          }
           for (int c = 0; c < num_components; ++c) {
             multi_pred_vals[c] += pred_vals[j][c];
           }

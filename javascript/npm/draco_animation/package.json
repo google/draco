@@ -1,6 +1,6 @@
 {
   "name": "draco-animation",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Draco animation is a library for compressing and decompressing 3D animations of geometric meshes.",
   "main": "draco-animation.js",
   "scripts": {

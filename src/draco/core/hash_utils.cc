@@ -50,8 +50,9 @@ uint64_t FingerprintString(const char *s, size_t len) {
     hash = HashCombine(new_hash, hash);
   }
 
-  if (hash < std::numeric_limits<uint64_t>::max() - 1)
+  if (hash < std::numeric_limits<uint64_t>::max() - 1) {
     hash += 2;
+  }
   return hash;
 }
 }  // namespace draco

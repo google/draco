@@ -32,20 +32,32 @@ PointAttribute::PointAttribute(const GeometryAttribute &att)
       num_unique_entries_(0),
       identity_mapping_(false) {}
 
+void PointAttribute::Init(Type attribute_type, int8_t num_components,
+                          DataType data_type, bool normalized,
+                          size_t num_attribute_values) {
+  attribute_buffer_ = std::unique_ptr<DataBuffer>(new DataBuffer());
+  GeometryAttribute::Init(attribute_type, attribute_buffer_.get(),
+                          num_components, data_type, normalized,
+                          DataTypeLength(data_type) * num_components, 0);
+  Reset(num_attribute_values);
+  SetIdentityMapping();
+}
+
 void PointAttribute::CopyFrom(const PointAttribute &src_att) {
   if (buffer() == nullptr) {
     // If the destination attribute doesn't have a valid buffer, create it.
     attribute_buffer_ = std::unique_ptr<DataBuffer>(new DataBuffer());
     ResetBuffer(attribute_buffer_.get(), 0, 0);
   }
-  if (!GeometryAttribute::CopyFrom(src_att))
+  if (!GeometryAttribute::CopyFrom(src_att)) {
     return;
+  }
   identity_mapping_ = src_att.identity_mapping_;
   num_unique_entries_ = src_att.num_unique_entries_;
   indices_map_ = src_att.indices_map_;
   if (src_att.attribute_transform_data_) {
     attribute_transform_data_ = std::unique_ptr<AttributeTransformData>(
-        new AttributeTransformData(*src_att.attribute_transform_data_.get()));
+        new AttributeTransformData(*src_att.attribute_transform_data_));
   } else {
     attribute_transform_data_ = nullptr;
   }
@@ -56,12 +68,18 @@ bool PointAttribute::Reset(size_t num_attribute_values) {
     attribute_buffer_ = std::unique_ptr<DataBuffer>(new DataBuffer());
   }
   const int64_t entry_size = DataTypeLength(data_type()) * num_components();
-  if (!attribute_buffer_->Update(nullptr, num_attribute_values * entry_size))
+  if (!attribute_buffer_->Update(nullptr, num_attribute_values * entry_size)) {
     return false;
+  }
   // Assign the new buffer to the parent attribute.
   ResetBuffer(attribute_buffer_.get(), entry_size, 0);
   num_unique_entries_ = static_cast<uint32_t>(num_attribute_values);
   return true;
+}
+
+void PointAttribute::Resize(size_t new_num_unique_entries) {
+  num_unique_entries_ = static_cast<uint32_t>(new_num_unique_entries);
+  attribute_buffer_->Resize(new_num_unique_entries * byte_stride());
 }
 
 #ifdef DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
@@ -100,8 +118,9 @@ AttributeValueIndex::ValueType PointAttribute::DeduplicateValues(
     default:
       return -1;  // Unsupported data type.
   }
-  if (unique_vals == 0)
+  if (unique_vals == 0) {
     return -1;  // Unexpected error.
+  }
   return unique_vals;
 }
 
@@ -181,8 +200,9 @@ AttributeValueIndex::ValueType PointAttribute::DeduplicateFormattedValues(
       ++unique_vals;
     }
   }
-  if (unique_vals == num_unique_entries_)
+  if (unique_vals == num_unique_entries_) {
     return unique_vals.value();  // Nothing has changed.
+  }
   if (is_mapping_identity()) {
     // Change identity mapping to the explicit one.
     // The number of points is equal to the number of old unique values.

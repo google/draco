@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/compression/attributes/kd_tree_attributes_encoder.h"
+
 #include "draco/compression/attributes/kd_tree_attributes_shared.h"
 #include "draco/compression/attributes/point_d_vector.h"
 #include "draco/compression/point_cloud/algorithms/dynamic_integer_points_kd_tree_encoder.h"
@@ -50,8 +51,9 @@ bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
       AttributeQuantizationTransform attribute_quantization_transform;
       const int quantization_bits = encoder()->options()->GetAttributeInt(
           att_id, "quantization_bits", -1);
-      if (quantization_bits < 1)
+      if (quantization_bits < 1) {
         return false;
+      }
       if (encoder()->options()->IsAttributeOptionSet(att_id,
                                                      "quantization_origin") &&
           encoder()->options()->IsAttributeOptionSet(att_id,
@@ -91,8 +93,9 @@ bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
            ++avi) {
         att->ConvertValue<int32_t>(avi, &act_value[0]);
         for (int c = 0; c < att->num_components(); ++c) {
-          if (min_value[c] > act_value[c])
+          if (min_value[c] > act_value[c]) {
             min_value[c] = act_value[c];
+          }
         }
       }
       for (int c = 0; c < att->num_components(); ++c) {
@@ -167,8 +170,9 @@ bool KdTreeAttributesEncoder::EncodePortableAttributes(
       return false;
     }
 
-    if (source_att == nullptr)
+    if (source_att == nullptr) {
       return false;
+    }
 
     // Copy source_att to the vector.
     if (source_att->data_type() == DT_UINT32) {
@@ -233,50 +237,57 @@ bool KdTreeAttributesEncoder::EncodePortableAttributes(
     case 6: {
       DynamicIntegerPointsKdTreeEncoder<6> points_encoder(num_components_);
       if (!points_encoder.EncodePoints(point_vector.begin(), point_vector.end(),
-                                       num_bits, out_buffer))
+                                       num_bits, out_buffer)) {
         return false;
+      }
       break;
     }
     case 5: {
       DynamicIntegerPointsKdTreeEncoder<5> points_encoder(num_components_);
       if (!points_encoder.EncodePoints(point_vector.begin(), point_vector.end(),
-                                       num_bits, out_buffer))
+                                       num_bits, out_buffer)) {
         return false;
+      }
       break;
     }
     case 4: {
       DynamicIntegerPointsKdTreeEncoder<4> points_encoder(num_components_);
       if (!points_encoder.EncodePoints(point_vector.begin(), point_vector.end(),
-                                       num_bits, out_buffer))
+                                       num_bits, out_buffer)) {
         return false;
+      }
       break;
     }
     case 3: {
       DynamicIntegerPointsKdTreeEncoder<3> points_encoder(num_components_);
       if (!points_encoder.EncodePoints(point_vector.begin(), point_vector.end(),
-                                       num_bits, out_buffer))
+                                       num_bits, out_buffer)) {
         return false;
+      }
       break;
     }
     case 2: {
       DynamicIntegerPointsKdTreeEncoder<2> points_encoder(num_components_);
       if (!points_encoder.EncodePoints(point_vector.begin(), point_vector.end(),
-                                       num_bits, out_buffer))
+                                       num_bits, out_buffer)) {
         return false;
+      }
       break;
     }
     case 1: {
       DynamicIntegerPointsKdTreeEncoder<1> points_encoder(num_components_);
       if (!points_encoder.EncodePoints(point_vector.begin(), point_vector.end(),
-                                       num_bits, out_buffer))
+                                       num_bits, out_buffer)) {
         return false;
+      }
       break;
     }
     case 0: {
       DynamicIntegerPointsKdTreeEncoder<0> points_encoder(num_components_);
       if (!points_encoder.EncodePoints(point_vector.begin(), point_vector.end(),
-                                       num_bits, out_buffer))
+                                       num_bits, out_buffer)) {
         return false;
+      }
       break;
     }
     // Compression level and/or encoding speed seem wrong.

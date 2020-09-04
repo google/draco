@@ -71,7 +71,7 @@ TEST_P(MeshEncoderTest, EncodeGoldenMesh) {
   decoder_buffer.Init(buffer.data(), buffer.size());
   decoder_buffer.Advance(8);  // Skip the header to the encoding method id.
   uint8_t encoded_method;
-  decoder_buffer.Decode(&encoded_method);
+  ASSERT_TRUE(decoder_buffer.Decode(&encoded_method));
   ASSERT_EQ(encoded_method, method);
   if (!FLAGS_update_golden_files) {
     EXPECT_TRUE(

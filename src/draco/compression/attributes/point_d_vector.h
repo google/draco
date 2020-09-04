@@ -19,6 +19,7 @@
 #include <cstring>
 #include <memory>
 #include <vector>
+
 #include "draco/core/macros.h"
 
 namespace draco {
@@ -42,8 +43,9 @@ class PseudoPointD {
 
   // Specifically copies referenced memory
   void swap(PseudoPointD &other) noexcept {
-    for (auto dim = 0; dim < dimension_; dim += 1)
+    for (internal_t dim = 0; dim < dimension_; dim += 1) {
       std::swap(mem_[dim], other.mem_[dim]);
+    }
   }
 
   PseudoPointD(const PseudoPointD &other)
@@ -59,9 +61,11 @@ class PseudoPointD {
   }
 
   bool operator==(const PseudoPointD &other) const {
-    for (auto dim = 0; dim < dimension_; dim += 1)
-      if (mem_[dim] != other.mem_[dim])
+    for (auto dim = 0; dim < dimension_; dim += 1) {
+      if (mem_[dim] != other.mem_[dim]) {
         return false;
+      }
+    }
     return true;
   }
   bool operator!=(const PseudoPointD &other) const {

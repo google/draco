@@ -191,8 +191,9 @@ bool DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodePoints(
 
   buffer->Encode(bit_length_);
   buffer->Encode(num_points_);
-  if (num_points_ == 0)
+  if (num_points_ == 0) {
     return true;
+  }
 
   numbers_encoder_.StartEncoding();
   remaining_bits_encoder_.StartEncoding();
@@ -215,8 +216,9 @@ DynamicIntegerPointsKdTreeEncoder<compression_level_t>::GetAndEncodeAxis(
     RandomAccessIteratorT begin, RandomAccessIteratorT end,
     const VectorUint32 &old_base, const VectorUint32 &levels,
     uint32_t last_axis) {
-  if (!Policy::select_axis)
+  if (!Policy::select_axis) {
     return DRACO_INCREMENT_MOD(last_axis, dimension_);
+  }
 
   // For many points this function selects the axis that should be used
   // for the split by keeping as many points as possible bundled.
@@ -296,8 +298,9 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
     const uint32_t num_remaining_points = static_cast<uint32_t>(end - begin);
 
     // If this happens all axis are subdivided to the end.
-    if ((bit_length_ - level) == 0)
+    if ((bit_length_ - level) == 0) {
       continue;
+    }
 
     // Fast encoding of remaining bits if number of points is 1 or 2.
     // Doing this also for 2 gives a slight additional speed up.
@@ -338,8 +341,9 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
     const uint32_t second_half = static_cast<uint32_t>(end - split);
     const bool left = first_half < second_half;
 
-    if (first_half != second_half)
+    if (first_half != second_half) {
       half_encoder_.EncodeBit(left);
+    }
 
     if (left) {
       EncodeNumber(required_bits, num_remaining_points / 2 - first_half);
@@ -349,10 +353,12 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
 
     levels_stack_[stack_pos][axis] += 1;
     levels_stack_[stack_pos + 1] = levels_stack_[stack_pos];  // copy
-    if (split != begin)
+    if (split != begin) {
       status_stack.push(Status(begin, split, axis, stack_pos));
-    if (split != end)
+    }
+    if (split != end) {
       status_stack.push(Status(split, end, axis, stack_pos + 1));
+    }
   }
 }
 extern template class DynamicIntegerPointsKdTreeEncoder<0>;

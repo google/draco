@@ -18,7 +18,6 @@
 #include <stdint.h>
 
 #include "draco/core/macros.h"
-
 #include "draco/draco_features.h"
 
 namespace draco {

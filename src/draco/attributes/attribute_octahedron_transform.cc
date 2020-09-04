@@ -25,8 +25,9 @@ bool AttributeOctahedronTransform::InitFromAttribute(
   const AttributeTransformData *const transform_data =
       attribute.GetAttributeTransformData();
   if (!transform_data ||
-      transform_data->transform_type() != ATTRIBUTE_OCTAHEDRON_TRANSFORM)
+      transform_data->transform_type() != ATTRIBUTE_OCTAHEDRON_TRANSFORM) {
     return false;  // Wrong transform type.
+  }
   quantization_bits_ = transform_data->GetParameterValue<int32_t>(0);
   return true;
 }
@@ -68,8 +69,9 @@ AttributeOctahedronTransform::GeneratePortableAttribute(
   float att_val[3];
   int32_t dst_index = 0;
   OctahedronToolBox converter;
-  if (!converter.SetQuantizationBits(quantization_bits_))
+  if (!converter.SetQuantizationBits(quantization_bits_)) {
     return nullptr;
+  }
   for (uint32_t i = 0; i < point_ids.size(); ++i) {
     const AttributeValueIndex att_val_id = attribute.mapped_index(point_ids[i]);
     attribute.GetValue(att_val_id, att_val);

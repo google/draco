@@ -36,13 +36,15 @@ class ValenceCache {
 
   // Do not call before CacheValences() / CacheValencesInaccurate().
   inline int8_t ValenceFromCacheInaccurate(CornerIndex c) const {
-    if (c == kInvalidCornerIndex)
+    if (c == kInvalidCornerIndex) {
       return -1;
+    }
     return ValenceFromCacheInaccurate(table_.Vertex(c));
   }
   inline int32_t ValenceFromCache(CornerIndex c) const {
-    if (c == kInvalidCornerIndex)
+    if (c == kInvalidCornerIndex) {
       return -1;
+    }
     return ValenceFromCache(table_.Vertex(c));
   }
 
@@ -65,18 +67,20 @@ class ValenceCache {
     if (vertex_valence_cache_8_bit_.size() == 0) {
       const VertexIndex vertex_count = VertexIndex(table_.num_vertices());
       vertex_valence_cache_8_bit_.resize(vertex_count.value());
-      for (VertexIndex v = VertexIndex(0); v < vertex_count; v += 1)
+      for (VertexIndex v = VertexIndex(0); v < vertex_count; v += 1) {
         vertex_valence_cache_8_bit_[v] = static_cast<int8_t>(
             (std::min)(static_cast<int32_t>(std::numeric_limits<int8_t>::max()),
                        table_.Valence(v)));
+      }
     }
   }
   void CacheValences() const {
     if (vertex_valence_cache_32_bit_.size() == 0) {
       const VertexIndex vertex_count = VertexIndex(table_.num_vertices());
       vertex_valence_cache_32_bit_.resize(vertex_count.value());
-      for (VertexIndex v = VertexIndex(0); v < vertex_count; v += 1)
+      for (VertexIndex v = VertexIndex(0); v < vertex_count; v += 1) {
         vertex_valence_cache_32_bit_[v] = table_.Valence(v);
+      }
     }
   }
 
@@ -90,8 +94,9 @@ class ValenceCache {
   }
   inline int8_t ValenceFromCacheInaccurate(VertexIndex v) const {
     DRACO_DCHECK_EQ(vertex_valence_cache_8_bit_.size(), table_.num_vertices());
-    if (v == kInvalidVertexIndex || v.value() >= table_.num_vertices())
+    if (v == kInvalidVertexIndex || v.value() >= table_.num_vertices()) {
       return -1;
+    }
     return ConfidentValenceFromCacheInaccurate(v);
   }
   inline int8_t ConfidentValenceFromCacheInaccurate(VertexIndex v) const {
@@ -103,8 +108,9 @@ class ValenceCache {
   // TODO(draco-eng) Add unit tests for ValenceCache functions.
   inline int32_t ValenceFromCache(VertexIndex v) const {
     DRACO_DCHECK_EQ(vertex_valence_cache_32_bit_.size(), table_.num_vertices());
-    if (v == kInvalidVertexIndex || v.value() >= table_.num_vertices())
+    if (v == kInvalidVertexIndex || v.value() >= table_.num_vertices()) {
       return -1;
+    }
     return ConfidentValenceFromCache(v);
   }
 

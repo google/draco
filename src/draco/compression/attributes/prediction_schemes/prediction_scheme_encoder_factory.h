@@ -86,8 +86,9 @@ CreatePredictionSchemeForEncoder(PredictionSchemeMethod method, int att_id,
   if (method == PREDICTION_UNDEFINED) {
     method = SelectPredictionMethod(att_id, encoder);
   }
-  if (method == PREDICTION_NONE)
+  if (method == PREDICTION_NONE) {
     return nullptr;  // No prediction is used.
+  }
   if (encoder->GetGeometryType() == TRIANGULAR_MESH) {
     // Cast the encoder to mesh encoder. This is not necessarily safe if there
     // is some other encoder decides to use TRIANGULAR_MESH as the return type,
@@ -100,8 +101,9 @@ CreatePredictionSchemeForEncoder(PredictionSchemeMethod method, int att_id,
         MeshEncoder, PredictionSchemeEncoder<DataTypeT, TransformT>,
         MeshPredictionSchemeEncoderFactory<DataTypeT>>(
         mesh_encoder, method, att_id, transform, kDracoMeshBitstreamVersion);
-    if (ret)
+    if (ret) {
       return ret;
+    }
     // Otherwise try to create another prediction scheme.
   }
   // Create delta encoder.

@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#include "draco/point_cloud/point_cloud.h"
+
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
-
-#include "draco/point_cloud/point_cloud.h"
 
 namespace {
 

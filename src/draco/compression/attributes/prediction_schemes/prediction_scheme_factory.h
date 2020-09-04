@@ -61,8 +61,9 @@ std::unique_ptr<PredictionSchemeT> CreateMeshPredictionScheme(
              &encoding_data->vertex_to_encoded_attribute_value_index_map);
       MeshPredictionSchemeFactoryT factory;
       auto ret = factory(method, att, transform, md, bitstream_version);
-      if (ret)
+      if (ret) {
         return ret;
+      }
     } else {
       typedef MeshPredictionSchemeData<CornerTable> MeshData;
       MeshData md;
@@ -71,8 +72,9 @@ std::unique_ptr<PredictionSchemeT> CreateMeshPredictionScheme(
              &encoding_data->vertex_to_encoded_attribute_value_index_map);
       MeshPredictionSchemeFactoryT factory;
       auto ret = factory(method, att, transform, md, bitstream_version);
-      if (ret)
+      if (ret) {
         return ret;
+      }
     }
   }
   return nullptr;

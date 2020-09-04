@@ -16,6 +16,7 @@
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_TEX_COORDS_ENCODER_H_
 
 #include <math.h>
+
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_encoder.h"
 #include "draco/compression/bit_coders/rans_bit_encoder.h"
 #include "draco/core/varint_encoding.h"
@@ -55,10 +56,12 @@ class MeshPredictionSchemeTexCoordsEncoder
   }
 
   bool IsInitialized() const override {
-    if (pos_attribute_ == nullptr)
+    if (pos_attribute_ == nullptr) {
       return false;
-    if (!this->mesh_data().IsInitialized())
+    }
+    if (!this->mesh_data().IsInitialized()) {
       return false;
+    }
     return true;
   }
 
@@ -71,10 +74,12 @@ class MeshPredictionSchemeTexCoordsEncoder
   }
 
   bool SetParentAttribute(const PointAttribute *att) override {
-    if (att->attribute_type() != GeometryAttribute::POSITION)
+    if (att->attribute_type() != GeometryAttribute::POSITION) {
       return false;  // Invalid attribute type.
-    if (att->num_components() != 3)
+    }
+    if (att->num_components() != 3) {
       return false;  // Currently works only for 3 component positions.
+    }
     pos_attribute_ = att;
     return true;
   }

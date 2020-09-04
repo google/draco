@@ -48,10 +48,12 @@ class MeshPredictionSchemeTexCoordsPortableDecoder
   }
 
   bool IsInitialized() const override {
-    if (!predictor_.IsInitialized())
+    if (!predictor_.IsInitialized()) {
       return false;
-    if (!this->mesh_data().IsInitialized())
+    }
+    if (!this->mesh_data().IsInitialized()) {
       return false;
+    }
     return true;
   }
 
@@ -64,10 +66,12 @@ class MeshPredictionSchemeTexCoordsPortableDecoder
   }
 
   bool SetParentAttribute(const PointAttribute *att) override {
-    if (!att || att->attribute_type() != GeometryAttribute::POSITION)
+    if (!att || att->attribute_type() != GeometryAttribute::POSITION) {
       return false;  // Invalid attribute type.
-    if (att->num_components() != 3)
+    }
+    if (att->num_components() != 3) {
       return false;  // Currently works only for 3 component positions.
+    }
     predictor_.SetPositionAttribute(*att);
     return true;
   }
@@ -84,6 +88,10 @@ bool MeshPredictionSchemeTexCoordsPortableDecoder<
                                       DataTypeT *out_data, int /* size */,
                                       int num_components,
                                       const PointIndex *entry_to_point_id_map) {
+  if (num_components != MeshPredictionSchemeTexCoordsPortablePredictor<
+                            DataTypeT, MeshDataT>::kNumComponents) {
+    return false;
+  }
   predictor_.SetEntryToPointIdMap(entry_to_point_id_map);
   this->transform().Init(num_components);
 
@@ -92,8 +100,9 @@ bool MeshPredictionSchemeTexCoordsPortableDecoder<
   for (int p = 0; p < corner_map_size; ++p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     if (!predictor_.template ComputePredictedValue<false>(corner_id, out_data,
-                                                          p))
+                                                          p)) {
       return false;
+    }
 
     const int dst_offset = p * num_components;
     this->transform().ComputeOriginalValue(predictor_.predicted_value(),
@@ -109,16 +118,19 @@ bool MeshPredictionSchemeTexCoordsPortableDecoder<
                                                                 *buffer) {
   // Decode the delta coded orientations.
   int32_t num_orientations = 0;
-  if (!buffer->Decode(&num_orientations) || num_orientations < 0)
+  if (!buffer->Decode(&num_orientations) || num_orientations < 0) {
     return false;
+  }
   predictor_.ResizeOrientations(num_orientations);
   bool last_orientation = true;
   RAnsBitDecoder decoder;
-  if (!decoder.StartDecoding(buffer))
+  if (!decoder.StartDecoding(buffer)) {
     return false;
+  }
   for (int i = 0; i < num_orientations; ++i) {
-    if (!decoder.DecodeNextBit())
+    if (!decoder.DecodeNextBit()) {
       last_orientation = !last_orientation;
+    }
     predictor_.set_orientation(i, last_orientation);
   }
   decoder.EndDecoding();

@@ -153,19 +153,28 @@ template <class PointDiT, int compression_level_t>
 template <class OutputIteratorT>
 bool IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodePoints(
     DecoderBuffer *buffer, OutputIteratorT oit) {
-  buffer->Decode(&bit_length_);
-  buffer->Decode(&num_points_);
-  if (num_points_ == 0)
+  if (!buffer->Decode(&bit_length_)) {
+    return false;
+  }
+  if (!buffer->Decode(&num_points_)) {
+    return false;
+  }
+  if (num_points_ == 0) {
     return true;
+  }
 
-  if (!numbers_decoder_.StartDecoding(buffer))
+  if (!numbers_decoder_.StartDecoding(buffer)) {
     return false;
-  if (!remaining_bits_decoder_.StartDecoding(buffer))
+  }
+  if (!remaining_bits_decoder_.StartDecoding(buffer)) {
     return false;
-  if (!axis_decoder_.StartDecoding(buffer))
+  }
+  if (!axis_decoder_.StartDecoding(buffer)) {
     return false;
-  if (!half_decoder_.StartDecoding(buffer))
+  }
+  if (!half_decoder_.StartDecoding(buffer)) {
     return false;
+  }
 
   DecodeInternal(num_points_, PointTraits<PointDiT>::Origin(),
                  PointTraits<PointDiT>::ZeroArray(), 0, oit);
@@ -182,8 +191,9 @@ template <class PointDiT, int compression_level_t>
 uint32_t IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::GetAxis(
     uint32_t num_remaining_points, const PointDiT & /* base */,
     std::array<uint32_t, D> levels, uint32_t last_axis) {
-  if (!Policy::select_axis)
+  if (!Policy::select_axis) {
     return DRACO_INCREMENT_MOD(last_axis, D);
+  }
 
   uint32_t best_axis = 0;
   if (num_remaining_points < 64) {
@@ -247,9 +257,10 @@ void IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodeInternal(
         // Get remaining bits, mind the carry if not starting at x.
         PointDiT p = PointTraits<PointDiT>::Origin();
         for (int j = 0; j < static_cast<int>(D); j++) {
-          if (num_remaining_bits[j])
+          if (num_remaining_bits[j]) {
             remaining_bits_decoder_.DecodeLeastSignificantBits32(
                 num_remaining_bits[j], &p[axes[j]]);
+          }
           p[axes[j]] = old_base[axes[j]] | p[axes[j]];
         }
         *oit++ = p;
@@ -270,15 +281,19 @@ void IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodeInternal(
     uint32_t first_half = num_remaining_points / 2 - number;
     uint32_t second_half = num_remaining_points - first_half;
 
-    if (first_half != second_half)
-      if (!half_decoder_.DecodeNextBit())
+    if (first_half != second_half) {
+      if (!half_decoder_.DecodeNextBit()) {
         std::swap(first_half, second_half);
+      }
+    }
 
     levels[axis] += 1;
-    if (first_half)
+    if (first_half) {
       status_q.push(DecodingStatus(first_half, old_base, levels, axis));
-    if (second_half)
+    }
+    if (second_half) {
       status_q.push(DecodingStatus(second_half, new_base, levels, axis));
+    }
   }
 }
 

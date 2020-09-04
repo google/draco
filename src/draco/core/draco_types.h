@@ -16,6 +16,7 @@
 #define DRACO_CORE_DRACO_TYPES_H_
 
 #include <stdint.h>
+
 #include <string>
 
 #include "draco/draco_features.h"

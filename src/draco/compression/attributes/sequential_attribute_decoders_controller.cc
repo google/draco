@@ -27,36 +27,42 @@ SequentialAttributeDecodersController::SequentialAttributeDecodersController(
 
 bool SequentialAttributeDecodersController::DecodeAttributesDecoderData(
     DecoderBuffer *buffer) {
-  if (!AttributesDecoder::DecodeAttributesDecoderData(buffer))
+  if (!AttributesDecoder::DecodeAttributesDecoderData(buffer)) {
     return false;
+  }
   // Decode unique ids of all sequential encoders and create them.
   const int32_t num_attributes = GetNumAttributes();
   sequential_decoders_.resize(num_attributes);
   for (int i = 0; i < num_attributes; ++i) {
     uint8_t decoder_type;
-    if (!buffer->Decode(&decoder_type))
+    if (!buffer->Decode(&decoder_type)) {
       return false;
+    }
     // Create the decoder from the id.
     sequential_decoders_[i] = CreateSequentialDecoder(decoder_type);
-    if (!sequential_decoders_[i])
+    if (!sequential_decoders_[i]) {
       return false;
-    if (!sequential_decoders_[i]->Init(GetDecoder(), GetAttributeId(i)))
+    }
+    if (!sequential_decoders_[i]->Init(GetDecoder(), GetAttributeId(i))) {
       return false;
+    }
   }
   return true;
 }
 
 bool SequentialAttributeDecodersController::DecodeAttributes(
     DecoderBuffer *buffer) {
-  if (!sequencer_ || !sequencer_->GenerateSequence(&point_ids_))
+  if (!sequencer_ || !sequencer_->GenerateSequence(&point_ids_)) {
     return false;
+  }
   // Initialize point to attribute value mapping for all decoded attributes.
   const int32_t num_attributes = GetNumAttributes();
   for (int i = 0; i < num_attributes; ++i) {
     PointAttribute *const pa =
         GetDecoder()->point_cloud()->attribute(GetAttributeId(i));
-    if (!sequencer_->UpdatePointToAttributeIndexMapping(pa))
+    if (!sequencer_->UpdatePointToAttributeIndexMapping(pa)) {
       return false;
+    }
   }
   return AttributesDecoder::DecodeAttributes(buffer);
 }
@@ -66,8 +72,9 @@ bool SequentialAttributeDecodersController::DecodePortableAttributes(
   const int32_t num_attributes = GetNumAttributes();
   for (int i = 0; i < num_attributes; ++i) {
     if (!sequential_decoders_[i]->DecodePortableAttribute(point_ids_,
-                                                          in_buffer))
+                                                          in_buffer)) {
       return false;
+    }
   }
   return true;
 }
@@ -77,8 +84,9 @@ bool SequentialAttributeDecodersController::
   const int32_t num_attributes = GetNumAttributes();
   for (int i = 0; i < num_attributes; ++i) {
     if (!sequential_decoders_[i]->DecodeDataNeededByPortableTransform(
-            point_ids_, in_buffer))
+            point_ids_, in_buffer)) {
       return false;
+    }
   }
   return true;
 }
@@ -106,8 +114,9 @@ bool SequentialAttributeDecodersController::
       }
     }
     if (!sequential_decoders_[i]->TransformAttributeToOriginalFormat(
-            point_ids_))
+            point_ids_)) {
       return false;
+    }
   }
   return true;
 }

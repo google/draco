@@ -32,13 +32,13 @@
     <script src="geometry_helper.js"></script>
     <script>
       'use strict';
-
       // Configure decoder and create loader.
-      THREE.DRACOLoader.setDecoderPath( '../' );
       var dracoLoader = new THREE.DRACOLoader();
 
-      // (Optional) Pre-fetch decoder source files.
-      THREE.DRACOLoader.getDecoderModule();
+      // It is recommended to always pull your Draco JavaScript and WASM decoders
+      // from this URL. Users will benefit from having the Draco decoder in cache
+      // as more sites start using the static URL.
+      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
 
       var camera, cameraTarget, scene, renderer;
 
@@ -114,26 +114,12 @@
 
           var reader = new FileReader();
           reader.onload = function(e) {
-            // Enable logging to console output.
-            dracoLoader.setVerbosity(1);
-
-            // To use triangle strips use:
-            //   dracoLoader.setDrawMode(THREE.TriangleStripDrawMode);
-            dracoLoader.setDrawMode(THREE.TrianglesDrawMode);
-
-            // Skip dequantization of the position attribute. It will be done on the GPU.
-            dracoLoader.setSkipDequantization('position', true);
             dracoLoader.decodeDracoFile(reader.result, function(bufferGeometry) {
               if (dracoLoader.decode_time !== undefined) {
                 fileDisplayArea.innerText = 'Decode time = ' + dracoLoader.decode_time + '\n' +
                                             'Import time = ' + dracoLoader.import_time;
               }
               var material = new THREE.MeshStandardMaterial({vertexColors: THREE.VertexColors});
-              // If the position attribute is quantized, modify the material to perform
-              // dequantization on the GPU.
-              if (bufferGeometry.attributes['position'].isQuantized) {
-                setDequantizationForMaterial(material, bufferGeometry);
-              }
 
               var geometry;
               // Point cloud does not have face indices.
@@ -145,30 +131,9 @@
                   geometryHelper.computeVertexNormals(bufferGeometry);
                 }
                 geometry = new THREE.Mesh(bufferGeometry, material);
-                geometry.drawMode = dracoLoader.drawMode;
               }
               // Compute range of the geometry coordinates for proper rendering.
               bufferGeometry.computeBoundingBox();
-              if (bufferGeometry.attributes['position'].isQuantized) {
-                // If the geometry is quantized, transform the bounding box to the dequantized
-                // coordinates.
-                var posAttribute = bufferGeometry.attributes['position'];
-                var normConstant =
-                    posAttribute.maxRange / (1 << posAttribute.numQuantizationBits);
-                var minPos = posAttribute.minValues;
-                bufferGeometry.boundingBox.max.x =
-                    minPos[0] + bufferGeometry.boundingBox.max.x * normConstant;
-                bufferGeometry.boundingBox.max.y =
-                    minPos[1] + bufferGeometry.boundingBox.max.y * normConstant;
-                bufferGeometry.boundingBox.max.z =
-                    minPos[2] + bufferGeometry.boundingBox.max.z * normConstant;
-                bufferGeometry.boundingBox.min.x =
-                    minPos[0] + bufferGeometry.boundingBox.min.x * normConstant;
-                bufferGeometry.boundingBox.min.y =
-                    minPos[1] + bufferGeometry.boundingBox.min.y * normConstant;
-                bufferGeometry.boundingBox.min.z =
-                    minPos[2] + bufferGeometry.boundingBox.min.z * normConstant;
-              }
               var sizeX = bufferGeometry.boundingBox.max.x - bufferGeometry.boundingBox.min.x;
               var sizeY = bufferGeometry.boundingBox.max.y - bufferGeometry.boundingBox.min.y;
               var sizeZ = bufferGeometry.boundingBox.max.z - bufferGeometry.boundingBox.min.z;
@@ -199,25 +164,6 @@
 
         init();
         animate();
-      }
-
-      function setDequantizationForMaterial(material, bufferGeometry) {
-        material.onBeforeCompile = function(shader) {
-          // Add uniform variables needed for dequantization.
-          var posAttribute = bufferGeometry.attributes['position'];
-          shader.uniforms.normConstant =
-            { value: posAttribute.maxRange / (1 << posAttribute.numQuantizationBits) };
-          shader.uniforms.minPos = { value: posAttribute.minValues };
-
-          shader.vertexShader = 'uniform float maxRange;\n' +
-                                'uniform float normConstant;\n' +
-                                'uniform vec3 minPos;\n' +
-                                shader.vertexShader;
-          shader.vertexShader = shader.vertexShader.replace(
-              '#include <begin_vertex>',
-              'vec3 transformed = minPos + position * normConstant;'
-          );
-        }
       }
     </script>
 </body>

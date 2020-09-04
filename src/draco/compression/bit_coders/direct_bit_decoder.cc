@@ -23,19 +23,23 @@ DirectBitDecoder::~DirectBitDecoder() { Clear(); }
 bool DirectBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
   Clear();
   uint32_t size_in_bytes;
-  if (!source_buffer->Decode(&size_in_bytes))
+  if (!source_buffer->Decode(&size_in_bytes)) {
     return false;
+  }
 
   // Check that size_in_bytes is > 0 and a multiple of 4 as the encoder always
   // encodes 32 bit elements.
-  if (size_in_bytes == 0 || size_in_bytes & 0x3)
+  if (size_in_bytes == 0 || size_in_bytes & 0x3) {
     return false;
-  if (size_in_bytes > source_buffer->remaining_size())
+  }
+  if (size_in_bytes > source_buffer->remaining_size()) {
     return false;
+  }
   const uint32_t num_32bit_elements = size_in_bytes / 4;
   bits_.resize(num_32bit_elements);
-  if (!source_buffer->Decode(bits_.data(), size_in_bytes))
+  if (!source_buffer->Decode(bits_.data(), size_in_bytes)) {
     return false;
+  }
   pos_ = bits_.begin();
   num_used_bits_ = 0;
   return true;

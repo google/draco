@@ -1,4 +1,5 @@
 #include "draco/compression/entropy/shannon_entropy.h"
+
 #include "draco/core/draco_test_base.h"
 
 namespace {
@@ -23,8 +24,9 @@ TEST(ShannonEntropyTest, TestStreamEntropy) {
   // Try to push symbols one by one.
   uint32_t max_symbol = 0;
   for (int i = 0; i < symbols.size(); ++i) {
-    if (symbols[i] > max_symbol)
+    if (symbols[i] > max_symbol) {
       max_symbol = symbols[i];
+    }
     const auto entropy_data = entropy_tracker.Push(&symbols[i], 1);
 
     const int64_t stream_entropy_bits = entropy_tracker.GetNumberOfDataBits();

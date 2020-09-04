@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/compression/attributes/sequential_normal_attribute_decoder.h"
+
 #include "draco/attributes/attribute_octahedron_transform.h"
 #include "draco/compression/attributes/normal_compression_utils.h"
 
@@ -26,11 +27,13 @@ bool SequentialNormalAttributeDecoder::Init(PointCloudDecoder *decoder,
   if (!SequentialIntegerAttributeDecoder::Init(decoder, attribute_id))
     return false;
   // Currently, this encoder works only for 3-component normal vectors.
-  if (attribute()->num_components() != 3)
+  if (attribute()->num_components() != 3) {
     return false;
+  }
   // Also the data type must be DT_FLOAT32.
-  if (attribute()->data_type() != DT_FLOAT32)
+  if (attribute()->data_type() != DT_FLOAT32) {
     return false;
+  }
   return true;
 }
 
@@ -39,8 +42,9 @@ bool SequentialNormalAttributeDecoder::DecodeIntegerValues(
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     uint8_t quantization_bits;
-    if (!in_buffer->Decode(&quantization_bits))
+    if (!in_buffer->Decode(&quantization_bits)) {
       return false;
+    }
     quantization_bits_ = quantization_bits;
   }
 #endif
@@ -53,8 +57,9 @@ bool SequentialNormalAttributeDecoder::DecodeDataNeededByPortableTransform(
   if (decoder()->bitstream_version() >= DRACO_BITSTREAM_VERSION(2, 0)) {
     // For newer file version, decode attribute transform data here.
     uint8_t quantization_bits;
-    if (!in_buffer->Decode(&quantization_bits))
+    if (!in_buffer->Decode(&quantization_bits)) {
       return false;
+    }
     quantization_bits_ = quantization_bits;
   }
 

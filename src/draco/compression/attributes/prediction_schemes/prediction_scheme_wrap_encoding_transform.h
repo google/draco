@@ -32,15 +32,17 @@ class PredictionSchemeWrapEncodingTransform
   void Init(const DataTypeT *orig_data, int size, int num_components) {
     PredictionSchemeWrapTransformBase<DataTypeT>::Init(num_components);
     // Go over the original values and compute the bounds.
-    if (size == 0)
+    if (size == 0) {
       return;
+    }
     DataTypeT min_value = orig_data[0];
     DataTypeT max_value = min_value;
     for (int i = 1; i < size; ++i) {
-      if (orig_data[i] < min_value)
+      if (orig_data[i] < min_value) {
         min_value = orig_data[i];
-      else if (orig_data[i] > max_value)
+      } else if (orig_data[i] > max_value) {
         max_value = orig_data[i];
+      }
     }
     this->set_min_value(min_value);
     this->set_max_value(max_value);
@@ -58,10 +60,11 @@ class PredictionSchemeWrapEncodingTransform
       out_corr_vals[i] = original_vals[i] - predicted_vals[i];
       // Wrap around if needed.
       DataTypeT &corr_val = out_corr_vals[i];
-      if (corr_val < this->min_correction())
+      if (corr_val < this->min_correction()) {
         corr_val += this->max_dif();
-      else if (corr_val > this->max_correction())
+      } else if (corr_val > this->max_correction()) {
         corr_val -= this->max_dif();
+      }
     }
   }
 

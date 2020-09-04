@@ -91,15 +91,13 @@ TEST(VectorDTest, TestOperators) {
 
   Vector3f new_v = v;
   new_v.Normalize();
-  const float eps = 0.001;
+  const float tolerance = 1e-5;
   const float magnitude = std::sqrt(v.SquaredNorm());
   const float new_magnitude = std::sqrt(new_v.SquaredNorm());
-  ASSERT_LE(new_magnitude, 1 + eps);
-  ASSERT_GE(new_magnitude, 1 - eps);
+  ASSERT_NEAR(new_magnitude, 1, tolerance);
   for (int i = 0; i < 3; ++i) {
     new_v[i] *= magnitude;
-    ASSERT_LE(new_v[i], v[i] + eps);
-    ASSERT_GE(new_v[i], v[i] - eps);
+    ASSERT_NEAR(new_v[i], v[i], tolerance);
   }
 
   Vector3f x(0, 0, 0);
@@ -107,6 +105,69 @@ TEST(VectorDTest, TestOperators) {
   for (int i = 0; i < 3; ++i) {
     ASSERT_EQ(0, x[i]);
   }
+}
+
+TEST(VectorDTest, TestAdditionAssignmentOperator) {
+  Vector3ui v(1, 2, 3);
+  Vector3ui w(4, 5, 6);
+
+  w += v;
+  ASSERT_EQ(w[0], 5);
+  ASSERT_EQ(w[1], 7);
+  ASSERT_EQ(w[2], 9);
+
+  w += w;
+  ASSERT_EQ(w[0], 10);
+  ASSERT_EQ(w[1], 14);
+  ASSERT_EQ(w[2], 18);
+}
+
+TEST(VectorDTest, TestSubtractionAssignmentOperator) {
+  Vector3ui v(1, 2, 3);
+  Vector3ui w(4, 6, 8);
+
+  w -= v;
+  ASSERT_EQ(w[0], 3);
+  ASSERT_EQ(w[1], 4);
+  ASSERT_EQ(w[2], 5);
+
+  w -= w;
+  ASSERT_EQ(w[0], 0);
+  ASSERT_EQ(w[1], 0);
+  ASSERT_EQ(w[2], 0);
+}
+
+TEST(VectorDTest, TestMultiplicationAssignmentOperator) {
+  Vector3ui v(1, 2, 3);
+  Vector3ui w(4, 5, 6);
+
+  w *= v;
+  ASSERT_EQ(w[0], 4);
+  ASSERT_EQ(w[1], 10);
+  ASSERT_EQ(w[2], 18);
+
+  v *= v;
+  ASSERT_EQ(v[0], 1);
+  ASSERT_EQ(v[1], 4);
+  ASSERT_EQ(v[2], 9);
+}
+
+TEST(VectorTest, TestGetNormalized) {
+  const Vector3f original(2, 3, -4);
+  const Vector3f normalized = original.GetNormalized();
+  const float magnitude = sqrt(original.SquaredNorm());
+  const float tolerance = 1e-5f;
+  ASSERT_NEAR(normalized[0], original[0] / magnitude, tolerance);
+  ASSERT_NEAR(normalized[1], original[1] / magnitude, tolerance);
+  ASSERT_NEAR(normalized[2], original[2] / magnitude, tolerance);
+}
+
+TEST(VectorTest, TestGetNormalizedWithZeroLengthVector) {
+  const Vector3f original(0, 0, 0);
+  const Vector3f normalized = original.GetNormalized();
+  ASSERT_EQ(normalized[0], 0);
+  ASSERT_EQ(normalized[1], 0);
+  ASSERT_EQ(normalized[2], 0);
 }
 
 TEST(VectorDTest, TestSquaredDistance) {
@@ -230,6 +291,16 @@ TEST(VectorDTest, TestConvertConstructor) {
 
   const draco::VectorD<double, 1> vector1d(vector3f);
   ASSERT_EQ(vector1d[0], 1.0);
+}
+
+TEST(VectorDTest, TestBinaryOps) {
+  // Tests the binary multiplication operator of the VectorD class.
+  const draco::Vector4f vector_0(1.f, 2.3f, 4.2f, -10.f);
+  ASSERT_EQ(vector_0 * draco::Vector4f(1.f, 1.f, 1.f, 1.f), vector_0);
+  ASSERT_EQ(vector_0 * draco::Vector4f(0.f, 0.f, 0.f, 0.f),
+            draco::Vector4f(0.f, 0.f, 0.f, 0.f));
+  ASSERT_EQ(vector_0 * draco::Vector4f(0.1f, 0.2f, 0.3f, 0.4f),
+            draco::Vector4f(0.1f, 0.46f, 1.26f, -4.f));
 }
 
 }  // namespace

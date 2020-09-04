@@ -48,15 +48,18 @@ class AttributesEncoder {
 
   // Encode attribute data to the target buffer.
   virtual bool EncodeAttributes(EncoderBuffer *out_buffer) {
-    if (!TransformAttributesToPortableFormat())
+    if (!TransformAttributesToPortableFormat()) {
       return false;
-    if (!EncodePortableAttributes(out_buffer))
+    }
+    if (!EncodePortableAttributes(out_buffer)) {
       return false;
+    }
     // Encode data needed by portable transforms after the attribute is encoded.
     // This corresponds to the order in which the data is going to be decoded by
     // the decoder.
-    if (!EncodeDataNeededByPortableTransforms(out_buffer))
+    if (!EncodeDataNeededByPortableTransforms(out_buffer)) {
       return false;
+    }
     return true;
   }
 
@@ -87,8 +90,9 @@ class AttributesEncoder {
 
   void AddAttributeId(int32_t id) {
     point_attribute_ids_.push_back(id);
-    if (id >= static_cast<int32_t>(point_attribute_to_local_id_map_.size()))
+    if (id >= static_cast<int32_t>(point_attribute_to_local_id_map_.size())) {
       point_attribute_to_local_id_map_.resize(id + 1, -1);
+    }
     point_attribute_to_local_id_map_[id] =
         static_cast<int32_t>(point_attribute_ids_.size()) - 1;
   }
@@ -127,8 +131,9 @@ class AttributesEncoder {
   int32_t GetLocalIdForPointAttribute(int32_t point_attribute_id) const {
     const int id_map_size =
         static_cast<int>(point_attribute_to_local_id_map_.size());
-    if (point_attribute_id >= id_map_size)
+    if (point_attribute_id >= id_map_size) {
       return -1;
+    }
     return point_attribute_to_local_id_map_[point_attribute_id];
   }
 

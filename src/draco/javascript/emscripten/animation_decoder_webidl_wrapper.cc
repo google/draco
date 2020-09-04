@@ -49,8 +49,9 @@ const draco::Status *AnimationDecoder::DecodeBufferToKeyframeAnimation(
 
 bool AnimationDecoder::GetTimestamps(const draco::KeyframeAnimation &animation,
                                      DracoFloat32Array *timestamp) {
-  if (!timestamp)
+  if (!timestamp) {
     return false;
+  }
   const int num_frames = animation.num_frames();
   const draco::PointAttribute *timestamp_att = animation.timestamps();
   // Timestamp attribute has only 1 component, so the number of components is
@@ -60,8 +61,9 @@ bool AnimationDecoder::GetTimestamps(const draco::KeyframeAnimation &animation,
   float timestamp_value = -1.0;
   for (draco::PointIndex i(0); i < num_frames; ++i) {
     const draco::AttributeValueIndex val_index = timestamp_att->mapped_index(i);
-    if (!timestamp_att->ConvertValue<float>(val_index, &timestamp_value))
+    if (!timestamp_att->ConvertValue<float>(val_index, &timestamp_value)) {
       return false;
+    }
     timestamp->SetValue(entry_id++, timestamp_value);
   }
   return true;
@@ -74,8 +76,9 @@ bool AnimationDecoder::GetKeyframes(const draco::KeyframeAnimation &animation,
   // Get animation data.
   const draco::PointAttribute *animation_data_att =
       animation.keyframes(keyframes_id);
-  if (!animation_data_att)
+  if (!animation_data_att) {
     return false;
+  }
 
   const int components = animation_data_att->num_components();
   const int num_entries = num_frames * components;
@@ -87,8 +90,9 @@ bool AnimationDecoder::GetKeyframes(const draco::KeyframeAnimation &animation,
   for (draco::PointIndex i(0); i < num_frames; ++i) {
     const draco::AttributeValueIndex val_index =
         animation_data_att->mapped_index(i);
-    if (!animation_data_att->ConvertValue<float>(val_index, &values[0]))
+    if (!animation_data_att->ConvertValue<float>(val_index, &values[0])) {
       return false;
+    }
     for (int j = 0; j < components; ++j) {
       animation_data->SetValue(entry_id++, values[j]);
     }

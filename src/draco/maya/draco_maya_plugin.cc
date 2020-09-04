@@ -47,8 +47,7 @@ static void decode_vertices(std::unique_ptr<draco::Mesh> &drc_mesh,
     const draco::AttributeValueIndex val_index = pos_att->mapped_index(pi);
     float out_vertex[3];
     bool is_ok = pos_att->ConvertValue<float, 3>(val_index, out_vertex);
-    if (!is_ok)
-      return;
+    if (!is_ok) return;
     out_mesh->vertices[i * 3 + 0] = out_vertex[0];
     out_mesh->vertices[i * 3 + 1] = out_vertex[1];
     out_mesh->vertices[i * 3 + 2] = out_vertex[2];
@@ -72,8 +71,7 @@ static void decode_normals(std::unique_ptr<draco::Mesh> &drc_mesh,
     const draco::AttributeValueIndex val_index = normal_att->mapped_index(pi);
     float out_normal[3];
     bool is_ok = normal_att->ConvertValue<float, 3>(val_index, out_normal);
-    if (!is_ok)
-      return;
+    if (!is_ok) return;
     out_mesh->normals[i * 3 + 0] = out_normal[0];
     out_mesh->normals[i * 3 + 1] = out_normal[1];
     out_mesh->normals[i * 3 + 2] = out_normal[2];
@@ -99,8 +97,7 @@ static void decode_uvs(std::unique_ptr<draco::Mesh> &drc_mesh,
     const draco::AttributeValueIndex val_index = uv_att->mapped_index(pi);
     float out_uv[2];
     bool is_ok = uv_att->ConvertValue<float, 2>(val_index, out_uv);
-    if (!is_ok)
-      return;
+    if (!is_ok) return;
     out_mesh->uvs[i * 2 + 0] = out_uv[0];
     out_mesh->uvs[i * 2 + 1] = out_uv[1];
   }
@@ -108,8 +105,7 @@ static void decode_uvs(std::unique_ptr<draco::Mesh> &drc_mesh,
 
 void drc2py_free(Drc2PyMesh **mesh_ptr) {
   Drc2PyMesh *mesh = *mesh_ptr;
-  if (!mesh)
-    return;
+  if (!mesh) return;
   if (mesh->faces) {
     delete[] mesh->faces;
     mesh->faces = nullptr;
@@ -164,10 +160,8 @@ DecodeResult drc2py_decode(char *data, unsigned int length,
 
 // As encode references see https://github.com/google/draco/issues/116
 EncodeResult drc2py_encode(Drc2PyMesh *in_mesh, char *file_path) {
-  if (in_mesh->faces_num == 0)
-    return EncodeResult::KO_WRONG_INPUT;
-  if (in_mesh->vertices_num == 0)
-    return EncodeResult::KO_WRONG_INPUT;
+  if (in_mesh->faces_num == 0) return EncodeResult::KO_WRONG_INPUT;
+  if (in_mesh->vertices_num == 0) return EncodeResult::KO_WRONG_INPUT;
   // TODO: Add check to protect against quad faces. At the moment only
   // Triangular faces are supported
 

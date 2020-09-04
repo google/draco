@@ -25,8 +25,9 @@ void MeshEncoder::SetMesh(const Mesh &m) {
 
 Status MeshEncoder::EncodeGeometryData() {
   DRACO_RETURN_IF_ERROR(EncodeConnectivity());
-  if (options()->GetGlobalBool("store_number_of_encoded_faces", false))
+  if (options()->GetGlobalBool("store_number_of_encoded_faces", false)) {
     ComputeNumberOfEncodedFaces();
+  }
   return OkStatus();
 }
 

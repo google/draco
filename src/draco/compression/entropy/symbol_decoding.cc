@@ -31,12 +31,14 @@ bool DecodeRawSymbols(uint32_t num_values, DecoderBuffer *src_buffer,
 
 bool DecodeSymbols(uint32_t num_values, int num_components,
                    DecoderBuffer *src_buffer, uint32_t *out_values) {
-  if (num_values == 0)
+  if (num_values == 0) {
     return true;
+  }
   // Decode which scheme to use.
   uint8_t scheme;
-  if (!src_buffer->Decode(&scheme))
+  if (!src_buffer->Decode(&scheme)) {
     return false;
+  }
   if (scheme == SYMBOL_CODING_TAGGED) {
     return DecodeTaggedSymbols<RAnsSymbolDecoder>(num_values, num_components,
                                                   src_buffer, out_values);
@@ -52,14 +54,17 @@ bool DecodeTaggedSymbols(uint32_t num_values, int num_components,
                          DecoderBuffer *src_buffer, uint32_t *out_values) {
   // Decode the encoded data.
   SymbolDecoderT<5> tag_decoder;
-  if (!tag_decoder.Create(src_buffer))
+  if (!tag_decoder.Create(src_buffer)) {
     return false;
+  }
 
-  if (!tag_decoder.StartDecoding(src_buffer))
+  if (!tag_decoder.StartDecoding(src_buffer)) {
     return false;
+  }
 
-  if (num_values > 0 && tag_decoder.num_symbols() == 0)
+  if (num_values > 0 && tag_decoder.num_symbols() == 0) {
     return false;  // Wrong number of symbols.
+  }
 
   // src_buffer now points behind the encoded tag data (to the place where the
   // values are encoded).
@@ -71,8 +76,9 @@ bool DecodeTaggedSymbols(uint32_t num_values, int num_components,
     // Decode the actual value.
     for (int j = 0; j < num_components; ++j) {
       uint32_t val;
-      if (!src_buffer->DecodeLeastSignificantBits32(bit_length, &val))
+      if (!src_buffer->DecodeLeastSignificantBits32(bit_length, &val)) {
         return false;
+      }
       out_values[value_id++] = val;
     }
   }
@@ -85,14 +91,17 @@ template <class SymbolDecoderT>
 bool DecodeRawSymbolsInternal(uint32_t num_values, DecoderBuffer *src_buffer,
                               uint32_t *out_values) {
   SymbolDecoderT decoder;
-  if (!decoder.Create(src_buffer))
+  if (!decoder.Create(src_buffer)) {
     return false;
+  }
 
-  if (num_values > 0 && decoder.num_symbols() == 0)
+  if (num_values > 0 && decoder.num_symbols() == 0) {
     return false;  // Wrong number of symbols.
+  }
 
-  if (!decoder.StartDecoding(src_buffer))
+  if (!decoder.StartDecoding(src_buffer)) {
     return false;
+  }
   for (uint32_t i = 0; i < num_values; ++i) {
     // Decode a symbol into the value.
     const uint32_t value = decoder.DecodeSymbol();
@@ -106,8 +115,9 @@ template <template <int> class SymbolDecoderT>
 bool DecodeRawSymbols(uint32_t num_values, DecoderBuffer *src_buffer,
                       uint32_t *out_values) {
   uint8_t max_bit_length;
-  if (!src_buffer->Decode(&max_bit_length))
+  if (!src_buffer->Decode(&max_bit_length)) {
     return false;
+  }
   switch (max_bit_length) {
     case 1:
       return DecodeRawSymbolsInternal<SymbolDecoderT<1>>(num_values, src_buffer,

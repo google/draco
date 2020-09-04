@@ -23,8 +23,9 @@ PointCloud::PointCloud() : num_points_(0) {}
 
 int32_t PointCloud::NumNamedAttributes(GeometryAttribute::Type type) const {
   if (type == GeometryAttribute::INVALID ||
-      type >= GeometryAttribute::NAMED_ATTRIBUTES_COUNT)
+      type >= GeometryAttribute::NAMED_ATTRIBUTES_COUNT) {
     return 0;
+  }
   return static_cast<int32_t>(named_attribute_index_[type].size());
 }
 
@@ -34,8 +35,9 @@ int32_t PointCloud::GetNamedAttributeId(GeometryAttribute::Type type) const {
 
 int32_t PointCloud::GetNamedAttributeId(GeometryAttribute::Type type,
                                         int i) const {
-  if (NumNamedAttributes(type) <= i)
+  if (NumNamedAttributes(type) <= i) {
     return -1;
+  }
   return named_attribute_index_[type][i];
 }
 
@@ -47,8 +49,9 @@ const PointAttribute *PointCloud::GetNamedAttribute(
 const PointAttribute *PointCloud::GetNamedAttribute(
     GeometryAttribute::Type type, int i) const {
   const int32_t att_id = GetNamedAttributeId(type, i);
-  if (att_id == -1)
+  if (att_id == -1) {
     return nullptr;
+  }
   return attributes_[att_id].get();
 }
 
@@ -57,8 +60,9 @@ const PointAttribute *PointCloud::GetNamedAttributeByUniqueId(
   for (size_t att_id = 0; att_id < named_attribute_index_[type].size();
        ++att_id) {
     if (attributes_[named_attribute_index_[type][att_id]]->unique_id() ==
-        unique_id)
+        unique_id) {
       return attributes_[named_attribute_index_[type][att_id]].get();
+    }
   }
   return nullptr;
 }
@@ -66,15 +70,17 @@ const PointAttribute *PointCloud::GetNamedAttributeByUniqueId(
 const PointAttribute *PointCloud::GetAttributeByUniqueId(
     uint32_t unique_id) const {
   const int32_t att_id = GetAttributeIdByUniqueId(unique_id);
-  if (att_id == -1)
+  if (att_id == -1) {
     return nullptr;
+  }
   return attributes_[att_id].get();
 }
 
 int32_t PointCloud::GetAttributeIdByUniqueId(uint32_t unique_id) const {
   for (size_t att_id = 0; att_id < attributes_.size(); ++att_id) {
-    if (attributes_[att_id]->unique_id() == unique_id)
+    if (attributes_[att_id]->unique_id() == unique_id) {
       return static_cast<int32_t>(att_id);
+    }
   }
   return -1;
 }
@@ -88,8 +94,9 @@ int PointCloud::AddAttribute(
     const GeometryAttribute &att, bool identity_mapping,
     AttributeValueIndex::ValueType num_attribute_values) {
   auto pa = CreateAttribute(att, identity_mapping, num_attribute_values);
-  if (!pa)
+  if (!pa) {
     return -1;
+  }
   const int32_t att_id = AddAttribute(std::move(pa));
   return att_id;
 }
@@ -97,8 +104,9 @@ int PointCloud::AddAttribute(
 std::unique_ptr<PointAttribute> PointCloud::CreateAttribute(
     const GeometryAttribute &att, bool identity_mapping,
     AttributeValueIndex::ValueType num_attribute_values) const {
-  if (att.attribute_type() == GeometryAttribute::INVALID)
+  if (att.attribute_type() == GeometryAttribute::INVALID) {
     return nullptr;
+  }
   std::unique_ptr<PointAttribute> pa =
       std::unique_ptr<PointAttribute>(new PointAttribute(att));
   // Initialize point cloud specific attribute data.
@@ -107,7 +115,7 @@ std::unique_ptr<PointAttribute> PointCloud::CreateAttribute(
     pa->SetExplicitMapping(num_points_);
   } else {
     pa->SetIdentityMapping();
-    pa->Resize(num_points_);
+    num_attribute_values = std::max(num_points_, num_attribute_values);
   }
   if (num_attribute_values > 0) {
     pa->Reset(num_attribute_values);
@@ -128,8 +136,9 @@ void PointCloud::SetAttribute(int att_id, std::unique_ptr<PointAttribute> pa) {
 }
 
 void PointCloud::DeleteAttribute(int att_id) {
-  if (att_id < 0 || att_id >= attributes_.size())
+  if (att_id < 0 || att_id >= attributes_.size()) {
     return;  // Attribute does not exist.
+  }
   const GeometryAttribute::Type att_type =
       attributes_[att_id]->attribute_type();
   const uint32_t unique_id = attribute(att_id)->unique_id();
@@ -143,8 +152,9 @@ void PointCloud::DeleteAttribute(int att_id) {
   if (att_type < GeometryAttribute::NAMED_ATTRIBUTES_COUNT) {
     const auto it = std::find(named_attribute_index_[att_type].begin(),
                               named_attribute_index_[att_type].end(), att_id);
-    if (it != named_attribute_index_[att_type].end())
+    if (it != named_attribute_index_[att_type].end()) {
       named_attribute_index_[att_type].erase(it);
+    }
   }
 
   // Update ids of all subsequent named attributes (decrease them by one).
@@ -173,8 +183,9 @@ void PointCloud::DeduplicatePointIds() {
     for (int32_t i = 0; i < this->num_attributes(); ++i) {
       const AttributeValueIndex att_id0 = attribute(i)->mapped_index(p0);
       const AttributeValueIndex att_id1 = attribute(i)->mapped_index(p1);
-      if (att_id0 != att_id1)
+      if (att_id0 != att_id1) {
         return false;
+      }
     }
     return true;
   };
@@ -196,8 +207,9 @@ void PointCloud::DeduplicatePointIds() {
       unique_points.push_back(i);
     }
   }
-  if (num_unique_points == num_points_)
+  if (num_unique_points == num_points_) {
     return;  // All vertices are already unique.
+  }
 
   ApplyPointIdDeduplication(index_map, unique_points);
   set_num_points(num_unique_points);
@@ -228,12 +240,14 @@ void PointCloud::ApplyPointIdDeduplication(
 #ifdef DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
 bool PointCloud::DeduplicateAttributeValues() {
   // Go over all attributes and create mapping between duplicate entries.
-  if (num_points() == 0)
+  if (num_points() == 0) {
     return false;  // Unexpected attribute size.
+  }
   // Deduplicate all attributes.
   for (int32_t att_id = 0; att_id < num_attributes(); ++att_id) {
-    if (!attribute(att_id)->DeduplicateValues(*attribute(att_id)))
+    if (!attribute(att_id)->DeduplicateValues(*attribute(att_id))) {
       return false;
+    }
   }
   return true;
 }
@@ -257,7 +271,8 @@ BoundingBox PointCloud::ComputeBoundingBox() const {
   // Consider using pc_att->ConvertValue<float, 3>(i, &p[0]) (Enforced
   // transformation from Vector with any dimension to Vector3f)
   Vector3f p;
-  for (AttributeValueIndex i(0); i < pc_att->size(); ++i) {
+  for (AttributeValueIndex i(0); i < static_cast<uint32_t>(pc_att->size());
+       ++i) {
     pc_att->GetValue(i, &p[0]);
     bounding_box.update_bounding_box(p);
   }

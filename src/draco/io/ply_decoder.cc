@@ -14,10 +14,9 @@
 //
 #include "draco/io/ply_decoder.h"
 
-#include <fstream>
-
 #include "draco/core/macros.h"
 #include "draco/core/status.h"
+#include "draco/io/file_utils.h"
 #include "draco/io/ply_property_reader.h"
 
 namespace draco {
@@ -32,20 +31,11 @@ Status PlyDecoder::DecodeFromFile(const std::string &file_name,
 
 Status PlyDecoder::DecodeFromFile(const std::string &file_name,
                                   PointCloud *out_point_cloud) {
-  std::ifstream file(file_name, std::ios::binary);
-  if (!file)
-    return Status(Status::IO_ERROR, "Couldn't open file");
-  // Read the whole file into a buffer.
-  auto pos0 = file.tellg();
-  file.seekg(0, std::ios::end);
-  auto file_size = file.tellg() - pos0;
-  if (file_size == 0)
-    return Status(Status::IO_ERROR, "Zero file size");
-  file.seekg(0, std::ios::beg);
-  std::vector<char> data(file_size);
-  file.read(&data[0], file_size);
-
-  buffer_.Init(&data[0], file_size);
+  std::vector<char> data;
+  if (!ReadFileToBuffer(file_name, &data)) {
+    return Status(Status::DRACO_ERROR, "Unable to read input file.");
+  }
+  buffer_.Init(data.data(), data.size());
   return DecodeFromBuffer(&buffer_, out_point_cloud);
 }
 
@@ -74,8 +64,10 @@ Status PlyDecoder::DecodeInternal() {
   // not require deduplication.
   if (out_mesh_ && out_mesh_->num_faces() != 0) {
 #ifdef DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
-    if (!out_point_cloud_->DeduplicateAttributeValues())
-      return Status(Status::ERROR, "Could not deduplicate attribute values");
+    if (!out_point_cloud_->DeduplicateAttributeValues()) {
+      return Status(Status::DRACO_ERROR,
+                    "Could not deduplicate attribute values");
+    }
 #endif
 #ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
     out_point_cloud_->DeduplicatePointIds();
@@ -98,7 +90,7 @@ Status PlyDecoder::DecodeFaceData(const PlyElement *face_element) {
     vertex_indices = face_element->GetPropertyByName("vertex_index");
   }
   if (vertex_indices == nullptr || !vertex_indices->is_list()) {
-    return Status(Status::ERROR, "No faces defined");
+    return Status(Status::DRACO_ERROR, "No faces defined");
   }
 
   PlyPropertyReader<PointIndex::ValueType> vertex_index_reader(vertex_indices);
@@ -108,11 +100,13 @@ Status PlyDecoder::DecodeFaceData(const PlyElement *face_element) {
     const int64_t list_offset = vertex_indices->GetListEntryOffset(i);
     const int64_t list_size = vertex_indices->GetListEntryNumValues(i);
     // TODO(ostava): Assume triangular faces only for now.
-    if (list_size != 3)
+    if (list_size != 3) {
       continue;  // All non-triangular faces are skipped.
-    for (int64_t c = 0; c < 3; ++c)
+    }
+    for (int64_t c = 0; c < 3; ++c) {
       face[c] =
           vertex_index_reader.ReadValue(static_cast<int>(list_offset + c));
+    }
     out_mesh_->SetFace(face_index, face);
     face_index++;
   }
@@ -142,8 +136,9 @@ bool PlyDecoder::ReadPropertiesToAttribute(
 }
 
 Status PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
-  if (vertex_element == nullptr)
+  if (vertex_element == nullptr) {
     return Status(Status::INVALID_PARAMETER, "vertex_element is null");
+  }
   // TODO(ostava): For now, try to load x,y,z vertices and red,green,blue,alpha
   // colors. We need to add other properties later.
   const PlyProperty *const x_prop = vertex_element->GetPropertyByName("x");
@@ -166,9 +161,10 @@ Status PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
     }
     // TODO(ostava): For now assume the position types are float32 or int32.
     const DataType dt = x_prop->data_type();
-    if (dt != DT_FLOAT32 && dt != DT_INT32)
+    if (dt != DT_FLOAT32 && dt != DT_INT32) {
       return Status(Status::INVALID_PARAMETER,
                     "x, y, and z properties must be of type float32 or int32");
+    }
 
     GeometryAttribute va;
     va.Init(GeometryAttribute::POSITION, nullptr, 3, dt, false,
@@ -220,14 +216,18 @@ Status PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
   const PlyProperty *const g_prop = vertex_element->GetPropertyByName("green");
   const PlyProperty *const b_prop = vertex_element->GetPropertyByName("blue");
   const PlyProperty *const a_prop = vertex_element->GetPropertyByName("alpha");
-  if (r_prop)
+  if (r_prop) {
     ++num_colors;
-  if (g_prop)
+  }
+  if (g_prop) {
     ++num_colors;
-  if (b_prop)
+  }
+  if (b_prop) {
     ++num_colors;
-  if (a_prop)
+  }
+  if (a_prop) {
     ++num_colors;
+  }
 
   if (num_colors) {
     std::vector<std::unique_ptr<PlyPropertyReader<uint8_t>>> color_readers;
@@ -236,9 +236,10 @@ Status PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
       p = r_prop;
       // TODO(ostava): For now ensure the data type of all components is uint8.
       DRACO_DCHECK_EQ(true, p->data_type() == DT_UINT8);
-      if (p->data_type() != DT_UINT8)
+      if (p->data_type() != DT_UINT8) {
         return Status(Status::INVALID_PARAMETER,
                       "Type of 'red' property must be uint8");
+      }
       color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
           new PlyPropertyReader<uint8_t>(p)));
     }
@@ -246,9 +247,10 @@ Status PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
       p = g_prop;
       // TODO(ostava): For now ensure the data type of all components is uint8.
       DRACO_DCHECK_EQ(true, p->data_type() == DT_UINT8);
-      if (p->data_type() != DT_UINT8)
+      if (p->data_type() != DT_UINT8) {
         return Status(Status::INVALID_PARAMETER,
                       "Type of 'green' property must be uint8");
+      }
       color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
           new PlyPropertyReader<uint8_t>(p)));
     }
@@ -256,9 +258,10 @@ Status PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
       p = b_prop;
       // TODO(ostava): For now ensure the data type of all components is uint8.
       DRACO_DCHECK_EQ(true, p->data_type() == DT_UINT8);
-      if (p->data_type() != DT_UINT8)
+      if (p->data_type() != DT_UINT8) {
         return Status(Status::INVALID_PARAMETER,
                       "Type of 'blue' property must be uint8");
+      }
       color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
           new PlyPropertyReader<uint8_t>(p)));
     }
@@ -266,9 +269,10 @@ Status PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
       p = a_prop;
       // TODO(ostava): For now ensure the data type of all components is uint8.
       DRACO_DCHECK_EQ(true, p->data_type() == DT_UINT8);
-      if (p->data_type() != DT_UINT8)
+      if (p->data_type() != DT_UINT8) {
         return Status(Status::INVALID_PARAMETER,
                       "Type of 'alpha' property must be uint8");
+      }
       color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
           new PlyPropertyReader<uint8_t>(p)));
     }

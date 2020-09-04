@@ -4,6 +4,7 @@ Draco wrapper for Maya extensions
 
 import os 
 import ctypes
+import platform
 
 __author__ = "Mattia Pezzano, Federico de Felici, Duccio Lenkowicz"
 __version__ = "0.1"
@@ -43,12 +44,17 @@ def array_to_ptr(array, size, ctype):
 	carr = (ctype * size)(*array)
 	return ctypes.cast(carr, ctypes.POINTER(ctype))
 
-# TODO: Add integration for reading Linux lib
+
 class Draco:
 	def __init__(self):
 		# Lib loading
+		if platform.system() == 'Linux':
+			lib_name = 'libdraco_maya_wrapper.so'
+		else:
+			lib_name = 'draco_maya_wrapper'
+
 		dir_path = os.path.dirname(os.path.realpath(__file__))
-		lib_path = os.path.join(dir_path, 'draco_maya_wrapper')
+		lib_path = os.path.join(dir_path, lib_name)
 		self.drc_lib = ctypes.CDLL(lib_path)
 		# Mapping decode funct
 		self.drc_decode = self.drc_lib.drc2py_decode
@@ -120,4 +126,3 @@ class Draco:
 		mesh_ptr = ctypes.byref(mesh)
 		file_ptr = ctypes.c_char_p(file.encode())
 		self.drc_encode(mesh_ptr, file_ptr)
-

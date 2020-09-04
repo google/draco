@@ -25,12 +25,13 @@ class Status {
  public:
   enum Code {
     OK = 0,
-    ERROR = -1,                // Used for general errors.
+    DRACO_ERROR = -1,          // Used for general errors.
     IO_ERROR = -2,             // Error when handling input or output stream.
     INVALID_PARAMETER = -3,    // Invalid parameter passed to a function.
     UNSUPPORTED_VERSION = -4,  // Input not compatible with the current version.
     UNKNOWN_VERSION = -5,      // Input was created with an unknown version of
                                // the library.
+    UNSUPPORTED_FEATURE = -6,  // Input contains feature that is not supported.
   };
 
   Status() : code_(OK) {}
@@ -66,8 +67,9 @@ inline Status OkStatus() { return Status(Status::OK); }
 #define DRACO_RETURN_IF_ERROR(expression)             \
   {                                                   \
     const draco::Status _local_status = (expression); \
-    if (!_local_status.ok())                          \
+    if (!_local_status.ok()) {                        \
       return _local_status;                           \
+    }                                                 \
   }
 
 }  // namespace draco

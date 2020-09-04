@@ -27,8 +27,9 @@ class PointCloudSequentialEncodingTest : public ::testing::Test {
     PointCloudSequentialEncoder encoder;
     EncoderOptions options = EncoderOptions::CreateDefaultOptions();
     encoder.SetPointCloud(*pc);
-    if (!encoder.Encode(options, &buffer).ok())
+    if (!encoder.Encode(options, &buffer).ok()) {
       return nullptr;
+    }
 
     DecoderBuffer dec_buffer;
     dec_buffer.Init(buffer.data(), buffer.size());

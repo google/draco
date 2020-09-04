@@ -18,9 +18,8 @@
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_PREDICTION_SCHEME_DECODER_FACTORY_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_PREDICTION_SCHEME_DECODER_FACTORY_H_
 
-#include "draco/draco_features.h"
-
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_constrained_multi_parallelogram_decoder.h"
+#include "draco/draco_features.h"
 #ifdef DRACO_NORMAL_ENCODING_SUPPORTED
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_decoder.h"
 #endif
@@ -154,8 +153,9 @@ std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>
 CreatePredictionSchemeForDecoder(PredictionSchemeMethod method, int att_id,
                                  const PointCloudDecoder *decoder,
                                  const TransformT &transform) {
-  if (method == PREDICTION_NONE)
+  if (method == PREDICTION_NONE) {
     return nullptr;
+  }
   const PointAttribute *const att = decoder->point_cloud()->attribute(att_id);
   if (decoder->GetGeometryType() == TRIANGULAR_MESH) {
     // Cast the decoder to mesh decoder. This is not necessarily safe if there
@@ -170,8 +170,9 @@ CreatePredictionSchemeForDecoder(PredictionSchemeMethod method, int att_id,
         MeshDecoder, PredictionSchemeDecoder<DataTypeT, TransformT>,
         MeshPredictionSchemeDecoderFactory<DataTypeT>>(
         mesh_decoder, method, att_id, transform, decoder->bitstream_version());
-    if (ret)
+    if (ret) {
       return ret;
+    }
     // Otherwise try to create another prediction scheme.
   }
   // Create delta decoder.

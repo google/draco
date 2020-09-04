@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/compression/attributes/point_d_vector.h"
+
 #include "draco/compression/point_cloud/algorithms/point_cloud_types.h"
 #include "draco/core/draco_test_base.h"
 

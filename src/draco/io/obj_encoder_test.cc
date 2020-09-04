@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include <fstream>
+#include "draco/io/obj_encoder.h"
+
 #include <sstream>
 
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
+#include "draco/io/file_reader_factory.h"
+#include "draco/io/file_reader_interface.h"
 #include "draco/io/obj_decoder.h"
-#include "draco/io/obj_encoder.h"
 
 namespace draco {
 
@@ -37,16 +39,18 @@ class ObjEncoderTest : public ::testing::Test {
   std::unique_ptr<Mesh> EncodeAndDecodeMesh(const Mesh *mesh) {
     EncoderBuffer encoder_buffer;
     ObjEncoder encoder;
-    if (!encoder.EncodeToBuffer(*mesh, &encoder_buffer))
+    if (!encoder.EncodeToBuffer(*mesh, &encoder_buffer)) {
       return nullptr;
+    }
 
     DecoderBuffer decoder_buffer;
     decoder_buffer.Init(encoder_buffer.data(), encoder_buffer.size());
     std::unique_ptr<Mesh> decoded_mesh(new Mesh());
     ObjDecoder decoder;
     decoder.set_use_metadata(true);
-    if (!decoder.DecodeFromBuffer(&decoder_buffer, decoded_mesh.get()).ok())
+    if (!decoder.DecodeFromBuffer(&decoder_buffer, decoded_mesh.get()).ok()) {
       return nullptr;
+    }
     return decoded_mesh;
   }
 

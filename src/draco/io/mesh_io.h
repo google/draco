@@ -93,9 +93,14 @@ StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
 // Reads a mesh from a file. Reading is configured with |options|:
 // use_metadata  : Read obj file info like material names and object names into
 // metadata. Default is false.
+// The second form returns the files associated with the mesh via the
+// |mesh_files| argument.
 // Returns nullptr with an error status if the decoding failed.
 StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
                                                  const Options &options);
+StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(
+    const std::string &file_name, const Options &options,
+    std::vector<std::string> *mesh_files);
 
 }  // namespace draco
 

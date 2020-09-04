@@ -91,8 +91,9 @@ bool RAnsSymbolEncoder<unique_symbols_bit_length_t>::Create(
   int max_valid_symbol = 0;
   for (int i = 0; i < num_symbols; ++i) {
     total_freq += frequencies[i];
-    if (frequencies[i] > 0)
+    if (frequencies[i] > 0) {
       max_valid_symbol = i;
+    }
   }
   num_symbols = max_valid_symbol + 1;
   num_symbols_ = num_symbols;
@@ -111,8 +112,9 @@ bool RAnsSymbolEncoder<unique_symbols_bit_length_t>::Create(
 
     // RAns probability in range of [1, rans_precision - 1].
     uint32_t rans_prob = static_cast<uint32_t>(prob * rans_precision_d + 0.5f);
-    if (rans_prob == 0 && freq > 0)
+    if (rans_prob == 0 && freq > 0) {
       rans_prob = 1;
+    }
     probability_table_[i].prob = rans_prob;
     total_rans_prob += rans_prob;
   }
@@ -140,25 +142,30 @@ bool RAnsSymbolEncoder<unique_symbols_bit_length_t>::Create(
         for (int j = num_symbols - 1; j > 0; --j) {
           int symbol_id = sorted_probabilities[j];
           if (probability_table_[symbol_id].prob <= 1) {
-            if (j == num_symbols - 1)
+            if (j == num_symbols - 1) {
               return false;  // Most frequent symbol would be empty.
+            }
             break;
           }
           const int32_t new_prob = static_cast<int32_t>(
               floor(act_rel_error_d *
                     static_cast<double>(probability_table_[symbol_id].prob)));
           int32_t fix = probability_table_[symbol_id].prob - new_prob;
-          if (fix == 0u)
+          if (fix == 0u) {
             fix = 1;
-          if (fix >= static_cast<int32_t>(probability_table_[symbol_id].prob))
+          }
+          if (fix >= static_cast<int32_t>(probability_table_[symbol_id].prob)) {
             fix = probability_table_[symbol_id].prob - 1;
-          if (fix > error)
+          }
+          if (fix > error) {
             fix = error;
+          }
           probability_table_[symbol_id].prob -= fix;
           total_rans_prob -= fix;
           error -= fix;
-          if (total_rans_prob == rans_precision_)
+          if (total_rans_prob == rans_precision_) {
             break;
+          }
         }
       }
     }
@@ -170,8 +177,9 @@ bool RAnsSymbolEncoder<unique_symbols_bit_length_t>::Create(
     probability_table_[i].cum_prob = total_prob;
     total_prob += probability_table_[i].prob;
   }
-  if (total_prob != rans_precision_)
+  if (total_prob != rans_precision_) {
     return false;
+  }
 
   // Estimate the number of bits needed to encode the input.
   // From Shannon entropy the total number of bits N is:
@@ -180,15 +188,17 @@ bool RAnsSymbolEncoder<unique_symbols_bit_length_t>::Create(
   // symbol's frequency in the input data.
   double num_bits = 0;
   for (int i = 0; i < num_symbols; ++i) {
-    if (probability_table_[i].prob == 0)
+    if (probability_table_[i].prob == 0) {
       continue;
+    }
     const double norm_prob =
         static_cast<double>(probability_table_[i].prob) / rans_precision_d;
     num_bits += static_cast<double>(frequencies[i]) * log2(norm_prob);
   }
   num_expected_bits_ = static_cast<uint64_t>(ceil(-num_bits));
-  if (!EncodeTable(buffer))
+  if (!EncodeTable(buffer)) {
     return false;
+  }
   return true;
 }
 

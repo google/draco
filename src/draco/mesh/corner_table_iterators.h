@@ -45,6 +45,13 @@ class VertexRingIterator
     return corner_table_->Vertex(ring_corner);
   }
 
+  // Returns one of the corners opposite to the edge connecting the currently
+  // iterated ring vertex with the central vertex.
+  CornerIndex EdgeCorner() const {
+    return left_traversal_ ? corner_table_->Next(corner_)
+                           : corner_table_->Previous(corner_);
+  }
+
   // Returns true when all ring vertices have been visited.
   bool End() const { return corner_ == kInvalidCornerIndex; }
 
@@ -120,8 +127,9 @@ class FaceAdjacencyIterator
         corner_(start_corner_) {
     // We need to start with a corner that has a valid opposite face (if
     // there is any such corner).
-    if (corner_table_->Opposite(corner_) == kInvalidCornerIndex)
+    if (corner_table_->Opposite(corner_) == kInvalidCornerIndex) {
       FindNextFaceNeighbor();
+    }
   }
 
   // Gets the last visited adjacent face.

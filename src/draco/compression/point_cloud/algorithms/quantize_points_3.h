@@ -16,6 +16,7 @@
 #define DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_QUANTIZE_POINTS_3_H_
 
 #include <inttypes.h>
+
 #include "draco/compression/point_cloud/algorithms/point_cloud_types.h"
 #include "draco/core/quantization_utils.h"
 

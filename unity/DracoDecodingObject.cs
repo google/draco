@@ -22,9 +22,6 @@ public class DracoDecodingObject : MonoBehaviour {
 
   // This function will be used when the GameObject is initialized.
   void Start() {
-
-    // If the original mesh exceeds the limit of number of verices, the
-    // loader will split it to a list of smaller meshes.
     List<Mesh> mesh = new List<Mesh>();
     DracoMeshLoader dracoLoader = new DracoMeshLoader();
     /*
@@ -32,7 +29,7 @@ public class DracoDecodingObject : MonoBehaviour {
      * It's in unity/Resources/bunny.drc.bytes.
      * Please see README.md for details.
      */
-    int numFaces = dracoLoader.LoadMeshFromAsset("bunny", ref mesh);
+    int numFaces = dracoLoader.LoadMeshFromAsset("bunny.drc", ref mesh);
 
     /* Note: You need to add MeshFilter (and MeshRenderer) to your GameObject.
      * Or you can do something like the following in script:

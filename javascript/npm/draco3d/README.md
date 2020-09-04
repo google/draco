@@ -5,6 +5,27 @@
 
 News
 =======
+### Version 1.3.6 release
+* WASM and JavaScript decoders are now hosted from a static URL
+  * It is recommended to always pull your Draco WASM and JavaScript decoders from this URL:
+  * https://www.gstatic.com/draco/v1/decoders/*
+    * Replace * with the files to load. E.g.
+    * https://www.gstatic.com/draco/v1/decoders/draco_decoder.wasm
+  * Users will benefit from having the Draco decoder in cache as more sites start using the static URL
+* Changed web examples to pull Draco decoders from static URL
+* Added new API to Draco WASM decoder, which increased performance by ~15%
+* Decreased Draco WASM decoder size by ~20%
+* Added support for generic and multiple attributes to Draco Unity plug-ins
+* Added new API to Draco Unity, which increased decoder performance by ~15%
+* Changed quantization defaults:
+  * POSITION: 11
+  * NORMAL: 7
+  * TEX_COORD: 10
+  * COLOR: 8
+  * GENERIC: 8
+* Code cleanup
+* Bug fixes
+
 ### Version 1.3.5 release
 * Added option to build Draco for Universal Scene Description
 * Code cleanup

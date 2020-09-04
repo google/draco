@@ -65,6 +65,29 @@ inline std::unique_ptr<PointCloud> ReadPointCloudFromTestFile(
   return ReadPointCloudFromFile(path).value();
 }
 
+// Evaluates an expression that returns draco::Status. If the status is not OK,
+// the macro asserts and logs the error message.
+#define DRACO_ASSERT_OK(expression)                                      \
+  {                                                                      \
+    const draco::Status _local_status = (expression);                    \
+    ASSERT_TRUE(_local_status.ok()) << _local_status.error_msg_string(); \
+  }
+
+// In case StatusOr<T> is ok(), this macro assigns value stored in StatusOr<T>
+// to |lhs|, otherwise it asserts and logs the error message.
+//
+//   DRACO_ASSIGN_OR_ASSERT(lhs, expression)
+//
+#define DRACO_ASSIGN_OR_ASSERT(lhs, expression)                                \
+  DRACO_ASSIGN_OR_ASSERT_IMPL_(DRACO_MACROS_IMPL_CONCAT_(_statusor, __LINE__), \
+                               lhs, expression, _status)
+
+// The actual implementation of the above macro.
+#define DRACO_ASSIGN_OR_ASSERT_IMPL_(statusor, lhs, expression, error_expr) \
+  auto statusor = (expression);                                             \
+  ASSERT_TRUE(statusor.ok()) << statusor.status().error_msg_string();       \
+  lhs = std::move(statusor).value();
+
 }  // namespace draco
 
 #endif  // DRACO_CORE_DRACO_TEST_UTILS_H_

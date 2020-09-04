@@ -159,8 +159,9 @@ int DracoOptions<AttributeKeyT>::GetAttributeInt(const AttributeKeyT &att_key,
                                                  const std::string &name,
                                                  int default_val) const {
   const Options *const att_options = FindAttributeOptions(att_key);
-  if (att_options && att_options->IsOptionSet(name))
+  if (att_options && att_options->IsOptionSet(name)) {
     return att_options->GetInt(name, default_val);
+  }
   return global_options_.GetInt(name, default_val);
 }
 
@@ -176,8 +177,9 @@ float DracoOptions<AttributeKeyT>::GetAttributeFloat(
     const AttributeKeyT &att_key, const std::string &name,
     float default_val) const {
   const Options *const att_options = FindAttributeOptions(att_key);
-  if (att_options && att_options->IsOptionSet(name))
+  if (att_options && att_options->IsOptionSet(name)) {
     return att_options->GetFloat(name, default_val);
+  }
   return global_options_.GetFloat(name, default_val);
 }
 
@@ -192,8 +194,9 @@ bool DracoOptions<AttributeKeyT>::GetAttributeBool(const AttributeKeyT &att_key,
                                                    const std::string &name,
                                                    bool default_val) const {
   const Options *const att_options = FindAttributeOptions(att_key);
-  if (att_options && att_options->IsOptionSet(name))
+  if (att_options && att_options->IsOptionSet(name)) {
     return att_options->GetBool(name, default_val);
+  }
   return global_options_.GetBool(name, default_val);
 }
 
@@ -210,8 +213,9 @@ bool DracoOptions<AttributeKeyT>::GetAttributeVector(
     const AttributeKey &att_key, const std::string &name, int num_dims,
     DataTypeT *val) const {
   const Options *const att_options = FindAttributeOptions(att_key);
-  if (att_options && att_options->IsOptionSet(name))
+  if (att_options && att_options->IsOptionSet(name)) {
     return att_options->GetVector(name, num_dims, val);
+  }
   return global_options_.GetVector(name, num_dims, val);
 }
 
@@ -227,8 +231,9 @@ template <typename AttributeKeyT>
 bool DracoOptions<AttributeKeyT>::IsAttributeOptionSet(
     const AttributeKey &att_key, const std::string &name) const {
   const Options *const att_options = FindAttributeOptions(att_key);
-  if (att_options)
+  if (att_options) {
     return att_options->IsOptionSet(name);
+  }
   return global_options_.IsOptionSet(name);
 }
 

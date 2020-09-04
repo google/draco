@@ -37,8 +37,9 @@ Status MeshSequentialEncoder::EncodeConnectivity() {
   if (options()->GetGlobalBool("compress_connectivity", false)) {
     // 0 = Encode compressed indices.
     buffer()->Encode(static_cast<uint8_t>(0));
-    if (!CompressAndEncodeIndices())
-      return Status(Status::ERROR, "Failed to compress connectivity.");
+    if (!CompressAndEncodeIndices()) {
+      return Status(Status::DRACO_ERROR, "Failed to compress connectivity.");
+    }
   } else {
     // 1 = Encode indices directly.
     buffer()->Encode(static_cast<uint8_t>(1));

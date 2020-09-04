@@ -15,11 +15,10 @@
 #ifndef DRACO_POINT_CLOUD_POINT_CLOUD_H_
 #define DRACO_POINT_CLOUD_POINT_CLOUD_H_
 
-#include "draco/draco_features.h"
-
 #include "draco/attributes/point_attribute.h"
 #include "draco/core/bounding_box.h"
 #include "draco/core/vector_d.h"
+#include "draco/draco_features.h"
 #include "draco/metadata/geometry_metadata.h"
 
 namespace draco {
@@ -131,7 +130,7 @@ class PointCloud {
   // Add metadata for an attribute.
   void AddAttributeMetadata(int32_t att_id,
                             std::unique_ptr<AttributeMetadata> metadata) {
-    if (!metadata_.get()) {
+    if (!metadata_) {
       metadata_ = std::unique_ptr<GeometryMetadata>(new GeometryMetadata());
     }
     const int32_t att_unique_id = attribute(att_id)->unique_id();
@@ -141,8 +140,9 @@ class PointCloud {
 
   const AttributeMetadata *GetAttributeMetadataByAttributeId(
       int32_t att_id) const {
-    if (metadata_ == nullptr)
+    if (metadata_ == nullptr) {
       return nullptr;
+    }
     const uint32_t unique_id = attribute(att_id)->unique_id();
     return metadata_->GetAttributeMetadataByUniqueId(unique_id);
   }
@@ -150,20 +150,23 @@ class PointCloud {
   // Returns the attribute metadata that has the requested metadata entry.
   const AttributeMetadata *GetAttributeMetadataByStringEntry(
       const std::string &name, const std::string &value) const {
-    if (metadata_ == nullptr)
+    if (metadata_ == nullptr) {
       return nullptr;
+    }
     return metadata_->GetAttributeMetadataByStringEntry(name, value);
   }
 
   // Returns the first attribute that has the requested metadata entry.
   int GetAttributeIdByMetadataEntry(const std::string &name,
                                     const std::string &value) const {
-    if (metadata_ == nullptr)
+    if (metadata_ == nullptr) {
       return -1;
+    }
     const AttributeMetadata *att_metadata =
         metadata_->GetAttributeMetadataByStringEntry(name, value);
-    if (!att_metadata)
+    if (!att_metadata) {
       return -1;
+    }
     return GetAttributeIdByUniqueId(att_metadata->att_unique_id());
   }
 
@@ -229,8 +232,8 @@ struct PointCloudHasher {
     }
     // Hash metadata.
     GeometryMetadataHasher metadata_hasher;
-    if (pc.metadata_.get()) {
-      hash = HashCombine(metadata_hasher(*pc.metadata_.get()), hash);
+    if (pc.metadata_) {
+      hash = HashCombine(metadata_hasher(*pc.metadata_), hash);
     }
     return hash;
   }

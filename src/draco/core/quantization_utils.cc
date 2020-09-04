@@ -27,8 +27,9 @@ void Quantizer::Init(float delta) { inverse_delta_ = 1.f / delta; }
 Dequantizer::Dequantizer() : delta_(1.f) {}
 
 bool Dequantizer::Init(float range, int32_t max_quantized_value) {
-  if (max_quantized_value <= 0)
+  if (max_quantized_value <= 0) {
     return false;
+  }
   delta_ = range / static_cast<float>(max_quantized_value);
   return true;
 }

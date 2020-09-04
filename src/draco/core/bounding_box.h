@@ -36,10 +36,12 @@ class BoundingBox {
   // argument to an iterator.
   inline void update_bounding_box(const Vector3f &new_point) {
     for (int i = 0; i < 3; i++) {
-      if (new_point[i] < min_point_[i])
+      if (new_point[i] < min_point_[i]) {
         min_point_[i] = new_point[i];
-      if (new_point[i] > max_point_[i])
+      }
+      if (new_point[i] > max_point_[i]) {
         max_point_[i] = new_point[i];
+      }
     }
   }
 

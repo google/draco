@@ -15,6 +15,7 @@
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_PREDICTION_SCHEME_WRAP_TRANSFORM_BASE_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_PREDICTION_SCHEME_WRAP_TRANSFORM_BASE_H_
 
+#include <limits>
 #include <vector>
 
 #include "draco/compression/config/compression_shared.h"
@@ -61,12 +62,13 @@ class PredictionSchemeWrapTransformBase {
   inline const DataTypeT *ClampPredictedValue(
       const DataTypeT *predicted_val) const {
     for (int i = 0; i < this->num_components(); ++i) {
-      if (predicted_val[i] > max_value_)
+      if (predicted_val[i] > max_value_) {
         clamped_value_[i] = max_value_;
-      else if (predicted_val[i] < min_value_)
+      } else if (predicted_val[i] < min_value_) {
         clamped_value_[i] = min_value_;
-      else
+      } else {
         clamped_value_[i] = predicted_val[i];
+      }
     }
     return &clamped_value_[0];
   }
@@ -81,13 +83,15 @@ class PredictionSchemeWrapTransformBase {
   bool InitCorrectionBounds() {
     const int64_t dif =
         static_cast<int64_t>(max_value_) - static_cast<int64_t>(min_value_);
-    if (dif < 0 || dif >= std::numeric_limits<DataTypeT>::max())
+    if (dif < 0 || dif >= std::numeric_limits<DataTypeT>::max()) {
       return false;
+    }
     max_dif_ = 1 + static_cast<DataTypeT>(dif);
     max_correction_ = max_dif_ / 2;
     min_correction_ = -max_correction_;
-    if ((max_dif_ & 1) == 0)
+    if ((max_dif_ & 1) == 0) {
       max_correction_ -= 1;
+    }
     return true;
   }
 

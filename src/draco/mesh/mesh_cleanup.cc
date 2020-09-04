@@ -17,12 +17,14 @@
 namespace draco {
 
 bool MeshCleanup::operator()(Mesh *mesh, const MeshCleanupOptions &options) {
-  if (!options.remove_degenerated_faces && !options.remove_unused_attributes)
+  if (!options.remove_degenerated_faces && !options.remove_unused_attributes) {
     return true;  // Nothing to cleanup.
+  }
   const PointAttribute *const pos_att =
       mesh->GetNamedAttribute(GeometryAttribute::POSITION);
-  if (pos_att == nullptr)
+  if (pos_att == nullptr) {
     return false;
+  }
   // Array that is going to store whether a corresponding point is used.
   std::vector<bool> is_point_used;
   if (options.remove_unused_attributes) {
@@ -161,8 +163,9 @@ bool MeshCleanup::operator()(Mesh *mesh, const MeshCleanupOptions &options) {
             // The new point id that maps to the currently processed attribute
             // entry.
             const PointIndex new_point_id = point_map[i];
-            if (new_point_id == kInvalidPointIndex)
+            if (new_point_id == kInvalidPointIndex) {
               continue;
+            }
             // Index of the currently processed attribute entry in the original
             // mesh.
             const AttributeValueIndex original_entry_index =

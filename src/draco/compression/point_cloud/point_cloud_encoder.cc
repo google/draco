@@ -35,19 +35,24 @@ Status PointCloudEncoder::Encode(const EncoderOptions &options,
   attribute_to_encoder_map_.clear();
   attributes_encoder_ids_order_.clear();
 
-  if (!point_cloud_)
-    return Status(Status::ERROR, "Invalid input geometry.");
+  if (!point_cloud_) {
+    return Status(Status::DRACO_ERROR, "Invalid input geometry.");
+  }
   DRACO_RETURN_IF_ERROR(EncodeHeader())
   DRACO_RETURN_IF_ERROR(EncodeMetadata())
-  if (!InitializeEncoder())
-    return Status(Status::ERROR, "Failed to initialize encoder.");
-  if (!EncodeEncoderData())
-    return Status(Status::ERROR, "Failed to encode internal data.");
+  if (!InitializeEncoder()) {
+    return Status(Status::DRACO_ERROR, "Failed to initialize encoder.");
+  }
+  if (!EncodeEncoderData()) {
+    return Status(Status::DRACO_ERROR, "Failed to encode internal data.");
+  }
   DRACO_RETURN_IF_ERROR(EncodeGeometryData());
-  if (!EncodePointAttributes())
-    return Status(Status::ERROR, "Failed to encode point attributes.");
-  if (options.GetGlobalBool("store_number_of_encoded_points", false))
+  if (!EncodePointAttributes()) {
+    return Status(Status::DRACO_ERROR, "Failed to encode point attributes.");
+  }
+  if (options.GetGlobalBool("store_number_of_encoded_points", false)) {
     ComputeNumberOfEncodedPoints();
+  }
   return OkStatus();
 }
 
@@ -86,14 +91,15 @@ Status PointCloudEncoder::EncodeMetadata() {
   MetadataEncoder metadata_encoder;
   if (!metadata_encoder.EncodeGeometryMetadata(buffer_,
                                                point_cloud_->GetMetadata())) {
-    return Status(Status::ERROR, "Failed to encode metadata.");
+    return Status(Status::DRACO_ERROR, "Failed to encode metadata.");
   }
   return OkStatus();
 }
 
 bool PointCloudEncoder::EncodePointAttributes() {
-  if (!GenerateAttributesEncoders())
+  if (!GenerateAttributesEncoders()) {
     return false;
+  }
 
   // Encode the number of attribute encoders.
   buffer_->Encode(static_cast<uint8_t>(attributes_encoders_.size()));
@@ -101,39 +107,45 @@ bool PointCloudEncoder::EncodePointAttributes() {
   // Initialize all the encoders (this is used for example to init attribute
   // dependencies, no data is encoded in this step).
   for (auto &att_enc : attributes_encoders_) {
-    if (!att_enc->Init(this, point_cloud_))
+    if (!att_enc->Init(this, point_cloud_)) {
       return false;
+    }
   }
 
   // Rearrange attributes to respect dependencies between individual attributes.
-  if (!RearrangeAttributesEncoders())
+  if (!RearrangeAttributesEncoders()) {
     return false;
+  }
 
   // Encode any data that is necessary to create the corresponding attribute
   // decoder.
   for (int att_encoder_id : attributes_encoder_ids_order_) {
-    if (!EncodeAttributesEncoderIdentifier(att_encoder_id))
+    if (!EncodeAttributesEncoderIdentifier(att_encoder_id)) {
       return false;
+    }
   }
 
   // Also encode any attribute encoder data (such as the info about encoded
   // attributes).
   for (int att_encoder_id : attributes_encoder_ids_order_) {
     if (!attributes_encoders_[att_encoder_id]->EncodeAttributesEncoderData(
-            buffer_))
+            buffer_)) {
       return false;
+    }
   }
 
   // Lastly encode all the attributes using the provided attribute encoders.
-  if (!EncodeAllAttributes())
+  if (!EncodeAllAttributes()) {
     return false;
+  }
   return true;
 }
 
 bool PointCloudEncoder::GenerateAttributesEncoders() {
   for (int i = 0; i < point_cloud_->num_attributes(); ++i) {
-    if (!GenerateAttributesEncoder(i))
+    if (!GenerateAttributesEncoder(i)) {
       return false;
+    }
   }
   attribute_to_encoder_map_.resize(point_cloud_->num_attributes());
   for (uint32_t i = 0; i < attributes_encoders_.size(); ++i) {
@@ -146,27 +158,31 @@ bool PointCloudEncoder::GenerateAttributesEncoders() {
 
 bool PointCloudEncoder::EncodeAllAttributes() {
   for (int att_encoder_id : attributes_encoder_ids_order_) {
-    if (!attributes_encoders_[att_encoder_id]->EncodeAttributes(buffer_))
+    if (!attributes_encoders_[att_encoder_id]->EncodeAttributes(buffer_)) {
       return false;
+    }
   }
   return true;
 }
 
 bool PointCloudEncoder::MarkParentAttribute(int32_t parent_att_id) {
-  if (parent_att_id < 0 || parent_att_id >= point_cloud_->num_attributes())
+  if (parent_att_id < 0 || parent_att_id >= point_cloud_->num_attributes()) {
     return false;
+  }
   const int32_t parent_att_encoder_id =
       attribute_to_encoder_map_[parent_att_id];
   if (!attributes_encoders_[parent_att_encoder_id]->MarkParentAttribute(
-          parent_att_id))
+          parent_att_id)) {
     return false;
+  }
   return true;
 }
 
 const PointAttribute *PointCloudEncoder::GetPortableAttribute(
     int32_t parent_att_id) {
-  if (parent_att_id < 0 || parent_att_id >= point_cloud_->num_attributes())
+  if (parent_att_id < 0 || parent_att_id >= point_cloud_->num_attributes()) {
     return nullptr;
+  }
   const int32_t parent_att_encoder_id =
       attribute_to_encoder_map_[parent_att_id];
   return attributes_encoders_[parent_att_encoder_id]->GetPortableAttribute(
@@ -193,8 +209,9 @@ bool PointCloudEncoder::RearrangeAttributesEncoders() {
     // Flagged when any of the encoder get processed.
     bool encoder_processed = false;
     for (uint32_t i = 0; i < attributes_encoders_.size(); ++i) {
-      if (is_encoder_processed[i])
+      if (is_encoder_processed[i]) {
         continue;  // Encoder already processed.
+      }
       // Check if all parent encoders are already processed.
       bool can_be_processed = true;
       for (uint32_t p = 0; p < attributes_encoders_[i]->num_attributes(); ++p) {
@@ -211,8 +228,9 @@ bool PointCloudEncoder::RearrangeAttributesEncoders() {
           }
         }
       }
-      if (!can_be_processed)
+      if (!can_be_processed) {
         continue;  // Try to process the encoder in the next iteration.
+      }
       // Encoder can be processed. Update the encoding order.
       attributes_encoder_ids_order_[num_processed_encoders++] = i;
       is_encoder_processed[i] = true;
@@ -238,8 +256,9 @@ bool PointCloudEncoder::RearrangeAttributesEncoders() {
     const int ae = attributes_encoder_ids_order_[ae_order];
     const int32_t num_encoder_attributes =
         attributes_encoders_[ae]->num_attributes();
-    if (num_encoder_attributes < 2)
+    if (num_encoder_attributes < 2) {
       continue;  // No need to resolve dependencies for a single attribute.
+    }
     num_processed_attributes = 0;
     attribute_encoding_order.resize(num_encoder_attributes);
     while (num_processed_attributes < num_encoder_attributes) {
@@ -247,8 +266,9 @@ bool PointCloudEncoder::RearrangeAttributesEncoders() {
       bool attribute_processed = false;
       for (int i = 0; i < num_encoder_attributes; ++i) {
         const int32_t att_id = attributes_encoders_[ae]->GetAttributeId(i);
-        if (is_attribute_processed[i])
+        if (is_attribute_processed[i]) {
           continue;  // Attribute already processed.
+        }
         // Check if all parent attributes are already processed.
         bool can_be_processed = true;
         for (int p = 0;
@@ -260,8 +280,9 @@ bool PointCloudEncoder::RearrangeAttributesEncoders() {
             break;
           }
         }
-        if (!can_be_processed)
+        if (!can_be_processed) {
           continue;  // Try to process the attribute in the next iteration.
+        }
         // Attribute can be processed. Update the encoding order.
         attribute_encoding_order[num_processed_attributes++] = i;
         is_attribute_processed[i] = true;

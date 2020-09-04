@@ -51,11 +51,12 @@ struct AttributeMetadataHasher {
     return hash;
   }
 };
+
 // Class for representing the metadata for a point cloud. It could have a list
 // of attribute metadata.
 class GeometryMetadata : public Metadata {
  public:
-  GeometryMetadata(){};
+  GeometryMetadata() {}
   explicit GeometryMetadata(const Metadata &metadata) : Metadata(metadata) {}
 
   const AttributeMetadata *GetAttributeMetadataByStringEntry(
@@ -63,9 +64,12 @@ class GeometryMetadata : public Metadata {
   bool AddAttributeMetadata(std::unique_ptr<AttributeMetadata> att_metadata);
 
   void DeleteAttributeMetadataByUniqueId(int32_t att_unique_id) {
+    if (att_unique_id < 0) {
+      return;
+    }
     for (auto itr = att_metadatas_.begin(); itr != att_metadatas_.end();
          ++itr) {
-      if (itr->get()->att_unique_id() == att_unique_id) {
+      if (itr->get()->att_unique_id() == static_cast<uint32_t>(att_unique_id)) {
         att_metadatas_.erase(itr);
         return;
       }
@@ -74,10 +78,15 @@ class GeometryMetadata : public Metadata {
 
   const AttributeMetadata *GetAttributeMetadataByUniqueId(
       int32_t att_unique_id) const {
+    if (att_unique_id < 0) {
+      return nullptr;
+    }
+
     // TODO(draco-eng): Consider using unordered_map instead of vector to store
     // attribute metadata.
     for (auto &&att_metadata : att_metadatas_) {
-      if (att_metadata->att_unique_id() == att_unique_id) {
+      if (att_metadata->att_unique_id() ==
+          static_cast<uint32_t>(att_unique_id)) {
         return att_metadata.get();
       }
     }
@@ -85,10 +94,15 @@ class GeometryMetadata : public Metadata {
   }
 
   AttributeMetadata *attribute_metadata(int32_t att_unique_id) {
+    if (att_unique_id < 0) {
+      return nullptr;
+    }
+
     // TODO(draco-eng): Consider use unordered_map instead of vector to store
     // attribute metadata.
     for (auto &&att_metadata : att_metadatas_) {
-      if (att_metadata->att_unique_id() == att_unique_id) {
+      if (att_metadata->att_unique_id() ==
+          static_cast<uint32_t>(att_unique_id)) {
         return att_metadata.get();
       }
     }

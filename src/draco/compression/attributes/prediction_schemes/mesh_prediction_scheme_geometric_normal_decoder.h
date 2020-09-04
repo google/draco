@@ -15,11 +15,10 @@
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_GEOMETRIC_NORMAL_DECODER_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_GEOMETRIC_NORMAL_DECODER_H_
 
-#include "draco/draco_features.h"
-
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_geometric_normal_predictor_area.h"
 #include "draco/compression/bit_coders/rans_bit_decoder.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 
@@ -52,12 +51,15 @@ class MeshPredictionSchemeGeometricNormalDecoder
   }
 
   bool IsInitialized() const override {
-    if (!predictor_.IsInitialized())
+    if (!predictor_.IsInitialized()) {
       return false;
-    if (!this->mesh_data().IsInitialized())
+    }
+    if (!this->mesh_data().IsInitialized()) {
       return false;
-    if (!octahedron_tool_box_.IsInitialized())
+    }
+    if (!octahedron_tool_box_.IsInitialized()) {
       return false;
+    }
     return true;
   }
 
@@ -70,10 +72,12 @@ class MeshPredictionSchemeGeometricNormalDecoder
   }
 
   bool SetParentAttribute(const PointAttribute *att) override {
-    if (att->attribute_type() != GeometryAttribute::POSITION)
+    if (att->attribute_type() != GeometryAttribute::POSITION) {
       return false;  // Invalid attribute type.
-    if (att->num_components() != 3)
+    }
+    if (att->num_components() != 3) {
       return false;  // Currently works only for 3 component positions.
+    }
     predictor_.SetPositionAttribute(*att);
     return true;
   }
@@ -137,23 +141,28 @@ bool MeshPredictionSchemeGeometricNormalDecoder<
     DataTypeT, TransformT, MeshDataT>::DecodePredictionData(DecoderBuffer
                                                                 *buffer) {
   // Get data needed for transform
-  if (!this->transform().DecodeTransformData(buffer))
+  if (!this->transform().DecodeTransformData(buffer)) {
     return false;
+  }
 
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
     uint8_t prediction_mode;
-    buffer->Decode(&prediction_mode);
+    if (!buffer->Decode(&prediction_mode)) {
+      return false;
+    }
 
     if (!predictor_.SetNormalPredictionMode(
-            NormalPredictionMode(prediction_mode)))
+            NormalPredictionMode(prediction_mode))) {
       return false;
+    }
   }
 #endif
 
   // Init normal flips.
-  if (!flip_normal_bit_decoder_.StartDecoding(buffer))
+  if (!flip_normal_bit_decoder_.StartDecoding(buffer)) {
     return false;
+  }
 
   return true;
 }

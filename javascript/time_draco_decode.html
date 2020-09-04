@@ -9,6 +9,11 @@
 let decoderModule = {};
 let dracoDecoderType = {};
 
+// It is recommended to always pull your Draco JavaScript and WASM decoders
+// from this URL. Users will benefit from having the Draco decoder in cache
+// as more sites start using the static URL.
+let decoderPath = 'https://www.gstatic.com/draco/v1/decoders/';
+
 // This function loads a JavaScript file and adds it to the page. "path" is
 // the path to the JavaScript file. "onLoadFunc" is the function to be called
 // when the JavaScript file has been loaded.
@@ -27,7 +32,7 @@ function loadWebAssemblyDecoder() {
   dracoDecoderType['wasmBinaryFile'] = 'draco_decoder.wasm';
 
   const xhr = new XMLHttpRequest();
-  xhr.open('GET', 'draco_decoder.wasm', true);
+  xhr.open('GET', decoderPath + 'draco_decoder.wasm', true);
   xhr.responseType = 'arraybuffer';
 
   xhr.onload = function() {
@@ -64,9 +69,10 @@ function loadDracoDecoder() {
   if (typeof WebAssembly !== 'object') {
     // No WebAssembly support. DracoModule must be called with no parameters
     // or an empty object to create a JavaScript decoder.
-    loadJavaScriptFile('draco_decoder.js', createDecoderModule);
+    loadJavaScriptFile(decoderPath + 'draco_decoder.js', createDecoderModule);
   } else {
-    loadJavaScriptFile('draco_wasm_wrapper.js', loadWebAssemblyDecoder);
+    loadJavaScriptFile(decoderPath + 'draco_wasm_wrapper.js',
+                       loadWebAssemblyDecoder);
   }
 }
 
@@ -169,8 +175,11 @@ function testMeshDecodingAsync(filenameList, index) {
       addCell('' + (t1 - total_t0), false);
       addCell('' + (t1 - decode_t0), false);
       addCell('' + byteArray.length, false);
-      addCell('' + dracoGeometry.num_points(), false);
-
+      if (decodingStatus.ok()) {
+        addCell('' + dracoGeometry.num_points(), false);
+      } else {
+        addCell('ERROR: ' + decodingStatus.error_msg(), false);
+      }
       decoderModule.destroy(dracoGeometry);
       decoderModule.destroy(decoder);
       decoderModule.destroy(buffer);

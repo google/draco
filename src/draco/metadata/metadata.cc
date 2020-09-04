@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/metadata/metadata.h"
+
 #include <utility>
 
 namespace draco {
@@ -29,8 +30,9 @@ EntryValue::EntryValue(const std::string &value) {
 
 template <>
 bool EntryValue::GetValue(std::string *value) const {
-  if (data_.empty())
+  if (data_.empty()) {
     return false;
+  }
   value->resize(data_.size());
   memcpy(&value->at(0), &data_[0], data_.size());
   return true;

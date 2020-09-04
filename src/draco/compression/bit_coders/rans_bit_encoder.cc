@@ -72,8 +72,9 @@ void RAnsBitEncoder::EncodeLeastSignificantBits32(int nbits, uint32_t value) {
 
 void RAnsBitEncoder::EndEncoding(EncoderBuffer *target_buffer) {
   uint64_t total = bit_counts_[1] + bit_counts_[0];
-  if (total == 0)
+  if (total == 0) {
     total++;
+  }
 
   // The probability interval [0,1] is mapped to values of [0, 256]. However,
   // the coding scheme can not deal with probabilities of 0 or 1, which is why
@@ -83,8 +84,9 @@ void RAnsBitEncoder::EndEncoding(EncoderBuffer *target_buffer) {
       ((bit_counts_[0] / static_cast<double>(total)) * 256.0) + 0.5);
 
   uint8_t zero_prob = 255;
-  if (zero_prob_raw < 255)
+  if (zero_prob_raw < 255) {
     zero_prob = static_cast<uint8_t>(zero_prob_raw);
+  }
 
   zero_prob += (zero_prob == 0);
 

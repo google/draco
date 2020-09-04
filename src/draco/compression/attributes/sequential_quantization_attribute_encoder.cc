@@ -23,19 +23,22 @@ SequentialQuantizationAttributeEncoder::
 
 bool SequentialQuantizationAttributeEncoder::Init(PointCloudEncoder *encoder,
                                                   int attribute_id) {
-  if (!SequentialIntegerAttributeEncoder::Init(encoder, attribute_id))
+  if (!SequentialIntegerAttributeEncoder::Init(encoder, attribute_id)) {
     return false;
+  }
   // This encoder currently works only for floating point attributes.
   const PointAttribute *const attribute =
       encoder->point_cloud()->attribute(attribute_id);
-  if (attribute->data_type() != DT_FLOAT32)
+  if (attribute->data_type() != DT_FLOAT32) {
     return false;
+  }
 
   // Initialize AttributeQuantizationTransform.
   const int quantization_bits = encoder->options()->GetAttributeInt(
       attribute_id, "quantization_bits", -1);
-  if (quantization_bits < 1)
+  if (quantization_bits < 1) {
     return false;
+  }
   if (encoder->options()->IsAttributeOptionSet(attribute_id,
                                                "quantization_origin") &&
       encoder->options()->IsAttributeOptionSet(attribute_id,
@@ -52,8 +55,10 @@ bool SequentialQuantizationAttributeEncoder::Init(PointCloudEncoder *encoder,
         attribute->num_components(), range);
   } else {
     // Compute quantization settings from the attribute values.
-    attribute_quantization_transform_.ComputeParameters(*attribute,
-                                                        quantization_bits);
+    if (!attribute_quantization_transform_.ComputeParameters(
+            *attribute, quantization_bits)) {
+      return false;
+    }
   }
   return true;
 }

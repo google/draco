@@ -14,8 +14,10 @@
 //
 #include "draco/io/obj_encoder.h"
 
-#include <fstream>
+#include <memory>
 
+#include "draco/io/file_writer_factory.h"
+#include "draco/io/file_writer_interface.h"
 #include "draco/metadata/geometry_metadata.h"
 
 namespace draco {
@@ -34,16 +36,19 @@ ObjEncoder::ObjEncoder()
 
 bool ObjEncoder::EncodeToFile(const PointCloud &pc,
                               const std::string &file_name) {
-  std::ofstream file(file_name);
-  if (!file)
+  std::unique_ptr<FileWriterInterface> file =
+      FileWriterFactory::OpenWriter(file_name);
+  if (!file) {
     return false;  // File could not be opened.
+  }
   file_name_ = file_name;
   // Encode the mesh into a buffer.
   EncoderBuffer buffer;
-  if (!EncodeToBuffer(pc, &buffer))
+  if (!EncodeToBuffer(pc, &buffer)) {
     return false;
+  }
   // Write the buffer into the file.
-  file.write(buffer.data(), buffer.size());
+  file->Write(buffer.data(), buffer.size());
   return true;
 }
 
@@ -56,8 +61,9 @@ bool ObjEncoder::EncodeToBuffer(const PointCloud &pc,
                                 EncoderBuffer *out_buffer) {
   in_point_cloud_ = &pc;
   out_buffer_ = out_buffer;
-  if (!EncodeInternal())
+  if (!EncodeInternal()) {
     return ExitAndCleanup(false);
+  }
   return ExitAndCleanup(true);
 }
 
@@ -74,18 +80,24 @@ bool ObjEncoder::EncodeInternal() {
   sub_obj_att_ = nullptr;
   current_sub_obj_id_ = -1;
   current_material_id_ = -1;
-  if (!GetSubObjects())
+  if (!GetSubObjects()) {
     return false;
-  if (!EncodeMaterialFileName())
+  }
+  if (!EncodeMaterialFileName()) {
     return false;
-  if (!EncodePositions())
+  }
+  if (!EncodePositions()) {
     return false;
-  if (!EncodeTextureCoordinates())
+  }
+  if (!EncodeTextureCoordinates()) {
     return false;
-  if (!EncodeNormals())
+  }
+  if (!EncodeNormals()) {
     return false;
-  if (in_mesh_ && !EncodeFaces())
+  }
+  if (in_mesh_ && !EncodeFaces()) {
     return false;
+  }
   return true;
 }
 
@@ -106,24 +118,28 @@ bool ObjEncoder::ExitAndCleanup(bool return_value) {
 
 bool ObjEncoder::GetSubObjects() {
   const GeometryMetadata *pc_metadata = in_point_cloud_->GetMetadata();
-  if (!pc_metadata)
+  if (!pc_metadata) {
     return true;
+  }
   const AttributeMetadata *sub_obj_metadata =
       pc_metadata->GetAttributeMetadataByStringEntry("name", "sub_obj");
-  if (!sub_obj_metadata)
+  if (!sub_obj_metadata) {
     return true;
+  }
   sub_obj_id_to_name_.clear();
   for (const auto &entry : sub_obj_metadata->entries()) {
     // Sub-object id must be int.
     int value = 0;
-    if (!entry.second.GetValue(&value))
+    if (!entry.second.GetValue(&value)) {
       continue;
+    }
     sub_obj_id_to_name_[value] = entry.first;
   }
   sub_obj_att_ = in_point_cloud_->GetAttributeByUniqueId(
       sub_obj_metadata->att_unique_id());
-  if (sub_obj_att_ == nullptr || sub_obj_att_->size() == 0)
+  if (sub_obj_att_ == nullptr || sub_obj_att_->size() == 0) {
     return false;
+  }
   return true;
 }
 
@@ -136,8 +152,9 @@ bool ObjEncoder::EncodeMaterialFileName() {
   }
   std::string material_file_name;
   std::string material_full_path;
-  if (!material_metadata)
+  if (!material_metadata) {
     return true;
+  }
   if (!material_metadata->GetEntryString("file_name", &material_file_name))
     return false;
   buffer()->Encode("mtllib ", 7);
@@ -148,26 +165,30 @@ bool ObjEncoder::EncodeMaterialFileName() {
     // Material id must be int.
     int value = 0;
     // Found entry that are not material id, e.g. file name as a string.
-    if (!entry.second.GetValue(&value))
+    if (!entry.second.GetValue(&value)) {
       continue;
+    }
     material_id_to_name_[value] = entry.first;
   }
   material_att_ = in_point_cloud_->GetAttributeByUniqueId(
       material_metadata->att_unique_id());
-  if (material_att_ == nullptr || material_att_->size() == 0)
+  if (material_att_ == nullptr || material_att_->size() == 0) {
     return false;
+  }
   return true;
 }
 
 bool ObjEncoder::EncodePositions() {
   const PointAttribute *const att =
       in_point_cloud_->GetNamedAttribute(GeometryAttribute::POSITION);
-  if (att == nullptr || att->size() == 0)
+  if (att == nullptr || att->size() == 0) {
     return false;  // Position attribute must be valid.
+  }
   std::array<float, 3> value;
   for (AttributeValueIndex i(0); i < static_cast<uint32_t>(att->size()); ++i) {
-    if (!att->ConvertValue<float, 3>(i, &value[0]))
+    if (!att->ConvertValue<float, 3>(i, &value[0])) {
       return false;
+    }
     buffer()->Encode("v ", 2);
     EncodeFloatList(&value[0], 3);
     buffer()->Encode("\n", 1);
@@ -179,12 +200,14 @@ bool ObjEncoder::EncodePositions() {
 bool ObjEncoder::EncodeTextureCoordinates() {
   const PointAttribute *const att =
       in_point_cloud_->GetNamedAttribute(GeometryAttribute::TEX_COORD);
-  if (att == nullptr || att->size() == 0)
+  if (att == nullptr || att->size() == 0) {
     return true;  // It's OK if we don't have texture coordinates.
+  }
   std::array<float, 2> value;
   for (AttributeValueIndex i(0); i < static_cast<uint32_t>(att->size()); ++i) {
-    if (!att->ConvertValue<float, 2>(i, &value[0]))
+    if (!att->ConvertValue<float, 2>(i, &value[0])) {
       return false;
+    }
     buffer()->Encode("vt ", 3);
     EncodeFloatList(&value[0], 2);
     buffer()->Encode("\n", 1);
@@ -196,12 +219,14 @@ bool ObjEncoder::EncodeTextureCoordinates() {
 bool ObjEncoder::EncodeNormals() {
   const PointAttribute *const att =
       in_point_cloud_->GetNamedAttribute(GeometryAttribute::NORMAL);
-  if (att == nullptr || att->size() == 0)
+  if (att == nullptr || att->size() == 0) {
     return true;  // It's OK if we don't have normals.
+  }
   std::array<float, 3> value;
   for (AttributeValueIndex i(0); i < static_cast<uint32_t>(att->size()); ++i) {
-    if (!att->ConvertValue<float, 3>(i, &value[0]))
+    if (!att->ConvertValue<float, 3>(i, &value[0])) {
       return false;
+    }
     buffer()->Encode("vn ", 3);
     EncodeFloatList(&value[0], 3);
     buffer()->Encode("\n", 1);
@@ -212,16 +237,21 @@ bool ObjEncoder::EncodeNormals() {
 
 bool ObjEncoder::EncodeFaces() {
   for (FaceIndex i(0); i < in_mesh_->num_faces(); ++i) {
-    if (sub_obj_att_)
-      if (!EncodeSubObject(i))
+    if (sub_obj_att_) {
+      if (!EncodeSubObject(i)) {
         return false;
-    if (material_att_)
-      if (!EncodeMaterial(i))
+      }
+    }
+    if (material_att_) {
+      if (!EncodeMaterial(i)) {
         return false;
+      }
+    }
     buffer()->Encode('f');
     for (int j = 0; j < 3; ++j) {
-      if (!EncodeFaceCorner(i, j))
+      if (!EncodeFaceCorner(i, j)) {
         return false;
+      }
     }
     buffer()->Encode("\n", 1);
   }
@@ -242,8 +272,9 @@ bool ObjEncoder::EncodeMaterial(FaceIndex face_id) {
     buffer()->Encode("usemtl ", 7);
     const auto mat_ptr = material_id_to_name_.find(material_id);
     // If the material id is not found.
-    if (mat_ptr == material_id_to_name_.end())
+    if (mat_ptr == material_id_to_name_.end()) {
       return false;
+    }
     buffer()->Encode(mat_ptr->second.c_str(), mat_ptr->second.size());
     buffer()->Encode("\n", 1);
     current_material_id_ = material_id;
@@ -262,8 +293,9 @@ bool ObjEncoder::EncodeSubObject(FaceIndex face_id) {
   if (sub_obj_id != current_sub_obj_id_) {
     buffer()->Encode("o ", 2);
     const auto sub_obj_ptr = sub_obj_id_to_name_.find(sub_obj_id);
-    if (sub_obj_ptr == sub_obj_id_to_name_.end())
+    if (sub_obj_ptr == sub_obj_id_to_name_.end()) {
       return false;
+    }
     buffer()->Encode(sub_obj_ptr->second.c_str(), sub_obj_ptr->second.size());
     buffer()->Encode("\n", 1);
     current_sub_obj_id_ = sub_obj_id;

@@ -22,33 +22,54 @@
 
 namespace draco {
 
+namespace {
+
+// Decodes a specified unsigned integer as varint. |depth| is the current
+// recursion call depth. The first call to the function must be 1.
+template <typename IntTypeT>
+bool DecodeVarintUnsigned(int depth, IntTypeT *out_val, DecoderBuffer *buffer) {
+  constexpr IntTypeT max_depth = sizeof(IntTypeT) + 1 + (sizeof(IntTypeT) >> 3);
+  if (depth > max_depth) {
+    return false;
+  }
+  // Coding of unsigned values.
+  // 0-6 bit - data
+  // 7 bit - next byte?
+  uint8_t in;
+  if (!buffer->Decode(&in)) {
+    return false;
+  }
+  if (in & (1 << 7)) {
+    // Next byte is available, decode it first.
+    if (!DecodeVarintUnsigned<IntTypeT>(depth + 1, out_val, buffer)) {
+      return false;
+    }
+    // Append decoded info from this byte.
+    *out_val <<= 7;
+    *out_val |= in & ((1 << 7) - 1);
+  } else {
+    // Last byte reached
+    *out_val = in;
+  }
+  return true;
+}
+
+}  // namespace
+
 // Decodes a specified integer as varint. Note that the IntTypeT must be the
 // same as the one used in the corresponding EncodeVarint() call.
 template <typename IntTypeT>
 bool DecodeVarint(IntTypeT *out_val, DecoderBuffer *buffer) {
   if (std::is_unsigned<IntTypeT>::value) {
-    // Coding of unsigned values.
-    // 0-6 bit - data
-    // 7 bit - next byte?
-    uint8_t in;
-    if (!buffer->Decode(&in))
+    if (!DecodeVarintUnsigned<IntTypeT>(1, out_val, buffer)) {
       return false;
-    if (in & (1 << 7)) {
-      // Next byte is available, decode it first.
-      if (!DecodeVarint<IntTypeT>(out_val, buffer))
-        return false;
-      // Append decoded info from this byte.
-      *out_val <<= 7;
-      *out_val |= in & ((1 << 7) - 1);
-    } else {
-      // Last byte reached
-      *out_val = in;
     }
   } else {
     // IntTypeT is a signed value. Decode the symbol and convert to signed.
     typename std::make_unsigned<IntTypeT>::type symbol;
-    if (!DecodeVarint(&symbol, buffer))
+    if (!DecodeVarintUnsigned(1, &symbol, buffer)) {
       return false;
+    }
     *out_val = ConvertSymbolToSignedInt(symbol);
   }
   return true;

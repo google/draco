@@ -6,6 +6,7 @@ interface DecoderBuffer {
   void Init([Const] byte[] data, unsigned long data_size);
 };
 
+// TODO(fgalligan): Can we remove this?
 enum draco_AttributeTransformType {
   "draco::ATTRIBUTE_INVALID_TRANSFORM",
   "draco::ATTRIBUTE_NO_TRANSFORM",
@@ -37,6 +38,22 @@ enum draco_EncodedGeometryType {
   "draco::INVALID_GEOMETRY_TYPE",
   "draco::POINT_CLOUD",
   "draco::TRIANGULAR_MESH"
+};
+
+enum draco_DataType {
+  "draco::DT_INVALID",
+  "draco::DT_INT8",
+  "draco::DT_UINT8",
+  "draco::DT_INT16",
+  "draco::DT_UINT16",
+  "draco::DT_INT32",
+  "draco::DT_UINT32",
+  "draco::DT_INT64",
+  "draco::DT_UINT64",
+  "draco::DT_FLOAT32",
+  "draco::DT_FLOAT64",
+  "draco::DT_BOOL",
+  "draco::DT_TYPES_COUNT"
 };
 
 [Prefix="draco::"]
@@ -97,7 +114,7 @@ interface Metadata {
 
 enum draco_StatusCode {
   "draco_Status::OK",
-  "draco_Status::ERROR",
+  "draco_Status::DRACO_ERROR",
   "draco_Status::IO_ERROR",
   "draco_Status::INVALID_PARAMETER",
   "draco_Status::UNSUPPORTED_VERSION",
@@ -109,22 +126,6 @@ interface Status {
   draco_StatusCode code();
   boolean ok();
   [Const] DOMString error_msg();
-};
-
-interface MetadataQuerier {
-  void MetadataQuerier();
-
-  boolean HasEntry([Ref, Const] Metadata metadata,
-                   [Const] DOMString entry_name);
-  long GetIntEntry([Ref, Const] Metadata metadata,
-                   [Const] DOMString entry_name);
-  double GetDoubleEntry([Ref, Const] Metadata metadata,
-                        [Const] DOMString entry_name);
-  [Const] DOMString GetStringEntry([Ref, Const] Metadata metadata,
-                                   [Const] DOMString entry_name);
-
-  long NumEntries([Ref, Const] Metadata metadata);
-  [Const] DOMString GetEntryName([Ref, Const] Metadata metadata, long entry_id);
 };
 
 // Draco version of typed arrays. The memory of these arrays is allocated on the
@@ -171,6 +172,25 @@ interface DracoUInt32Array {
   long size();
 };
 
+interface MetadataQuerier {
+  void MetadataQuerier();
+
+  boolean HasEntry([Ref, Const] Metadata metadata,
+                   [Const] DOMString entry_name);
+  long GetIntEntry([Ref, Const] Metadata metadata,
+                   [Const] DOMString entry_name);
+  void GetIntEntryArray([Ref, Const] Metadata metadata,
+                        [Const] DOMString entry_name,
+                        DracoInt32Array out_values);
+  double GetDoubleEntry([Ref, Const] Metadata metadata,
+                        [Const] DOMString entry_name);
+  [Const] DOMString GetStringEntry([Ref, Const] Metadata metadata,
+                                   [Const] DOMString entry_name);
+
+  long NumEntries([Ref, Const] Metadata metadata);
+  [Const] DOMString GetEntryName([Ref, Const] Metadata metadata, long entry_id);
+};
+
 interface Decoder {
   void Decoder();
   draco_EncodedGeometryType GetEncodedGeometryType(DecoderBuffer in_buffer);
@@ -198,6 +218,11 @@ interface Decoder {
                           DracoInt32Array out_values);
   long GetTriangleStripsFromMesh([Ref, Const] Mesh m,
                                  DracoInt32Array strip_values);
+
+  boolean GetTrianglesUInt16Array([Ref, Const] Mesh m,
+                                  long out_size, VoidPtr out_values);
+  boolean GetTrianglesUInt32Array([Ref, Const] Mesh m,
+                                  long out_size, VoidPtr out_values);
 
   boolean GetAttributeFloat([Ref, Const] PointAttribute pa,
                             long att_index,
@@ -230,6 +255,11 @@ interface Decoder {
   boolean GetAttributeUInt32ForAllPoints([Ref, Const] PointCloud pc,
                                          [Ref, Const] PointAttribute pa,
                                          DracoUInt32Array out_values);
+
+  boolean GetAttributeDataArrayForAllPoints([Ref, Const] PointCloud pc,
+                                            [Ref, Const] PointAttribute pa,
+                                            draco_DataType data_type,
+                                            long out_size, VoidPtr out_values);
 
   void SkipAttributeTransform(draco_GeometryAttribute_Type att_type);
 };

@@ -47,8 +47,9 @@ inline bool ComputeParallelogramPrediction(
     const std::vector<int32_t> &vertex_to_data_map, const DataTypeT *in_data,
     int num_components, DataTypeT *out_prediction) {
   const CornerIndex oci = table->Opposite(ci);
-  if (oci == kInvalidCornerIndex)
+  if (oci == kInvalidCornerIndex) {
     return false;
+  }
   int vert_opp, vert_next, vert_prev;
   GetParallelogramEntries<CornerTableT>(oci, table, vertex_to_data_map,
                                         &vert_opp, &vert_next, &vert_prev);

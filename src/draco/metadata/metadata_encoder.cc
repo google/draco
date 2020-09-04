@@ -20,27 +20,28 @@ namespace draco {
 
 bool MetadataEncoder::EncodeMetadata(EncoderBuffer *out_buffer,
                                      const Metadata *metadata) {
-  const std::unordered_map<std::string, EntryValue> &entries =
-      metadata->entries();
+  const std::map<std::string, EntryValue> &entries = metadata->entries();
   // Encode number of entries.
   EncodeVarint(static_cast<uint32_t>(metadata->num_entries()), out_buffer);
   // Encode all entries.
   for (const auto &entry : entries) {
-    if (!EncodeString(out_buffer, entry.first))
+    if (!EncodeString(out_buffer, entry.first)) {
       return false;
+    }
     const std::vector<uint8_t> &entry_value = entry.second.data();
     const uint32_t data_size = static_cast<uint32_t>(entry_value.size());
     EncodeVarint(data_size, out_buffer);
     out_buffer->Encode(entry_value.data(), data_size);
   }
-  const std::unordered_map<std::string, std::unique_ptr<Metadata>>
-      &sub_metadatas = metadata->sub_metadatas();
+  const std::map<std::string, std::unique_ptr<Metadata>> &sub_metadatas =
+      metadata->sub_metadatas();
   // Encode number of sub-metadata
   EncodeVarint(static_cast<uint32_t>(sub_metadatas.size()), out_buffer);
   // Encode each sub-metadata
   for (auto &&sub_metadata_entry : sub_metadatas) {
-    if (!EncodeString(out_buffer, sub_metadata_entry.first))
+    if (!EncodeString(out_buffer, sub_metadata_entry.first)) {
       return false;
+    }
     EncodeMetadata(out_buffer, sub_metadata_entry.second.get());
   }
 
@@ -49,8 +50,9 @@ bool MetadataEncoder::EncodeMetadata(EncoderBuffer *out_buffer,
 
 bool MetadataEncoder::EncodeAttributeMetadata(
     EncoderBuffer *out_buffer, const AttributeMetadata *metadata) {
-  if (!metadata)
+  if (!metadata) {
     return false;
+  }
   // Encode attribute id.
   EncodeVarint(metadata->att_unique_id(), out_buffer);
   EncodeMetadata(out_buffer, static_cast<const Metadata *>(metadata));
@@ -59,8 +61,9 @@ bool MetadataEncoder::EncodeAttributeMetadata(
 
 bool MetadataEncoder::EncodeGeometryMetadata(EncoderBuffer *out_buffer,
                                              const GeometryMetadata *metadata) {
-  if (!metadata)
+  if (!metadata) {
     return false;
+  }
   // Encode number of attribute metadata.
   const std::vector<std::unique_ptr<AttributeMetadata>> &att_metadatas =
       metadata->attribute_metadatas();
@@ -80,8 +83,9 @@ bool MetadataEncoder::EncodeString(EncoderBuffer *out_buffer,
                                    const std::string &str) {
   // We only support string of maximum length 255 which is using one byte to
   // encode the length.
-  if (str.size() > 255)
+  if (str.size() > 255) {
     return false;
+  }
   if (str.empty()) {
     out_buffer->Encode(static_cast<uint8_t>(0));
   } else {

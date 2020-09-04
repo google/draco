@@ -95,8 +95,11 @@ class DynamicIntegerPointsKdTreeDecoder {
   // Decodes a integer point cloud from |buffer|.
   template <class OutputIteratorT>
   bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT &oit);
+
+#ifndef DRACO_OLD_GCC
   template <class OutputIteratorT>
   bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT &&oit);
+#endif  // DRACO_OLD_GCC
 
   const uint32_t dimension() const { return dimension_; }
 
@@ -138,6 +141,7 @@ class DynamicIntegerPointsKdTreeDecoder {
 };
 
 // Decodes a point cloud from |buffer|.
+#ifndef DRACO_OLD_GCC
 template <int compression_level_t>
 template <class OutputIteratorT>
 bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
@@ -145,30 +149,42 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
   OutputIteratorT local = std::forward<OutputIteratorT>(oit);
   return DecodePoints(buffer, local);
 }
+#endif  // DRACO_OLD_GCC
 
 template <int compression_level_t>
 template <class OutputIteratorT>
 bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
     DecoderBuffer *buffer, OutputIteratorT &oit) {
-  buffer->Decode(&bit_length_);
-  if (bit_length_ > 32)
+  if (!buffer->Decode(&bit_length_)) {
     return false;
-  buffer->Decode(&num_points_);
-  if (num_points_ == 0)
+  }
+  if (bit_length_ > 32) {
+    return false;
+  }
+  if (!buffer->Decode(&num_points_)) {
+    return false;
+  }
+  if (num_points_ == 0) {
     return true;
+  }
   num_decoded_points_ = 0;
 
-  if (!numbers_decoder_.StartDecoding(buffer))
+  if (!numbers_decoder_.StartDecoding(buffer)) {
     return false;
-  if (!remaining_bits_decoder_.StartDecoding(buffer))
+  }
+  if (!remaining_bits_decoder_.StartDecoding(buffer)) {
     return false;
-  if (!axis_decoder_.StartDecoding(buffer))
+  }
+  if (!axis_decoder_.StartDecoding(buffer)) {
     return false;
-  if (!half_decoder_.StartDecoding(buffer))
+  }
+  if (!half_decoder_.StartDecoding(buffer)) {
     return false;
+  }
 
-  if (!DecodeInternal(num_points_, oit))
+  if (!DecodeInternal(num_points_, oit)) {
     return false;
+  }
 
   numbers_decoder_.EndDecoding();
   remaining_bits_decoder_.EndDecoding();
@@ -182,8 +198,9 @@ template <int compression_level_t>
 uint32_t DynamicIntegerPointsKdTreeDecoder<compression_level_t>::GetAxis(
     uint32_t num_remaining_points, const VectorUint32 &levels,
     uint32_t last_axis) {
-  if (!Policy::select_axis)
+  if (!Policy::select_axis) {
     return DRACO_INCREMENT_MOD(last_axis, dimension_);
+  }
 
   uint32_t best_axis = 0;
   if (num_remaining_points < 64) {
@@ -221,12 +238,14 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
     const VectorUint32 &old_base = base_stack_[stack_pos];
     const VectorUint32 &levels = levels_stack_[stack_pos];
 
-    if (num_remaining_points > num_points)
+    if (num_remaining_points > num_points) {
       return false;
+    }
 
     const uint32_t axis = GetAxis(num_remaining_points, levels, last_axis);
-    if (axis >= dimension_)
+    if (axis >= dimension_) {
       return false;
+    }
 
     const uint32_t level = levels[axis];
 
@@ -253,9 +272,10 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
         for (uint32_t j = 0; j < dimension_; j++) {
           p_[axes_[j]] = 0;
           const uint32_t num_remaining_bits = bit_length_ - levels[axes_[j]];
-          if (num_remaining_bits)
+          if (num_remaining_bits) {
             remaining_bits_decoder_.DecodeLeastSignificantBits32(
                 num_remaining_bits, &p_[axes_[j]]);
+          }
           p_[axes_[j]] = old_base[axes_[j]] | p_[axes_[j]];
         }
         *oit = p_;
@@ -265,8 +285,9 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
       continue;
     }
 
-    if (num_decoded_points_ > num_points_)
+    if (num_decoded_points_ > num_points_) {
       return false;
+    }
 
     const int num_remaining_bits = bit_length_ - level;
     const uint32_t modifier = 1 << (num_remaining_bits - 1);
@@ -281,16 +302,20 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
     uint32_t first_half = num_remaining_points / 2 - number;
     uint32_t second_half = num_remaining_points - first_half;
 
-    if (first_half != second_half)
-      if (!half_decoder_.DecodeNextBit())
+    if (first_half != second_half) {
+      if (!half_decoder_.DecodeNextBit()) {
         std::swap(first_half, second_half);
+      }
+    }
 
     levels_stack_[stack_pos][axis] += 1;
     levels_stack_[stack_pos + 1] = levels_stack_[stack_pos];  // copy
-    if (first_half)
+    if (first_half) {
       status_stack.push(DecodingStatus(first_half, axis, stack_pos));
-    if (second_half)
+    }
+    if (second_half) {
       status_stack.push(DecodingStatus(second_half, axis, stack_pos + 1));
+    }
   }
   return true;
 }

@@ -16,9 +16,9 @@
 #define DRACO_METADATA_METADATA_H_
 
 #include <cstring>
+#include <map>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "draco/core/hash_utils.h"
@@ -59,8 +59,9 @@ class EntryValue {
 
   template <typename DataTypeT>
   bool GetValue(std::vector<DataTypeT> *value) const {
-    if (data_.empty())
+    if (data_.empty()) {
       return false;
+    }
     const size_t data_type_size = sizeof(DataTypeT);
     if (data_.size() % data_type_size != 0) {
       return false;
@@ -82,7 +83,7 @@ class EntryValue {
 struct EntryValueHasher {
   size_t operator()(const EntryValue &ev) const {
     size_t hash = ev.data_.size();
-    for (int i = 0; i < ev.data_.size(); ++i) {
+    for (size_t i = 0; i < ev.data_.size(); ++i) {
       hash = HashCombine(ev.data_[i], hash);
     }
     return hash;
@@ -150,11 +151,9 @@ class Metadata {
   void RemoveEntry(const std::string &name);
 
   int num_entries() const { return static_cast<int>(entries_.size()); }
-  const std::unordered_map<std::string, EntryValue> &entries() const {
-    return entries_;
-  }
-  const std::unordered_map<std::string, std::unique_ptr<Metadata>>
-      &sub_metadatas() const {
+  const std::map<std::string, EntryValue> &entries() const { return entries_; }
+  const std::map<std::string, std::unique_ptr<Metadata>> &sub_metadatas()
+      const {
     return sub_metadatas_;
   }
 
@@ -163,8 +162,9 @@ class Metadata {
   template <typename DataTypeT>
   void AddEntry(const std::string &entry_name, const DataTypeT &entry_value) {
     const auto itr = entries_.find(entry_name);
-    if (itr != entries_.end())
+    if (itr != entries_.end()) {
       entries_.erase(itr);
+    }
     entries_.insert(std::make_pair(entry_name, EntryValue(entry_value)));
   }
 
@@ -178,8 +178,8 @@ class Metadata {
     return itr->second.GetValue(entry_value);
   }
 
-  std::unordered_map<std::string, EntryValue> entries_;
-  std::unordered_map<std::string, std::unique_ptr<Metadata>> sub_metadatas_;
+  std::map<std::string, EntryValue> entries_;
+  std::map<std::string, std::unique_ptr<Metadata>> sub_metadatas_;
 
   friend struct MetadataHasher;
 };

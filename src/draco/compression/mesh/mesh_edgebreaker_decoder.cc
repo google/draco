@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/compression/mesh/mesh_edgebreaker_decoder.h"
+
 #include "draco/compression/mesh/mesh_edgebreaker_decoder_impl.h"
 #include "draco/compression/mesh/mesh_edgebreaker_traversal_predictive_decoder.h"
 #include "draco/compression/mesh/mesh_edgebreaker_traversal_valence_decoder.h"
@@ -27,8 +28,9 @@ bool MeshEdgebreakerDecoder::CreateAttributesDecoder(int32_t att_decoder_id) {
 
 bool MeshEdgebreakerDecoder::InitializeDecoder() {
   uint8_t traversal_decoder_type;
-  if (!buffer()->Decode(&traversal_decoder_type))
+  if (!buffer()->Decode(&traversal_decoder_type)) {
     return false;
+  }
   impl_ = nullptr;
   if (traversal_decoder_type == MESH_EDGEBREAKER_STANDARD_ENCODING) {
 #ifdef DRACO_STANDARD_EDGEBREAKER_SUPPORTED
@@ -51,8 +53,9 @@ bool MeshEdgebreakerDecoder::InitializeDecoder() {
   if (!impl_) {
     return false;
   }
-  if (!impl_->Init(this))
+  if (!impl_->Init(this)) {
     return false;
+  }
   return true;
 }
 

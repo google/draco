@@ -71,30 +71,29 @@ int32_t KeyframeAnimation::AddKeyframes(DataType data_type,
                                         uint32_t num_components,
                                         const std::vector<T> &data) {
   // TODO(draco-eng): Verify T is consistent with |data_type|.
-  if (num_components == 0)
+  if (num_components == 0) {
     return -1;
+  }
   // If timestamps is not added yet, then reserve attribute 0 for timestamps.
   if (!num_attributes()) {
     // Add a temporary attribute with 0 points to fill attribute id 0.
     std::unique_ptr<PointAttribute> temp_att =
         std::unique_ptr<PointAttribute>(new PointAttribute());
-    temp_att->Init(GeometryAttribute::GENERIC, nullptr, num_components,
-                   data_type, false, DataTypeLength(data_type), 0);
-    temp_att->Reset(0);
+    temp_att->Init(GeometryAttribute::GENERIC, num_components, data_type, false,
+                   0);
     this->AddAttribute(std::move(temp_att));
 
     set_num_frames(data.size() / num_components);
   }
 
-  if (data.size() != num_components * num_frames())
+  if (data.size() != num_components * num_frames()) {
     return -1;
+  }
 
   std::unique_ptr<PointAttribute> keyframe_att =
       std::unique_ptr<PointAttribute>(new PointAttribute());
-  keyframe_att->Init(GeometryAttribute::GENERIC, nullptr, num_components,
-                     data_type, false, DataTypeLength(data_type), 0);
-  keyframe_att->SetIdentityMapping();
-  keyframe_att->Reset(num_frames());
+  keyframe_att->Init(GeometryAttribute::GENERIC, num_components, data_type,
+                     false, num_frames());
   const size_t stride = num_components;
   for (PointIndex i(0); i < num_frames(); ++i) {
     keyframe_att->SetAttributeValue(keyframe_att->mapped_index(i),

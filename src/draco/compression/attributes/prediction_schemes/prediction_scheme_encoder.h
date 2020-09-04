@@ -46,8 +46,9 @@ class PredictionSchemeEncoder : public PredictionSchemeTypedEncoderInterface<
       : attribute_(attribute), transform_(transform) {}
 
   bool EncodePredictionData(EncoderBuffer *buffer) override {
-    if (!transform_.EncodeTransformData(buffer))
+    if (!transform_.EncodeTransformData(buffer)) {
       return false;
+    }
     return true;
   }
 

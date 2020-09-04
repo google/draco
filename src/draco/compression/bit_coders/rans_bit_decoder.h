@@ -18,10 +18,9 @@
 
 #include <vector>
 
-#include "draco/draco_features.h"
-
 #include "draco/compression/entropy/ans.h"
 #include "draco/core/decoder_buffer.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 

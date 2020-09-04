@@ -17,13 +17,12 @@
 
 #include <memory>
 
-#include "draco/draco_features.h"
-
 #include "draco/attributes/attribute_transform_data.h"
 #include "draco/attributes/geometry_attribute.h"
 #include "draco/core/draco_index_type_vector.h"
 #include "draco/core/hash_utils.h"
 #include "draco/core/macros.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 
@@ -41,6 +40,12 @@ class PointAttribute : public GeometryAttribute {
   PointAttribute(PointAttribute &&attribute) = default;
   PointAttribute &operator=(PointAttribute &&attribute) = default;
 
+  // Initializes a point attribute. By default the attribute will be set to
+  // identity mapping between point indices and attribute values. To set custom
+  // mapping use SetExplicitMapping() function.
+  void Init(Type attribute_type, int8_t num_components, DataType data_type,
+            bool normalized, size_t num_attribute_values);
+
   // Copies attribute data from the provided |src_att| attribute.
   void CopyFrom(const PointAttribute &src_att);
 
@@ -49,15 +54,17 @@ class PointAttribute : public GeometryAttribute {
 
   size_t size() const { return num_unique_entries_; }
   AttributeValueIndex mapped_index(PointIndex point_index) const {
-    if (identity_mapping_)
+    if (identity_mapping_) {
       return AttributeValueIndex(point_index.value());
+    }
     return indices_map_[point_index];
   }
   DataBuffer *buffer() const { return attribute_buffer_.get(); }
   bool is_mapping_identity() const { return identity_mapping_; }
   size_t indices_map_size() const {
-    if (is_mapping_identity())
+    if (is_mapping_identity()) {
       return 0;
+    }
     return indices_map_.size();
   }
 
@@ -65,10 +72,14 @@ class PointAttribute : public GeometryAttribute {
     return GetAddress(mapped_index(point_index));
   }
 
-  // Sets the new number of unique attribute entries for the attribute.
-  void Resize(size_t new_num_unique_entries) {
-    num_unique_entries_ = static_cast<uint32_t>(new_num_unique_entries);
-  }
+  // Sets the new number of unique attribute entries for the attribute. The
+  // function resizes the attribute storage to hold |num_attribute_values|
+  // entries.
+  // All previous entries with AttributeValueIndex < |num_attribute_values|
+  // are preserved. Caller needs to ensure that the PointAttribute is still
+  // valid after the resizing operation (that is, each point is mapped to a
+  // valid attribute value).
+  void Resize(size_t new_num_unique_entries);
 
   // Functions for setting the type of mapping between point indices and
   // attribute entry ids.
@@ -90,13 +101,6 @@ class PointAttribute : public GeometryAttribute {
                         AttributeValueIndex entry_index) {
     DRACO_DCHECK(!identity_mapping_);
     indices_map_[point_index] = entry_index;
-  }
-
-  // Sets a value of an attribute entry. The input value must be allocated to
-  // cover all components of a single attribute entry.
-  void SetAttributeValue(AttributeValueIndex entry_index, const void *value) {
-    const int64_t byte_pos = entry_index.value() * byte_stride();
-    buffer()->Write(byte_pos, value, byte_stride());
   }
 
   // Same as GeometryAttribute::GetValue(), but using point id as the input.
@@ -165,7 +169,7 @@ struct PointAttributeHasher {
     hash = HashCombine(attribute.identity_mapping_, hash);
     hash = HashCombine(attribute.num_unique_entries_, hash);
     hash = HashCombine(attribute.indices_map_.size(), hash);
-    if (attribute.indices_map_.size() > 0) {
+    if (!attribute.indices_map_.empty()) {
       const uint64_t indices_hash = FingerprintString(
           reinterpret_cast<const char *>(attribute.indices_map_.data()),
           attribute.indices_map_.size());

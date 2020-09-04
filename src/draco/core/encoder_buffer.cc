@@ -31,10 +31,12 @@ void EncoderBuffer::Clear() {
 void EncoderBuffer::Resize(int64_t nbytes) { buffer_.resize(nbytes); }
 
 bool EncoderBuffer::StartBitEncoding(int64_t required_bits, bool encode_size) {
-  if (bit_encoder_active())
+  if (bit_encoder_active()) {
     return false;  // Bit encoding mode already active.
-  if (required_bits <= 0)
+  }
+  if (required_bits <= 0) {
     return false;  // Invalid size.
+  }
   encode_bit_sequence_size_ = encode_size;
   const int64_t required_bytes = (required_bits + 7) / 8;
   bit_encoder_reserved_bytes_ = required_bytes;
@@ -54,8 +56,9 @@ bool EncoderBuffer::StartBitEncoding(int64_t required_bits, bool encode_size) {
 }
 
 void EncoderBuffer::EndBitEncoding() {
-  if (!bit_encoder_active())
+  if (!bit_encoder_active()) {
     return;
+  }
   // Get the number of encoded bits and bytes (rounded up).
   const uint64_t encoded_bits = bit_encoder_->Bits();
   const uint64_t encoded_bytes = (encoded_bits + 7) / 8;
