@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
       Usage();
       return 0;
     } else if (!strcmp("-v", argv[i])) {
-      printf("draco_encoder version:%s\n", draco::Version());
+      printf("draco_decoder version:%s\n", draco::Version());
       return 0;
     } else if (!strcmp("-i", argv[i]) && i < argc_check) {
       options.input = argv[++i];
