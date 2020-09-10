@@ -17,6 +17,7 @@
 #include <fstream>
 
 #include "draco/compression/encode.h"
+#include "draco/core/draco_version.h"
 #include "draco/core/cycle_timer.h"
 #include "draco/io/mesh_io.h"
 #include "draco/io/point_cloud_io.h"
@@ -198,6 +199,9 @@ int main(int argc, char **argv) {
   for (int i = 1; i < argc; ++i) {
     if (!strcmp("-h", argv[i]) || !strcmp("-?", argv[i])) {
       Usage();
+      return 0;
+    } else if (!strcmp("-v", argv[i])) {
+      printf("draco_encoder version: %s\n", draco::Version());
       return 0;
     } else if (!strcmp("-i", argv[i]) && i < argc_check) {
       options.input = argv[++i];
