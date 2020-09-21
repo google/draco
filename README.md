@@ -1,6 +1,6 @@
 
 <p align="center">
-<img src="docs/DracoLogo.jpeg" />
+<img width="350px" src="docs/artwork/draco3d-vert.svg" />
 </p>
 
 News
