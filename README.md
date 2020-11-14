@@ -114,7 +114,7 @@ Usage
 
 Unity
 -----
-For the best information about using Unity with Draco please visit https://gitlab.com/atteneder/DracoUnity
+For the best information about using Unity with Draco please visit https://github.com/atteneder/DracoUnity
 
 For a simple example of using Unity with Draco see [README](unity/README.md) in the unity folder.
 
