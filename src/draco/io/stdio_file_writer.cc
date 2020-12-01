@@ -8,6 +8,7 @@
 
 #include "draco/draco_features.h"
 #include "draco/io/file_writer_factory.h"
+#include "draco/io/file_writer_utils.h"
 
 namespace draco {
 
@@ -27,9 +28,11 @@ std::unique_ptr<FileWriterInterface> StdioFileWriter::Open(
   if (file_name.empty()) {
     return nullptr;
   }
+  if (!CheckAndCreatePathForFile(file_name)) {
+    return nullptr;
+  }
 
   FILE *raw_file_ptr = fopen(file_name.c_str(), "wb");
-
   if (raw_file_ptr == nullptr) {
     return nullptr;
   }

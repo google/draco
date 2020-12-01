@@ -5,6 +5,32 @@
 
 News
 =======
+### Version 1.4.0 release
+* WASM and JavaScript decoders are hosted from a static URL.
+  * It is recommended to always pull your Draco WASM and JavaScript decoders from this URL:
+  * https://www.gstatic.com/draco/v1/decoders/*
+    * Replace * with the files to load. E.g.
+    * https://www.gstatic.com/draco/v1/decoders/draco_decoder_gltf.wasm
+  * Users will benefit from having the Draco decoder in cache as more sites start using the static URL
+* Changed npm modules to use WASM, which increased performance by ~200%.
+* Updated Emscripten to 2.0.
+  * This causes the Draco codec modules to return a promise instead of the module directly.
+  * Please see the example code on how to handle the promise.
+* Changed NORMAL quantization default to 8.
+* Added new array API to decoder and deprecated DecoderBuffer.
+  * See PR https://github.com/google/draco/issues/513 for more information.
+* Changed WASM/JavaScript behavior of catching exceptions.
+  * See issue https://github.com/google/draco/issues/629 for more information.
+* Code cleanup.
+* Emscripten builds now disable NODEJS_CATCH_EXIT and NODEJS_CATCH_REJECTION.
+  * Authors of a CLI tool might want to add their own error handlers.
+* Added Maya plugin builds.
+* Unity plugin builds updated.
+  * Builds are now stored as archives.
+  * Added iOS build.
+  * Unity users may want to look into https://github.com/atteneder/DracoUnity.
+* Bug fixes.
+
 ### Version 1.3.6 release
 * WASM and JavaScript decoders are now hosted from a static URL
   * It is recommended to always pull your Draco WASM and JavaScript decoders from this URL:

@@ -3,7 +3,9 @@ Description
 
 This folder contains resources for building a simple demo decompressing and rendering Draco within Unity.
 
-If you are looking for more information on using Draco within Unity, this site [https://github.com/atteneder/DracoUnity](https://github.com/atteneder/DracoUnity) is a much better resource. There are more samples as well as support for more platforms.
+If you are looking for more information on using Draco within Unity,
+[DracoUnity](https://github.com/atteneder/DracoUnity) is a much better resource.
+There are more samples as well as support for more platforms.
 
 In this folder we currently support two types of usages:
 * Import Draco compressed mesh as assets during design time.

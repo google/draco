@@ -1,0 +1,23 @@
+ply
+format ascii 1.0
+element vertex 16
+property float x
+property float y
+property float z
+end_header
+-409 249 +inf
+-427 279 -inf
+-431 296 -inf
+-479 276 2
+-511 278 1
+-491 355 3
+-542 315 4
+-544 372 4
+-588 361 4
+-602 392 5
+-667 370 2
+-642 462 6
+-713 418 5
+-714 487 7
+-772 477 7
+-797 517 8
