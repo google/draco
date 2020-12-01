@@ -331,8 +331,13 @@ macro(draco_add_library)
   endif()
 
   # Determine if $lib_NAME is a header only target.
-  set(sources_list ${lib_SOURCES})
-  list(FILTER sources_list INCLUDE REGEX cc$)
+  unset(sources_list)
+
+  if(lib_SOURCES)
+    set(sources_list ${lib_SOURCES})
+    list(FILTER sources_list INCLUDE REGEX cc$)
+  endif()
+
   if(NOT sources_list)
     if(NOT XCODE)
       # This is a header only target. Tell CMake the link language.
