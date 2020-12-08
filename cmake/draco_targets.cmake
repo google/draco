@@ -332,7 +332,6 @@ macro(draco_add_library)
 
   # Determine if $lib_NAME is a header only target.
   unset(sources_list)
-
   if(lib_SOURCES)
     set(sources_list ${lib_SOURCES})
     list(FILTER sources_list INCLUDE REGEX cc$)
