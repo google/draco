@@ -15,6 +15,7 @@
 #include <cinttypes>
 
 #include "draco/compression/decode.h"
+#include "draco/core/draco_version.h"
 #include "draco/core/cycle_timer.h"
 #include "draco/io/file_utils.h"
 #include "draco/io/obj_encoder.h"
@@ -55,6 +56,9 @@ int main(int argc, char **argv) {
     if (!strcmp("-h", argv[i]) || !strcmp("-?", argv[i])) {
       Usage();
       return 0;
+    } else if (!strcmp("-v", argv[i])) {
+        printf("draco_decoder version: %s\n", draco::Version());
+	return 0;
     } else if (!strcmp("-i", argv[i]) && i < argc_check) {
       options.input = argv[++i];
     } else if (!strcmp("-o", argv[i]) && i < argc_check) {
