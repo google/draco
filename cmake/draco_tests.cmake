@@ -52,7 +52,8 @@ list(
     "${draco_src_root}/metadata/metadata_encoder_test.cc"
     "${draco_src_root}/metadata/metadata_test.cc"
     "${draco_src_root}/point_cloud/point_cloud_builder_test.cc"
-    "${draco_src_root}/point_cloud/point_cloud_test.cc")
+    "${draco_src_root}/point_cloud/point_cloud_test.cc"
+    "${draco_src_root}/c_api/c_api_test.cc")
 
 list(APPEND draco_gtest_all
             "${draco_root}/../googletest/googletest/src/gtest-all.cc")

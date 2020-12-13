@@ -486,6 +486,11 @@ list(
     "${draco_src_root}/javascript/emscripten/draco_animation_encoder_glue_wrapper.cc"
   )
 
+list(
+  APPEND draco_c_api_dec_sources
+    "${draco_src_root}/c_api/c_api_decoder.cc"
+  )
+
 list(APPEND draco_unity_plug_sources
             "${draco_src_root}/unity/draco_unity_plugin.cc"
             "${draco_src_root}/unity/draco_unity_plugin.h")
@@ -773,6 +778,16 @@ else()
                     ${draco_defines}
                     INCLUDES
                     ${draco_include_paths})
+  draco_add_library(NAME
+                    draco_c_api_dec
+                    TYPE 
+                    OBJECT
+                    SOURCES
+                    ${draco_c_api_dec_sources}
+                    DEFINES
+                    ${draco_defines}
+                    INCLUDES
+                    ${draco_include_paths})
 
   set(draco_object_library_deps
       draco_attributes
@@ -801,7 +816,8 @@ else()
       draco_animation_enc
       draco_point_cloud
       draco_points_dec
-      draco_points_enc)
+      draco_points_enc
+      draco_c_api_dec)
 
   # Library targets that consume the object collections.
   if(MSVC OR WIN32)

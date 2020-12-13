@@ -64,6 +64,8 @@ macro(draco_set_default_options)
                "Enable attribute deduping." VALUE OFF)
   draco_option(NAME DRACO_TESTS HELPSTRING "Enables tests." VALUE OFF)
   draco_option(NAME DRACO_WASM HELPSTRING "Enables WASM support." VALUE OFF)
+  draco_option(NAME DRACO_C_API HELPSTRING
+               "Build C wrapper." VALUE OFF)
   draco_option(NAME DRACO_UNITY_PLUGIN HELPSTRING
                "Build plugin library for Unity." VALUE OFF)
   draco_option(NAME DRACO_ANIMATION_ENCODING HELPSTRING "Enable animation."
@@ -168,6 +170,10 @@ macro(draco_set_optional_features)
   if(DRACO_MAYA_PLUGIN)
     draco_enable_feature(FEATURE "DRACO_MAYA_PLUGIN")
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  endif()
+
+  if(DRACO_C_API)
+    draco_enable_feature(FEATURE "DRACO_C_API_SUPPORTED")
   endif()
 
 endmacro()
