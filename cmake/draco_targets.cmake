@@ -318,8 +318,13 @@ macro(draco_add_library)
     set_target_properties(${lib_NAME} PROPERTIES PREFIX "")
   endif()
 
-  if(lib_TYPE STREQUAL SHARED AND NOT MSVC)
-    set_target_properties(${lib_NAME} PROPERTIES SOVERSION ${DRACO_SOVERSION})
+  # VERSION and SOVERSION as necessary
+  set_target_properties(${lib_NAME} PROPERTIES VERSION ${DRACO_VERSION})
+
+  if(NOT lib_TYPE STREQUAL STATIC)
+    if(NOT MSVC)
+      set_target_properties(${lib_NAME} PROPERTIES SOVERSION ${DRACO_SOVERSION})
+    endif()
   endif()
 
   if(BUILD_SHARED_LIBS AND (MSVC OR WIN32))
