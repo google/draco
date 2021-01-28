@@ -830,6 +830,10 @@ else()
                       OBJLIB_DEPS
                       ${draco_object_library_deps})
 
+    set_target_properties(draco
+      PROPERTIES
+      VERSION ${DRACO_VERSION})
+
   else()
     draco_add_library(NAME
                       draco_static
@@ -843,6 +847,11 @@ else()
                       ${draco_include_paths}
                       OBJLIB_DEPS
                       ${draco_object_library_deps})
+
+    set_target_properties(draco_static
+      PROPERTIES
+      VERSION ${DRACO_VERSION}
+      SOVERSION ${DRACO_SOVERSION})
 
     if(BUILD_SHARED_LIBS)
       draco_add_library(NAME
@@ -859,6 +868,11 @@ else()
                         ${draco_include_paths}
                         LIB_DEPS
                         draco_static)
+
+      set_target_properties(draco_shared PROPERTIES
+        VERSION ${DRACO_VERSION}
+        SOVERSION ${DRACO_SOVERSION})
+
     endif()
   endif()
 
@@ -891,7 +905,9 @@ else()
       set_target_properties(dracodec_unity PROPERTIES BUNDLE true)
     elseif(NOT unity_decoder_lib_type STREQUAL STATIC)
       set_target_properties(dracodec_unity
-                            PROPERTIES SOVERSION ${DRACO_SOVERSION})
+                            PROPERTIES
+                            VERSION ${DRACO_VERSION}
+                            SOVERSION ${DRACO_SOVERSION})
     endif()
   endif()
 
@@ -918,7 +934,9 @@ else()
       set_target_properties(draco_maya_wrapper PROPERTIES BUNDLE true)
     else()
       set_target_properties(draco_maya_wrapper
-                            PROPERTIES SOVERSION ${DRACO_SOVERSION})
+                            PROPERTIES
+                            VERSION ${DRACO_VERSION}
+                            SOVERSION ${DRACO_SOVERSION})
     endif()
   endif()
 
@@ -935,6 +953,8 @@ else()
                        LIB_DEPS
                        ${draco_dependency})
 
+  set_target_properties(draco_decoder PROPERTIES VERSION ${DRACO_VERSION})
+
   draco_add_executable(NAME
                        draco_encoder
                        SOURCES
@@ -946,6 +966,8 @@ else()
                        ${draco_include_paths}
                        LIB_DEPS
                        ${draco_dependency})
+
+  set_target_properties(draco_decoder PROPERTIES VERSION ${DRACO_VERSION})
 
   draco_setup_install_target()
   draco_setup_test_targets()
