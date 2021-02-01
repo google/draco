@@ -23,8 +23,12 @@ extern "C" {
 #endif
 
 // If compiling with Visual Studio.
-#if defined(_MSC_VER)
-#define EXPORT_API __declspec(dllexport)
+#ifdef _MSC_VER
+# ifdef DRACO_BUILDING_DLL
+#  define EXPORT_API __declspec(dllexport)
+# else
+#  define EXPORT_API __declspec(dllimport)
+# endif
 #else
 // Other platforms don't need this.
 #define EXPORT_API
