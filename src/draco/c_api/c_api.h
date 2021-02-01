@@ -23,16 +23,18 @@ extern "C" {
 #endif
 
 // If compiling with Visual Studio.
-#ifdef _MSC_VER
+#ifdef _WIN32
 # ifdef DRACO_BUILDING_DLL
 #  define EXPORT_API __declspec(dllexport)
 # else
 #  define EXPORT_API __declspec(dllimport)
 # endif
+#elif __GNUC__ >= 4 || defined(__clang__)
+# define EXPORT_API __attribute__((visibility ("default")))
 #else
 // Other platforms don't need this.
-#define EXPORT_API
-#endif  // defined(_MSC_VER)
+ #define EXPORT_API
+#endif  // defined(_WIN32)
 
 typedef const char* draco_string; // NULL terminated
 
