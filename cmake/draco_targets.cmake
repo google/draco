@@ -87,6 +87,7 @@ macro(draco_add_executable)
   endif()
 
   add_executable(${exe_NAME} ${exe_SOURCES})
+  set_target_properties(${exe_NAME} PROPERTIES VERSION ${DRACO_VERSION})
 
   if(exe_OUTPUT_NAME)
     set_target_properties(${exe_NAME} PROPERTIES OUTPUT_NAME ${exe_OUTPUT_NAME})
@@ -319,9 +320,8 @@ macro(draco_add_library)
   endif()
 
   # VERSION and SOVERSION as necessary
-  set_target_properties(${lib_NAME} PROPERTIES VERSION ${DRACO_VERSION})
-
   if(NOT lib_TYPE STREQUAL STATIC)
+    set_target_properties(${lib_NAME} PROPERTIES VERSION ${DRACO_VERSION})
     if(NOT MSVC)
       set_target_properties(${lib_NAME} PROPERTIES SOVERSION ${DRACO_SOVERSION})
     endif()
