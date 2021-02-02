@@ -929,8 +929,6 @@ else()
                        LIB_DEPS
                        ${draco_dependency})
 
-  set_target_properties(draco_decoder PROPERTIES VERSION ${DRACO_VERSION})
-
   draco_add_executable(NAME
                        draco_encoder
                        SOURCES
@@ -942,8 +940,6 @@ else()
                        ${draco_include_paths}
                        LIB_DEPS
                        ${draco_dependency})
-
-  set_target_properties(draco_decoder PROPERTIES VERSION ${DRACO_VERSION})
 
   draco_setup_install_target()
   draco_setup_test_targets()
