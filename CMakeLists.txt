@@ -889,9 +889,6 @@ else()
     # For Mac, we need to build a .bundle for the unity plugin.
     if(APPLE)
       set_target_properties(dracodec_unity PROPERTIES BUNDLE true)
-    elseif(NOT unity_decoder_lib_type STREQUAL STATIC)
-      set_target_properties(dracodec_unity
-                            PROPERTIES SOVERSION ${DRACO_SOVERSION})
     endif()
   endif()
 
@@ -916,9 +913,6 @@ else()
     # For Mac, we need to build a .bundle for the plugin.
     if(APPLE)
       set_target_properties(draco_maya_wrapper PROPERTIES BUNDLE true)
-    else()
-      set_target_properties(draco_maya_wrapper
-                            PROPERTIES SOVERSION ${DRACO_SOVERSION})
     endif()
   endif()
 
