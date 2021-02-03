@@ -816,8 +816,11 @@ else()
       draco_animation_enc
       draco_point_cloud
       draco_points_dec
-      draco_points_enc
-      draco_c_api_dec)
+      draco_points_enc)
+
+  list(APPEND draco_c_api_object_library_deps
+              ${draco_object_library_deps}
+              draco_c_api_dec)
 
   # Library targets that consume the object collections.
   if(MSVC OR WIN32)
@@ -845,7 +848,28 @@ else()
                       ${draco_include_paths}
                       OBJLIB_DEPS
                       ${draco_object_library_deps})
-
+    if(BUILD_SHARED_LIBS)
+      set_target_properties(draco PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+    endif()
+    if(DRACO_C_API)
+      draco_add_library(NAME
+                        cdraco
+                        OUTPUT_NAME
+                        cdraco
+                        TYPE
+                        ${draco_lib_type}
+                        DEFINES
+                        ${draco_defines}
+                        INCLUDES
+                        ${draco_include_paths}
+                        PUBLIC_INCLUDES
+                        ${draco_c_public_api_include_paths}
+                        OBJLIB_DEPS
+                        ${draco_c_api_object_library_deps})
+      if(BUILD_SHARED_LIBS)
+        set_target_properties(cdraco PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS FALSE)
+      endif()
+    endif()
   else()
     draco_add_library(NAME
                       draco_static
@@ -859,7 +883,22 @@ else()
                       ${draco_include_paths}
                       OBJLIB_DEPS
                       ${draco_object_library_deps})
-
+    if(DRACO_C_API)
+      draco_add_library(NAME
+                        cdraco_static
+                        OUTPUT_NAME
+                        cdraco
+                        TYPE
+                        STATIC
+                        DEFINES
+                        ${draco_defines}
+                        INCLUDES
+                        ${draco_include_paths}
+                        PUBLIC_INCLUDES
+                        ${draco_c_public_api_include_paths}
+                        OBJLIB_DEPS
+                        ${draco_c_api_object_library_deps})
+    endif()
     if(BUILD_SHARED_LIBS)
       draco_add_library(NAME
                         draco_shared
@@ -875,6 +914,27 @@ else()
                         ${draco_include_paths}
                         LIB_DEPS
                         draco_static)
+      if(DRACO_C_API)
+        draco_add_library(NAME
+                          cdraco_shared
+                          SOURCES
+                          "${draco_src_root}/core/draco_version.h"
+                          OUTPUT_NAME
+                          cdraco
+                          TYPE
+                          SHARED
+                          DEFINES
+                          ${draco_defines}
+                          INCLUDES
+                          ${draco_include_paths}
+                          PUBLIC_INCLUDES
+                          ${draco_c_public_api_include_paths}
+                          OBJLIB_DEPS
+                          cdraco_static)
+        set_target_properties(cdraco_static PROPERTIES C_VISIBILITY_PRESET hidden)
+        set_target_properties(cdraco_static PROPERTIES CXX_VISIBILITY_PRESET hidden)
+        set_target_properties(cdraco_static PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
+      endif()
     endif()
   endif()
 

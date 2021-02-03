@@ -41,6 +41,8 @@ macro(draco_set_build_definitions)
   list(APPEND draco_include_paths "${draco_root}" "${draco_root}/src"
               "${draco_build}")
 
+  list(APPEND draco_c_public_api_include_paths "${draco_root}/src/draco/c_api")
+
   if(DRACO_ABSL)
     list(APPEND draco_include_path "${draco_root}/third_party/abseil-cpp")
   endif()
@@ -59,10 +61,6 @@ macro(draco_set_build_definitions)
 
   if(MSVC OR WIN32)
     list(APPEND draco_defines "_CRT_SECURE_NO_DEPRECATE=1" "NOMINMAX=1")
-
-    if(BUILD_SHARED_LIBS)
-      set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
-    endif()
   endif()
 
   if(ANDROID)

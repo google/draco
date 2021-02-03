@@ -55,6 +55,15 @@ list(
     "${draco_src_root}/point_cloud/point_cloud_test.cc"
     "${draco_src_root}/c_api/c_api_test.cc")
 
+list(APPEND draco_test_lib_deps
+            draco_static
+            draco_gtest
+            draco_gtest_main)
+
+if(DRACO_C_API)
+  list(APPEND draco_test_lib_deps cdraco_static)
+endif()
+
 list(APPEND draco_gtest_all
             "${draco_root}/../googletest/googletest/src/gtest-all.cc")
 list(APPEND draco_gtest_main
@@ -113,9 +122,7 @@ macro(draco_setup_test_targets)
                          INCLUDES
                          ${draco_test_include_paths}
                          LIB_DEPS
-                         draco_static
-                         draco_gtest
-                         draco_gtest_main)
+                         ${draco_test_lib_deps})
 
     draco_add_executable(NAME
                          draco_factory_tests
@@ -127,8 +134,6 @@ macro(draco_setup_test_targets)
                          INCLUDES
                          ${draco_test_include_paths}
                          LIB_DEPS
-                         draco_static
-                         draco_gtest
-                         draco_gtest_main)
+                         ${draco_test_lib_deps})
   endif()
 endmacro()

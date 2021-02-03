@@ -22,17 +22,17 @@
 extern "C" {
 #endif
 
-// If compiling with Visual Studio.
 #ifdef _WIN32
-# ifdef DRACO_BUILDING_DLL
+# if defined(DRACO_BUILDING_DLL)
 #  define EXPORT_API __declspec(dllexport)
-# else
+# elif !defined(DRACO_STATIC)
 #  define EXPORT_API __declspec(dllimport)
+# else
+#  define EXPORT_API
 # endif
 #elif __GNUC__ >= 4 || defined(__clang__)
 # define EXPORT_API __attribute__((visibility ("default")))
 #else
-// Other platforms don't need this.
  #define EXPORT_API
 #endif  // defined(_WIN32)
 
