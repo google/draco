@@ -6,7 +6,7 @@ set(DRACO_CMAKE_DRACO_BUILD_DEFINITIONS_CMAKE_ 1)
 # Utility for controlling the main draco library dependency. This changes in
 # shared builds, and when an optional target requires a shared library build.
 macro(set_draco_target)
-  if(MSVC OR WIN32)
+  if(MSVC)
     set(draco_dependency draco)
     set(draco_plugin_dependency ${draco_dependency})
   else()

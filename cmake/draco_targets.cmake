@@ -163,7 +163,7 @@ endmacro()
 # cmake-format: off
 #   - OUTPUT_NAME: Override output file basename. Target basename defaults to
 #     NAME. OUTPUT_NAME is ignored when BUILD_SHARED_LIBS is enabled and CMake
-#     is generating a build for which MSVC or WIN32 are true. This is to avoid
+#     is generating a build for which MSVC are true. This is to avoid
 #     output basename collisions with DLL import libraries.
 #   - TEST: Flag. Presence means treat library as a test.
 #   - DEFINES: List of preprocessor macro definitions.
@@ -259,7 +259,7 @@ macro(draco_add_library)
   endif()
 
   if(lib_OUTPUT_NAME)
-    if(NOT (BUILD_SHARED_LIBS AND (MSVC OR WIN32)))
+    if(NOT (BUILD_SHARED_LIBS AND MSVC))
       set_target_properties(${lib_NAME}
                             PROPERTIES OUTPUT_NAME ${lib_OUTPUT_NAME})
     endif()
