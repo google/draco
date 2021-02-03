@@ -57,7 +57,7 @@ TEST(DracoCAPITest, TestDecode) {
   ASSERT_NE(mesh, nullptr);
   auto num_faces = dracoMeshNumFaces(mesh);
   ASSERT_EQ(num_faces, 170);
-  ASSERT_EQ(dracoPointCloudNumPoints(mesh), 99);
+  ASSERT_EQ(dracoMeshNumPoints(mesh), 99);
 
   auto indices_size = 3 * num_faces * sizeof(uint32_t);
   uint32_t *indices = (uint32_t *)malloc(indices_size);
