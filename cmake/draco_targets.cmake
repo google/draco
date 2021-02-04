@@ -110,10 +110,11 @@ macro(draco_add_executable)
 
   if(exe_LINK_FLAGS OR DRACO_EXE_LINKER_FLAGS)
     if(${CMAKE_VERSION} VERSION_LESS "3.13")
-      set(link_flags ${exe_LINK_FLAGS} ${DRACO_EXE_LINKER_FLAGS})
+      list(APPEND exe_LINK_FLAGS "${DRACO_EXE_LINKER_FLAGS}")
+      # LINK_FLAGS is managed as a string.
+      draco_set_and_stringify(SOURCE "${exe_LINK_FLAGS}" DEST exe_LINK_FLAGS)
       set_target_properties(${exe_NAME}
-                            PROPERTIES LINK_FLAGS ${exe_LINK_FLAGS}
-                                       ${DRACO_EXE_LINKER_FLAGS})
+                            PROPERTIES LINK_FLAGS "${exe_LINK_FLAGS}")
     else()
       target_link_options(${exe_NAME} PRIVATE ${exe_LINK_FLAGS}
                           ${DRACO_EXE_LINKER_FLAGS})
