@@ -163,8 +163,8 @@ endmacro()
 # cmake-format: off
 #   - OUTPUT_NAME: Override output file basename. Target basename defaults to
 #     NAME. OUTPUT_NAME is ignored when BUILD_SHARED_LIBS is enabled and CMake
-#     is generating a build for which MSVC are true. This is to avoid
-#     output basename collisions with DLL import libraries.
+#     is generating a build for which MSVC is true. This is to avoid output
+#     basename collisions with DLL import libraries.
 #   - TEST: Flag. Presence means treat library as a test.
 #   - DEFINES: List of preprocessor macro definitions.
 #   - INCLUDES: list of include directories for the target.
