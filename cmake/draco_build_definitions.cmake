@@ -114,4 +114,6 @@ macro(draco_set_build_definitions)
     draco_check_emscripten_environment()
     draco_get_required_emscripten_flags(FLAG_LIST_VAR draco_base_cxx_flags)
   endif()
+
+  draco_configure_sanitizer()
 endmacro()
