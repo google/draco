@@ -321,7 +321,7 @@ macro(draco_add_library)
   endif()
 
   # VERSION and SOVERSION as necessary
-  if(NOT lib_TYPE STREQUAL STATIC)
+  if(NOT lib_TYPE STREQUAL STATIC AND NOT lib_TYPE STREQUAL MODULE)
     set_target_properties(${lib_NAME} PROPERTIES VERSION ${DRACO_VERSION})
     if(NOT MSVC)
       set_target_properties(${lib_NAME} PROPERTIES SOVERSION ${DRACO_SOVERSION})
