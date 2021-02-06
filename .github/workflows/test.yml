@@ -31,5 +31,7 @@ jobs:
         env:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
+      - run: make -j10
+        working-directory: ./_gh_build
       - run: ./draco_tests
         working-directory: ./_gh_build
