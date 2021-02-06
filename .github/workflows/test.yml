@@ -1,0 +1,35 @@
+on: [push, pull_request]
+name: Test
+jobs:
+  test:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            cc: gcc-10
+            cxx: g++-10
+            generator: Unix Makefiles
+          - os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+            generator: Unix Makefiles
+          - os: macos-latest
+            cc: gcc-10
+            cxx: g++-10
+            generator: Unix Makefiles
+          - os: windows-latest
+            cc: x86_64-w64-mingw32-gcc
+            cxx: x86_64-w64-mingw32-g++
+            generator: MinGW Makefiles
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - run: git clone https://github.com/google/googletest.git ../googletest
+      - run: mkdir _gh_build
+      - run: cmake -G "${{ matrix.generator }}" -DENABLE_TESTS=ON ..
+        working-directory: ./_gh_build
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+      - run: ./draco_tests
+        working-directory: ./_gh_build
