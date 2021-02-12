@@ -21,6 +21,7 @@
 #include "draco/core/status_or.h"
 #include "draco/draco_features.h"
 #include "draco/mesh/mesh.h"
+#include "draco/compression/mesh/mesh_decoder.h"
 
 namespace draco {
 
@@ -50,13 +51,17 @@ class Decoder {
   StatusOr<std::unique_ptr<Mesh>> DecodeMeshFromBuffer(
       DecoderBuffer *in_buffer);
 
+  StatusOr<std::unique_ptr<Mesh>> DecodeMeshFromBufferStep1(DecoderBuffer *in_buffer);
+  Status DecodeMeshFromBufferStep2();
+
   // Decodes the buffer into a provided geometry. If the geometry is
   // incompatible with the encoded data. For example, when |out_geometry| is
   // draco::Mesh while the data contains a point cloud, the function will return
   // an error status.
   Status DecodeBufferToGeometry(DecoderBuffer *in_buffer,
                                 PointCloud *out_geometry);
-  Status DecodeBufferToGeometry(DecoderBuffer *in_buffer, Mesh *out_geometry);
+  Status DecodeBufferToGeometryStep1(DecoderBuffer *in_buffer, Mesh *out_geometry);
+  Status DecodeBufferToGeometryStep2();
 
   // When set, the decoder is going to skip attribute transform for a given
   // attribute type. For example for quantized attributes, the decoder would
@@ -73,6 +78,8 @@ class Decoder {
 
  private:
   DecoderOptions options_;
+  std::unique_ptr<Mesh> mesh_;
+  std::unique_ptr<MeshDecoder> decoder_;
 };
 
 }  // namespace draco

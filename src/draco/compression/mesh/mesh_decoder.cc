@@ -18,10 +18,14 @@ namespace draco {
 
 MeshDecoder::MeshDecoder() : mesh_(nullptr) {}
 
-Status MeshDecoder::Decode(const DecoderOptions &options,
+Status MeshDecoder::DecodeStep1(const DecoderOptions &options,
                            DecoderBuffer *in_buffer, Mesh *out_mesh) {
   mesh_ = out_mesh;
-  return PointCloudDecoder::Decode(options, in_buffer, out_mesh);
+  return PointCloudDecoder::DecodeStep1(options, in_buffer, out_mesh);
+}
+
+Status MeshDecoder::DecodeStep2() {
+    return PointCloudDecoder::DecodeStep2();
 }
 
 bool MeshDecoder::DecodeGeometryData() {

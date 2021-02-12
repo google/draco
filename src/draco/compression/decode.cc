@@ -90,6 +90,18 @@ StatusOr<std::unique_ptr<Mesh>> Decoder::DecodeMeshFromBuffer(
   return std::move(mesh);
 }
 
+StatusOr<std::unique_ptr<Mesh>> Decoder::DecodeMeshFromBufferStep1(
+    DecoderBuffer *in_buffer) {
+  mesh_ = std::unique_ptr<Mesh>(new Mesh());
+  DRACO_RETURN_IF_ERROR(DecodeBufferToGeometryStep1(in_buffer, mesh_.get()))
+  return std::move(mesh_);
+}
+
+Status Decoder::DecodeMeshFromBufferStep2() {
+  DRACO_RETURN_IF_ERROR(DecodeBufferToGeometryStep2())
+  return OkStatus();
+}
+
 Status Decoder::DecodeBufferToGeometry(DecoderBuffer *in_buffer,
                                        PointCloud *out_geometry) {
 #ifdef DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED
@@ -109,7 +121,7 @@ Status Decoder::DecodeBufferToGeometry(DecoderBuffer *in_buffer,
 #endif
 }
 
-Status Decoder::DecodeBufferToGeometry(DecoderBuffer *in_buffer,
+Status Decoder::DecodeBufferToGeometryStep1(DecoderBuffer *in_buffer,
                                        Mesh *out_geometry) {
 #ifdef DRACO_MESH_COMPRESSION_SUPPORTED
   DecoderBuffer temp_buffer(*in_buffer);
@@ -118,10 +130,29 @@ Status Decoder::DecodeBufferToGeometry(DecoderBuffer *in_buffer,
   if (header.encoder_type != TRIANGULAR_MESH) {
     return Status(Status::DRACO_ERROR, "Input is not a mesh.");
   }
-  DRACO_ASSIGN_OR_RETURN(std::unique_ptr<MeshDecoder> decoder,
+  DRACO_ASSIGN_OR_RETURN(decoder_,
                          CreateMeshDecoder(header.encoder_method))
 
-  DRACO_RETURN_IF_ERROR(decoder->Decode(options_, in_buffer, out_geometry))
+  {
+    const draco::Status _local_status = decoder_->DecodeStep1(options_, in_buffer, out_geometry);
+    if (!_local_status.ok()) {
+      decoder_.reset();
+      return _local_status;
+    }
+  }
+  return OkStatus();
+#else
+  return Status(Status::DRACO_ERROR, "Unsupported geometry type.");
+#endif
+}
+
+Status Decoder::DecodeBufferToGeometryStep2() {
+#ifdef DRACO_MESH_COMPRESSION_SUPPORTED
+  const draco::Status _local_status = decoder_->DecodeStep2();
+  decoder_.reset();
+  if (!_local_status.ok()) {
+    return _local_status;
+  }
   return OkStatus();
 #else
   return Status(Status::DRACO_ERROR, "Unsupported geometry type.");

@@ -81,8 +81,10 @@ void EXPORT_API ReleaseDracoData(DracoData **data_ptr);
 
 // Decodes compressed Draco mesh in |data| and returns |mesh|. On input, |mesh|
 // must be null. The returned |mesh| must be released with ReleaseDracoMesh.
-int EXPORT_API DecodeDracoMesh(char *data, unsigned int length,
-                               DracoMesh **mesh);
+int EXPORT_API DecodeDracoMeshStep1(char *data, unsigned int length,
+                                    DracoMesh **mesh, draco::Decoder** decoder,draco::DecoderBuffer** buffer);
+int EXPORT_API DecodeDracoMeshStep2(DracoMesh **mesh,draco::Decoder* decoder, draco::DecoderBuffer* buffer);
+
 
 // Returns |attribute| at |index| in |mesh|.  On input, |attribute| must be
 // null. The returned |attribute| must be released with ReleaseDracoAttribute.

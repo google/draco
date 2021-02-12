@@ -152,14 +152,20 @@ void EXPORT_API ReleaseDracoData(DracoData **data_ptr) {
   *data_ptr = nullptr;
 }
 
-int EXPORT_API DecodeDracoMesh(char *data, unsigned int length,
-                               DracoMesh **mesh) {
+int EXPORT_API DecodeDracoMeshStep1(
+                                    char *data,
+                                    unsigned int length,
+                                    DracoMesh **mesh,
+                                    draco::Decoder** decoder,
+                                    draco::DecoderBuffer** buffer
+                                    )
+{
   if (mesh == nullptr || *mesh != nullptr) {
     return -1;
   }
-  draco::DecoderBuffer buffer;
-  buffer.Init(data, length);
-  auto type_statusor = draco::Decoder::GetEncodedGeometryType(&buffer);
+  *buffer = new draco::DecoderBuffer();
+  (*buffer)->Init(data, length);
+  auto type_statusor = draco::Decoder::GetEncodedGeometryType(*buffer);
   if (!type_statusor.ok()) {
     // TODO(draco-eng): Use enum instead.
     return -2;
@@ -169,21 +175,32 @@ int EXPORT_API DecodeDracoMesh(char *data, unsigned int length,
     return -3;
   }
 
-  draco::Decoder decoder;
-  auto statusor = decoder.DecodeMeshFromBuffer(&buffer);
+  *mesh = new DracoMesh();
+  *decoder = new draco::Decoder();
+  auto statusor = (*decoder)->DecodeMeshFromBufferStep1(*buffer);
   if (!statusor.ok()) {
     return -4;
   }
+
   std::unique_ptr<draco::Mesh> in_mesh = std::move(statusor).value();
 
-  *mesh = new DracoMesh();
   DracoMesh *const unity_mesh = *mesh;
   unity_mesh->num_faces = in_mesh->num_faces();
   unity_mesh->num_vertices = in_mesh->num_points();
   unity_mesh->num_attributes = in_mesh->num_attributes();
   unity_mesh->private_mesh = static_cast<void *>(in_mesh.release());
 
-  return unity_mesh->num_faces;
+  return 0;
+}
+
+int EXPORT_API DecodeDracoMeshStep2(DracoMesh **mesh,draco::Decoder* decoder, draco::DecoderBuffer* buffer) {
+  auto status = decoder->DecodeMeshFromBufferStep2();
+  delete decoder;
+  delete buffer;
+  if (!status.ok()) {
+    return -4;
+  }
+  return 0;
 }
 
 bool EXPORT_API GetAttribute(const DracoMesh *mesh, int index,

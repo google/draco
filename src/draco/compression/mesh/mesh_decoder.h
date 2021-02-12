@@ -33,9 +33,12 @@ class MeshDecoder : public PointCloudDecoder {
   }
 
   // The main entry point for mesh decoding.
-  Status Decode(const DecoderOptions &options, DecoderBuffer *in_buffer,
+  Status DecodeStep1(const DecoderOptions &options, DecoderBuffer *in_buffer,
                 Mesh *out_mesh);
 
+  // The main entry point for mesh decoding.
+  Status DecodeStep2();
+    
   // Returns the base connectivity of the decoded mesh (or nullptr if it is not
   // initialized).
   virtual const CornerTable *GetCornerTable() const { return nullptr; }
