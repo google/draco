@@ -67,23 +67,65 @@ T *CopyAttributeData(int num_points, const draco::PointAttribute *attr) {
   return data;
 }
 
+// Returns the attribute data in |attr| as an array of type T.
+template <typename T>
+T *CopyAttributeDataFlipped(int num_points, const draco::PointAttribute *attr) {
+  const int num_components = attr->num_components();
+  T *const data = new T[num_points * num_components];
+
+  for (draco::PointIndex i(0); i < num_points; ++i) {
+    const draco::AttributeValueIndex val_index = attr->mapped_index(i);
+    bool got_data = false;
+    T* outPtr = data + i.value() * num_components;
+    switch (num_components) {
+      case 1:
+        got_data = attr->ConvertValue<T, 1>(val_index,outPtr);
+        break;
+      case 2:
+        got_data = attr->ConvertValue<T, 2>(val_index,outPtr);
+        // Texture coordinate right-handed top left to left-handed lower left conversion
+        *(outPtr+1) = 1-*(outPtr+1);
+        break;
+      case 3:
+        got_data = attr->ConvertValue<T, 3>(val_index,outPtr);
+        // Position/Normal right-hand to left-handed coordinate system switch: flip Z axis
+        *(outPtr+2) *= -1;
+        break;
+      case 4:
+        got_data = attr->ConvertValue<T, 4>(val_index,outPtr);
+        // Tangent right-hand to left-handed coordinate system switch: flip X and Z axis
+        *(outPtr) *= -1;
+        *(outPtr+2) *= -1;
+        break;
+      default:
+        break;
+    }
+    if (!got_data) {
+      delete[] data;
+      return nullptr;
+    }
+  }
+
+  return data;
+}
+
 // Returns the attribute data in |attr| as an array of void*.
-void *ConvertAttributeData(int num_points, const draco::PointAttribute *attr) {
+void *ConvertAttributeData(int num_points, const draco::PointAttribute *attr, bool flip) {
   switch (attr->data_type()) {
     case draco::DataType::DT_INT8:
-      return static_cast<void *>(CopyAttributeData<int8_t>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<int8_t>(num_points, attr) : CopyAttributeData<int8_t>(num_points, attr));
     case draco::DataType::DT_UINT8:
-      return static_cast<void *>(CopyAttributeData<uint8_t>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<uint8_t>(num_points, attr) : CopyAttributeData<uint8_t>(num_points, attr));
     case draco::DataType::DT_INT16:
-      return static_cast<void *>(CopyAttributeData<int16_t>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<int16_t>(num_points, attr) : CopyAttributeData<int16_t>(num_points, attr));
     case draco::DataType::DT_UINT16:
-      return static_cast<void *>(CopyAttributeData<uint16_t>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<uint16_t>(num_points, attr) : CopyAttributeData<uint16_t>(num_points, attr));
     case draco::DataType::DT_INT32:
-      return static_cast<void *>(CopyAttributeData<int32_t>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<int32_t>(num_points, attr) : CopyAttributeData<int32_t>(num_points, attr));
     case draco::DataType::DT_UINT32:
-      return static_cast<void *>(CopyAttributeData<uint32_t>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<uint32_t>(num_points, attr) : CopyAttributeData<uint32_t>(num_points, attr));
     case draco::DataType::DT_FLOAT32:
-      return static_cast<void *>(CopyAttributeData<float>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<float>(num_points, attr) : CopyAttributeData<float>(num_points, attr));
     default:
       return nullptr;
   }
@@ -248,16 +290,27 @@ bool EXPORT_API GetAttributeByUniqueId(const DracoMesh *mesh, int unique_id,
   return true;
 }
 
-bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DracoData **indices) {
+bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DracoData **indices, bool flip) {
   if (mesh == nullptr || indices == nullptr || *indices != nullptr) {
     return false;
   }
   const Mesh *const m = static_cast<const Mesh *>(mesh->private_mesh);
   int *const temp_indices = new int[m->num_faces() * 3];
-  for (draco::FaceIndex face_id(0); face_id < m->num_faces(); ++face_id) {
-    const Mesh::Face &face = m->face(draco::FaceIndex(face_id));
-    memcpy(temp_indices + face_id.value() * 3,
+  if(flip) {
+    for (draco::FaceIndex face_id(0); face_id < m->num_faces(); ++face_id) {
+      const Mesh::Face &face = m->face(draco::FaceIndex(face_id));
+      int32_t* const dest = temp_indices + face_id.value() * 3;
+      const int32_t* src = reinterpret_cast<const int *>(face.data());
+      *dest = *src;
+      *(dest+1) = *(src+2);
+      *(dest+2) = *(src+1);
+    }
+  } else {
+    for (draco::FaceIndex face_id(0); face_id < m->num_faces(); ++face_id) {
+      const Mesh::Face &face = m->face(draco::FaceIndex(face_id));
+      memcpy(temp_indices + face_id.value() * 3,
            reinterpret_cast<const int *>(face.data()), sizeof(int) * 3);
+    }
   }
   DracoData *const draco_data = new DracoData();
   draco_data->data = temp_indices;
@@ -268,7 +321,7 @@ bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DracoData **indices) {
 
 bool EXPORT_API GetAttributeData(const DracoMesh *mesh,
                                  const DracoAttribute *attribute,
-                                 DracoData **data) {
+                                 DracoData **data, bool flip) {
   if (mesh == nullptr || data == nullptr || *data != nullptr) {
     return false;
   }
@@ -276,7 +329,7 @@ bool EXPORT_API GetAttributeData(const DracoMesh *mesh,
   const PointAttribute *const attr =
       static_cast<const PointAttribute *>(attribute->private_attribute);
 
-  void *temp_data = ConvertAttributeData(m->num_points(), attr);
+  void *temp_data = ConvertAttributeData(m->num_points(), attr, flip);
   if (temp_data == nullptr) {
     return false;
   }
