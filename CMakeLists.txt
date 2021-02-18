@@ -533,6 +533,10 @@ list(APPEND draco_unity_plug_sources
             "${draco_src_root}/unity/draco_unity_plugin.cc"
             "${draco_src_root}/unity/draco_unity_plugin.h")
 
+list(APPEND draco_unity_enc_plug_sources
+            "${draco_src_root}/unity/draco_unity_enc_plugin.cc"
+            "${draco_src_root}/unity/draco_unity_enc_plugin.h")
+
 list(APPEND draco_maya_plug_sources
             "${draco_src_root}/maya/draco_maya_plugin.cc"
             "${draco_src_root}/maya/draco_maya_plugin.h")
@@ -1070,9 +1074,25 @@ else()
       OBJLIB_DEPS draco_unity_plugin
       LIB_DEPS ${draco_plugin_dependency})
 
+    draco_add_library(
+      NAME draco_unity_enc_plugin
+      TYPE OBJECT
+      SOURCES ${draco_unity_enc_plug_sources}
+      DEFINES ${draco_defines}
+      INCLUDES ${draco_include_paths})
+
+    draco_add_library(
+      NAME dracoenc_unity
+      TYPE ${unity_decoder_lib_type}
+      DEFINES ${draco_defines}
+      INCLUDES ${draco_include_paths}
+      OBJLIB_DEPS draco_unity_enc_plugin
+      LIB_DEPS ${draco_plugin_dependency})
+
     # For Mac, we need to build a .bundle for the unity plugin.
     if(APPLE)
       set_target_properties(dracodec_unity PROPERTIES BUNDLE true)
+      set_target_properties(dracoenc_unity PROPERTIES BUNDLE true)
     endif()
     if(IOS)
       # Workaround to ensure bitcode is generated when
