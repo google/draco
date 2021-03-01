@@ -17,6 +17,10 @@
 
 // No idea why, but if this (or any other draco header) is not included DRACO_UNITY_PLUGIN is not defined
 #include "draco/core/draco_types.h"
+#include "draco/mesh/mesh.h"
+#include "draco/core/encoder_buffer.h"
+#include "draco/compression/encode.h"
+
 
 #ifdef DRACO_UNITY_PLUGIN
 
@@ -30,15 +34,42 @@
 
 namespace draco {
 
+  struct DracoEncoder
+  {
+      draco::Mesh mesh;
+      uint32_t encodedVertices;
+      uint32_t encodedIndices;
+      std::vector<std::unique_ptr<draco::DataBuffer>> buffers;
+      draco::EncoderBuffer encoderBuffer;
+      uint32_t speed = 0;
+      std::size_t rawSize = 0;
+      struct
+      {
+          uint32_t position = 14;
+          uint32_t normal = 10;
+          uint32_t uv = 12;
+          uint32_t color = 10;
+          uint32_t generic = 12;
+      } quantization;
+  };
+
+  template<class T>
+  void dracoEncodeIndices(DracoEncoder *encoder, uint32_t indexCount, T *indices);
+
 extern "C" {
 
-  void* EXPORT_API CreateDracoMeshEncoder( uint32_t faceCount );
-  int EXPORT_API DracoMeshAddAttribute(void * dracoMesh, int attributeType, DataType dataType, int numComponents);
-  void EXPORT_API DracoMeshAddFaceValues(void * dracoMesh, int faceIndex, int attributeId, int numComponents, const char* data0, const char* data1, const char* data2);
-  void EXPORT_API DracoMeshCreateEncoder(void* dracoMesh, void **meshPtr, void** encoderPtr);
-  void EXPORT_API DracoMeshSetAttributeQuantization(void* encoderPtr, int attributeId, int quantization);
-  void EXPORT_API DracoMeshFinalize(void* dracoMesh, void* encoderPtr, void* meshPtr, void** bufferPtr, const char** result, int* size);
-  void EXPORT_API ReleaseDracoMeshBuffer(void * bufferPtr);
+  DracoEncoder * EXPORT_API dracoEncoderCreate(uint32_t vertexCount);
+  void EXPORT_API dracoEncoderRelease(DracoEncoder *encoder);
+  void EXPORT_API dracoEncoderSetCompressionSpeed(DracoEncoder *encoder, uint32_t speedLevel);
+  void EXPORT_API dracoEncoderSetQuantizationBits(DracoEncoder *encoder, uint32_t position, uint32_t normal, uint32_t uv, uint32_t color, uint32_t generic);
+  bool EXPORT_API dracoEncoderEncode(DracoEncoder *encoder, uint8_t preserveTriangleOrder);
+  uint32_t EXPORT_API dracoEncoderGetEncodedVertexCount(DracoEncoder *encoder);
+  uint32_t EXPORT_API dracoEncoderGetEncodedIndexCount(DracoEncoder *encoder);
+  uint64_t EXPORT_API dracoEncoderGetByteLength(DracoEncoder *encoder);
+  void EXPORT_API dracoEncoderCopy(DracoEncoder *encoder, uint8_t *data);
+  bool EXPORT_API dracoEncoderSetIndices(DracoEncoder *encoder, DataType indexComponentType, uint32_t indexCount, void *indices);
+  uint32_t EXPORT_API dracoEncoderSetAttribute(DracoEncoder *encoder, GeometryAttribute::Type attributeType, draco::DataType dracoDataType, int32_t componentCount, int32_t stride, void *data);
+
 }  // extern "C"
 
 }  // namespace draco

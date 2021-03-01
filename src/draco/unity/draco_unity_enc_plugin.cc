@@ -17,61 +17,159 @@
 
 #ifdef DRACO_UNITY_PLUGIN
 
-#include "draco/mesh/triangle_soup_mesh_builder.h"
-#include "draco/compression/expert_encode.h"
+#include <memory>
 
 namespace draco {
 
-  void* EXPORT_API CreateDracoMeshEncoder( uint32_t faceCount ) {
-    auto mesh_builder = new TriangleSoupMeshBuilder();
-    mesh_builder->Start(faceCount);
-    return mesh_builder;
+  DracoEncoder * dracoEncoderCreate(uint32_t vertexCount)
+  {
+      DracoEncoder *encoder = new DracoEncoder;
+      encoder->mesh.set_num_points(vertexCount);
+      return encoder;
   }
 
-  int EXPORT_API DracoMeshAddAttribute(void * dracoMesh, int attributeType, DataType dataType, int numComponents) {
-    TriangleSoupMeshBuilder *const mesh_builder = static_cast<TriangleSoupMeshBuilder *>(dracoMesh);
-    return mesh_builder->AddAttribute((GeometryAttribute::Type)attributeType, numComponents, dataType);
+  void dracoEncoderRelease(DracoEncoder *encoder)
+  {
+      delete encoder;
   }
 
-  void EXPORT_API DracoMeshAddFaceValues(void * dracoMesh, int faceIndex, int attributeId, int numComponents, const char* data0, const char* data1, const char* data2) {
-    TriangleSoupMeshBuilder *const mesh_builder = static_cast<TriangleSoupMeshBuilder *>(dracoMesh);
-    mesh_builder->SetAttributeValuesForFace(attributeId, draco::FaceIndex(faceIndex), data0, data1, data2);
+  void dracoEncoderSetCompressionSpeed(DracoEncoder *encoder, uint32_t speedLevel) {
+      encoder->speed = speedLevel;
   }
 
-  void EXPORT_API DracoMeshCreateEncoder(void* dracoMesh, void **meshPtr, void** encoderPtr) {
-    TriangleSoupMeshBuilder *const mesh_builder = static_cast<TriangleSoupMeshBuilder *>(dracoMesh);
-    auto mesh = mesh_builder->Finalize();
-    *encoderPtr = new draco::ExpertEncoder(*mesh);
-    *meshPtr = mesh.release();
+  void dracoEncoderSetQuantizationBits(DracoEncoder *encoder, uint32_t position, uint32_t normal, uint32_t uv, uint32_t color, uint32_t generic)
+  {
+      encoder->quantization.position = position;
+      encoder->quantization.normal = normal;
+      encoder->quantization.uv = uv;
+      encoder->quantization.color = color;
+      encoder->quantization.generic = generic;
   }
 
-  void EXPORT_API DracoMeshSetAttributeQuantization(void* encoderPtr, int attributeId, int quantization) {
-    ExpertEncoder *const encoder = static_cast<ExpertEncoder *>(encoderPtr);
-    encoder->SetAttributeQuantization(attributeId, quantization);
+  bool dracoEncoderEncode(DracoEncoder *encoder, uint8_t preserveTriangleOrder)
+  {
+      draco::Encoder dracoEncoder;
+      dracoEncoder.SetSpeedOptions(encoder->speed, encoder->speed);
+      dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, encoder->quantization.position);
+      dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::NORMAL, encoder->quantization.normal);
+      dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::TEX_COORD, encoder->quantization.uv);
+      dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::COLOR, encoder->quantization.color);
+      dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::GENERIC, encoder->quantization.generic);
+      dracoEncoder.SetTrackEncodedProperties(true);
+      
+      if (preserveTriangleOrder) {
+          dracoEncoder.SetEncodingMethod(draco::MESH_SEQUENTIAL_ENCODING);
+      }
+      
+      auto encoderStatus = dracoEncoder.EncodeMeshToBuffer(encoder->mesh, &encoder->encoderBuffer);
+      if (encoderStatus.ok()) {
+          encoder->encodedVertices = static_cast<uint32_t>(dracoEncoder.num_encoded_points());
+          encoder->encodedIndices = static_cast<uint32_t>(dracoEncoder.num_encoded_faces() * 3);
+          return true;
+      } else {
+          return false;
+      }
   }
 
-  void EXPORT_API DracoMeshFinalize(void* dracoMesh, void* encoderPtr, void* meshPtr, void** bufferPtr, const char** result, int* size) {
-    TriangleSoupMeshBuilder *const mesh_builder = static_cast<TriangleSoupMeshBuilder *>(dracoMesh);
-    ExpertEncoder *const encoder = static_cast<ExpertEncoder *>(encoderPtr);
-
-    encoder->SetSpeedOptions(0,0);
-    encoder->SetTrackEncodedProperties(true);
-
-    auto buffer = new EncoderBuffer();
-    encoder->EncodeToBuffer(buffer);
-
-    delete mesh_builder;
-    delete (ExpertEncoder*) encoder;
-    delete (Mesh*) meshPtr;
-
-    *bufferPtr = buffer;
-    *result = buffer->data();
-    *size = buffer->size();
+  uint32_t dracoEncoderGetEncodedVertexCount(DracoEncoder *encoder)
+  {
+      return encoder->encodedVertices;
   }
 
-  void EXPORT_API ReleaseDracoMeshBuffer(void * bufferPtr) {
-    EncoderBuffer *const buffer = static_cast<EncoderBuffer *>(bufferPtr);
-    delete buffer;
+  uint32_t dracoEncoderGetEncodedIndexCount(DracoEncoder *encoder)
+  {
+      return encoder->encodedIndices;
+  }
+
+  uint64_t dracoEncoderGetByteLength(DracoEncoder *encoder)
+  {
+      return encoder->encoderBuffer.size();
+  }
+
+  void dracoEncoderCopy(DracoEncoder *encoder, uint8_t *data)
+  {
+      memcpy(data, encoder->encoderBuffer.data(), encoder->encoderBuffer.size());
+  }
+
+  bool dracoEncodeIndices(DracoEncoder *encoder, uint32_t indexCount, DataType indexType, void *indices)
+  {
+    switch (indexType)
+    {
+    case DataType::DT_UINT16:
+      dracoEncodeIndices<uint16_t>(encoder,indexCount,static_cast<uint16_t*>(indices));
+      break;
+    case DataType::DT_UINT32:
+      dracoEncodeIndices<uint32_t>(encoder,indexCount,static_cast<uint32_t*>(indices));
+      break;
+    default:
+      return false;
+    }
+
+    return true;
+  }
+
+  template<class T>
+  void dracoEncodeIndices(DracoEncoder *encoder, uint32_t indexCount, T *indices)
+  {
+      int face_count = indexCount / 3;
+      encoder->mesh.SetNumFaces(static_cast<size_t>(face_count));
+      encoder->rawSize += indexCount * sizeof(T);
+      
+      for (int i = 0; i < face_count; ++i)
+      {
+          draco::Mesh::Face face = {
+              draco::PointIndex(indices[3 * i + 0]),
+              draco::PointIndex(indices[3 * i + 1]),
+              draco::PointIndex(indices[3 * i + 2])
+          };
+          encoder->mesh.SetFace(draco::FaceIndex(static_cast<uint32_t>(i)), face);
+      }
+  }
+
+  bool dracoEncoderSetIndices(DracoEncoder *encoder, DataType indexComponentType, uint32_t indexCount, void *indices)
+  {
+      switch (indexComponentType)
+      {
+          case DataType::DT_INT8:
+              dracoEncodeIndices(encoder, indexCount, reinterpret_cast<int8_t *>(indices));
+              break;
+          case DataType::DT_UINT8:
+              dracoEncodeIndices(encoder, indexCount, reinterpret_cast<uint8_t *>(indices));
+              break;
+          case DataType::DT_INT16:
+              dracoEncodeIndices(encoder, indexCount, reinterpret_cast<int16_t *>(indices));
+              break;
+          case DataType::DT_UINT16:
+              dracoEncodeIndices(encoder, indexCount, reinterpret_cast<uint16_t *>(indices));
+              break;
+          case DataType::DT_UINT32:
+              dracoEncodeIndices(encoder, indexCount, reinterpret_cast<uint32_t *>(indices));
+              break;
+          default:
+              return false;
+      }
+      return true;
+  }
+
+  uint32_t dracoEncoderSetAttribute(DracoEncoder *encoder, GeometryAttribute::Type attributeType, draco::DataType dracoDataType, int32_t componentCount, int32_t stride, void *data)
+  {
+      auto buffer = std::unique_ptr<draco::DataBuffer>( new draco::DataBuffer());
+      uint32_t count = encoder->mesh.num_points();
+
+      draco::GeometryAttribute attribute;
+      attribute.Init(attributeType, &*buffer, componentCount, dracoDataType, false, stride, 0);
+
+      auto id = static_cast<uint32_t>(encoder->mesh.AddAttribute(attribute, true, count));
+      auto dataBytes = reinterpret_cast<uint8_t *>(data);
+
+      for (uint32_t i = 0; i < count; i++)
+      {
+          encoder->mesh.attribute(id)->SetAttributeValue(draco::AttributeValueIndex(i), dataBytes + i * stride);
+      }
+
+      encoder->buffers.emplace_back(std::move(buffer));
+      encoder->rawSize += count * stride;
+      return id;
   }
 
 }  // namespace draco
