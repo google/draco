@@ -1049,7 +1049,7 @@ else()
   endif()
 
   if(DRACO_UNITY_PLUGIN)
-    if(IOS)
+    if(IOS OR EMSCRIPTEN)
       set(unity_decoder_lib_type STATIC)
     else()
       set(unity_decoder_lib_type MODULE)
