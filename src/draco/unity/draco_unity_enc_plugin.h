@@ -15,6 +15,9 @@
 #ifndef DRACO_UNITY_ENC_DRACO_UNITY_PLUGIN_H_
 #define DRACO_UNITY_ENC_DRACO_UNITY_PLUGIN_H_
 
+// No idea why, but if this (or any other draco header) is not included DRACO_UNITY_PLUGIN is not defined
+#include "draco/core/draco_types.h"
+
 #ifdef DRACO_UNITY_PLUGIN
 
 // If compiling with Visual Studio.
@@ -32,7 +35,9 @@ extern "C" {
   void* EXPORT_API CreateDracoMeshEncoder( uint32_t faceCount );
   int EXPORT_API DracoMeshAddAttribute(void * dracoMesh, int attributeType, DataType dataType, int numComponents);
   void EXPORT_API DracoMeshAddFaceValues(void * dracoMesh, int faceIndex, int attributeId, int numComponents, const char* data0, const char* data1, const char* data2);
-  void EXPORT_API DracoMeshFinalize(void* dracoMesh, void** bufferPtr, const char** result, int* size);
+  void EXPORT_API DracoMeshCreateEncoder(void* dracoMesh, void **meshPtr, void** encoderPtr);
+  void EXPORT_API DracoMeshSetAttributeQuantization(void* encoderPtr, int attributeId, int quantization);
+  void EXPORT_API DracoMeshFinalize(void* dracoMesh, void* encoderPtr, void* meshPtr, void** bufferPtr, const char** result, int* size);
   void EXPORT_API ReleaseDracoMeshBuffer(void * bufferPtr);
 }  // extern "C"
 

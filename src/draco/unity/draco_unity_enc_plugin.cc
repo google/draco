@@ -17,6 +17,9 @@
 
 #ifdef DRACO_UNITY_PLUGIN
 
+#include "draco/mesh/triangle_soup_mesh_builder.h"
+#include "draco/compression/expert_encode.h"
+
 namespace draco {
 
   void* EXPORT_API CreateDracoMeshEncoder( uint32_t faceCount ) {
@@ -35,20 +38,31 @@ namespace draco {
     mesh_builder->SetAttributeValuesForFace(attributeId, draco::FaceIndex(faceIndex), data0, data1, data2);
   }
 
-  void EXPORT_API DracoMeshFinalize(void* dracoMesh, void** bufferPtr, const char** result, int* size) {
+  void EXPORT_API DracoMeshCreateEncoder(void* dracoMesh, void **meshPtr, void** encoderPtr) {
     TriangleSoupMeshBuilder *const mesh_builder = static_cast<TriangleSoupMeshBuilder *>(dracoMesh);
     auto mesh = mesh_builder->Finalize();
-    draco::ExpertEncoder encoder(*mesh);
+    *encoderPtr = new draco::ExpertEncoder(*mesh);
+    *meshPtr = mesh.release();
+  }
 
-    // TODO: set quantization parameters
-    // encoder.SetAttributeQuantization(0, 16);  // Position quantization.
-    // encoder.SetAttributeQuantization(1, 15);  // Tex-coord 0 quantization.
-    // encoder.SetAttributeQuantization(2, 14);  // Tex-coord 1 quantization.
+  void EXPORT_API DracoMeshSetAttributeQuantization(void* encoderPtr, int attributeId, int quantization) {
+    ExpertEncoder *const encoder = static_cast<ExpertEncoder *>(encoderPtr);
+    encoder->SetAttributeQuantization(attributeId, quantization);
+  }
+
+  void EXPORT_API DracoMeshFinalize(void* dracoMesh, void* encoderPtr, void* meshPtr, void** bufferPtr, const char** result, int* size) {
+    TriangleSoupMeshBuilder *const mesh_builder = static_cast<TriangleSoupMeshBuilder *>(dracoMesh);
+    ExpertEncoder *const encoder = static_cast<ExpertEncoder *>(encoderPtr);
+
+    encoder->SetSpeedOptions(0,0);
+    encoder->SetTrackEncodedProperties(true);
 
     auto buffer = new EncoderBuffer();
-    encoder.EncodeToBuffer(buffer);
+    encoder->EncodeToBuffer(buffer);
 
     delete mesh_builder;
+    delete (ExpertEncoder*) encoder;
+    delete (Mesh*) meshPtr;
 
     *bufferPtr = buffer;
     *result = buffer->data();
