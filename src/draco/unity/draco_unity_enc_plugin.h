@@ -58,7 +58,7 @@ namespace draco {
 
 extern "C" {
 
-  DracoEncoder * EXPORT_API dracoEncoderCreate(uint32_t vertexCount);
+  EXPORT_API DracoEncoder * dracoEncoderCreate(uint32_t vertexCount);
   void EXPORT_API dracoEncoderRelease(DracoEncoder *encoder);
   void EXPORT_API dracoEncoderSetCompressionSpeed(DracoEncoder *encoder, uint32_t speedLevel);
   void EXPORT_API dracoEncoderSetQuantizationBits(DracoEncoder *encoder, uint32_t position, uint32_t normal, uint32_t uv, uint32_t color, uint32_t generic);
