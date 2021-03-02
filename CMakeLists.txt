@@ -1059,6 +1059,30 @@ else()
       set(unity_decoder_lib_type MODULE)
     endif()
 
+    set(unity_lib_dependency ${draco_plugin_dependency})
+    set(unity_objlib_dependency draco_unity_plugin)
+    if(EMSCRIPTEN OR IOS)
+      unset(unity_lib_dependency)
+      list(APPEND unity_objlib_dependency
+        # Link selected object libs directly instead of ${draco_plugin_dependency}
+        # minimizes build size
+        # results in a single static lib file
+        draco_attributes
+        draco_compression_attributes_dec
+        draco_compression_bit_coders
+        draco_compression_decode
+        draco_compression_entropy
+        draco_compression_mesh_dec
+        draco_compression_point_cloud_dec
+        draco_core
+        draco_mesh
+        draco_metadata
+        draco_metadata_dec
+        draco_point_cloud
+        draco_points_dec
+      )
+    endif()
+
     draco_add_library(
       NAME draco_unity_plugin
       TYPE OBJECT
@@ -1071,8 +1095,8 @@ else()
       TYPE ${unity_decoder_lib_type}
       DEFINES ${draco_defines}
       INCLUDES ${draco_include_paths}
-      OBJLIB_DEPS draco_unity_plugin
-      LIB_DEPS ${draco_plugin_dependency})
+      OBJLIB_DEPS ${unity_objlib_dependency}
+      LIB_DEPS ${unity_lib_dependency})
 
     draco_add_library(
       NAME draco_unity_enc_plugin
