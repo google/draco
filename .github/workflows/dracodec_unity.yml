@@ -1,0 +1,240 @@
+name: Draco Decoder Unity library CI
+
+on:
+  # Trigger the workflow on pull request,
+  # but only for the main branch
+  pull_request:
+    branches:
+      - main
+  # Also trigger on release created events
+  release:
+    types:
+      - created
+  workflow_dispatch:
+
+
+jobs:
+
+  mac:
+
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+
+    - uses: seanmiddleditch/gha-setup-ninja@master
+
+    - name: configure_mac
+      # ARCHS_STANDARD explicitely enables Apple silicon on Xcode 12.2
+      run: cmake . -G Ninja -B build_mac -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+    - name: build_mac
+      run: cmake --build build_mac --config MinSizeRel --target dracodec_unity
+
+    - name: configure_ios
+      run: cmake . -G Xcode -B build_ios -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES=armv7\;armv7s\;arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.0 -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+    - name: build_ios
+      run: cmake --build build_ios --config MinSizeRel --target dracodec_unity
+
+    - name: package Apple
+      run: |
+        mkdir draco_apple
+        mkdir draco_apple/x86_64
+        mv build_mac/dracodec_unity.bundle draco_apple/x86_64
+        mkdir draco_apple/iOS
+        mv build_ios/MinSizeRel-iphoneos/libdracodec_unity.a draco_apple/iOS
+    - name: upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: draco_apple
+        path: draco_apple
+
+
+  windows:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: configure_win64
+      run: cmake . -G "Visual Studio 16 2019" -A x64 -Bbuild_win_64 -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+    - name: build_win64
+      run: cmake --build build_win_64 --config MinSizeRel --target dracodec_unity
+
+    - name: configure_win32
+      run: cmake . -G "Visual Studio 16 2019" -A Win32 -Bbuild_win_32 -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+    - name: build_win32
+      run: cmake --build build_win_32 --config MinSizeRel --target dracodec_unity
+
+    # Universal Windows Platform
+    - name: configure_uwp_arm
+      run: cmake . -G "Visual Studio 16 2019" -A ARM -Bbuild_uwp_arm -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF -DCMAKE_SYSTEM_NAME:String=WindowsStore -DCMAKE_SYSTEM_VERSION:String="10.0"
+    - name: build_uwp_arm
+      run: cmake --build build_uwp_arm --config MinSizeRel --target dracodec_unity
+
+    - name: configure_uwp_arm64
+      run: cmake . -G "Visual Studio 16 2019" -A ARM64 -Bbuild_uwp_arm64 -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF -DCMAKE_SYSTEM_NAME:String=WindowsStore -DCMAKE_SYSTEM_VERSION:String="10.0"
+    - name: build_uwp_arm64
+      run: cmake --build build_uwp_arm64 --config MinSizeRel --target dracodec_unity
+
+    - name: configure_uwp_x86
+      run: cmake . -G "Visual Studio 16 2019" -A Win32 -Bbuild_uwp_x86 -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF -DCMAKE_SYSTEM_NAME:String=WindowsStore -DCMAKE_SYSTEM_VERSION:String="10.0"
+    - name: build_uwp_x86
+      run: cmake --build build_uwp_x86 --config MinSizeRel --target dracodec_unity
+
+    - name: configure_uwp_x64
+      run: cmake . -G "Visual Studio 16 2019" -A x64 -Bbuild_uwp_x64 -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF -DCMAKE_SYSTEM_NAME:String=WindowsStore -DCMAKE_SYSTEM_VERSION:String="10.0"
+    - name: build_uwp_x64
+      run: cmake --build build_uwp_x64 --config MinSizeRel --target dracodec_unity
+
+    - name: package Windows
+      run: |
+        mkdir draco_win/x86
+        mkdir draco_win/x86_64
+        mkdir draco_win/WSA/ARM
+        mkdir draco_win/WSA/ARM64
+        mkdir draco_win/WSA/x86
+        mkdir draco_win/WSA/x64
+        mv build_win_32\MinSizeRel\dracodec_unity.dll draco_win/x86
+        mv build_win_64\MinSizeRel\dracodec_unity.dll draco_win/x86_64
+        mv build_uwp_arm\MinSizeRel\dracodec_unity.dll draco_win/WSA/ARM
+        mv build_uwp_arm64\MinSizeRel\dracodec_unity.dll draco_win/WSA/ARM64
+        mv build_uwp_x86\MinSizeRel\dracodec_unity.dll draco_win/WSA/x86
+        mv build_uwp_x64\MinSizeRel\dracodec_unity.dll draco_win/WSA/x64
+    - name: upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: draco_win
+        path: draco_win
+
+
+  linux:
+
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v1
+
+    ## Probably not needed anymore with ubuntu 20.04
+    # - name: install_cmake
+    #   run: |
+    #     sudo apt update
+    #     sudo apt install apt-transport-https ca-certificates gnupg software-properties-common wget
+    #     wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
+    #     sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+    #     sudo apt update
+    #     sudo apt install cmake
+
+    - name: apt install
+      run: |
+        sudo apt-get -qq update
+        sudo apt-get -qq install ninja-build
+
+    # Android
+    - name: install Android NDK
+      run: if [ ! -f android-ndk-r21d-linux-x86_64.zip ]; then echo "Installing Android NDK"; wget https://dl.google.com/android/repository/android-ndk-r21d-linux-x86_64.zip; unzip android-ndk-r21d-linux-x86_64.zip; echo "Installed Android NDK"; else echo "Android NDK already installed"; fi
+
+    - name: configure_android_arm64-v8a
+      run: cmake -Bbuild_android_arm64-v8a -DANDROID_ABI=arm64-v8a -DCMAKE_BUILD_TYPE=MinSizeRel -DANDROID_NDK=android-ndk-r21d -DCMAKE_TOOLCHAIN_FILE="android-ndk-r21d/build/cmake/android.toolchain.cmake" -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+    - name: build_android_arm64-v8a
+      run: cmake --build build_android_arm64-v8a --target dracodec_unity -j
+
+    - name: configure_android_armeabi-v7a
+      run: cmake -Bbuild_android_armeabi-v7a -DANDROID_ABI=armeabi-v7a -DCMAKE_BUILD_TYPE=MinSizeRel -DANDROID_NDK=android-ndk-r21d -DCMAKE_TOOLCHAIN_FILE="android-ndk-r21d/build/cmake/android.toolchain.cmake" -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+    - name: build_android_armeabi-v7a
+      run: cmake --build build_android_armeabi-v7a --target dracodec_unity -j
+
+    - name: configure_android_x86
+      run: cmake -Bbuild_android_x86 -DANDROID_ABI=x86 -DCMAKE_BUILD_TYPE=MinSizeRel -DANDROID_NDK=android-ndk-r21d -DCMAKE_TOOLCHAIN_FILE="android-ndk-r21d/build/cmake/android.toolchain.cmake" -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+    - name: build_android_x86
+      run: cmake --build build_android_x86 --target dracodec_unity -j
+
+    # Linux 64
+    - name: configure_linux64
+      run: cmake . -G Ninja -Bbuild_linux_64 -DCMAKE_BUILD_TYPE=MinSizeRel -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+    - name: build_linux64
+      run: cmake --build build_linux_64 --target dracodec_unity -j
+
+    # Linux 32
+    - name: install_i386_env
+      run: sudo apt-get -qq install build-essential gcc-multilib g++-multilib
+    - name: configure_linux32
+      run: cmake . -G Ninja -Bbuild_linux_32 -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/i686-linux.cmake -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+    - name: build_linux32
+      run: cmake --build build_linux_32 --target dracodec_unity -j
+
+    # Emscripten
+    - name: setup Emscripten
+      uses: mymindstorm/setup-emsdk@v7
+      with:
+        version: 1.38.48-fastcomp
+        actions-cache-folder: 'emsdk-cache'
+    - name: configure WebAssembly
+      run: emcmake cmake -Bbuild_web -DCMAKE_BUILD_TYPE=MinSizeRel -DEMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=1 -DDRACO_JS_GLUE=OFF -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+    - name: build WebAssembly
+      run: cmake --build build_web --target dracodec_unity -j
+
+    # Linux, WebGL and Android artifact 
+    - name: package Web Android Linux
+      run: |
+        mkdir -p draco_web_android_linux/x86_64
+        mv build_linux_64/libdracodec_unity.so draco_web_android_linux/x86_64
+        mkdir -p draco_web_android_linux/x86
+        mv build_linux_32/libdracodec_unity.so draco_web_android_linux/x86
+        mkdir -p draco_web_android_linux/WebGL
+        mv build_web/libdracodec_unity.bc draco_web_android_linux/WebGL
+        mkdir -p draco_web_android_linux/Android/libs/arm64-v8a
+        mkdir -p draco_web_android_linux/Android/libs/armeabi-v7a
+        mkdir -p draco_web_android_linux/Android/libs/x86
+        mv build_android_arm64-v8a/libdracodec_unity.so draco_web_android_linux/Android/libs/arm64-v8a
+        mv build_android_armeabi-v7a/libdracodec_unity.so draco_web_android_linux/Android/libs/armeabi-v7a
+        mv build_android_x86/libdracodec_unity.so draco_web_android_linux/Android/libs/x86
+    - name: upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: draco_web_android_linux
+        path: draco_web_android_linux
+
+
+  combine:
+    name: combine artifacts
+    runs-on: ubuntu-latest
+    needs: [mac, windows, linux]
+    steps:
+      - name: download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: artifacts
+      - name: combine
+        run: |
+          mkdir draco
+          cp -r artifacts/draco_apple/* draco
+          cp -r artifacts/draco_win/* draco
+          cp -r artifacts/draco_web_android_linux/* draco
+      - name: zip
+        run: zip -r draco.zip draco
+      - name: upload release assets
+        uses: AButler/upload-release-assets@v2.0
+        if: github.event_name == 'release' && github.event.action == 'created'
+        with:
+          files: draco.zip
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: draco
+          path: draco
+      - name: delete obsolete artifacts
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: |
+            draco_apple
+            draco_win
+            draco_web_android_linux
