@@ -60,6 +60,7 @@ class Decoder {
   // an error status.
   Status DecodeBufferToGeometry(DecoderBuffer *in_buffer,
                                 PointCloud *out_geometry);
+  Status DecodeBufferToGeometry(DecoderBuffer *in_buffer, Mesh *out_geometry);
   Status DecodeBufferToGeometryStep1(DecoderBuffer *in_buffer, Mesh *out_geometry);
   Status DecodeBufferToGeometryStep2();
 

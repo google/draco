@@ -114,11 +114,19 @@ Status Decoder::DecodeBufferToGeometry(DecoderBuffer *in_buffer,
   DRACO_ASSIGN_OR_RETURN(std::unique_ptr<PointCloudDecoder> decoder,
                          CreatePointCloudDecoder(header.encoder_method))
 
-  DRACO_RETURN_IF_ERROR(decoder->Decode(options_, in_buffer, out_geometry))
+  DRACO_RETURN_IF_ERROR(decoder->DecodeStep1(options_, in_buffer, out_geometry))
+  DRACO_RETURN_IF_ERROR(decoder->DecodeStep2())
   return OkStatus();
 #else
   return Status(Status::DRACO_ERROR, "Unsupported geometry type.");
 #endif
+}
+
+Status Decoder::DecodeBufferToGeometry(DecoderBuffer *in_buffer,
+                                       Mesh *out_geometry) {
+  DRACO_RETURN_IF_ERROR(DecodeBufferToGeometryStep1(in_buffer,out_geometry))
+  DRACO_RETURN_IF_ERROR(DecodeBufferToGeometryStep2())
+  return OkStatus();
 }
 
 Status Decoder::DecodeBufferToGeometryStep1(DecoderBuffer *in_buffer,
