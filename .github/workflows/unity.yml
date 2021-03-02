@@ -1,4 +1,4 @@
-name: Draco Decoder Unity library CI
+name: Draco Unity library CI
 
 on:
   # Trigger the workflow on pull request,
