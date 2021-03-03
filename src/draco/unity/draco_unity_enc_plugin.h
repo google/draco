@@ -41,7 +41,8 @@ namespace draco {
       uint32_t encodedIndices;
       std::vector<std::unique_ptr<draco::DataBuffer>> buffers;
       draco::EncoderBuffer encoderBuffer;
-      uint32_t speed = 0;
+      uint32_t encodingSpeed = 0;
+      uint32_t decodingSpeed = 0;
       std::size_t rawSize = 0;
       struct
       {
@@ -60,7 +61,7 @@ extern "C" {
 
   EXPORT_API DracoEncoder * dracoEncoderCreate(uint32_t vertexCount);
   void EXPORT_API dracoEncoderRelease(DracoEncoder *encoder);
-  void EXPORT_API dracoEncoderSetCompressionSpeed(DracoEncoder *encoder, uint32_t speedLevel);
+  void EXPORT_API dracoEncoderSetCompressionSpeed(DracoEncoder *encoder, uint32_t encodingSpeed, uint32_t decodingSpeed);
   void EXPORT_API dracoEncoderSetQuantizationBits(DracoEncoder *encoder, uint32_t position, uint32_t normal, uint32_t uv, uint32_t color, uint32_t generic);
   bool EXPORT_API dracoEncoderEncode(DracoEncoder *encoder, uint8_t preserveTriangleOrder);
   uint32_t EXPORT_API dracoEncoderGetEncodedVertexCount(DracoEncoder *encoder);

@@ -33,8 +33,9 @@ namespace draco {
       delete encoder;
   }
 
-  void dracoEncoderSetCompressionSpeed(DracoEncoder *encoder, uint32_t speedLevel) {
-      encoder->speed = speedLevel;
+  void dracoEncoderSetCompressionSpeed(DracoEncoder *encoder, uint32_t encodingSpeed, uint32_t decodingSpeed) {
+      encoder->encodingSpeed = encodingSpeed;
+      encoder->decodingSpeed = decodingSpeed;
   }
 
   void dracoEncoderSetQuantizationBits(DracoEncoder *encoder, uint32_t position, uint32_t normal, uint32_t uv, uint32_t color, uint32_t generic)
@@ -49,7 +50,7 @@ namespace draco {
   bool dracoEncoderEncode(DracoEncoder *encoder, uint8_t preserveTriangleOrder)
   {
       draco::Encoder dracoEncoder;
-      dracoEncoder.SetSpeedOptions(encoder->speed, encoder->speed);
+      dracoEncoder.SetSpeedOptions(encoder->encodingSpeed, encoder->decodingSpeed);
       dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, encoder->quantization.position);
       dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::NORMAL, encoder->quantization.normal);
       dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::TEX_COORD, encoder->quantization.uv);
