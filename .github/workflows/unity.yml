@@ -120,20 +120,20 @@ jobs:
 
   linux:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v1
 
-    ## Probably not needed anymore with ubuntu 20.04
-    # - name: install_cmake
-    #   run: |
-    #     sudo apt update
-    #     sudo apt install apt-transport-https ca-certificates gnupg software-properties-common wget
-    #     wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
-    #     sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
-    #     sudo apt update
-    #     sudo apt install cmake
+    # Probably not needed anymore with ubuntu 20.04
+    - name: install_cmake
+      run: |
+        sudo apt update
+        sudo apt install apt-transport-https ca-certificates gnupg software-properties-common wget
+        wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
+        sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+        sudo apt update
+        sudo apt install cmake
 
     - name: apt install
       run: |
