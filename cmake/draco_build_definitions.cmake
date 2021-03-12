@@ -63,6 +63,11 @@ macro(draco_set_build_definitions)
     if(BUILD_SHARED_LIBS)
       set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
     endif()
+  else()
+    if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
+      # Ensure 64-bit platforms can support large files.
+      list(APPEND draco_defines "_LARGEFILE_SOURCE" "_FILE_OFFSET_BITS=64")
+    endif()
   endif()
 
   if(ANDROID)
