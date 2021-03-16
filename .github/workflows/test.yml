@@ -5,19 +5,19 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             cc: gcc-10
             cxx: g++-10
             generator: Unix Makefiles
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             cc: clang
             cxx: clang++
             generator: Unix Makefiles
-          - os: macos-10.15
+          - os: macos-latest
             cc: gcc-10
             cxx: g++-10
             generator: Unix Makefiles
-          - os: windows-2019
+          - os: windows-latest
             cc: x86_64-w64-mingw32-gcc
             cxx: x86_64-w64-mingw32-g++
             generator: MinGW Makefiles
