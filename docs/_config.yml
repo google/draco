@@ -26,7 +26,7 @@ timezone: America/Los_Angeles
 
 # Build settings
 markdown: kramdown
-gems:
+plugins:
 exclude:
   - Gemfile
   - Gemfile.lock
