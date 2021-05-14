@@ -153,5 +153,11 @@ macro(draco_set_build_definitions)
       FLAG_LIST_VAR_LINKER draco_base_exe_linker_flags)
   endif()
 
+  if(IOS)
+    # ensure bitcode is generated when generating an iOS library with Makefiles
+    # as generator.
+    list(APPEND draco_base_cxx_flags "-fembed-bitcode")
+  endif()
+
   draco_configure_sanitizer()
 endmacro()
