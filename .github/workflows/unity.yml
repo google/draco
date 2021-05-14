@@ -263,20 +263,6 @@ jobs:
     - name: build_linux64_dracoenc_unity
       run: cmake --build build_linux_64 --target dracoenc_unity -j
 
-    # Linux 32
-    - name: install_i386_env
-      run: sudo apt-get -qq install build-essential gcc-multilib g++-multilib
-    - name: configure_linux32
-      run: >
-        cmake . -G Ninja -B build_linux_32
-        -DCMAKE_BUILD_TYPE=MinSizeRel
-        -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/i686-linux.cmake
-        -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
-        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
-    - name: build_linux32
-      run: cmake --build build_linux_32 --target dracodec_unity -j
-
     # Emscripten
     - name: setup Emscripten
       uses: mymindstorm/setup-emsdk@v7
@@ -301,8 +287,6 @@ jobs:
         mkdir -p draco_web_android_linux/x86_64
         mv build_linux_64/libdracodec_unity.so draco_web_android_linux/x86_64
         mv build_linux_64/libdracoenc_unity.so draco_web_android_linux/x86_64
-        mkdir -p draco_web_android_linux/x86
-        mv build_linux_32/libdracodec_unity.so draco_web_android_linux/x86
         mkdir -p draco_web_android_linux/WebGL
         mv build_web/libdracodec_unity.bc draco_web_android_linux/WebGL
         mkdir -p draco_web_android_linux/Android/libs/arm64-v8a
