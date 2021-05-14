@@ -20,7 +20,7 @@ jobs:
     runs-on: macOS-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - uses: maxim-lobanov/setup-xcode@v1
       with:
@@ -61,7 +61,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: configure_win64
       run: cmake . -G "Visual Studio 16 2019" -A x64 -Bbuild_win_64 -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
@@ -123,7 +123,7 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     # Probably not needed anymore with ubuntu 20.04
     - name: install_cmake
