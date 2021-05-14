@@ -26,7 +26,7 @@ jobs:
       with:
         xcode-version: latest-stable
 
-    - uses: seanmiddleditch/gha-setup-ninja@master
+    - uses: seanmiddleditch/gha-setup-ninja@v3
 
     - name: configure_mac
       # ARCHS_STANDARD explicitely enables Apple silicon on Xcode 12.2
@@ -188,7 +188,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: seanmiddleditch/gha-setup-ninja@master
+    - uses: seanmiddleditch/gha-setup-ninja@v3
 
     # Probably not needed anymore with ubuntu 20.04
     - name: install_cmake
