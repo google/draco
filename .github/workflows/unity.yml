@@ -24,7 +24,7 @@ jobs:
 
     - uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: '12.5'
+        xcode-version: latest-stable
 
     - uses: seanmiddleditch/gha-setup-ninja@master
 
