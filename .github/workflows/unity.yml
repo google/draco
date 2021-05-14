@@ -188,6 +188,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - uses: seanmiddleditch/gha-setup-ninja@master
 
     # Probably not needed anymore with ubuntu 20.04
     - name: install_cmake
@@ -198,11 +199,6 @@ jobs:
         sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
         sudo apt update
         sudo apt install cmake
-
-    - name: apt install
-      run: |
-        sudo apt-get -qq update
-        sudo apt-get -qq install ninja-build
 
     # Android
     - name: install Android NDK
