@@ -30,14 +30,28 @@ jobs:
 
     - name: configure_mac
       # ARCHS_STANDARD explicitely enables Apple silicon on Xcode 12.2
-      run: cmake . -G Ninja -B build_mac -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+      run: >
+        cmake . -G Ninja -B build_mac
+        -DCMAKE_BUILD_TYPE=MinSizeRel
+        -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_mac_dracodec_unity
       run: cmake --build build_mac --config MinSizeRel --target dracodec_unity
     - name: build_mac_dracoenc_unity
       run: cmake --build build_mac --config MinSizeRel --target dracoenc_unity
 
     - name: configure_ios
-      run: cmake . -G Xcode -B build_ios -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES=armv7\;armv7s\;arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.0 -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+      run: >
+        cmake . -G Xcode -B build_ios
+        -DCMAKE_BUILD_TYPE=MinSizeRel
+        -DCMAKE_SYSTEM_NAME=iOS
+        -DCMAKE_OSX_ARCHITECTURES=armv7\;armv7s\;arm64
+        -DCMAKE_OSX_DEPLOYMENT_TARGET=10.0
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_ios
       run: cmake --build build_ios --config MinSizeRel --target dracodec_unity
 
@@ -64,37 +78,87 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: configure_win64
-      run: cmake . -G "Visual Studio 16 2019" -A x64 -Bbuild_win_64 -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+      run: >
+        cmake . -G "Visual Studio 16 2019" -A x64 -B build_win_64
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_win64_dracodec_unity
-      run: cmake --build build_win_64 --config MinSizeRel --target dracodec_unity
+      run: >
+        cmake --build build_win_64
+        --config MinSizeRel
+        --target dracodec_unity
     - name: build_win64_dracoenc_unity
-      run: cmake --build build_win_64 --config MinSizeRel --target dracoenc_unity
+      run: >
+        cmake --build build_win_64
+        --config MinSizeRel
+        --target dracoenc_unity
 
     - name: configure_win32
-      run: cmake . -G "Visual Studio 16 2019" -A Win32 -Bbuild_win_32 -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+      run: >
+        cmake . -G "Visual Studio 16 2019" -A Win32 -B build_win_32
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_win32
       run: cmake --build build_win_32 --config MinSizeRel --target dracodec_unity
 
     # Universal Windows Platform
     - name: configure_uwp_arm
-      run: cmake . -G "Visual Studio 16 2019" -A ARM -Bbuild_uwp_arm -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF -DCMAKE_SYSTEM_NAME:String=WindowsStore -DCMAKE_SYSTEM_VERSION:String="10.0"
+      run: >
+        cmake . -G "Visual Studio 16 2019" -A ARM -B build_uwp_arm
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+        -DCMAKE_SYSTEM_NAME:String=WindowsStore
+        -DCMAKE_SYSTEM_VERSION:String="10.0"
     - name: build_uwp_arm
-      run: cmake --build build_uwp_arm --config MinSizeRel --target dracodec_unity
+      run: >
+        cmake --build build_uwp_arm
+        --config MinSizeRel
+        --target dracodec_unity
 
     - name: configure_uwp_arm64
-      run: cmake . -G "Visual Studio 16 2019" -A ARM64 -Bbuild_uwp_arm64 -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF -DCMAKE_SYSTEM_NAME:String=WindowsStore -DCMAKE_SYSTEM_VERSION:String="10.0"
+      run: >
+        cmake . -G "Visual Studio 16 2019" -A ARM64 -B build_uwp_arm64
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+        -DCMAKE_SYSTEM_NAME:String=WindowsStore
+        -DCMAKE_SYSTEM_VERSION:String="10.0"
     - name: build_uwp_arm64
-      run: cmake --build build_uwp_arm64 --config MinSizeRel --target dracodec_unity
+      run: >
+        cmake --build build_uwp_arm64
+        --config MinSizeRel
+        --target dracodec_unity
 
     - name: configure_uwp_x86
-      run: cmake . -G "Visual Studio 16 2019" -A Win32 -Bbuild_uwp_x86 -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF -DCMAKE_SYSTEM_NAME:String=WindowsStore -DCMAKE_SYSTEM_VERSION:String="10.0"
+      run: >
+        cmake . -G "Visual Studio 16 2019" -A Win32 -B build_uwp_x86
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+        -DCMAKE_SYSTEM_NAME:String=WindowsStore
+        -DCMAKE_SYSTEM_VERSION:String="10.0"
     - name: build_uwp_x86
-      run: cmake --build build_uwp_x86 --config MinSizeRel --target dracodec_unity
+      run: >
+        cmake --build build_uwp_x86
+        --config MinSizeRel
+        --target dracodec_unity
 
     - name: configure_uwp_x64
-      run: cmake . -G "Visual Studio 16 2019" -A x64 -Bbuild_uwp_x64 -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF -DCMAKE_SYSTEM_NAME:String=WindowsStore -DCMAKE_SYSTEM_VERSION:String="10.0"
+      run: >
+        cmake . -G "Visual Studio 16 2019" -A x64 -B build_uwp_x64
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+        -DCMAKE_SYSTEM_NAME:String=WindowsStore
+        -DCMAKE_SYSTEM_VERSION:String="10.0"
     - name: build_uwp_x64
-      run: cmake --build build_uwp_x64 --config MinSizeRel --target dracodec_unity
+      run: >
+        cmake --build build_uwp_x64
+        --config MinSizeRel
+        --target dracodec_unity
 
     - name: package Windows
       run: |
@@ -142,26 +206,62 @@ jobs:
 
     # Android
     - name: install Android NDK
-      run: if [ ! -f android-ndk-r21d-linux-x86_64.zip ]; then echo "Installing Android NDK"; wget https://dl.google.com/android/repository/android-ndk-r21d-linux-x86_64.zip; unzip android-ndk-r21d-linux-x86_64.zip; echo "Installed Android NDK"; else echo "Android NDK already installed"; fi
+      run: |
+        if [ ! -f android-ndk-r21d-linux-x86_64.zip ]
+        then
+          echo "Installing Android NDK"
+          wget https://dl.google.com/android/repository/android-ndk-r21d-linux-x86_64.zip
+          unzip android-ndk-r21d-linux-x86_64.zip
+          echo "Installed Android NDK"
+        else
+          echo "Android NDK already installed"
+        fi
 
     - name: configure_android_arm64-v8a
-      run: cmake -Bbuild_android_arm64-v8a -DANDROID_ABI=arm64-v8a -DCMAKE_BUILD_TYPE=MinSizeRel -DANDROID_NDK=android-ndk-r21d -DCMAKE_TOOLCHAIN_FILE="android-ndk-r21d/build/cmake/android.toolchain.cmake" -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+      run: >
+        cmake -B build_android_arm64-v8a -DANDROID_ABI=arm64-v8a
+        -DCMAKE_BUILD_TYPE=MinSizeRel
+        -DANDROID_NDK=android-ndk-r21d
+        -DCMAKE_TOOLCHAIN_FILE="android-ndk-r21d/build/cmake/android.toolchain.cmake"
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_android_arm64-v8a
       run: cmake --build build_android_arm64-v8a --target dracodec_unity -j
 
     - name: configure_android_armeabi-v7a
-      run: cmake -Bbuild_android_armeabi-v7a -DANDROID_ABI=armeabi-v7a -DCMAKE_BUILD_TYPE=MinSizeRel -DANDROID_NDK=android-ndk-r21d -DCMAKE_TOOLCHAIN_FILE="android-ndk-r21d/build/cmake/android.toolchain.cmake" -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+      run: >
+        cmake -B build_android_armeabi-v7a -DANDROID_ABI=armeabi-v7a
+        -DCMAKE_BUILD_TYPE=MinSizeRel
+        -DANDROID_NDK=android-ndk-r21d
+        -DCMAKE_TOOLCHAIN_FILE="android-ndk-r21d/build/cmake/android.toolchain.cmake"
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_android_armeabi-v7a
       run: cmake --build build_android_armeabi-v7a --target dracodec_unity -j
 
     - name: configure_android_x86
-      run: cmake -Bbuild_android_x86 -DANDROID_ABI=x86 -DCMAKE_BUILD_TYPE=MinSizeRel -DANDROID_NDK=android-ndk-r21d -DCMAKE_TOOLCHAIN_FILE="android-ndk-r21d/build/cmake/android.toolchain.cmake" -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+      run: >
+        cmake -B build_android_x86
+        -DANDROID_ABI=x86
+        -DCMAKE_BUILD_TYPE=MinSizeRel
+        -DANDROID_NDK=android-ndk-r21d
+        -DCMAKE_TOOLCHAIN_FILE="android-ndk-r21d/build/cmake/android.toolchain.cmake"
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_android_x86
       run: cmake --build build_android_x86 --target dracodec_unity -j
 
     # Linux 64
     - name: configure_linux64
-      run: cmake . -G Ninja -Bbuild_linux_64 -DCMAKE_BUILD_TYPE=MinSizeRel -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+      run: >
+        cmake . -G Ninja -B build_linux_64
+        -DCMAKE_BUILD_TYPE=MinSizeRel
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_linux64_dracodec_unity
       run: cmake --build build_linux_64 --target dracodec_unity -j
     - name: build_linux64_dracoenc_unity
@@ -171,7 +271,13 @@ jobs:
     - name: install_i386_env
       run: sudo apt-get -qq install build-essential gcc-multilib g++-multilib
     - name: configure_linux32
-      run: cmake . -G Ninja -Bbuild_linux_32 -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/i686-linux.cmake -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+      run: >
+        cmake . -G Ninja -B build_linux_32
+        -DCMAKE_BUILD_TYPE=MinSizeRel
+        -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/i686-linux.cmake
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_linux32
       run: cmake --build build_linux_32 --target dracodec_unity -j
 
@@ -182,7 +288,14 @@ jobs:
         version: 1.38.48-fastcomp
         actions-cache-folder: 'emsdk-cache'
     - name: configure WebAssembly
-      run: emcmake cmake -Bbuild_web -DCMAKE_BUILD_TYPE=MinSizeRel -DEMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=1 -DDRACO_JS_GLUE=OFF -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+      run: >
+        emcmake cmake -B build_web
+        -DCMAKE_BUILD_TYPE=MinSizeRel
+        -DEMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=1
+        -DDRACO_JS_GLUE=OFF
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build WebAssembly
       run: cmake --build build_web --target dracodec_unity -j
 
@@ -199,9 +312,12 @@ jobs:
         mkdir -p draco_web_android_linux/Android/libs/arm64-v8a
         mkdir -p draco_web_android_linux/Android/libs/armeabi-v7a
         mkdir -p draco_web_android_linux/Android/libs/x86
-        mv build_android_arm64-v8a/libdracodec_unity.so draco_web_android_linux/Android/libs/arm64-v8a
-        mv build_android_armeabi-v7a/libdracodec_unity.so draco_web_android_linux/Android/libs/armeabi-v7a
-        mv build_android_x86/libdracodec_unity.so draco_web_android_linux/Android/libs/x86
+        mv build_android_arm64-v8a/libdracodec_unity.so \
+          draco_web_android_linux/Android/libs/arm64-v8a
+        mv build_android_armeabi-v7a/libdracodec_unity.so \
+          draco_web_android_linux/Android/libs/armeabi-v7a
+        mv build_android_x86/libdracodec_unity.so \
+          draco_web_android_linux/Android/libs/x86
     - name: upload artifact
       uses: actions/upload-artifact@v2
       with:
