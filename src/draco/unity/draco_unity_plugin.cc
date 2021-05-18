@@ -88,13 +88,13 @@ T *CopyAttributeDataFlipped(int num_points, const draco::PointAttribute *attr) {
         break;
       case 3:
         got_data = attr->ConvertValue<T, 3>(val_index,outPtr);
-        // Position/Normal right-hand to left-handed coordinate system switch: flip Z axis
-        *(outPtr+2) *= -1;
+        // Position/Normal right-hand to left-handed coordinate system switch: flip X axis
+        *(outPtr) *= -1;
         break;
       case 4:
         got_data = attr->ConvertValue<T, 4>(val_index,outPtr);
-        // Tangent right-hand to left-handed coordinate system switch: flip X and Z axis
-        *(outPtr) *= -1;
+        // Tangent right-hand to left-handed coordinate system switch: flip Y and Z axis
+        *(outPtr+1) *= -1;
         *(outPtr+2) *= -1;
         break;
       default:
