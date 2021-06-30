@@ -12,6 +12,13 @@ on:
       - created
   workflow_dispatch:
 
+env:
+  # Emscripten version that comes with Unity 2021.2
+  EM_VERSION: 2.0.19
+  EM_CACHE_FOLDER: 'emsdk-cache'
+  # Emscripten version that comes with older Unity versions
+  EM_LEGACY_VERSION: 1.38.48-fastcomp
+  EM_LEGACY_CACHE_FOLDER: 'emsdk-legacy-cache'
 
 jobs:
 
@@ -184,21 +191,17 @@ jobs:
 
   linux:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
+    - name: Setup cache
+      id: cache-system-libraries
+      uses: actions/cache@v2
+      with:
+        path: ${{env.EM_CACHE_FOLDER}}
+        key: ${{env.EM_VERSION}}-${{ runner.os }}
     - uses: seanmiddleditch/gha-setup-ninja@v3
-
-    # Probably not needed anymore with ubuntu 20.04
-    - name: install_cmake
-      run: |
-        sudo apt update
-        sudo apt install apt-transport-https ca-certificates gnupg software-properties-common wget
-        wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
-        sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
-        sudo apt update
-        sudo apt install cmake
 
     # Android
     - name: install Android NDK
@@ -245,6 +248,60 @@ jobs:
     - name: build_android_x86
       run: cmake --build build_android_x86 --target dracodec_unity -j
 
+    # Emscripten
+    - name: setup Emscripten
+      uses: mymindstorm/setup-emsdk@v10
+      with:
+        version: ${{env.EM_VERSION}}
+        actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
+    - name: configure WebAssembly
+      run: >
+        emcmake cmake -B build_web
+        -DCMAKE_BUILD_TYPE=MinSizeRel
+        -DDRACO_JS_GLUE=OFF
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+    - name: build WebAssembly
+      run: cmake --build build_web --target dracodec_unity -j
+
+    # Linux artifacts
+    - name: package Linux
+      run: |
+        mkdir -p draco_linux/WebGL
+        mv build_web/libdracodec_unity.a draco_linux/WebGL
+        mkdir -p draco_linux/Android/libs/arm64-v8a
+        mkdir -p draco_linux/Android/libs/armeabi-v7a
+        mkdir -p draco_linux/Android/libs/x86
+        mv build_android_arm64-v8a/libdracodec_unity.so \
+          draco_linux/Android/libs/arm64-v8a
+        mv build_android_armeabi-v7a/libdracodec_unity.so \
+          draco_linux/Android/libs/armeabi-v7a
+        mv build_android_x86/libdracodec_unity.so \
+          draco_linux/Android/libs/x86
+    - name: upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: draco_linux
+        path: draco_linux
+
+  linux_legacy:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup cache
+      id: cache-system-libraries
+      uses: actions/cache@v2
+      with:
+        path: ${{env.EM_LEGACY_CACHE_FOLDER}}
+        key: ${{env.EM_LEGACY_VERSION}}-${{ runner.os }}
+
+    # CMake that comes with Ubuntu 18.04 is too old, so install a recent version here
+    - name: Get latest CMake and ninja
+      uses: lukka/get-cmake@latest
+
     # Linux 64
     - name: configure_linux64
       run: >
@@ -258,52 +315,44 @@ jobs:
     - name: build_linux64_dracoenc_unity
       run: cmake --build build_linux_64 --target dracoenc_unity -j
 
-    # Emscripten
-    - name: setup Emscripten
-      uses: mymindstorm/setup-emsdk@v7
+    # Emscripten legacy
+    - name: setup Emscripten legacy
+      uses: mymindstorm/setup-emsdk@v10
       with:
-        version: 1.38.48-fastcomp
-        actions-cache-folder: 'emsdk-cache'
-    - name: configure WebAssembly
+        version: ${{env.EM_LEGACY_VERSION}}
+        actions-cache-folder: ${{env.EM_LEGACY_CACHE_FOLDER}}
+    - name: configure WebAssembly legacy
       run: >
-        emcmake cmake -B build_web
+        emcmake cmake -B build_web_legacy
         -DCMAKE_BUILD_TYPE=MinSizeRel
         -DEMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=1
         -DDRACO_JS_GLUE=OFF
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
-    - name: build WebAssembly
-      run: cmake --build build_web --target dracodec_unity -j
+    - name: build WebAssembly legacy
+      run: cmake --build build_web_legacy --target dracodec_unity -j
 
-    # Linux, WebGL and Android artifact 
-    - name: package Web Android Linux
+    # Linux legacy artifacts
+    - name: package Linux legacy
       run: |
-        mkdir -p draco_web_android_linux/x86_64
-        mv build_linux_64/libdracodec_unity.so draco_web_android_linux/x86_64
-        mv build_linux_64/libdracoenc_unity.so draco_web_android_linux/x86_64
-        mkdir -p draco_web_android_linux/WebGL
-        mv build_web/libdracodec_unity.bc draco_web_android_linux/WebGL
-        mkdir -p draco_web_android_linux/Android/libs/arm64-v8a
-        mkdir -p draco_web_android_linux/Android/libs/armeabi-v7a
-        mkdir -p draco_web_android_linux/Android/libs/x86
-        mv build_android_arm64-v8a/libdracodec_unity.so \
-          draco_web_android_linux/Android/libs/arm64-v8a
-        mv build_android_armeabi-v7a/libdracodec_unity.so \
-          draco_web_android_linux/Android/libs/armeabi-v7a
-        mv build_android_x86/libdracodec_unity.so \
-          draco_web_android_linux/Android/libs/x86
+        mkdir -p draco_linux_legacy/x86_64
+        mv build_linux_64/libdracodec_unity.so draco_linux_legacy/x86_64
+        mv build_linux_64/libdracoenc_unity.so draco_linux_legacy/x86_64
+        mkdir -p draco_linux_legacy/WebGL
+        mv build_web_legacy/libdracodec_unity.bc draco_linux_legacy/WebGL
     - name: upload artifact
       uses: actions/upload-artifact@v2
       with:
-        name: draco_web_android_linux
-        path: draco_web_android_linux
+        name: draco_linux_legacy
+        path: draco_linux_legacy
+
 
 
   combine:
     name: combine artifacts
     runs-on: ubuntu-latest
-    needs: [mac, windows, linux]
+    needs: [mac, windows, linux, linux_legacy]
     steps:
       - name: download artifacts
         uses: actions/download-artifact@v2
@@ -317,7 +366,8 @@ jobs:
           mkdir draco
           cp -r artifacts/draco_apple/* draco
           cp -r artifacts/draco_win/* draco
-          cp -r artifacts/draco_web_android_linux/* draco
+          cp -r artifacts/draco_linux/* draco
+          cp -r artifacts/draco_linux_legacy/* draco
       - name: zip
         run: zip -r draco.zip draco
       - name: upload release assets
@@ -337,4 +387,5 @@ jobs:
           name: |
             draco_apple
             draco_win
-            draco_web_android_linux
+            draco_linux
+            draco_linux_legacy
