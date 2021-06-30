@@ -202,23 +202,18 @@ jobs:
 
     # Android
     - name: install Android NDK
-      run: |
-        if [ ! -f android-ndk-r21d-linux-x86_64.zip ]
-        then
-          echo "Installing Android NDK"
-          wget https://dl.google.com/android/repository/android-ndk-r21d-linux-x86_64.zip
-          unzip android-ndk-r21d-linux-x86_64.zip
-          echo "Installed Android NDK"
-        else
-          echo "Android NDK already installed"
-        fi
+      uses: nttld/setup-ndk@v1
+      id: setup-ndk
+      with:
+        ndk-version: r21e
+        add-to-path: false
 
     - name: configure_android_arm64-v8a
       run: >
         cmake -B build_android_arm64-v8a -DANDROID_ABI=arm64-v8a
         -DCMAKE_BUILD_TYPE=MinSizeRel
-        -DANDROID_NDK=android-ndk-r21d
-        -DCMAKE_TOOLCHAIN_FILE="android-ndk-r21d/build/cmake/android.toolchain.cmake"
+        -DANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }}
+        -DCMAKE_TOOLCHAIN_FILE="${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake"
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
@@ -229,8 +224,8 @@ jobs:
       run: >
         cmake -B build_android_armeabi-v7a -DANDROID_ABI=armeabi-v7a
         -DCMAKE_BUILD_TYPE=MinSizeRel
-        -DANDROID_NDK=android-ndk-r21d
-        -DCMAKE_TOOLCHAIN_FILE="android-ndk-r21d/build/cmake/android.toolchain.cmake"
+        -DANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }}
+        -DCMAKE_TOOLCHAIN_FILE="${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake"
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
@@ -242,8 +237,8 @@ jobs:
         cmake -B build_android_x86
         -DANDROID_ABI=x86
         -DCMAKE_BUILD_TYPE=MinSizeRel
-        -DANDROID_NDK=android-ndk-r21d
-        -DCMAKE_TOOLCHAIN_FILE="android-ndk-r21d/build/cmake/android.toolchain.cmake"
+        -DANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }}
+        -DCMAKE_TOOLCHAIN_FILE="${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake"
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
