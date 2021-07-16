@@ -53,7 +53,9 @@ class MeshEdgebreakerEncodingTest : public ::testing::Test {
     std::unique_ptr<Mesh> decoded_mesh(new Mesh());
     DecoderOptions dec_options;
     ASSERT_TRUE(
-        decoder.Decode(dec_options, &dec_buffer, decoded_mesh.get()).ok());
+        decoder.DecodeStep1(dec_options, &dec_buffer, decoded_mesh.get()).ok());
+    ASSERT_TRUE(
+        decoder.DecodeStep2().ok());
 
     // Cleanup the input mesh to make sure that input and output can be
     // compared (edgebreaker method discards degenerated triangles and isolated
@@ -134,12 +136,15 @@ TEST_F(MeshEdgebreakerEncodingTest, TestDecoderReuse) {
   std::unique_ptr<Mesh> decoded_mesh_0(new Mesh());
   DecoderOptions dec_options;
   ASSERT_TRUE(
-      decoder.Decode(dec_options, &dec_buffer, decoded_mesh_0.get()).ok());
-
+      decoder.DecodeStep1(dec_options, &dec_buffer, decoded_mesh_0.get()).ok());
+  ASSERT_TRUE(
+      decoder.DecodeStep2().ok());
   dec_buffer.Init(buffer.data(), buffer.size());
   std::unique_ptr<Mesh> decoded_mesh_1(new Mesh());
   ASSERT_TRUE(
-      decoder.Decode(dec_options, &dec_buffer, decoded_mesh_1.get()).ok());
+      decoder.DecodeStep1(dec_options, &dec_buffer, decoded_mesh_1.get()).ok());
+  ASSERT_TRUE(
+      decoder.DecodeStep2().ok());
 
   // Make sure both of the meshes are identical.
   MeshAreEquivalent eq;

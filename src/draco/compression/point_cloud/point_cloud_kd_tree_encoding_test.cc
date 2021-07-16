@@ -76,7 +76,8 @@ class PointCloudKdTreeEncodingTest : public ::testing::Test {
 
       std::unique_ptr<PointCloud> out_pc(new PointCloud());
       DecoderOptions dec_options;
-      ASSERT_TRUE(decoder.Decode(dec_options, &dec_buffer, out_pc.get()).ok());
+      ASSERT_TRUE(decoder.DecodeStep1(dec_options, &dec_buffer, out_pc.get()).ok());
+      ASSERT_TRUE(decoder.DecodeStep2().ok());
 
       ComparePointClouds(pc, *out_pc);
     }

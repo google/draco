@@ -63,7 +63,7 @@ Status PointCloudDecoder::DecodeMetadata() {
   return OkStatus();
 }
 
-Status PointCloudDecoder::Decode(const DecoderOptions &options,
+Status PointCloudDecoder::DecodeStep1(const DecoderOptions &options,
                                  DecoderBuffer *in_buffer,
                                  PointCloud *out_point_cloud) {
   options_ = &options;
@@ -119,21 +119,29 @@ Status PointCloudDecoder::Decode(const DecoderOptions &options,
   if (!DecodeGeometryData()) {
     return Status(Status::DRACO_ERROR, "Failed to decode geometry data.");
   }
-  if (!DecodePointAttributes()) {
+  if (!DecodePointAttributesStep1()) {
     return Status(Status::DRACO_ERROR, "Failed to decode point attributes.");
   }
   return OkStatus();
 }
 
-bool PointCloudDecoder::DecodePointAttributes() {
-  uint8_t num_attributes_decoders;
-  if (!buffer_->Decode(&num_attributes_decoders)) {
+Status PointCloudDecoder::DecodeStep2() {
+  if (!DecodePointAttributesStep2()) {
+    return Status(Status::DRACO_ERROR, "Failed to decode point attributes.");
+  }
+  return OkStatus();
+}
+
+bool PointCloudDecoder::DecodePointAttributesStep1() {
+
+  uint8_t tmp_num_attributes_decoders;
+  if (!buffer_->Decode(&tmp_num_attributes_decoders)) {
     return false;
   }
   // Create all attribute decoders. This is implementation specific and the
   // derived classes can use any data encoded in the
   // PointCloudEncoder::EncodeAttributesEncoderIdentifier() call.
-  for (int i = 0; i < num_attributes_decoders; ++i) {
+  for (int i = 0; i < tmp_num_attributes_decoders; ++i) {
     if (!CreateAttributesDecoder(i)) {
       return false;
     }
@@ -147,14 +155,18 @@ bool PointCloudDecoder::DecodePointAttributes() {
   }
 
   // Decode any data needed by the attribute decoders.
-  for (int i = 0; i < num_attributes_decoders; ++i) {
+  for (int i = 0; i < tmp_num_attributes_decoders; ++i) {
     if (!attributes_decoders_[i]->DecodeAttributesDecoderData(buffer_)) {
       return false;
     }
   }
+  return true;
+}
+
+bool PointCloudDecoder::DecodePointAttributesStep2() {
 
   // Create map between attribute and decoder ids.
-  for (int i = 0; i < num_attributes_decoders; ++i) {
+  for (int i = 0; i < num_attributes_decoders(); ++i) {
     const int32_t num_attributes = attributes_decoders_[i]->GetNumAttributes();
     for (int j = 0; j < num_attributes; ++j) {
       int att_id = attributes_decoders_[i]->GetAttributeId(j);

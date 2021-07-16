@@ -81,8 +81,10 @@ void EXPORT_API ReleaseDracoData(DracoData **data_ptr);
 
 // Decodes compressed Draco mesh in |data| and returns |mesh|. On input, |mesh|
 // must be null. The returned |mesh| must be released with ReleaseDracoMesh.
-int EXPORT_API DecodeDracoMesh(char *data, unsigned int length,
-                               DracoMesh **mesh);
+int EXPORT_API DecodeDracoMeshStep1(char *data, unsigned int length,
+                                    DracoMesh **mesh, draco::Decoder** decoder,draco::DecoderBuffer** buffer);
+int EXPORT_API DecodeDracoMeshStep2(DracoMesh **mesh,draco::Decoder* decoder, draco::DecoderBuffer* buffer);
+
 
 // Returns |attribute| at |index| in |mesh|.  On input, |attribute| must be
 // null. The returned |attribute| must be released with ReleaseDracoAttribute.
@@ -103,13 +105,13 @@ bool EXPORT_API GetAttributeByUniqueId(const DracoMesh *mesh, int unique_id,
 // Returns the indices as well as the type of data in |indices|. On input,
 // |indices| must be null. The returned |indices| must be released with
 // ReleaseDracoData.
-bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DracoData **indices);
+bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DracoData **indices, bool flip);
 // Returns the attribute data from attribute as well as the type of data in
 // |data|. On input, |data| must be null. The returned |data| must be released
 // with ReleaseDracoData.
 bool EXPORT_API GetAttributeData(const DracoMesh *mesh,
                                  const DracoAttribute *attribute,
-                                 DracoData **data);
+                                 DracoData **data, bool flip);
 
 // DracoToUnityMesh is deprecated.
 struct EXPORT_API DracoToUnityMesh {

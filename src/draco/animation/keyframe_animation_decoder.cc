@@ -19,8 +19,12 @@ namespace draco {
 Status KeyframeAnimationDecoder::Decode(const DecoderOptions &options,
                                         DecoderBuffer *in_buffer,
                                         KeyframeAnimation *animation) {
-  const auto status = PointCloudSequentialDecoder::Decode(
+  auto status = PointCloudSequentialDecoder::DecodeStep1(
       options, in_buffer, static_cast<PointCloud *>(animation));
+  if (!status.ok()) {
+    return status;
+  }
+  status = PointCloudSequentialDecoder::DecodeStep2();
   if (!status.ok()) {
     return status;
   }
