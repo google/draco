@@ -270,7 +270,7 @@ int EXPORT_API DecodeDracoMeshStep1(
     return -2;
   }
   const draco::EncodedGeometryType geom_type = type_statusor.value();
-  if (geom_type != draco::TRIANGULAR_MESH) {
+  if (geom_type != draco::TRIANGULAR_MESH && geom_type != draco::POINT_CLOUD) {
     return -3;
   }
 
@@ -281,14 +281,22 @@ int EXPORT_API DecodeDracoMeshStep1(
     return -4;
   }
 
-  std::unique_ptr<draco::Mesh> in_mesh = std::move(statusor).value();
+  if (geom_type == draco::TRIANGULAR_MESH) {
+    std::unique_ptr<draco::Mesh> in_mesh = std::move(statusor).value();
+    DracoMesh *const unity_mesh = *mesh;
+    unity_mesh->num_faces = in_mesh->num_faces();
+    unity_mesh->num_vertices = in_mesh->num_points();
+    unity_mesh->num_attributes = in_mesh->num_attributes();
+    unity_mesh->private_mesh = static_cast<void *>(in_mesh.release());
 
-  DracoMesh *const unity_mesh = *mesh;
-  unity_mesh->num_faces = in_mesh->num_faces();
-  unity_mesh->num_vertices = in_mesh->num_points();
-  unity_mesh->num_attributes = in_mesh->num_attributes();
-  unity_mesh->private_mesh = static_cast<void *>(in_mesh.release());
-
+  } else if (geom_type == draco::POINT_CLOUD) {
+    std::unique_ptr<draco::PointCloud> in_cloud = std::move(statusor).value();
+    DracoMesh *const unity_mesh = *mesh;
+    unity_mesh->num_faces = 0;
+    unity_mesh->num_vertices = in_cloud->num_points();
+    unity_mesh->num_attributes = in_cloud->num_attributes();
+    unity_mesh->private_mesh = static_cast<void *>(in_cloud.release());
+  }
   return 0;
 }
 
