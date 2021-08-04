@@ -64,11 +64,13 @@ struct EXPORT_API DracoMesh {
       : num_faces(0),
         num_vertices(0),
         num_attributes(0),
+        is_point_cloud(false),
         private_mesh(nullptr) {}
 
   int num_faces;
   int num_vertices;
   int num_attributes;
+  bool is_point_cloud;
   void *private_mesh;
 };
 

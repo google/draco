@@ -288,6 +288,7 @@ int EXPORT_API DecodeDracoMeshStep1(
     unity_mesh->num_faces = in_mesh->num_faces();
     unity_mesh->num_vertices = in_mesh->num_points();
     unity_mesh->num_attributes = in_mesh->num_attributes();
+    unity_mesh->is_point_cloud = false;
     unity_mesh->private_mesh = static_cast<void *>(in_mesh.release());
 
   } else if (geom_type == draco::POINT_CLOUD) {
@@ -301,12 +302,20 @@ int EXPORT_API DecodeDracoMeshStep1(
     unity_mesh->num_faces = 0;
     unity_mesh->num_vertices = in_cloud->num_points();
     unity_mesh->num_attributes = in_cloud->num_attributes();
+    unity_mesh->is_point_cloud = true;
     unity_mesh->private_mesh = static_cast<void *>(in_cloud.release());
   }
   return 0;
 }
 
 int EXPORT_API DecodeDracoMeshStep2(DracoMesh **mesh,draco::Decoder* decoder, draco::DecoderBuffer* buffer) {
+  DracoMesh *const unity_mesh = *mesh;
+  if (unity_mesh->is_point_cloud) {
+    delete decoder;
+    delete buffer;
+    return 0;
+  }
+
   auto status = decoder->DecodeMeshFromBufferStep2();
   delete decoder;
   delete buffer;
@@ -362,7 +371,7 @@ bool EXPORT_API GetAttributeByUniqueId(const DracoMesh *mesh, int unique_id,
 }
 
 bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DataType dataType, void* indices, uint32_t indicesCount, bool flip) {
-  if (mesh == nullptr || indices == nullptr) {
+  if (mesh == nullptr || indices == nullptr || mesh->is_point_cloud) {
     return false;
   }
   
