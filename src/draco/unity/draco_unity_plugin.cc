@@ -276,12 +276,13 @@ int EXPORT_API DecodeDracoMeshStep1(
 
   *mesh = new DracoMesh();
   *decoder = new draco::Decoder();
-  auto statusor = (*decoder)->DecodeMeshFromBufferStep1(*buffer);
-  if (!statusor.ok()) {
-    return -4;
-  }
 
   if (geom_type == draco::TRIANGULAR_MESH) {
+    auto statusor = (*decoder)->DecodeMeshFromBufferStep1(*buffer);
+    if (!statusor.ok()) {
+      return -4;
+    }
+
     std::unique_ptr<draco::Mesh> in_mesh = std::move(statusor).value();
     DracoMesh *const unity_mesh = *mesh;
     unity_mesh->num_faces = in_mesh->num_faces();
@@ -290,6 +291,11 @@ int EXPORT_API DecodeDracoMeshStep1(
     unity_mesh->private_mesh = static_cast<void *>(in_mesh.release());
 
   } else if (geom_type == draco::POINT_CLOUD) {
+    auto statusor = (*decoder)->DecodePointCloudFromBuffer(*buffer);
+    if (!statusor.ok()) {
+      return -4;
+    }
+
     std::unique_ptr<draco::PointCloud> in_cloud = std::move(statusor).value();
     DracoMesh *const unity_mesh = *mesh;
     unity_mesh->num_faces = 0;
