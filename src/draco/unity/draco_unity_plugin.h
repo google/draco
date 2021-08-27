@@ -102,10 +102,10 @@ bool EXPORT_API GetAttributeByType(const DracoMesh *mesh,
 // null. The returned |attribute| must be released with ReleaseDracoAttribute.
 bool EXPORT_API GetAttributeByUniqueId(const DracoMesh *mesh, int unique_id,
                                        DracoAttribute **attribute);
-// Returns the indices as well as the type of data in |indices|. On input,
-// |indices| must be null. The returned |indices| must be released with
-// ReleaseDracoData.
-bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DracoData **indices, DataType dataType, bool flip);
+// Write the indices into |indices|, a provided buffer.
+// |indicesCount| multiplied by |dataType| specific component length
+// gives you the size of |indices|
+bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DataType dataType, void* indices, uint32_t indicesCount, bool flip);
 // Returns the attribute data from attribute as well as the type of data in
 // |data|. On input, |data| must be null. The returned |data| must be released
 // with ReleaseDracoData.

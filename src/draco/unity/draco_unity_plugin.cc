@@ -131,10 +131,13 @@ void *ConvertAttributeData(int num_points, const draco::PointAttribute *attr, bo
   }
 }
 
-uint16_t *const GetMeshIndicesUInt16(const draco::DracoMesh *mesh, bool flip) {
+bool GetMeshIndicesUInt16(const draco::DracoMesh *mesh, void* indices, uint32_t indicesCount, bool flip) {
 
   const draco::Mesh *const m = static_cast<const draco::Mesh *>(mesh->private_mesh);
-  uint16_t *const temp_indices = new uint16_t[m->num_faces() * 3];
+  if(indicesCount < m->num_faces() * 3) {
+    return false;
+  }
+  uint16_t *const temp_indices = static_cast<uint16_t *const>(indices);
   
   if(flip) {
     for (draco::FaceIndex face_id(0); face_id < m->num_faces(); ++face_id) {
@@ -155,13 +158,17 @@ uint16_t *const GetMeshIndicesUInt16(const draco::DracoMesh *mesh, bool flip) {
       *(dest+2) = *(src+2);
     } 
   }
-  return temp_indices;
+  return true;
 }
 
-uint32_t *const GetMeshIndicesUInt32(const draco::DracoMesh *mesh, bool flip) {
+bool GetMeshIndicesUInt32(const draco::DracoMesh *mesh, void* indices, uint32_t indicesCount, bool flip) {
 
   const draco::Mesh *const m = static_cast<const draco::Mesh *>(mesh->private_mesh);
-  uint32_t *const temp_indices = new uint32_t[m->num_faces() * 3];
+  if(indicesCount < m->num_faces() * 3) {
+    return false;
+  }
+  uint32_t *const temp_indices = static_cast<uint32_t *const>(indices);
+
   if(flip) {
     for (draco::FaceIndex face_id(0); face_id < m->num_faces(); ++face_id) {
       const draco::Mesh::Face &face = m->face(draco::FaceIndex(face_id));
@@ -178,7 +185,7 @@ uint32_t *const GetMeshIndicesUInt32(const draco::DracoMesh *mesh, bool flip) {
            reinterpret_cast<const uint32_t *>(face.data()), sizeof(uint32_t) * 3);
     }
   }
-  return temp_indices;
+  return true;
 }
 }  // namespace
 
@@ -340,27 +347,21 @@ bool EXPORT_API GetAttributeByUniqueId(const DracoMesh *mesh, int unique_id,
   return true;
 }
 
-bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DracoData **indices, DataType dataType, bool flip) {
-  if (mesh == nullptr || indices == nullptr || *indices != nullptr) {
+bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DataType dataType, void* indices, uint32_t indicesCount, bool flip) {
+  if (mesh == nullptr || indices == nullptr) {
     return false;
   }
   
   void *tmp;
   switch(dataType) {
     case DT_UINT16:
-      tmp = GetMeshIndicesUInt16(mesh,flip);
-      break;
+      return GetMeshIndicesUInt16(mesh,indices,indicesCount,flip);
     case DT_UINT32:
-      tmp = GetMeshIndicesUInt32(mesh,flip);
-      break;
+      return GetMeshIndicesUInt32(mesh,indices,indicesCount,flip);
     default:
       return false;
   }
 
-  DracoData *const draco_data = new DracoData();
-  draco_data->data = tmp;
-  draco_data->data_type = dataType;
-  *indices = draco_data;
   return true;
 }
 
