@@ -130,6 +130,56 @@ void *ConvertAttributeData(int num_points, const draco::PointAttribute *attr, bo
       return nullptr;
   }
 }
+
+uint16_t *const GetMeshIndicesUInt16(const draco::DracoMesh *mesh, bool flip) {
+
+  const draco::Mesh *const m = static_cast<const draco::Mesh *>(mesh->private_mesh);
+  uint16_t *const temp_indices = new uint16_t[m->num_faces() * 3];
+  
+  if(flip) {
+    for (draco::FaceIndex face_id(0); face_id < m->num_faces(); ++face_id) {
+      const draco::Mesh::Face &face = m->face(draco::FaceIndex(face_id));
+      uint16_t* const dest = temp_indices + face_id.value() * 3;
+      const int32_t* src = reinterpret_cast<const int32_t *>(face.data());
+      *dest = *src;
+      *(dest+1) = *(src+2);
+      *(dest+2) = *(src+1);
+    }
+  } else {
+    for (draco::FaceIndex face_id(0); face_id < m->num_faces(); ++face_id) {
+      const draco::Mesh::Face &face = m->face(draco::FaceIndex(face_id));
+      uint16_t* const dest = temp_indices + face_id.value() * 3;
+      const int32_t* src = reinterpret_cast<const int32_t *>(face.data());
+      *dest = *src;
+      *(dest+1) = *(src+1);
+      *(dest+2) = *(src+2);
+    } 
+  }
+  return temp_indices;
+}
+
+uint32_t *const GetMeshIndicesUInt32(const draco::DracoMesh *mesh, bool flip) {
+
+  const draco::Mesh *const m = static_cast<const draco::Mesh *>(mesh->private_mesh);
+  uint32_t *const temp_indices = new uint32_t[m->num_faces() * 3];
+  if(flip) {
+    for (draco::FaceIndex face_id(0); face_id < m->num_faces(); ++face_id) {
+      const draco::Mesh::Face &face = m->face(draco::FaceIndex(face_id));
+      uint32_t* const dest = temp_indices + face_id.value() * 3;
+      const int32_t* src = reinterpret_cast<const int32_t *>(face.data());
+      *dest = *src;
+      *(dest+1) = *(src+2);
+      *(dest+2) = *(src+1);
+    }
+  } else {
+    for (draco::FaceIndex face_id(0); face_id < m->num_faces(); ++face_id) {
+      const draco::Mesh::Face &face = m->face(draco::FaceIndex(face_id));
+      memcpy(temp_indices + face_id.value() * 3,
+           reinterpret_cast<const uint32_t *>(face.data()), sizeof(uint32_t) * 3);
+    }
+  }
+  return temp_indices;
+}
 }  // namespace
 
 namespace draco {
@@ -290,31 +340,26 @@ bool EXPORT_API GetAttributeByUniqueId(const DracoMesh *mesh, int unique_id,
   return true;
 }
 
-bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DracoData **indices, bool flip) {
+bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DracoData **indices, DataType dataType, bool flip) {
   if (mesh == nullptr || indices == nullptr || *indices != nullptr) {
     return false;
   }
-  const Mesh *const m = static_cast<const Mesh *>(mesh->private_mesh);
-  int *const temp_indices = new int[m->num_faces() * 3];
-  if(flip) {
-    for (draco::FaceIndex face_id(0); face_id < m->num_faces(); ++face_id) {
-      const Mesh::Face &face = m->face(draco::FaceIndex(face_id));
-      int32_t* const dest = temp_indices + face_id.value() * 3;
-      const int32_t* src = reinterpret_cast<const int *>(face.data());
-      *dest = *src;
-      *(dest+1) = *(src+2);
-      *(dest+2) = *(src+1);
-    }
-  } else {
-    for (draco::FaceIndex face_id(0); face_id < m->num_faces(); ++face_id) {
-      const Mesh::Face &face = m->face(draco::FaceIndex(face_id));
-      memcpy(temp_indices + face_id.value() * 3,
-           reinterpret_cast<const int *>(face.data()), sizeof(int) * 3);
-    }
+  
+  void *tmp;
+  switch(dataType) {
+    case DT_UINT16:
+      tmp = GetMeshIndicesUInt16(mesh,flip);
+      break;
+    case DT_UINT32:
+      tmp = GetMeshIndicesUInt32(mesh,flip);
+      break;
+    default:
+      return false;
   }
+
   DracoData *const draco_data = new DracoData();
-  draco_data->data = temp_indices;
-  draco_data->data_type = DT_INT32;
+  draco_data->data = tmp;
+  draco_data->data_type = dataType;
   *indices = draco_data;
   return true;
 }
