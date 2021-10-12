@@ -6,6 +6,12 @@
 
 News
 =======
+### Version 1.4.3 release
+* Using the versioned www.gstatic.com WASM and Javascript decoders continues
+  to be recommended. To use v1.4.3, use this URL:
+  * https://www.gstatic.com/draco/versioned/decoders/1.4.3/*
+* Bug fixes
+
 ### Version 1.4.1 release
 * Using the versioned www.gstatic.com WASM and Javascript decoders is now
   recommended. To use v1.4.1, use this URL:
