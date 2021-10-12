@@ -213,16 +213,14 @@ class EncodeTest : public ::testing::Test {
     draco::Decoder decoder;
 
     if (mesh) {
-      auto maybe_mesh = decoder.DecodeMeshFromBuffer(&decoder_buffer);
-      ASSERT_TRUE(maybe_mesh.ok());
-      auto decoded_mesh = std::move(maybe_mesh).value();
+      DRACO_ASSIGN_OR_ASSERT(auto decoded_mesh,
+                             decoder.DecodeMeshFromBuffer(&decoder_buffer));
       ASSERT_NE(decoded_mesh, nullptr);
       ASSERT_EQ(decoded_mesh->num_points(), encoder.num_encoded_points());
       ASSERT_EQ(decoded_mesh->num_faces(), encoder.num_encoded_faces());
     } else {
-      auto maybe_pc = decoder.DecodePointCloudFromBuffer(&decoder_buffer);
-      ASSERT_TRUE(maybe_pc.ok());
-      auto decoded_pc = std::move(maybe_pc).value();
+      DRACO_ASSIGN_OR_ASSERT(
+          auto decoded_pc, decoder.DecodePointCloudFromBuffer(&decoder_buffer));
       ASSERT_EQ(decoded_pc->num_points(), encoder.num_encoded_points());
     }
   }
@@ -274,7 +272,7 @@ TEST_F(EncodeTest, TestLinesObj) {
   encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 16);
 
   draco::EncoderBuffer buffer;
-  ASSERT_TRUE(encoder.EncodePointCloudToBuffer(*pc, &buffer).ok());
+  DRACO_ASSERT_OK(encoder.EncodePointCloudToBuffer(*pc, &buffer));
 }
 
 TEST_F(EncodeTest, TestQuantizedInfinity) {
@@ -315,7 +313,7 @@ TEST_F(EncodeTest, TestUnquantizedInfinity) {
   encoder.SetEncodingMethod(draco::POINT_CLOUD_SEQUENTIAL_ENCODING);
 
   draco::EncoderBuffer buffer;
-  ASSERT_TRUE(encoder.EncodePointCloudToBuffer(*pc, &buffer).ok());
+  DRACO_ASSERT_OK(encoder.EncodePointCloudToBuffer(*pc, &buffer));
 }
 
 TEST_F(EncodeTest, TestQuantizedAndUnquantizedAttributes) {
@@ -330,7 +328,7 @@ TEST_F(EncodeTest, TestQuantizedAndUnquantizedAttributes) {
   encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 11);
   encoder.SetAttributeQuantization(draco::GeometryAttribute::NORMAL, 0);
   draco::EncoderBuffer buffer;
-  ASSERT_TRUE(encoder.EncodePointCloudToBuffer(*pc, &buffer).ok());
+  DRACO_ASSERT_OK(encoder.EncodePointCloudToBuffer(*pc, &buffer));
 }
 
 TEST_F(EncodeTest, TestKdTreeEncoding) {
@@ -348,7 +346,7 @@ TEST_F(EncodeTest, TestKdTreeEncoding) {
   // Now set quantization for the position attribute which should make
   // the encoder happy.
   encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 16);
-  ASSERT_TRUE(encoder.EncodePointCloudToBuffer(*pc, &buffer).ok());
+  DRACO_ASSERT_OK(encoder.EncodePointCloudToBuffer(*pc, &buffer));
 }
 
 TEST_F(EncodeTest, TestTrackingOfNumberOfEncodedEntries) {
@@ -373,7 +371,7 @@ TEST_F(EncodeTest, TestTrackingOfNumberOfEncodedEntriesNotSet) {
   draco::EncoderBuffer buffer;
   draco::Encoder encoder;
 
-  ASSERT_TRUE(encoder.EncodeMeshToBuffer(*mesh, &buffer).ok());
+  DRACO_ASSERT_OK(encoder.EncodeMeshToBuffer(*mesh, &buffer));
   ASSERT_EQ(encoder.num_encoded_points(), 0);
   ASSERT_EQ(encoder.num_encoded_faces(), 0);
 }

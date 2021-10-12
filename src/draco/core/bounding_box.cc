@@ -20,9 +20,9 @@ BoundingBox::BoundingBox()
     : BoundingBox(Vector3f(std::numeric_limits<float>::max(),
                            std::numeric_limits<float>::max(),
                            std::numeric_limits<float>::max()),
-                  Vector3f(-std::numeric_limits<float>::max(),
-                           -std::numeric_limits<float>::max(),
-                           -std::numeric_limits<float>::max())) {}
+                  Vector3f(std::numeric_limits<float>::lowest(),
+                           std::numeric_limits<float>::lowest(),
+                           std::numeric_limits<float>::lowest())) {}
 
 BoundingBox::BoundingBox(const Vector3f &min_point, const Vector3f &max_point)
     : min_point_(min_point), max_point_(max_point) {}

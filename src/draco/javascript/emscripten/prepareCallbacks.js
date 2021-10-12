@@ -21,6 +21,13 @@ var isModuleParsed = false;
 // function |onModuleLoaded| after both of these callbacks have been called.
 Module['onRuntimeInitialized'] = function() {
   isRuntimeInitialized = true;
+  // This calls any pending pre-main callbacks. We need to call them here
+  // because Draco library does not have any "main" function and Emscripten
+  // skips them. Unfortunately one of the callbacks initializes enum values and
+  // it needs to be called to ensure everything works properly.
+  // TODO(ostava): This looks like an Emscripten bug and we should remove it
+  // once it is fixed.
+  Module['callRuntimeCallbacks'](Module.mainCallbacks);
   if (isModuleParsed) {
     if (typeof Module['onModuleLoaded'] === 'function') {
       Module['onModuleLoaded'](Module);

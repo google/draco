@@ -55,11 +55,13 @@ bool CompareGoldenFile(const std::string &golden_file_name, const void *data,
   size_t remaining_data_size = data_size;
   int offset = 0;
   while ((extracted_size = in_file.read(buffer, buffer_size).gcount()) > 0) {
-    if (remaining_data_size <= 0)
+    if (remaining_data_size <= 0) {
       break;  // Input and golden sizes are different.
+    }
     size_t size_to_check = extracted_size;
-    if (remaining_data_size < size_to_check)
+    if (remaining_data_size < size_to_check) {
       size_to_check = remaining_data_size;
+    }
     for (uint32_t i = 0; i < size_to_check; ++i) {
       if (buffer[i] != data_c8[offset++]) {
         LOG(INFO) << "Test output differed from golden file at byte "

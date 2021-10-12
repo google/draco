@@ -126,7 +126,6 @@ int main(int argc, char **argv) {
   }
 
   // Save the decoded geometry into a file.
-  // TODO(fgalligan): Change extension code to look for '.'.
   const std::string extension = draco::parser::ToLower(
       options.output.size() >= 4
           ? options.output.substr(options.output.size() - 4)
@@ -140,7 +139,7 @@ int main(int argc, char **argv) {
         return -1;
       }
     } else {
-      if (!obj_encoder.EncodeToFile(*pc.get(), options.output)) {
+      if (!obj_encoder.EncodeToFile(*pc, options.output)) {
         printf("Failed to store the decoded point cloud as OBJ.\n");
         return -1;
       }
@@ -153,7 +152,7 @@ int main(int argc, char **argv) {
         return -1;
       }
     } else {
-      if (!ply_encoder.EncodeToFile(*pc.get(), options.output)) {
+      if (!ply_encoder.EncodeToFile(*pc, options.output)) {
         printf("Failed to store the decoded point cloud as PLY.\n");
         return -1;
       }

@@ -30,7 +30,7 @@ void SplitPath(const std::string &full_path, std::string *out_folder_path,
 
 std::string ReplaceFileExtension(const std::string &in_file_name,
                                  const std::string &new_extension) {
-  const auto pos = in_file_name.find_last_of(".");
+  const auto pos = in_file_name.find_last_of('.');
   if (pos == std::string::npos) {
     // No extension found.
     return in_file_name + "." + new_extension;
@@ -44,6 +44,22 @@ std::string LowercaseFileExtension(const std::string &filename) {
     return "";
   }
   return parser::ToLower(filename.substr(pos + 1));
+}
+
+std::string LowercaseMimeTypeExtension(const std::string &mime_type) {
+  const size_t pos = mime_type.find_last_of('/');
+  if (pos == 0 || pos == std::string::npos || pos == mime_type.length() - 1) {
+    return "";
+  }
+  return parser::ToLower(mime_type.substr(pos + 1));
+}
+
+std::string RemoveFileExtension(const std::string &filename) {
+  const size_t pos = filename.find_last_of('.');
+  if (pos == 0 || pos == std::string::npos || pos == filename.length() - 1) {
+    return filename;
+  }
+  return filename.substr(0, pos);
 }
 
 std::string GetFullPath(const std::string &input_file_relative_path,

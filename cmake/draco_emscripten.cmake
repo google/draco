@@ -1,3 +1,17 @@
+# Copyright 2021 The Draco Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 if(DRACO_CMAKE_DRACO_EMSCRIPTEN_CMAKE_)
   return()
 endif() # DRACO_CMAKE_DRACO_EMSCRIPTEN_CMAKE_
@@ -36,7 +50,10 @@ macro(draco_get_required_emscripten_flags)
     list(APPEND ${em_FLAG_LIST_VAR} "-fno-omit-frame-pointer")
     list(APPEND ${em_FLAG_LIST_VAR} "-sMODULARIZE=1")
     list(APPEND ${em_FLAG_LIST_VAR} "-sNO_FILESYSTEM=1")
-    list(APPEND ${em_FLAG_LIST_VAR} "-sEXPORTED_RUNTIME_METHODS=[]")
+    list(APPEND ${em_FLAG_LIST_VAR}
+                "-sEXPORTED_RUNTIME_METHODS=[\"callRuntimeCallbacks\"]")
+    list(APPEND ${em_FLAG_LIST_VAR}
+                "-sEXPORTED_FUNCTIONS=[\"_free\", \"_malloc\"]")
     list(APPEND ${em_FLAG_LIST_VAR} "-sPRECISE_F32=1")
     list(APPEND ${em_FLAG_LIST_VAR} "-sNODEJS_CATCH_EXIT=0")
     list(APPEND ${em_FLAG_LIST_VAR} "-sNODEJS_CATCH_REJECTION=0")

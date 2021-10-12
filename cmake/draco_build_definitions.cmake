@@ -1,3 +1,17 @@
+# Copyright 2021 The Draco Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 if(DRACO_CMAKE_DRACO_BUILD_DEFINITIONS_CMAKE_)
   return()
 endif() # DRACO_CMAKE_DRACO_BUILD_DEFINITIONS_CMAKE_
@@ -36,7 +50,24 @@ macro(draco_set_build_definitions)
   endif()
 
   draco_load_version_info()
-  set(DRACO_SOVERSION 1)
+
+  # Library version info. See the libtool docs for updating the values:
+  # https://www.gnu.org/software/libtool/manual/libtool.html#Updating-version-info
+  #
+  # c=<current>, r=<revision>, a=<age>
+  #
+  # libtool generates a .so file as .so.[c-a].a.r, while -version-info c:r:a is
+  # passed to libtool.
+  #
+  # We set DRACO_SOVERSION = [c-a].a.r
+  set(LT_CURRENT 1)
+  set(LT_REVISION 0)
+  set(LT_AGE 0)
+  math(EXPR DRACO_SOVERSION_MAJOR "${LT_CURRENT} - ${LT_AGE}")
+  set(DRACO_SOVERSION "${DRACO_SOVERSION_MAJOR}.${LT_AGE}.${LT_REVISION}")
+  unset(LT_CURRENT)
+  unset(LT_REVISION)
+  unset(LT_AGE)
 
   list(APPEND draco_include_paths "${draco_root}" "${draco_root}/src"
               "${draco_build}")
