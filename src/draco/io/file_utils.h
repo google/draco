@@ -37,6 +37,13 @@ std::string ReplaceFileExtension(const std::string &in_file_name,
 // '.' (e.g. Linux hidden files), the first delimiter is ignored.
 std::string LowercaseFileExtension(const std::string &filename);
 
+// Returns the mime type extension in lowercase if present, else "". Extension
+// is defined as the string after the last '/ character.
+std::string LowercaseMimeTypeExtension(const std::string &mime_type);
+
+// Returns the file name without extension.
+std::string RemoveFileExtension(const std::string &filename);
+
 // Given a path of the input file |input_file_relative_path| relative to the
 // parent directory of |sibling_file_full_path|, this function returns full path
 // to the input file. If |sibling_file_full_path| has no directory, the relative

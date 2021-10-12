@@ -28,7 +28,6 @@ namespace draco {
 // draco_index_type.h .
 // TODO(ostava): Make the interface more complete. It's currently missing
 // features such as iterators.
-// TODO(vytyaz): Add more unit tests for this class.
 template <class IndexTypeT, class ValueTypeT>
 class IndexTypeVector {
  public:

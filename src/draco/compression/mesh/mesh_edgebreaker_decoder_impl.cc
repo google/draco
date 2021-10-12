@@ -454,7 +454,7 @@ bool MeshEdgebreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
 #endif
 
   // Decode connectivity of non-position attributes.
-  if (attribute_data_.size() > 0) {
+  if (!attribute_data_.empty()) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (decoder_->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 1)) {
       for (CornerIndex ci(0); ci < corner_table_->num_corners(); ci += 3) {
@@ -800,7 +800,7 @@ int MeshEdgebreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
     return -1;  // Unexpected number of decoded vertices.
   }
   // Decode start faces and connect them to the faces from the active stack.
-  while (active_corner_stack.size() > 0) {
+  while (!active_corner_stack.empty()) {
     const CornerIndex corner = active_corner_stack.back();
     active_corner_stack.pop_back();
     const bool interior_face =

@@ -5,6 +5,7 @@ newmtl mat0
 newmtl mat1
   Ka 0.61 0.15 0.69
   Kd 0.61 0.15 0.69
+  map_Kd black.png
 
 newmtl mat1
   Ka 0.61 0.15 0.69
@@ -17,6 +18,7 @@ newmtl mat3
 newmtl mat4
   Ka 0.00 0.74 0.83
   Kd 0.00 0.74 0.83
+  map_Kd black.png
 
 newmtl mat5
   Ka 0.01 0.61 0.90
@@ -25,6 +27,7 @@ newmtl mat5
 newmtl mat6
   Ka 0.97 0.73 0.82
   Kd 0.97 0.73 0.82
+  map_Kd black.png
 
 newmtl mat7
   Ka 0.94 0.38 0.57

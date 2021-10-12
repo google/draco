@@ -34,8 +34,12 @@ class ObjDecoder {
   ObjDecoder();
 
   // Decodes an obj file stored in the input file.
-  // Returns nullptr if the decoding failed.
+  // Optional argument |mesh_files| will be populated with all paths to files
+  // relevant to the loaded mesh.
   Status DecodeFromFile(const std::string &file_name, Mesh *out_mesh);
+  Status DecodeFromFile(const std::string &file_name, Mesh *out_mesh,
+                        std::vector<std::string> *mesh_files);
+
   Status DecodeFromFile(const std::string &file_name,
                         PointCloud *out_point_cloud);
 
@@ -115,6 +119,8 @@ class ObjDecoder {
   std::unordered_map<std::string, int> obj_name_to_id_;
 
   bool use_metadata_;
+
+  std::vector<std::string> *mesh_files_;
 
   DecoderBuffer buffer_;
 

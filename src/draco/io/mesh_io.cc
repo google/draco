@@ -46,16 +46,17 @@ StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(
   std::unique_ptr<Mesh> mesh(new Mesh());
   // Analyze file extension.
   const std::string extension = LowercaseFileExtension(file_name);
-  if (extension != "gltf" && mesh_files) {
-    // The GLTF decoder will fill |mesh_files|, but for other file types we set
-    // the root file here to avoid duplicating code.
+  if (extension != "gltf" && extension != "obj" && mesh_files) {
+    // The GLTF/OBJ decoder will fill |mesh_files|, but for other file types we
+    // set the root file here to avoid duplicating code.
     mesh_files->push_back(file_name);
   }
   if (extension == "obj") {
     // Wavefront OBJ file format.
     ObjDecoder obj_decoder;
     obj_decoder.set_use_metadata(options.GetBool("use_metadata", false));
-    const Status obj_status = obj_decoder.DecodeFromFile(file_name, mesh.get());
+    const Status obj_status =
+        obj_decoder.DecodeFromFile(file_name, mesh.get(), mesh_files);
     if (!obj_status.ok()) {
       return obj_status;
     }

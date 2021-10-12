@@ -148,8 +148,9 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
         return false;
       }
       for (size_t i = 0; i < num_values; ++i) {
-        if (!in_buffer->Decode(portable_attribute_data + i, num_bytes))
+        if (!in_buffer->Decode(portable_attribute_data + i, num_bytes)) {
           return false;
+        }
       }
     }
   }

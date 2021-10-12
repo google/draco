@@ -38,7 +38,6 @@ std::unique_ptr<FileReaderInterface> FileReaderFactory::OpenReader(
     }
     return reader;
   }
-  FILEREADER_LOG_ERROR("No file reader able to open input");
   return nullptr;
 }
 

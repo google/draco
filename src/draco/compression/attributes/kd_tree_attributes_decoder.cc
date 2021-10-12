@@ -72,7 +72,7 @@ class PointAttributeVectorOutputIterator {
 
   Self &operator*() { return *this; }
   // Still needed in some cases.
-  // TODO(hemmer): remove.
+  // TODO(b/199760123): Remove.
   // hardcoded to 3 based on legacy usage.
   const Self &operator=(const VectorD<CoeffT, 3> &val) {
     DRACO_DCHECK_EQ(attributes_.size(), 1);  // Expect only ONE attribute.
@@ -376,7 +376,7 @@ bool KdTreeAttributesDecoder::DecodeDataNeededByPortableTransforms(
           GetDecoder()->point_cloud()->attribute(att_id);
       attr->Reset(num_points);
       attr->SetIdentityMapping();
-    };
+    }
 
     PointAttributeVectorOutputIterator<uint32_t> out_it(atts);
 

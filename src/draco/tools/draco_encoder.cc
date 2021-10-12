@@ -350,14 +350,15 @@ int main(int argc, char **argv) {
     options.output = options.input + ".drc";
   }
 
-  PrintOptions(*pc.get(), options);
+  PrintOptions(*pc, options);
 
   int ret = -1;
   const bool input_is_mesh = mesh && mesh->num_faces() > 0;
-  if (input_is_mesh)
+  if (input_is_mesh) {
     ret = EncodeMeshToFile(*mesh, options.output, &encoder);
-  else
-    ret = EncodePointCloudToFile(*pc.get(), options.output, &encoder);
+  } else {
+    ret = EncodePointCloudToFile(*pc, options.output, &encoder);
+  }
 
   if (ret != -1 && options.compression_level < 10) {
     printf(

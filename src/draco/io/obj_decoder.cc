@@ -39,12 +39,19 @@ ObjDecoder::ObjDecoder()
       deduplicate_input_values_(true),
       last_material_id_(0),
       use_metadata_(false),
+      mesh_files_(nullptr),
       out_mesh_(nullptr),
       out_point_cloud_(nullptr) {}
 
 Status ObjDecoder::DecodeFromFile(const std::string &file_name,
                                   Mesh *out_mesh) {
+  return DecodeFromFile(file_name, out_mesh, nullptr);
+}
+
+Status ObjDecoder::DecodeFromFile(const std::string &file_name, Mesh *out_mesh,
+                                  std::vector<std::string> *mesh_files) {
   out_mesh_ = out_mesh;
+  mesh_files_ = mesh_files;
   return DecodeFromFile(file_name, static_cast<PointCloud *>(out_mesh));
 }
 
@@ -88,6 +95,10 @@ Status ObjDecoder::DecodeInternal() {
   }
   if (!status.ok()) {
     return status;
+  }
+
+  if (mesh_files_ && !input_file_name_.empty()) {
+    mesh_files_->push_back(input_file_name_);
   }
 
   bool use_identity_mapping = false;
@@ -478,6 +489,9 @@ bool ObjDecoder::ParseMaterialLib(Status *status) {
   parser::SkipLine(&line_buffer);
 
   if (!material_file_name_.empty()) {
+    if (mesh_files_) {
+      mesh_files_->push_back(material_file_name_);
+    }
     if (!ParseMaterialFile(material_file_name_, status)) {
       // Silently ignore problems with material files for now.
       return true;
