@@ -142,6 +142,7 @@ _**Contents**_
     * [Metadata API](#metadata-api)
     * [NPM Package](#npm-package)
     * [three.js Renderer Example](#threejs-renderer-example)
+  * [GStatic Javascript Builds](#gstatic-javascript-builds)
   * [Support](#support)
   * [License](#license)
   * [References](#references)
@@ -447,6 +448,23 @@ Here's an [example] of a geometric compressed with Draco loaded via a
 Javascript decoder using the `three.js` renderer.
 
 Please see the [javascript/example/README.md](javascript/example/README.md) file for more information.
+
+GStatic Javascript Builds
+=========================
+
+Prebuilt versions of the Emscripten-built Draco javascript decoders are hosted
+on www.gstatic.com in version labeled directories:
+
+https://www.gstatic.com/draco/versioned/decoders/VERSION/*
+
+As of the v1.4.3 release the files available are:
+
+- [draco_decoder.js](https://www.gstatic.com/draco/versioned/decoders/1.4.3/draco_decoder.js)
+- [draco_decoder.wasm](https://www.gstatic.com/draco/versioned/decoders/1.4.3/draco_decoder.wasm)
+- [draco_decoder_gltf.js](https://www.gstatic.com/draco/versioned/decoders/1.4.3/draco_decoder_gltf.js)
+- [draco_decoder_gltf.wasm](https://www.gstatic.com/draco/versioned/decoders/1.4.3/draco_decoder_gltf.wasm)
+- [draco_wasm_wrapper.js](https://www.gstatic.com/draco/versioned/decoders/1.4.3/draco_wasm_wrapper.js)
+- [draco_wasm_wrapper_gltf.js](https://www.gstatic.com/draco/versioned/decoders/1.4.3/draco_wasm_wrapper_gltf.js)
 
 Support
 =======
