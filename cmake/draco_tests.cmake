@@ -69,14 +69,15 @@ list(
     "${draco_src_root}/point_cloud/point_cloud_test.cc")
 
 list(APPEND draco_gtest_all
-            "${draco_root}/../googletest/googletest/src/gtest-all.cc")
+            "${draco_root}/third_party/googletest/googletest/src/gtest-all.cc")
 list(APPEND draco_gtest_main
-            "${draco_root}/../googletest/googletest/src/gtest_main.cc")
+            "${draco_root}/third_party/googletest/googletest/src/gtest_main.cc")
 
 macro(draco_setup_test_targets)
   if(DRACO_TESTS)
     if(NOT (EXISTS ${draco_gtest_all} AND EXISTS ${draco_gtest_main}))
-      message(FATAL "googletest must be a sibling directory of ${draco_root}.")
+      message(FATAL_ERROR
+              "googletest missing, run git submodule update --init")
     endif()
 
     list(APPEND draco_test_defines GTEST_HAS_PTHREAD=0)
