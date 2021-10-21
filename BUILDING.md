@@ -118,7 +118,7 @@ Draco includes testing support built using Googletest. The Googletest repository
 is included as a submodule of the Draco git repository. Run the following
 command to clone the Googletest repository:
 
-~~~~~ base
+~~~~~ bash
 $ git submodule update --init
 ~~~~~
 
