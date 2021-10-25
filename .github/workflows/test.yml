@@ -24,6 +24,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: true
       - run: git clone https://github.com/google/googletest.git ../googletest
       - run: mkdir _gh_build
       - run: cmake -G "${{ matrix.generator }}" -DENABLE_TESTS=ON ..

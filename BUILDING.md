@@ -114,17 +114,26 @@ $ cmake ../ -DDRACO_SANITIZE=address
 Googletest Integration
 ----------------------
 
-Draco includes testing support built using Googletest. To enable Googletest unit
-test support the DRACO_TESTS cmake variable must be turned on at cmake
-generation time:
+Draco includes testing support built using Googletest. The Googletest repository
+is included as a submodule of the Draco git repository. Run the following
+command to clone the Googletest repository:
+
+~~~~~ bash
+$ git submodule update --init
+~~~~~
+
+To enable Googletest unit test support the DRACO_TESTS cmake variable must be
+turned on at cmake generation time:
 
 ~~~~~ bash
 $ cmake ../ -DDRACO_TESTS=ON
 ~~~~~
 
-When cmake is used as shown in the above example the googletest directory must
-be a sibling of the Draco repository root directory. To run the tests execute
-`draco_tests` from your build output directory.
+To run the tests execute `draco_tests` from your build output directory:
+
+~~~~~ bash
+$ ./draco_tests
+~~~~~
 
 WebAssembly Decoder
 -------------------
