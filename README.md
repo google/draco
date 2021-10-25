@@ -6,6 +6,14 @@
 
 News
 =======
+
+Attention GStatic users: the Draco team strongly recommends using the versioned
+URLs for aceessing Draco GStatic content. If you are using the URLs that include
+the `v1/decoders` substring within the URL, edge caching and GStatic propagation
+delays can result in transient errors that can be difficult to diagnose when
+new Draco releases are launched. To avoid the issue pin your sites to a
+versioned release.
+
 ### Version 1.4.3 release
 * Using the versioned www.gstatic.com WASM and Javascript decoders continues
   to be recommended. To use v1.4.3, use this URL:
