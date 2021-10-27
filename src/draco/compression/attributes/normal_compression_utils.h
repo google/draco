@@ -318,7 +318,7 @@ class OctahedronToolBox {
 
     // Remaining coordinate can be computed by projecting the (y, z) values onto
     // the surface of the octahedron.
-    const float x = 1.f - abs(y) - abs(z);
+    const float x = 1.f - std::abs(y) - std::abs(z);
 
     // |x| is essentially a signed distance from the diagonal edges of the
     // diamond shown on the figure above. It is positive for all points in the
