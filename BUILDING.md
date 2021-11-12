@@ -4,8 +4,10 @@ _**Contents**_
   * [Mac OS X](#mac-os-x)
   * [Windows](#windows)
   * [CMake Build Configuration](#cmake-build-configuration)
+    * [Transcoder](#transcoder)
     * [Debugging and Optimization](#debugging-and-optimization)
     * [Googletest Integration](#googletest-integration)
+    * [Third Party Libraries](#third-party-libraries)
     * [Javascript Encoder/Decoder](#javascript-encoderdecoder)
     * [WebAssembly Decoder](#webassembly-decoder)
     * [WebAssembly Mesh Only Decoder](#webassembly-mesh-only-decoder)
@@ -72,6 +74,21 @@ C:\Users\nobody> cmake ../ -G "Visual Studio 16 2019" -A x64
 CMake Build Configuration
 -------------------------
 
+Transcoder
+----------
+
+In order to build the `draco_transcoder` target, the transcoding support needs
+to be explicitly enabled when you run `cmake`, for example:
+
+~~~~~ bash
+$ cmake ../ -DDRACO_TRANCODER_SUPPORTED=ON
+~~~~~
+
+The above option is currently not compatible with our Javascript or WebAssembly
+builds but all other use cases are supported. Note that binaries and libraries
+built with the transcoder support may result in increased binary sizes of the
+produced libraries and executables compared to the default CMake settings.
+
 Debugging and Optimization
 --------------------------
 
@@ -133,6 +150,28 @@ To run the tests execute `draco_tests` from your build output directory:
 
 ~~~~~ bash
 $ ./draco_tests
+~~~~~
+
+Third Party Libraries
+---------------------
+
+When Draco is built with transcoding and/or testing support enabled the project
+has dependencies on third party libraries:
+
+- [Eigen](https://eigen.tuxfamily.org/)
+  - Provides various math utilites.
+- [Googletest](https://github.com/google/googletest)
+  - Provides testing support.
+- [Gulrak/filesystem](https://github.com/gulrak/filesystem)
+  - Provides C++17 std::filesystem emulation for pre-C++17 environments.
+- [TinyGLTF](https://github.com/syoyo/tinygltf)
+  - Provides GLTF I/O support.
+
+These dependencies are managed as Git submodules. To obtain the dependencies
+run the following command in your Draco repository:
+
+~~~~~ bash
+$ git submodule update --init
 ~~~~~
 
 WebAssembly Decoder

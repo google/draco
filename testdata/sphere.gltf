@@ -1,0 +1,186 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "draco_decoder"
+  },
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "scene": 0,
+  "nodes": [
+    {
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 2,
+            "POSITION": 1,
+            "TANGENT": 4,
+            "TEXCOORD_0": 3
+          },
+          "indices": 0,
+          "mode": 4,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "normalTexture": {
+        "index": 0
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicFactor": 0
+      }
+    }
+  ],
+  "textures": [
+    {
+      "source": 0
+    },
+    {
+      "source": 1
+    }
+  ],
+  "images": [
+    {
+      "uri": "sphere_Texture0_Normal.png"
+    },
+    {
+      "uri": "sphere_Texture1_BaseColor.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "byteOffset": 0,
+      "componentType": 5121,
+      "count": 672,
+      "normalized": false,
+      "max": [
+        230
+      ],
+      "min": [
+        0
+      ],
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 231,
+      "normalized": false,
+      "max": [
+        1,
+        1,
+        1
+      ],
+      "min": [
+        -1,
+        -1,
+        -1
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 231,
+      "normalized": false,
+      "max": [
+        1,
+        1,
+        1
+      ],
+      "min": [
+        -1,
+        -1,
+        -1
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 231,
+      "normalized": false,
+      "max": [
+        0.920301,
+        0.991284
+      ],
+      "min": [
+        0.00871642,
+        0.00967127
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 4,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 231,
+      "normalized": false,
+      "max": [
+        0.997891,
+        0.961565,
+        0.962921,
+        1
+      ],
+      "min": [
+        -0.926271,
+        -0.9153,
+        -0.994848,
+        1
+      ],
+      "type": "VEC4"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 672
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 672,
+      "byteLength": 2772
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 3444,
+      "byteLength": 2772
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 6216,
+      "byteLength": 1848
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 8064,
+      "byteLength": 3696
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 11760,
+      "uri": "sphere_buffer0.bin"
+    }
+  ]
+}

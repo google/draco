@@ -21,6 +21,7 @@
 #include "draco/attributes/geometry_indices.h"
 #include "draco/core/data_buffer.h"
 #include "draco/core/hash_utils.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 
@@ -51,6 +52,16 @@ class GeometryAttribute {
     // predefined use case. Such attributes are often used for a shader specific
     // data.
     GENERIC,
+#ifdef DRACO_TRANSCODER_SUPPORTED
+    // TODO(ostava): Adding a new attribute would be bit-stream change for GLTF.
+    // Older decoders wouldn't know what to do with this attribute type. This
+    // should be open-sourced only when we are ready to increase our bit-stream
+    // version.
+    TANGENT,
+    MATERIAL,
+    JOINTS,
+    WEIGHTS,
+#endif
     // Total number of different attribute types.
     // Always keep behind all named attributes.
     NAMED_ATTRIBUTES_COUNT,

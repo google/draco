@@ -1,0 +1,124 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "draco_decoder"
+  },
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "scene": 0,
+  "nodes": [
+    {
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "COLOR_0": 2,
+            "POSITION": 1
+          },
+          "indices": 0,
+          "mode": 4,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.75,
+          0.75,
+          0.75,
+          1
+        ],
+        "metallicFactor": 0
+      }
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "byteOffset": 0,
+      "componentType": 5121,
+      "count": 672,
+      "normalized": false,
+      "max": [
+        113
+      ],
+      "min": [
+        0
+      ],
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 114,
+      "normalized": false,
+      "max": [
+        1,
+        1,
+        1
+      ],
+      "min": [
+        -1,
+        -1,
+        -1
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 0,
+      "componentType": 5121,
+      "count": 114,
+      "normalized": true,
+      "max": [
+        235,
+        255,
+        255,
+        255
+      ],
+      "min": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "type": "VEC4"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 672
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 672,
+      "byteLength": 1368
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2040,
+      "byteLength": 456
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 2496,
+      "uri": "test_pos_color_buffer0.bin"
+    }
+  ]
+}

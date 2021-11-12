@@ -14,7 +14,8 @@
 
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
-# Draco requires C++11.
+# Draco requires modern compiler support.
+set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 project(draco C CXX)
 
@@ -81,6 +82,7 @@ draco_reset_target_lists()
 draco_setup_options()
 draco_set_build_definitions()
 draco_set_cxx_flags()
+draco_set_exe_linker_flags()
 draco_generate_features_h()
 
 # Draco source file listing variables.
@@ -508,12 +510,77 @@ list(APPEND draco_maya_plug_sources
             "${draco_src_root}/maya/draco_maya_plugin.cc"
             "${draco_src_root}/maya/draco_maya_plugin.h")
 
+if(DRACO_TRANSCODER_SUPPORTED)
+  list(APPEND draco_animation_sources
+    "${draco_src_root}/animation/animation.cc"
+    "${draco_src_root}/animation/animation.h"
+    "${draco_src_root}/animation/node_animation_data.h"
+    "${draco_src_root}/animation/skin.cc"
+    "${draco_src_root}/animation/skin.h")
+
+ list(APPEND draco_io_sources
+    "${draco_src_root}/io/gltf_decoder.cc"
+    "${draco_src_root}/io/gltf_decoder.h"
+    "${draco_src_root}/io/gltf_encoder.cc"
+    "${draco_src_root}/io/gltf_encoder.h"
+    "${draco_src_root}/io/gltf_utils.cc"
+    "${draco_src_root}/io/gltf_utils.h"
+    "${draco_src_root}/io/image_compression_options.h"
+    "${draco_src_root}/io/scene_io.cc"
+    "${draco_src_root}/io/scene_io.h"
+    "${draco_src_root}/io/texture_io.cc"
+    "${draco_src_root}/io/texture_io.h"
+    "${draco_src_root}/io/tiny_gltf_utils.cc"
+    "${draco_src_root}/io/tiny_gltf_utils.h")
+
+  list(APPEND draco_material_sources
+    "${draco_src_root}/material/material.cc"
+    "${draco_src_root}/material/material.h"
+    "${draco_src_root}/material/material_library.cc"
+    "${draco_src_root}/material/material_library.h")
+
+  list(APPEND draco_mesh_sources
+    "${draco_src_root}/mesh/mesh_splitter.cc"
+    "${draco_src_root}/mesh/mesh_splitter.h"
+    "${draco_src_root}/mesh/mesh_utils.cc"
+    "${draco_src_root}/mesh/mesh_utils.h")
+
+  list(APPEND draco_scene_sources
+    "${draco_src_root}/scene/mesh_group.h"
+    "${draco_src_root}/scene/scene.cc"
+    "${draco_src_root}/scene/scene.h"
+    "${draco_src_root}/scene/scene_indices.h"
+    "${draco_src_root}/scene/scene_node.h"
+    "${draco_src_root}/scene/scene_utils.cc"
+    "${draco_src_root}/scene/scene_utils.h"
+    "${draco_src_root}/scene/trs_matrix.cc"
+    "${draco_src_root}/scene/trs_matrix.h")
+
+  list(APPEND draco_texture_sources
+    "${draco_src_root}/texture/source_image.cc"
+    "${draco_src_root}/texture/source_image.h"
+    "${draco_src_root}/texture/texture.h"
+    "${draco_src_root}/texture/texture_library.cc"
+    "${draco_src_root}/texture/texture_library.h"
+    "${draco_src_root}/texture/texture_map.cc"
+    "${draco_src_root}/texture/texture_map.h"
+    "${draco_src_root}/texture/texture_transform.cc"
+    "${draco_src_root}/texture/texture_transform.h"
+    "${draco_src_root}/texture/texture_utils.cc"
+    "${draco_src_root}/texture/texture_utils.h")
+endif()
+
 #
 # Draco targets.
 #
 if(EMSCRIPTEN AND DRACO_JS_GLUE)
   # Draco decoder and encoder "executable" targets in various flavors for
-  # Emsscripten.
+  # Emscripten.
+
+  if(DRACO_TRANSCODER_SUPPORTED)
+    message(FATAL_ERROR "The transcoder is not supported in Emscripten.")
+  endif()
+
   list(APPEND draco_decoder_src
               ${draco_attributes_sources}
               ${draco_compression_attributes_dec_sources}
@@ -788,7 +855,45 @@ else()
                     INCLUDES
                     ${draco_include_paths})
 
-  set(draco_object_library_deps
+  if(DRACO_TRANSCODER_SUPPORTED)
+    draco_add_library(
+      NAME
+      draco_material
+      TYPE
+      OBJECT
+      SOURCES
+      ${draco_material_sources}
+      DEFINES
+      ${draco_defines}
+      INCLUDES
+      ${draco_include_paths})
+
+    draco_add_library(
+      NAME
+      draco_scene
+      TYPE
+      OBJECT
+      SOURCES
+      ${draco_scene_sources}
+      DEFINES
+      ${draco_defines}
+      INCLUDES
+      ${draco_include_paths})
+
+    draco_add_library(
+      NAME
+      draco_texture
+      TYPE
+      OBJECT
+      SOURCES
+      ${draco_texture_sources}
+      DEFINES
+      ${draco_defines}
+      INCLUDES
+      ${draco_include_paths})
+  endif()
+
+  list(APPEND draco_object_library_deps
       draco_attributes
       draco_compression_attributes_dec
       draco_compression_attributes_enc
@@ -817,14 +922,19 @@ else()
       draco_points_dec
       draco_points_enc)
 
+  if(DRACO_TRANSCODER_SUPPORTED)
+    list(APPEND draco_object_library_deps
+         draco_material draco_scene draco_texture)
+  endif()
+
   # Library targets that consume the object collections.
   if(MSVC)
     # In order to produce a DLL and import library the Windows tools require
     # that the exported symbols are part of the DLL target. The unfortunate side
     # effect of this is that a single configuration cannot output both the
     # static library and the DLL: This results in an either/or situation.
-    # Windows users of the draco build can have a DLL and an import library,
-    # or they can have a static library; they cannot have both from a single
+    # Windows users of the draco build can have a DLL and an import library, or
+    # they can have a static library; they cannot have both from a single
     # configuration of the build.
     if(BUILD_SHARED_LIBS)
       set(draco_lib_type SHARED)
@@ -954,6 +1064,22 @@ else()
                        ${draco_include_paths}
                        LIB_DEPS
                        ${draco_dependency})
+
+  if(DRACO_TRANSCODER_SUPPORTED)
+    draco_add_executable(NAME
+                         draco_transcoder
+                         SOURCES
+                         "${draco_src_root}/tools/draco_transcoder.cc"
+                         "${draco_src_root}/tools/draco_transcoder_lib.cc"
+                         "${draco_src_root}/tools/draco_transcoder_lib.h"
+                         ${draco_io_sources}
+                         DEFINES
+                         ${draco_defines}
+                         INCLUDES
+                         ${draco_include_paths}
+                         LIB_DEPS
+                         ${draco_dependency})
+  endif()
 
   draco_setup_install_target()
   draco_setup_test_targets()

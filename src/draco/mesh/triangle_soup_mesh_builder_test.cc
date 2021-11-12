@@ -26,6 +26,9 @@ TEST_F(TriangleSoupMeshBuilderTest, CubeTest) {
   // of the provided triangle soup data.
   TriangleSoupMeshBuilder mb;
   mb.Start(12);
+#ifdef DRACO_TRANSCODER_SUPPORTED
+  mb.SetName("Cube");
+#endif
   const int pos_att_id =
       mb.AddAttribute(GeometryAttribute::POSITION, 3, DT_FLOAT32);
   // clang-format off
@@ -92,6 +95,9 @@ TEST_F(TriangleSoupMeshBuilderTest, CubeTest) {
 
   std::unique_ptr<Mesh> mesh = mb.Finalize();
   ASSERT_NE(mesh, nullptr) << "Failed to build the cube mesh.";
+#ifdef DRACO_TRANSCODER_SUPPORTED
+  EXPECT_EQ(mesh->GetName(), "Cube");
+#endif
   EXPECT_EQ(mesh->num_points(), 8) << "Unexpected number of vertices.";
   EXPECT_EQ(mesh->num_faces(), 12) << "Unexpected number of faces.";
 }
@@ -189,6 +195,9 @@ TEST_F(TriangleSoupMeshBuilderTest, TestPerFaceAttribs) {
 
   std::unique_ptr<Mesh> mesh = mb.Finalize();
   ASSERT_NE(mesh, nullptr) << "Failed to build the cube mesh.";
+#ifdef DRACO_TRANSCODER_SUPPORTED
+  EXPECT_TRUE(mesh->GetName().empty());
+#endif
   EXPECT_EQ(mesh->num_faces(), 12) << "Unexpected number of faces.";
   EXPECT_EQ(mesh->GetAttributeElementType(gen_att_id), MESH_FACE_ATTRIBUTE)
       << "Unexpected attribute element type.";

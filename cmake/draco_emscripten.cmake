@@ -32,42 +32,64 @@ endmacro()
 
 # Obtains the required Emscripten flags for Draco targets.
 macro(draco_get_required_emscripten_flags)
-  set(em_FLAG_LIST_VAR)
+  set(em_FLAG_LIST_VAR_COMPILER)
+  set(em_FLAG_LIST_VAR_LINKER)
   set(em_flags)
-  set(em_single_arg_opts FLAG_LIST_VAR)
+  set(em_single_arg_opts FLAG_LIST_VAR_COMPILER FLAG_LIST_VAR_LINKER)
   set(em_multi_arg_opts)
   cmake_parse_arguments(em "${em_flags}" "${em_single_arg_opts}"
                         "${em_multi_arg_opts}" ${ARGN})
-  if(NOT em_FLAG_LIST_VAR)
-    message(FATAL "draco_get_required_emscripten_flags: FLAG_LIST_VAR required")
+  if(NOT em_FLAG_LIST_VAR_COMPILER)
+    message(
+      FATAL
+      "draco_get_required_emscripten_flags: FLAG_LIST_VAR_COMPILER required")
+  endif()
+
+  if(NOT em_FLAG_LIST_VAR_LINKER)
+    message(
+      FATAL
+      "draco_get_required_emscripten_flags: FLAG_LIST_VAR_LINKER required")
   endif()
 
   if(DRACO_JS_GLUE)
     unset(required_flags)
-    list(APPEND ${em_FLAG_LIST_VAR} "-sALLOW_MEMORY_GROWTH=1")
-    list(APPEND ${em_FLAG_LIST_VAR} "-Wno-almost-asm")
-    list(APPEND ${em_FLAG_LIST_VAR} "--memory-init-file" "0")
-    list(APPEND ${em_FLAG_LIST_VAR} "-fno-omit-frame-pointer")
-    list(APPEND ${em_FLAG_LIST_VAR} "-sMODULARIZE=1")
-    list(APPEND ${em_FLAG_LIST_VAR} "-sNO_FILESYSTEM=1")
-    list(APPEND ${em_FLAG_LIST_VAR}
-                "-sEXPORTED_RUNTIME_METHODS=[\"callRuntimeCallbacks\"]")
-    list(APPEND ${em_FLAG_LIST_VAR}
-                "-sEXPORTED_FUNCTIONS=[\"_free\", \"_malloc\"]")
-    list(APPEND ${em_FLAG_LIST_VAR} "-sPRECISE_F32=1")
-    list(APPEND ${em_FLAG_LIST_VAR} "-sNODEJS_CATCH_EXIT=0")
-    list(APPEND ${em_FLAG_LIST_VAR} "-sNODEJS_CATCH_REJECTION=0")
+    # TODO(tomfinegan): Revisit splitting of compile/link flags for Emscripten,
+    # and drop -Wno-unused-command-line-argument. Emscripten complains about
+    # what are supposedly link-only flags sent with compile commands, but then
+    # proceeds to produce broken code if the warnings are heeded.
+    list(APPEND ${em_FLAG_LIST_VAR_COMPILER}
+                "-Wno-unused-command-line-argument")
+
+    list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-Wno-almost-asm")
+    list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "--memory-init-file" "0")
+    list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-fno-omit-frame-pointer")
+
+    # According to Emscripten the following flags are linker only, but sending
+    # these flags (en masse) to only the linker results in a broken Emscripten
+    # build with an empty DracoDecoderModule.
+    list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sALLOW_MEMORY_GROWTH=1")
+    list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sMODULARIZE=1")
+    list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sFILESYSTEM=0")
+    list(APPEND ${em_FLAG_LIST_VAR_COMPILER}
+                "-sEXPORTED_FUNCTIONS=[\"_free\",\"_malloc\"]")
+    list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sPRECISE_F32=1")
+    list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sNODEJS_CATCH_EXIT=0")
+    list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sNODEJS_CATCH_REJECTION=0")
 
     if(DRACO_FAST)
-      list(APPEND ${em_FLAG_LIST_VAR} "--llvm-lto" "1")
+      list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "--llvm-lto" "1")
     endif()
+
+    # The WASM flag is reported as linker only.
     if(DRACO_WASM)
-      list(APPEND ${em_FLAG_LIST_VAR} "-sWASM=1")
+      list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sWASM=1")
     else()
-      list(APPEND ${em_FLAG_LIST_VAR} "-sWASM=0")
+      list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sWASM=0")
     endif()
+
+    # The LEGACY_VM_SUPPORT flag is reported as linker only.
     if(DRACO_IE_COMPATIBLE)
-      list(APPEND ${em_FLAG_LIST_VAR} "-sLEGACY_VM_SUPPORT=1")
+      list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sLEGACY_VM_SUPPORT=1")
     endif()
   endif()
 endmacro()
@@ -170,7 +192,8 @@ macro(draco_add_emscripten_executable)
   # passed in with the target.
   list(APPEND emexe_LINK_FLAGS ${DRACO_CXX_FLAGS})
 
-  if(DRACO_GLTF)
+  if(DRACO_GLTF_BITSTREAM)
+    # Add "_gltf" suffix to target output name.
     draco_add_executable(NAME
                          ${emexe_NAME}
                          OUTPUT_NAME

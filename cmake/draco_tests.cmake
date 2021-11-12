@@ -53,6 +53,7 @@ list(
     "${draco_src_root}/core/vector_d_test.cc"
     "${draco_src_root}/io/file_reader_test_common.h"
     "${draco_src_root}/io/file_utils_test.cc"
+    "${draco_src_root}/io/file_writer_utils_test.cc"
     "${draco_src_root}/io/stdio_file_reader_test.cc"
     "${draco_src_root}/io/stdio_file_writer_test.cc"
     "${draco_src_root}/io/obj_decoder_test.cc"
@@ -67,6 +68,27 @@ list(
     "${draco_src_root}/metadata/metadata_test.cc"
     "${draco_src_root}/point_cloud/point_cloud_builder_test.cc"
     "${draco_src_root}/point_cloud/point_cloud_test.cc")
+
+if(DRACO_TRANSCODER_SUPPORTED)
+  list(
+    APPEND
+      draco_test_sources
+      "${draco_src_root}/animation/animation_test.cc"
+      "${draco_src_root}/io/gltf_decoder_test.cc"
+      "${draco_src_root}/io/gltf_encoder_test.cc"
+      "${draco_src_root}/io/gltf_utils_test.cc"
+      "${draco_src_root}/io/scene_io_test.cc"
+      "${draco_src_root}/io/texture_io_test.cc"
+      "${draco_src_root}/material/material_library_test.cc"
+      "${draco_src_root}/material/material_test.cc"
+      "${draco_src_root}/scene/mesh_group_test.cc"
+      "${draco_src_root}/scene/scene_test.cc"
+      "${draco_src_root}/scene/scene_utils_test.cc"
+      "${draco_src_root}/scene/trs_matrix_test.cc"
+      "${draco_src_root}/texture/texture_library_test.cc"
+      "${draco_src_root}/texture/texture_map_test.cc"
+      "${draco_src_root}/texture/texture_transform_test.cc")
+endif()
 
 list(APPEND draco_gtest_all
             "${draco_root}/third_party/googletest/googletest/src/gtest-all.cc")
@@ -127,7 +149,7 @@ macro(draco_setup_test_targets)
                          INCLUDES
                          ${draco_test_include_paths}
                          LIB_DEPS
-                         draco_static
+                         ${draco_dependency}
                          draco_gtest
                          draco_gtest_main)
 
@@ -141,7 +163,7 @@ macro(draco_setup_test_targets)
                          INCLUDES
                          ${draco_test_include_paths}
                          LIB_DEPS
-                         draco_static
+                         ${draco_dependency}
                          draco_gtest
                          draco_gtest_main)
   endif()

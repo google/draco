@@ -1,0 +1,252 @@
+{
+    "asset": {
+        "version": "2.0",
+        "generator": "babylon.js glTF exporter for Maya 2018 v20200617.6 with custom modifications for sheen"
+    },
+    "extensionsUsed": [
+        "KHR_texture_transform",
+        "KHR_materials_sheen"
+    ],
+    "extensionsRequired": [
+        "KHR_texture_transform"
+    ],
+    "scene": 0,
+    "scenes": [
+        {
+            "nodes": [
+                0
+            ]
+        }
+    ],
+    "nodes": [
+        {
+            "mesh": 0,
+            "name": "SheenCloth_mesh"
+        }
+    ],
+    "meshes": [
+        {
+            "primitives": [
+                {
+                    "attributes": {
+                        "POSITION": 1,
+                        "TANGENT": 2,
+                        "NORMAL": 3,
+                        "TEXCOORD_0": 4
+                    },
+                    "indices": 0,
+                    "material": 0
+                }
+            ],
+            "name": "SheenCloth_mesh"
+        }
+    ],
+    "accessors": [
+        {
+            "bufferView": 0,
+            "componentType": 5123,
+            "count": 345600,
+            "type": "SCALAR",
+            "name": "accessorIndices"
+        },
+        {
+            "bufferView": 1,
+            "componentType": 5126,
+            "count": 58081,
+            "max": [
+                0.0447657481,
+                0.0404023454,
+                0.022842247
+            ],
+            "min": [
+                -0.02736334,
+                9.99381155E-05,
+                -0.04848177
+            ],
+            "type": "VEC3",
+            "name": "accessorPositions"
+        },
+        {
+            "bufferView": 2,
+            "componentType": 5126,
+            "count": 58081,
+            "type": "VEC4",
+            "name": "accessorTangents"
+        },
+        {
+            "bufferView": 1,
+            "byteOffset": 696972,
+            "componentType": 5126,
+            "count": 58081,
+            "type": "VEC3",
+            "name": "accessorNormals"
+        },
+        {
+            "bufferView": 3,
+            "componentType": 5126,
+            "count": 58081,
+            "type": "VEC2",
+            "name": "accessorUVs"
+        }
+    ],
+    "bufferViews": [
+        {
+            "buffer": 0,
+            "byteLength": 691200,
+            "name": "bufferViewScalar"
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 691200,
+            "byteLength": 1393944,
+            "byteStride": 12,
+            "name": "bufferViewFloatVec3"
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 2085144,
+            "byteLength": 929296,
+            "byteStride": 16,
+            "name": "bufferViewFloatVec4"
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 3014440,
+            "byteLength": 464648,
+            "byteStride": 8,
+            "name": "bufferViewFloatVec2"
+        }
+    ],
+    "buffers": [
+        {
+            "uri": "SheenCloth.bin",
+            "byteLength": 3479088
+        }
+    ],
+    "materials": [
+        {
+            "pbrMetallicRoughness": {
+                "baseColorTexture": {
+                    "index": 2,
+                    "extensions": {
+                        "KHR_texture_transform": {
+                            "scale": [
+                                30.0,
+                                -30.0
+                            ]
+                        }
+                    }
+                },
+                "metallicRoughnessTexture": {
+                    "index": 1,
+                    "extensions": {
+                        "KHR_texture_transform": {
+                            "scale": [
+                                30.0,
+                                -30.0
+                            ]
+                        }
+                    }
+                }
+            },
+            "normalTexture": {
+                "index": 0,
+                "extensions": {
+                    "KHR_texture_transform": {
+                        "scale": [
+                            30.0,
+                            -30.0
+                        ]
+                    }
+                }
+            },
+            "occlusionTexture": {
+                "index": 1,
+                "extensions": {
+                    "KHR_texture_transform": {
+                        "scale": [
+                            30.0,
+                            -30.0
+                        ]
+                    }
+                }
+            },
+            "extensions": {
+                "KHR_materials_sheen": {
+                    "sheenColorFactor": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "sheenRoughnessFactor": 1.0,
+                    "sheenColorTexture": {
+                        "index": 3,
+                        "extensions": {
+                            "KHR_texture_transform": {
+                                "scale": [
+                                    30.0,
+                                    -30.0
+                                ]
+                            }
+                        }
+                    },
+                    "sheenRoughnessTexture": {
+                        "index": 3,
+                        "extensions": {
+                            "KHR_texture_transform": {
+                                "scale": [
+                                    30.0,
+                                    -30.0
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "doubleSided": true,
+            "name": "SheenClothMat"
+        }
+    ],
+    "textures": [
+        {
+            "sampler": 0,
+            "source": 0,
+            "name": "technicalFabricSmall_normal_256.png"
+        },
+        {
+            "sampler": 0,
+            "source": 1,
+            "name": "technicalFabricSmall_orm_256.png"
+        },
+        {
+            "sampler": 0,
+            "source": 2,
+            "name": "technicalFabricSmall_basecolor_256.png"
+        },
+        {
+            "sampler": 0,
+            "source": 3,
+            "name": "technicalFabricSmall_sheen_256.png"
+        }
+    ],
+    "images": [
+        {
+            "uri": "technicalFabricSmall_normal_256.png"
+        },
+        {
+            "uri": "technicalFabricSmall_orm_256.png"
+        },
+        {
+            "uri": "technicalFabricSmall_basecolor_256.png"
+        },
+        {
+            "uri": "technicalFabricSmall_sheen_256.png"
+        }
+    ],
+    "samplers": [
+        {
+            "magFilter": 9729,
+            "minFilter": 9987
+        }
+    ]
+}

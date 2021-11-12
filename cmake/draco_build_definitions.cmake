@@ -60,7 +60,7 @@ macro(draco_set_build_definitions)
   # passed to libtool.
   #
   # We set DRACO_SOVERSION = [c-a].a.r
-  set(LT_CURRENT 2)
+  set(LT_CURRENT 3)
   set(LT_REVISION 0)
   set(LT_AGE 0)
   math(EXPR DRACO_SOVERSION_MAJOR "${LT_CURRENT} - ${LT_AGE}")
@@ -73,17 +73,33 @@ macro(draco_set_build_definitions)
               "${draco_build}")
 
   if(DRACO_ABSL)
-    list(APPEND draco_include_path "${draco_root}/third_party/abseil-cpp")
+    list(APPEND draco_include_paths "${draco_root}/third_party/abseil-cpp")
   endif()
 
+  if(DRACO_TRANSCODER_SUPPORTED)
+    list(APPEND submodule_test_dirs
+                "${draco_root}/third_party/eigen/Eigen"
+                "${draco_root}/third_party/filesystem/include"
+                "${draco_root}/third_party/tinygltf")
+    foreach(dir IN LISTS submodule_test_dirs)
+      if(NOT EXISTS ${dir})
+        message(FATAL_ERROR "${dir} missing, run git submodule update --init")
+      endif()
+    endforeach()
 
-  list(APPEND draco_gtest_include_paths
-              "${draco_root}/../googletest/googlemock/include"
-              "${draco_root}/../googletest/googlemock"
-              "${draco_root}/../googletest/googletest/include"
-              "${draco_root}/../googletest/googletest")
-  list(APPEND draco_test_include_paths ${draco_include_paths}
-              ${draco_gtest_include_paths})
+    list(APPEND draco_include_paths
+                "${draco_root}/third_party/eigen"
+                "${draco_root}/third_party/filesystem/include")
+  endif()
+
+  list(APPEND draco_test_include_paths
+              ${draco_include_paths}
+              "${draco_root}/third_party/googletest/googlemock/include"
+              "${draco_root}/third_party/googletest/googlemock"
+              "${draco_root}/third_party/googletest/googletest/include"
+              "${draco_root}/third_party/googletest/googletest")
+
+
   list(APPEND draco_defines "DRACO_CMAKE=1"
               "DRACO_FLAGS_SRCDIR=\"${draco_root}\""
               "DRACO_FLAGS_TMPDIR=\"/tmp\"")
@@ -93,6 +109,32 @@ macro(draco_set_build_definitions)
 
     if(BUILD_SHARED_LIBS)
       set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+    endif()
+
+    if(MSVC AND NOT DRACO_DEBUG_MSVC_WARNINGS)
+      # Silence some excessively noisy MSVC warnings when not actively seeking
+      # to address them. These are harmless and serve only to make the build
+      # output extremely verbose. To enable these warnings set the MSVC warning
+      # level to 4, or define DRACO_DEBUG_MSVC_WARNINGS on the CMake command
+      # line when configuring Draco.
+
+      # warning C4018: '<operator>': signed/unsigned mismatch.
+      list(APPEND draco_msvc_cxx_flags /w44018)
+
+      # warning C4146: unary minus operator applied to unsigned type, result
+      # still unsigned
+      list(APPEND draco_msvc_cxx_flags /w44146)
+
+      # warning C4244: 'return': conversion from '<type>' to '<type>', possible
+      # loss of data.
+      list(APPEND draco_msvc_cxx_flags /w44244)
+
+      # warning C4267: 'initializing' conversion from '<type>' to '<type>',
+      # possible loss of data.
+      list(APPEND draco_msvc_cxx_flags /w44267)
+
+      # warning C4804: '<operator>': unsafe use of type '<type>' in operation.
+      list(APPEND draco_msvc_cxx_flags /w44804)
     endif()
   else()
     if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
@@ -148,7 +190,10 @@ macro(draco_set_build_definitions)
 
   if(EMSCRIPTEN)
     draco_check_emscripten_environment()
-    draco_get_required_emscripten_flags(FLAG_LIST_VAR draco_base_cxx_flags)
+    draco_get_required_emscripten_flags(FLAG_LIST_VAR_COMPILER
+                                        draco_base_cxx_flags
+                                        FLAG_LIST_VAR_LINKER
+                                        draco_base_exe_linker_flags)
   endif()
 
   draco_configure_sanitizer()

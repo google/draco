@@ -31,6 +31,11 @@ class TriangleSoupMeshBuilder {
   // rewrite our attribute resizing functions.
   void Start(int num_faces);
 
+#ifdef DRACO_TRANSCODER_SUPPORTED
+  // Sets mesh name.
+  void SetName(const std::string &name);
+#endif  // DRACO_TRANSCODER_SUPPORTED
+
   // Adds an empty attribute to the mesh. Returns the new attribute's id.
   int AddAttribute(GeometryAttribute::Type attribute_type,
                    int8_t num_components, DataType data_type);

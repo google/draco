@@ -12,11 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Store all pre-main callbacks into the module to make them accessible later in
-// the |onRuntimeInitialized| function. See more details in
-// "prepareCallbacks.js".
-Module['mainCallbacks'] = __ATMAIN__;
-
 // Calls the 'onModuleParsed' callback if provided. This file is included as the
 // last one in the generated javascript and it gives the caller a way to check
 // that all previous content was successfully processed.

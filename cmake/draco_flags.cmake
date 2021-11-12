@@ -259,3 +259,34 @@ macro(draco_set_cxx_flags)
     draco_test_cxx_flag(FLAG_LIST_VAR_NAMES ${cxx_flag_lists})
   endif()
 endmacro()
+
+# Collects Draco built-in and user-specified linker flags and tests them. Halts
+# configuration and reports the error when any flags cause the build to fail.
+#
+# Note: draco_test_exe_linker_flag() does the real work of setting the flags and
+# running the test compile commands.
+macro(draco_set_exe_linker_flags)
+  unset(linker_flag_lists)
+
+  if(DRACO_VERBOSE)
+    message("draco_set_exe_linker_flags: "
+            "draco_base_exe_linker_flags=${draco_base_exe_linker_flags}")
+  endif()
+
+  if(draco_base_exe_linker_flags)
+    list(APPEND linker_flag_lists draco_base_exe_linker_flags)
+  endif()
+
+  if(linker_flag_lists)
+    unset(test_linker_flags)
+
+    if(DRACO_VERBOSE)
+      message("draco_set_exe_linker_flags: "
+              "linker_flag_lists=${linker_flag_lists}")
+    endif()
+
+    draco_set_and_stringify(DEST test_linker_flags SOURCE_VARS
+                            ${linker_flag_lists})
+    draco_test_exe_linker_flag(FLAG_LIST_VAR_NAME test_linker_flags)
+  endif()
+endmacro()
