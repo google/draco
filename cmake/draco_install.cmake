@@ -49,6 +49,9 @@ macro(draco_setup_install_target)
     "${draco_build}/draco-version.cmake"
     VERSION ${DRACO_VERSION}
     COMPATIBILITY AnyNewerVersion)
+  install(
+      FILES "${draco_build}/draco-version.cmake"
+      DESTINATION "${data_path}/cmake")
 
   foreach(file ${draco_sources})
     if(file MATCHES "h$")
