@@ -35,7 +35,6 @@ if("${draco_root}" STREQUAL "${draco_build}")
                 "And re-run CMake from the draco_build directory.")
 endif()
 
-include(CMakePackageConfigHelpers)
 include(FindPythonInterp)
 include("${draco_root}/cmake/draco_build_definitions.cmake")
 include("${draco_root}/cmake/draco_cpu_detection.cmake")
@@ -347,6 +346,7 @@ list(APPEND draco_core_sources
             "${draco_src_root}/core/draco_index_type_vector.h"
             "${draco_src_root}/core/draco_types.cc"
             "${draco_src_root}/core/draco_types.h"
+            "${draco_src_root}/core/draco_version.h"
             "${draco_src_root}/core/encoder_buffer.cc"
             "${draco_src_root}/core/encoder_buffer.h"
             "${draco_src_root}/core/hash_utils.cc"
