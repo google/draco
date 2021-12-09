@@ -17,9 +17,38 @@
 #include <algorithm>
 #include <unordered_map>
 
+#ifdef DRACO_TRANSCODER_SUPPORTED
+#include "draco/attributes/point_attribute.h"
+#endif
+
 namespace draco {
 
 PointCloud::PointCloud() : num_points_(0) {}
+
+#ifdef DRACO_TRANSCODER_SUPPORTED
+void PointCloud::Copy(const PointCloud &src) {
+  num_points_ = src.num_points_;
+  for (int i = 0; i < GeometryAttribute::NAMED_ATTRIBUTES_COUNT; ++i) {
+    named_attribute_index_[i] = src.named_attribute_index_[i];
+  }
+  attributes_.resize(src.attributes_.size());
+  for (int i = 0; i < src.attributes_.size(); ++i) {
+    attributes_[i] = std::unique_ptr<PointAttribute>(new PointAttribute());
+    attributes_[i]->CopyFrom(*src.attributes_[i]);
+  }
+  CopyMetadata(src);
+}
+
+void PointCloud::CopyMetadata(const PointCloud &src) {
+  if (src.metadata_ == nullptr) {
+    metadata_ = nullptr;
+  } else {
+    // Copy base metadata.
+    const GeometryMetadata *const metadata = src.metadata_.get();
+    metadata_.reset(new GeometryMetadata(*metadata));
+  }
+}
+#endif
 
 int32_t PointCloud::NumNamedAttributes(GeometryAttribute::Type type) const {
   if (type == GeometryAttribute::INVALID ||

@@ -14,6 +14,29 @@ delays can result in transient errors that can be difficult to diagnose when
 new Draco releases are launched. To avoid the issue pin your sites to a
 versioned release.
 
+### Version 1.5.0 release
+* Adds the draco_transcoder tool. See the section below on the glTF transcoding
+  tool, and BUILDING.md for build and dependency information.
+* Some changes to configuration variables have been made for this release:
+  - The DRACO_GLTF flag has been renamed to DRACO_GLTF_BITSTREAM to help
+    increase understanding of its purpose, which is to limit Draco features to
+    those included in the Draco glTF specification.
+  - Variables exported in CMake via draco-config.cmake and find-draco.cmake
+    (formerly FindDraco.cmake) have been renamed. It's unlikely that this
+    impacts any existing projects as the aforementioned files were not formed
+    correctly. See [PR775](https://github.com/google/draco/pull/775) for full
+    details of the changes.
+* A CMake version file has been added.
+* The CMake install target now uses absolute paths direct from CMake instead
+  of building them using CMAKE_INSTALL_PREFIX. This was done to make Draco
+  easier to use for downstream packagers and should have little to no impact on
+  users picking up Draco from source.
+* Certain MSVC warnings have had their levels changed via compiler flag to
+  reduce the amount of noise output by the MSVC compilers. Set MSVC warning
+  level to 4, or define DRACO_DEBUG_MSVC_WARNINGS at CMake configuration time
+  to restore previous behavior.
+* Bug fixes.
+
 ### Version 1.4.3 release
 * Using the versioned www.gstatic.com WASM and Javascript decoders continues
   to be recommended. To use v1.4.3, use this URL:
@@ -143,6 +166,7 @@ _**Contents**_
     * [Encoding Tool](#encoding-tool)
     * [Encoding Point Clouds](#encoding-point-clouds)
     * [Decoding Tool](#decoding-tool)
+    * [glTF Transcoding Tool](#gltf-transcoding-tool)
     * [C++ Decoder API](#c-decoder-api)
     * [Javascript Encoder API](#javascript-encoder-api)
     * [Javascript Decoder API](#javascript-decoder-api)
@@ -185,9 +209,11 @@ Command Line Applications
 ------------------------
 
 The default target created from the build files will be the `draco_encoder`
-and `draco_decoder` command line applications. For both applications, if you
-run them without any arguments or `-h`, the applications will output usage and
-options.
+and `draco_decoder` command line applications. Additionally, `draco_transcoder`
+is generated when CMake is run with the DRACO_TRANSCODER_SUPPORTED variable set
+to ON (see [BUILDING](BUILDING.md#transcoder) for more details). For all
+applications, if you run them without any arguments or `-h`, the applications
+will output usage and options.
 
 Encoding Tool
 -------------
@@ -254,8 +280,27 @@ The basic command line looks like this:
 ./draco_decoder -i in.drc -o out.obj
 ~~~~~
 
+glTF Transcoding Tool
+---------------------
+
+`draco_transcoder` can be used to add Draco compression to glTF assets. The
+basic command line looks like this:
+
+~~~~~ bash
+./draco_transcoder -i in.glb -o out.glb
+~~~~~
+
+This command line will add geometry compression to all meshes in the `in.glb`
+file. Quantization values for different glTF attributes can be specified
+similarly to the `draco_encoder` tool. For example `-qp` can be used to define
+quantization of the position attribute:
+
+~~~~~ bash
+./draco_transcoder -i in.glb -o out.glb -qp 12
+~~~~~
+
 C++ Decoder API
--------------
+---------------
 
 If you'd like to add decoding to your applications you will need to include
 the `draco_dec` library. In order to use the Draco decoder you need to

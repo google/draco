@@ -23,6 +23,12 @@ void TriangleSoupMeshBuilder::Start(int num_faces) {
   attribute_element_types_.clear();
 }
 
+#ifdef DRACO_TRANSCODER_SUPPORTED
+void TriangleSoupMeshBuilder::SetName(const std::string &name) {
+  mesh_->SetName(name);
+}
+#endif  // DRACO_TRANSCODER_SUPPORTED
+
 int TriangleSoupMeshBuilder::AddAttribute(
     GeometryAttribute::Type attribute_type, int8_t num_components,
     DataType data_type) {

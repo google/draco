@@ -15,6 +15,7 @@
 #ifndef DRACO_CORE_STATUS_H_
 #define DRACO_CORE_STATUS_H_
 
+#include <ostream>
 #include <string>
 
 namespace draco {
