@@ -69,7 +69,7 @@ macro(draco_setup_install_target)
 
     if(BUILD_SHARED_LIBS)
       install(TARGETS draco_shared DESTINATION "${libs_path}" EXPORT dracoTargets)
-    set(DRACO_TARGETS ${DRACO_TARGETS} draco::draco_shared)
+      set(DRACO_TARGETS ${DRACO_TARGETS} draco::draco_shared)
     endif()
   endif()
 
