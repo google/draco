@@ -8,7 +8,7 @@ News
 =======
 
 Attention GStatic users: the Draco team strongly recommends using the versioned
-URLs for aceessing Draco GStatic content. If you are using the URLs that include
+URLs for accessing Draco GStatic content. If you are using the URLs that include
 the `v1/decoders` substring within the URL, edge caching and GStatic propagation
 delays can result in transient errors that can be difficult to diagnose when
 new Draco releases are launched. To avoid the issue pin your sites to a
