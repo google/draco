@@ -81,7 +81,7 @@ In order to build the `draco_transcoder` target, the transcoding support needs
 to be explicitly enabled when you run `cmake`, for example:
 
 ~~~~~ bash
-$ cmake ../ -DDRACO_TRANCODER_SUPPORTED=ON
+$ cmake ../ -DDRACO_TRANSCODER_SUPPORTED=ON
 ~~~~~
 
 The above option is currently not compatible with our Javascript or WebAssembly
