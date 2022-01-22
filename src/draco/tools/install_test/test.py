@@ -29,7 +29,7 @@ import shutil
 import subprocess
 
 # The Draco tree that this script uses.
-DRACO_SOURCES_PATH = os.path.abspath('../../../..')
+DRACO_SOURCES_PATH = os.path.abspath(os.path.join('..','..','..','..'))
 
 # Path to this script and the rest of the test project files.
 TEST_SOURCES_PATH = os.path.split(os.path.abspath(__file__))[0]
@@ -89,7 +89,7 @@ def run_process_and_capture_output(cmd, env=None):
   if not cmd:
     raise ValueError('run_process_and_capture_output requires cmd argument.')
   proc = subprocess.Popen(
-      shlex.split(cmd),
+      cmd,
       stdout=subprocess.PIPE,
       stderr=subprocess.STDOUT,
       env=env)
@@ -109,6 +109,8 @@ def cleanup():
   """Removes the build output directories from the test."""
   shutil.rmtree(DRACO_SHARED_BUILD_PATH)
   shutil.rmtree(DRACO_STATIC_BUILD_PATH)
+  shutil.rmtree(DRACO_SHARED_INSTALL_PATH)
+  shutil.rmtree(DRACO_STATIC_INSTALL_PATH)
   shutil.rmtree(TEST_SHARED_BUILD_PATH)
   shutil.rmtree(TEST_STATIC_BUILD_PATH)
 
@@ -143,9 +145,9 @@ def cmake_build(cmake_args=None, build_args=None):
 
   generator = get_cmake_generator()
   if generator.endswith('Makefiles'):
-    build_args.append(f' -j {NUM_PROCESSES}')
+    build_args.append(f'-j {NUM_PROCESSES}')
   elif generator.startswith('Visual'):
-    build_args.append(f' -m {NUM_PROCESSES}')
+    build_args.append(f'-m:{NUM_PROCESSES}')
 
   if build_args:
     command += ' --'
@@ -163,6 +165,8 @@ def cmake_build(cmake_args=None, build_args=None):
 
 def build_and_install_draco():
   """Builds Draco in shared and static configurations."""
+  orig_dir = os.getcwd()
+
   # Build and install Draco in shared library config for the current host
   # machine.
   os.chdir(DRACO_SHARED_BUILD_PATH)
@@ -180,12 +184,15 @@ def build_and_install_draco():
   cmake_configure(source_path=DRACO_SOURCES_PATH, cmake_args=cmake_args)
   cmake_build(cmake_args=['--target install'])
 
+  os.chdir(orig_dir)
+
 
 def build_test_project():
   """Builds the test application in shared and static configurations."""
-  os.chdir(TEST_SHARED_BUILD_PATH)
+  orig_dir = os.getcwd()
 
   # Configure the test project in shared mode and build it.
+  os.chdir(TEST_SHARED_BUILD_PATH)
   cmake_configure(
       source_path=f'{TEST_SOURCES_PATH}', cmake_args=['-DBUILD_SHARED_LIBS=ON'])
   cmake_build()
@@ -196,6 +203,8 @@ def build_test_project():
       source_path=f'{TEST_SOURCES_PATH}',
       cmake_args=['-DBUILD_SHARED_LIBS=OFF'])
   cmake_build()
+
+  os.chdir(orig_dir)
 
 
 def test_draco_install():
