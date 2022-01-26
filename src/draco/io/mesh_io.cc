@@ -20,6 +20,7 @@
 #include "draco/io/file_utils.h"
 #include "draco/io/obj_decoder.h"
 #include "draco/io/ply_decoder.h"
+#include "draco/io/stl_decoder.h"
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/compression/draco_compression_options.h"
 #include "draco/compression/encode.h"
@@ -71,10 +72,18 @@ StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(
     return std::move(mesh);
   }
   if (extension == "ply") {
-    // Wavefront PLY file format.
+    // Stanford PLY file format.
     PlyDecoder ply_decoder;
     DRACO_RETURN_IF_ERROR(ply_decoder.DecodeFromFile(file_name, mesh.get()));
     return std::move(mesh);
+  }
+  if (extension == "stl") {
+    // STL file format.
+    StlDecoder stl_decoder;
+    StatusOr<std::unique_ptr<Mesh>> status_or_mesh =
+        stl_decoder.DecodeFromFile(file_name);
+    DRACO_RETURN_IF_ERROR(status_or_mesh.status());
+    return status_or_mesh;
   }
 #ifdef DRACO_TRANSCODER_SUPPORTED
   if (extension == "gltf" || extension == "glb") {
