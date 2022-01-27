@@ -96,7 +96,7 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
         }
         mesh()->AddFace(face);
       }
-    } else if (mesh()->num_points() < (1 << 21) &&
+    } else if (num_points < (1 << 21) &&
                bitstream_version() >= DRACO_BITSTREAM_VERSION(2, 2)) {
       // Decode indices as uint32_t.
       for (uint32_t i = 0; i < num_faces; ++i) {
