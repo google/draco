@@ -28,6 +28,15 @@ import shlex
 import shutil
 import subprocess
 
+# CMake executable.
+CMAKE = shutil.which('cmake')
+
+# List of generators available in the current CMake executable.
+CMAKE_AVAILABLE_GENERATORS = []
+
+# CMake builds use the specified generator.
+CMAKE_GENERATOR = None
+
 # The Draco tree that this script uses.
 DRACO_SOURCES_PATH = os.path.abspath(os.path.join('..','..','..','..'))
 
@@ -56,7 +65,28 @@ TEST_STATIC_BUILD_PATH = os.path.join(TEST_SOURCES_PATH, '_test_build_static')
 VERBOSE = False
 
 
-def get_cmake_generator():
+def cmake_get_available_generators():
+  """Returns list of generators available in current CMake executable."""
+  result = run_process_and_capture_output(f'{CMAKE} --help')
+
+  if result[0] != 0:
+    raise Exception(f'cmake --help failed, exit code: {result[0]}\n{result[1]}')
+
+  help_text = result[1].splitlines()
+  generators_start_index = help_text.index('Generators') + 3
+  generators_text = help_text[generators_start_index::]
+
+  generators = []
+  for gen in generators_text:
+    gen = gen.split('=')[0].strip().replace('* ', '')
+
+    if gen and gen[0] != '=':
+      generators.append(gen)
+
+  return generators
+
+
+def cmake_get_generator():
   """Returns the CMake generator from CMakeCache.txt in the current dir."""
   cmake_cache_file_path = os.path.join(os.getcwd(), 'CMakeCache.txt')
   cmake_cache_text = ''
@@ -88,6 +118,13 @@ def run_process_and_capture_output(cmd, env=None):
   """
   if not cmd:
     raise ValueError('run_process_and_capture_output requires cmd argument.')
+
+  if os.name == 'posix':
+    # On posix systems subprocess.Popen will treat |cmd| as the program name
+    # when it is passed as a string. Unconditionally split the command so
+    # callers don't need to care about this detail.
+    cmd = shlex.split(cmd)
+
   proc = subprocess.Popen(
       cmd,
       stdout=subprocess.PIPE,
@@ -117,7 +154,10 @@ def cleanup():
 
 def cmake_configure(source_path, cmake_args=None):
   """Configures a CMake build."""
-  command = f'cmake {source_path}'
+  command = f'{CMAKE} {source_path}'
+
+  if CMAKE_GENERATOR:
+    command += f' -G {CMAKE_GENERATOR}'
 
   if cmake_args:
     for arg in cmake_args:
@@ -128,13 +168,16 @@ def cmake_configure(source_path, cmake_args=None):
 
   result = run_process_and_capture_output(command)
 
+  if result[0] != 0:
+    raise Exception(f'CONFIGURE failed!\nexit_code: {result[0]}\n{result[1]}')
+
   if VERBOSE:
     print(f'CONFIGURE result:\nexit_code: {result[0]}\n{result[1]}')
 
 
 def cmake_build(cmake_args=None, build_args=None):
   """Runs a CMake build."""
-  command = 'cmake --build .'
+  command = f'{CMAKE} --build .'
 
   if cmake_args:
     for arg in cmake_args:
@@ -143,7 +186,7 @@ def cmake_build(cmake_args=None, build_args=None):
   if not build_args:
     build_args = []
 
-  generator = get_cmake_generator()
+  generator = cmake_get_generator()
   if generator.endswith('Makefiles'):
     build_args.append(f'-j {NUM_PROCESSES}')
   elif generator.startswith('Visual'):
@@ -158,6 +201,9 @@ def cmake_build(cmake_args=None, build_args=None):
     print(f'BUILD command:\n{command}')
 
   result = run_process_and_capture_output(f'{command}')
+
+  if result[0] != 0:
+    raise Exception(f'BUILD failed!\nexit_code: {result[0]}\n{result[1]}')
 
   if VERBOSE:
     print(f'BUILD result:\nexit_code: {result[0]}\n{result[1]}')
@@ -215,17 +261,29 @@ def test_draco_install():
 
 
 if __name__ == '__main__':
+  CMAKE_AVAILABLE_GENERATORS = cmake_get_available_generators()
+
   parser = argparse.ArgumentParser()
+  parser.add_argument(
+      '-G',
+      '--generator',
+      help='CMake builds use the specified generator.')
   parser.add_argument(
       '-v',
       '--verbose',
       action='store_true',
       help='Show configuration and build output.')
   args = parser.parse_args()
+
+  if args.generator:
+    CMAKE_GENERATOR = args.generator
   if args.verbose:
     VERBOSE = True
 
   if VERBOSE:
+    print(f'CMAKE={CMAKE}')
+    print(f'CMAKE_GENERATOR={CMAKE_GENERATOR}')
+    print(f'CMAKE_AVAILABLE_GENERATORS={CMAKE_AVAILABLE_GENERATORS}')
     print(f'DRACO_SOURCES_PATH={DRACO_SOURCES_PATH}')
     print(f'DRACO_SHARED_BUILD_PATH={DRACO_SHARED_BUILD_PATH}')
     print(f'DRACO_STATIC_BUILD_PATH={DRACO_STATIC_BUILD_PATH}')
@@ -236,5 +294,8 @@ if __name__ == '__main__':
     print(f'TEST_STATIC_BUILD_PATH={TEST_STATIC_BUILD_PATH}')
     print(f'TEST_SOURCES_PATH={TEST_SOURCES_PATH}')
     print(f'VERBOSE={VERBOSE}')
+
+  if CMAKE_GENERATOR and not CMAKE_GENERATOR in CMAKE_AVAILABLE_GENERATORS:
+    raise ValueError('The specified CMake generator is not available.')
 
   test_draco_install()
