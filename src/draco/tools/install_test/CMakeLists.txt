@@ -32,6 +32,7 @@ endif()
 find_package(draco REQUIRED)
 
 if(BUILD_SHARED_LIBS)
+  # Add rpath to resolve dylib dependency on Linux/MacOS.
   list(APPEND CMAKE_BUILD_RPATH "${DRACO_LIBRARY_DIR}")
   list(APPEND CMAKE_INSTALL_RPATH "${DRACO_LIBRARY_DIR}")
 endif()
@@ -41,7 +42,14 @@ add_executable(install_check ${install_test_sources})
 
 # Update include paths and dependencies to allow for successful build of the
 # install_check target using Draco as configured for the current installation.
-target_include_directories(install_check PUBLIC ${DRACO_INCLUDE_DIR})
-target_link_libraries(install_check ${DRACO_LIBRARY})
+target_include_directories(install_check PUBLIC "${DRACO_INCLUDE_DIR}")
+target_link_libraries(install_check "${DRACO_LIBRARY}")
 
-install(TARGETS install_check DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+install(TARGETS install_check DESTINATION "${CMAKE_INSTALL_FULL_BINDIR}")
+
+if(BUILD_SHARED_LIBS AND WIN32)
+  # Copy the Draco DLL into the bin dir for Windows: Windows doesn't really have
+  # a concept of rpath, but it does look in the current directory by default
+  # when a program tries to load a DLL.
+  install(FILES "${DRACO_LIBRARY}" DESTINATION "${CMAKE_INSTALL_FULL_BINDIR}")
+endif()
