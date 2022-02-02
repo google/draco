@@ -38,10 +38,10 @@ CMAKE_AVAILABLE_GENERATORS = []
 CMAKE_GENERATOR = None
 
 # The Draco tree that this script uses.
-DRACO_SOURCES_PATH = os.path.abspath(os.path.join('..','..','..','..'))
+DRACO_SOURCES_PATH = os.path.abspath(os.path.join('..', '..', '..', '..'))
 
 # Path to this script and the rest of the test project files.
-TEST_SOURCES_PATH = os.path.split(os.path.abspath(__file__))[0]
+TEST_SOURCES_PATH = os.path.dirname(os.path.abspath(__file__))
 
 # The Draco build directories.
 DRACO_SHARED_BUILD_PATH = os.path.join(TEST_SOURCES_PATH, '_draco_build_shared')
@@ -132,10 +132,7 @@ def run_process_and_capture_output(cmd, env=None):
     cmd = shlex.split(cmd)
 
   proc = subprocess.Popen(
-      cmd,
-      stdout=subprocess.PIPE,
-      stderr=subprocess.STDOUT,
-      env=env)
+      cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
   stdout = proc.communicate()
   return [proc.returncode, stdout[0].decode('utf-8')]
 
@@ -223,7 +220,8 @@ def run_install_check(install_path):
   result = run_process_and_capture_output(cmd)
 
   if result[0] != 0:
-    raise Exception(f'install_check run failed!\nexit_code: {result[0]}\n{result[1]}')
+    raise Exception(
+        f'install_check run failed!\nexit_code: {result[0]}\n{result[1]}')
 
 
 def build_and_install_draco():
@@ -287,9 +285,7 @@ if __name__ == '__main__':
 
   parser = argparse.ArgumentParser()
   parser.add_argument(
-      '-G',
-      '--generator',
-      help='CMake builds use the specified generator.')
+      '-G', '--generator', help='CMake builds use the specified generator.')
   parser.add_argument(
       '-v',
       '--verbose',
@@ -317,7 +313,7 @@ if __name__ == '__main__':
     print(f'TEST_SOURCES_PATH={TEST_SOURCES_PATH}')
     print(f'VERBOSE={VERBOSE}')
 
-  if CMAKE_GENERATOR and not CMAKE_GENERATOR in CMAKE_AVAILABLE_GENERATORS:
+  if CMAKE_GENERATOR and CMAKE_GENERATOR not in CMAKE_AVAILABLE_GENERATORS:
     raise ValueError(f'CMake generator unavailable: {CMAKE_GENERATOR}.')
 
   test_draco_install()
