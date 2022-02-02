@@ -18,20 +18,30 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 project(install_test C CXX)
 
-list(APPEND install_test_sources "main.cc")
-add_executable(install_check ${install_test_sources})
+include(GNUInstallDirs)
 
+# Tell find_package() where Draco is installed.
 if(BUILD_SHARED_LIBS)
   set(CMAKE_PREFIX_PATH
-      "${CMAKE_CURRENT_LIST_DIR}/_install_test_root_shared/share/cmake")
+      "${CMAKE_CURRENT_LIST_DIR}/_draco_install_shared/share/cmake")
 else()
   set(CMAKE_PREFIX_PATH
-      "${CMAKE_CURRENT_LIST_DIR}/_install_test_root_static/share/cmake")
+      "${CMAKE_CURRENT_LIST_DIR}/_draco_install_static/share/cmake")
 endif()
 
 find_package(draco REQUIRED)
+
+if(BUILD_SHARED_LIBS)
+  list(APPEND CMAKE_BUILD_RPATH "${DRACO_LIBRARY_DIR}")
+  list(APPEND CMAKE_INSTALL_RPATH "${DRACO_LIBRARY_DIR}")
+endif()
+
+list(APPEND install_test_sources "main.cc")
+add_executable(install_check ${install_test_sources})
 
 # Update include paths and dependencies to allow for successful build of the
 # install_check target using Draco as configured for the current installation.
 target_include_directories(install_check PUBLIC ${DRACO_INCLUDE_DIR})
 target_link_libraries(install_check ${DRACO_LIBRARY})
+
+install(TARGETS install_check DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})

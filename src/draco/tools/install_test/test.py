@@ -49,9 +49,9 @@ DRACO_STATIC_BUILD_PATH = os.path.join(TEST_SOURCES_PATH, '_draco_build_static')
 
 # The Draco install roots.
 DRACO_SHARED_INSTALL_PATH = os.path.join(TEST_SOURCES_PATH,
-                                         '_install_test_root_shared')
+                                         '_draco_install_shared')
 DRACO_STATIC_INSTALL_PATH = os.path.join(TEST_SOURCES_PATH,
-                                         '_install_test_root_static')
+                                         '_draco_install_static')
 
 # Argument for -j when using make, or -m when using Visual Studio. Number of
 # build jobs.
@@ -60,6 +60,12 @@ NUM_PROCESSES = multiprocessing.cpu_count() - 1
 # The test project build directories.
 TEST_SHARED_BUILD_PATH = os.path.join(TEST_SOURCES_PATH, '_test_build_shared')
 TEST_STATIC_BUILD_PATH = os.path.join(TEST_SOURCES_PATH, '_test_build_static')
+
+# The test project install directories.
+TEST_SHARED_INSTALL_PATH = os.path.join(TEST_SOURCES_PATH,
+                                        '_test_install_shared')
+TEST_STATIC_INSTALL_PATH = os.path.join(TEST_SOURCES_PATH,
+                                        '_test_install_static')
 
 # Show configuration and build output.
 VERBOSE = False
@@ -150,6 +156,8 @@ def cleanup():
   shutil.rmtree(DRACO_STATIC_INSTALL_PATH)
   shutil.rmtree(TEST_SHARED_BUILD_PATH)
   shutil.rmtree(TEST_STATIC_BUILD_PATH)
+  shutil.rmtree(TEST_SHARED_INSTALL_PATH)
+  shutil.rmtree(TEST_STATIC_INSTALL_PATH)
 
 
 def cmake_configure(source_path, cmake_args=None):
@@ -209,6 +217,15 @@ def cmake_build(cmake_args=None, build_args=None):
     print(f'BUILD result:\nexit_code: {result[0]}\n{result[1]}')
 
 
+def run_install_check(install_path):
+  """Runs the install_check program."""
+  cmd = os.path.join(install_path, 'bin', 'install_check')
+  result = run_process_and_capture_output(cmd)
+
+  if result[0] != 0:
+    raise Exception(f'install_check run failed!\nexit_code: {result[0]}\n{result[1]}')
+
+
 def build_and_install_draco():
   """Builds Draco in shared and static configurations."""
   orig_dir = os.getcwd()
@@ -239,16 +256,21 @@ def build_test_project():
 
   # Configure the test project in shared mode and build it.
   os.chdir(TEST_SHARED_BUILD_PATH)
-  cmake_configure(
-      source_path=f'{TEST_SOURCES_PATH}', cmake_args=['-DBUILD_SHARED_LIBS=ON'])
-  cmake_build()
+  cmake_args = []
+  cmake_args.append(f'-DCMAKE_INSTALL_PREFIX={TEST_SHARED_INSTALL_PATH}')
+  cmake_args.append('-DBUILD_SHARED_LIBS=ON')
+  cmake_configure(source_path=f'{TEST_SOURCES_PATH}', cmake_args=cmake_args)
+  cmake_build(cmake_args=['--target install'])
+  run_install_check(TEST_SHARED_INSTALL_PATH)
 
   # Configure in static mode and build it.
   os.chdir(TEST_STATIC_BUILD_PATH)
-  cmake_configure(
-      source_path=f'{TEST_SOURCES_PATH}',
-      cmake_args=['-DBUILD_SHARED_LIBS=OFF'])
-  cmake_build()
+  cmake_args = []
+  cmake_args.append(f'-DCMAKE_INSTALL_PREFIX={TEST_STATIC_INSTALL_PATH}')
+  cmake_args.append('-DBUILD_SHARED_LIBS=OFF')
+  cmake_configure(source_path=f'{TEST_SOURCES_PATH}', cmake_args=cmake_args)
+  cmake_build(cmake_args=['--target install'])
+  run_install_check(TEST_STATIC_INSTALL_PATH)
 
   os.chdir(orig_dir)
 
@@ -296,6 +318,6 @@ if __name__ == '__main__':
     print(f'VERBOSE={VERBOSE}')
 
   if CMAKE_GENERATOR and not CMAKE_GENERATOR in CMAKE_AVAILABLE_GENERATORS:
-    raise ValueError('The specified CMake generator is not available.')
+    raise ValueError(f'CMake generator unavailable: {CMAKE_GENERATOR}.')
 
   test_draco_install()
