@@ -67,6 +67,15 @@ jobs:
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
+          - test_name: windows-latest-msvc-release-shared
+            os: windows-latest
+            cmake_configure_command: |-
+              cmake .. \
+                -DBUILD_SHARED_LIBS=ON \
+                -DCMAKE_CONFIGURATION_TYPES=Release \
+                -DDRACO_TESTS=ON
+            cmake_build_command: cmake --build . -- -m:2
+            draco_test_command: Release/draco_tests
     name: ${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}
     steps:
