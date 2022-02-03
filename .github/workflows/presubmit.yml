@@ -16,6 +16,7 @@ jobs:
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
+
           - test_name: macos-latest-make-clang-release-static
             os: macos-latest
             cmake_configure_command: |-
@@ -27,6 +28,7 @@ jobs:
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
+
           - test_name: macos-latest-xcode-release-shared
             os: macos-latest
             cmake_configure_command: |-
@@ -36,6 +38,7 @@ jobs:
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build .
             draco_test_command: Release/draco_tests
+
           - test_name: macos-latest-xcode-release-static
             os: macos-latest
             cmake_configure_command: |-
@@ -45,6 +48,7 @@ jobs:
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build .
             draco_test_command: Release/draco_tests
+
           - test_name: ubuntu-latest-make-gcc10-release-shared
             os: ubuntu-latest
             cmake_configure_command: |-
@@ -56,6 +60,7 @@ jobs:
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
+
           - test_name: ubuntu-latest-make-gcc10-release-static
             os: ubuntu-latest
             cmake_configure_command: |-
@@ -67,21 +72,40 @@ jobs:
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
+
           - test_name: windows-latest-msvc-release-shared
             os: windows-latest
-            cmake_configure_command: cmake .. -G "Visual Studio 16 2019" -DBUILD_SHARED_LIBS=ON -DCMAKE_CONFIGURATION_TYPES=Release -DDRACO_TESTS=ON
+            cmake_configure_command: |-
+              cmake .. -G "Visual Studio 16 2019" \
+                -DBUILD_SHARED_LIBS=ON \
+                -DCMAKE_CONFIGURATION_TYPES=Release \
+                -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -m:2
             draco_test_command: Release/draco_tests
+
     name: ${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: true
-      - run: mkdir _gh_build
-      - run: ${{ matrix.cmake_configure_command }}
+
+      - name: Create build directory.
+        shell: bash
+        run: mkdir _gh_build
+
+      - name: Configure CMake build.
+        shell: bash
+        run: ${{ matrix.cmake_configure_command }}
         working-directory: ./_gh_build
-      - run: ${{ matrix.cmake_build_command }}
+
+      - name: Build with CMake.
+        shell: bash
+        run: ${{ matrix.cmake_build_command }}
         working-directory: ./_gh_build
-      - run: ${{ matrix.draco_test_command }}
+
+      - name: Run tests.
+        shell: bash
+        run: ${{ matrix.draco_test_command }}
         working-directory: ./_gh_build
