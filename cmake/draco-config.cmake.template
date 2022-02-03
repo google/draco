@@ -9,5 +9,4 @@ find_library(_DRACO_LIBRARY_DLL
              PATHS ${DRACO_LIBRARY_DIR}
              NAMES draco.dll libdraco.dll)
 set_and_check(DRACO_LIBRARY_DLL ${_DRACO_LIBRARY_DLL})
-message("DRACO_LIBRARY=${DRACO_LIBRARY}")
 set(DRACO_FOUND YES)
