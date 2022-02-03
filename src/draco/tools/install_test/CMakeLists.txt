@@ -30,6 +30,7 @@ else()
 endif()
 
 find_package(draco REQUIRED)
+message("DRACO_LIBRARY=${DRACO_LIBRARY}")
 
 if(BUILD_SHARED_LIBS)
   # Add rpath to resolve dylib dependency on Linux/MacOS.

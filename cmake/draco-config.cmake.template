@@ -1,7 +1,9 @@
 @PACKAGE_INIT@
 set_and_check(DRACO_INCLUDE_DIR "@CMAKE_INSTALL_FULL_INCLUDEDIR@")
 set_and_check(DRACO_LIBRARY_DIR "@CMAKE_INSTALL_FULL_LIBDIR@")
-set(DRACO_NAMES draco.dll libdraco.dylib libdraco.so draco.lib libdraco.a)
+set(DRACO_NAMES
+    draco.dll libdraco.dylib libdraco.so draco.lib libdraco.dll libdraco.a)
 find_library(_DRACO_LIBRARY PATHS ${DRACO_LIBRARY_DIR} NAMES ${DRACO_NAMES})
 set_and_check(DRACO_LIBRARY ${_DRACO_LIBRARY})
+message("DRACO_LIBRARY=${DRACO_LIBRARY}")
 set(DRACO_FOUND YES)
