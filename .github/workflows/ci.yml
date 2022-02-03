@@ -115,7 +115,7 @@ jobs:
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
 
-    name: draco-tests-${{ matrix.test_name }}
+    name: test-${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -144,7 +144,7 @@ jobs:
         working-directory: ./_gh_build
 
   # Runs src/draco/tools/install_test.
-  draco-install-test:
+  draco-install-tests:
     strategy:
       matrix:
         include:
@@ -168,7 +168,7 @@ jobs:
             os: windows-latest
             test_command: python3 test.py -v -G "Visual Studio 16 2019"
 
-    name: draco-install-test-${{ matrix.test_name }}
+    name: install-test-${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}
 
     steps:
