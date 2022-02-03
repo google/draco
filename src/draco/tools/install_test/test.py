@@ -27,6 +27,7 @@ import pathlib
 import shlex
 import shutil
 import subprocess
+import sys
 
 # CMake executable.
 CMAKE = shutil.which('cmake')
@@ -113,7 +114,8 @@ def cmake_get_generator():
 def run_process_and_capture_output(cmd, env=None):
   """Runs |cmd| as a child process.
 
-  Returns process exit code and output.
+  Returns process exit code and output. Streams process output to stdout when
+  VERBOSE is true.
 
   Args:
     cmd: String containing the command to execute.
@@ -133,8 +135,18 @@ def run_process_and_capture_output(cmd, env=None):
 
   proc = subprocess.Popen(
       cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
-  stdout = proc.communicate()
-  return [proc.returncode, stdout[0].decode('utf-8')]
+
+  stdout = ''
+  for line in iter(proc.stdout.readline, b''):
+    decoded_line = line.decode('utf-8')
+    if VERBOSE:
+      sys.stdout.write(decoded_line)
+      sys.stdout.flush()
+    stdout += decoded_line
+
+  # Wait for the process to exit so that the exit code is available.
+  proc.wait()
+  return [proc.returncode, stdout]
 
 
 def create_output_directories():
@@ -162,7 +174,10 @@ def cmake_configure(source_path, cmake_args=None):
   command = f'{CMAKE} {source_path}'
 
   if CMAKE_GENERATOR:
-    command += f' -G {CMAKE_GENERATOR}'
+    if ' ' in CMAKE_GENERATOR:
+      command += f' -G "{CMAKE_GENERATOR}"'
+    else:
+      command += f' -G {CMAKE_GENERATOR}'
 
   if cmake_args:
     for arg in cmake_args:
