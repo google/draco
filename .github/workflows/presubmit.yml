@@ -1,0 +1,30 @@
+on: [pull_request]
+name: Build
+jobs:
+  test:
+    strategy:
+      matrix:
+        include:
+          - test_name: ubuntu-latest-make-gcc10-release-static
+            os: ubuntu-latest
+            cmake_configure_command: >-
+              cmake .. -G "Unix Makefiles"
+                -DBUILD_SHARED_LIBS=ON
+                -DCMAKE_BUILD_TYPE=Release
+                -DCMAKE_C_COMPILER=gcc-10
+                -DCMAKE_CXX_COMPILER=g++-10
+                -DDRACO_TESTS=ON
+            cmake_build_command: cmake --build . -- -j2
+    name: ${{ matrix.test_name }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - run: mkdir _gh_build
+      - run: ${{ matrix.cmake_configure_command }}
+        working-directory: ./_gh_build
+      - run: ${{ matrix.cmake_build_command }}
+        working-directory: ./_gh_build
+      - run: ./draco_tests
+        working-directory: ./_gh_build
