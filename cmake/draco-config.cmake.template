@@ -5,8 +5,7 @@ set(DRACO_NAMES
     draco.dll libdraco.dylib libdraco.so draco.lib libdraco.dll libdraco.a)
 find_library(_DRACO_LIBRARY PATHS ${DRACO_LIBRARY_DIR} NAMES ${DRACO_NAMES})
 set_and_check(DRACO_LIBRARY ${_DRACO_LIBRARY})
-find_library(_DRACO_LIBRARY_DLL
+find_library(DRACO_LIBRARY_DLL
              PATHS ${DRACO_LIBRARY_DIR}
              NAMES draco.dll libdraco.dll)
-set_and_check(DRACO_LIBRARY_DLL ${_DRACO_LIBRARY_DLL})
 set(DRACO_FOUND YES)
