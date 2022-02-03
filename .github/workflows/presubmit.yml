@@ -1,20 +1,32 @@
 on: [pull_request]
-name: Build
+name: draco-presubmit
 jobs:
   test:
     strategy:
       matrix:
         include:
-          - test_name: ubuntu-latest-make-gcc10-release-static
-            os: ubuntu-latest
+          - test_name: macos-latest-make-clang-release-shared
+            os: macos-latest
+            cmake_configure_command: |-
+              cmake .. -G "Unix Makefiles" \
+                -DBUILD_SHARED_LIBS=ON \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_C_COMPILER=clang \
+                -DCMAKE_CXX_COMPILER=clang++ \
+                -DDRACO_TESTS=ON
+            cmake_build_command: cmake --build . -- -j2
+            draco_test_command: ./draco_tests
+          - test_name: macos-latest-make-clang-release-static
+            os: macos-latest
             cmake_configure_command: |-
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc-10 \
-                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_C_COMPILER=clang \
+                -DCMAKE_CXX_COMPILER=clang++ \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
+            draco_test_command: ./draco_tests
           - test_name: ubuntu-latest-make-gcc10-release-shared
             os: ubuntu-latest
             cmake_configure_command: |-
@@ -25,6 +37,18 @@ jobs:
                 -DCMAKE_CXX_COMPILER=g++-10 \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
+            draco_test_command: ./draco_tests
+          - test_name: ubuntu-latest-make-gcc10-release-static
+            os: ubuntu-latest
+            cmake_configure_command: |-
+              cmake .. -G "Unix Makefiles" \
+                -DBUILD_SHARED_LIBS=OFF \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_C_COMPILER=gcc-10 \
+                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DDRACO_TESTS=ON
+            cmake_build_command: cmake --build . -- -j2
+            draco_test_command: ./draco_tests
     name: ${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -36,5 +60,5 @@ jobs:
         working-directory: ./_gh_build
       - run: ${{ matrix.cmake_build_command }}
         working-directory: ./_gh_build
-      - run: ./draco_tests
+      - run: ${{ matrix.draco_test_command }}
         working-directory: ./_gh_build
