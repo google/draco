@@ -2,7 +2,8 @@
 <img width="350px" src="docs/artwork/draco3d-vert.svg" />
 </p>
 
-[![Build Status](https://github.com/google/draco/workflows/Build/badge.svg)](https://github.com/google/draco/actions?query=workflow%3ABuild)
+![draco-ci](https://github.com/google/draco/actions/workflows/ci.yml/badge.svg)
+
 
 News
 =======
