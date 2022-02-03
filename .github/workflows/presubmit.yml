@@ -15,6 +15,16 @@ jobs:
                 -DCMAKE_CXX_COMPILER=g++-10 \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
+          - test_name: ubuntu-latest-make-gcc10-release-shared
+            os: ubuntu-latest
+            cmake_configure_command: |-
+              cmake .. -G "Unix Makefiles" \
+                -DBUILD_SHARED_LIBS=ON \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_C_COMPILER=gcc-10 \
+                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DDRACO_TESTS=ON
+            cmake_build_command: cmake --build . -- -j2
     name: ${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}
     steps:
