@@ -162,7 +162,10 @@ def cmake_configure(source_path, cmake_args=None):
   command = f'{CMAKE} {source_path}'
 
   if CMAKE_GENERATOR:
-    command += f' -G {CMAKE_GENERATOR}'
+    if ' ' in CMAKE_GENERATOR:
+      command += f' -G "{CMAKE_GENERATOR}"'
+    else:
+      command += f' -G {CMAKE_GENERATOR}'
 
   if cmake_args:
     for arg in cmake_args:
