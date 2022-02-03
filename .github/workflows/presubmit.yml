@@ -27,6 +27,17 @@ jobs:
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
+          - test_name: macos-latest-xcode-release-shared
+            os: macos-latest
+            cmake_configure_command: |-
+              cmake .. -G Xcode \
+                -DBUILD_SHARED_LIBS=ON \
+                -DCMAKE_CONFIGURATION_TYPES=Release \
+                -DCMAKE_C_COMPILER=clang \
+                -DCMAKE_CXX_COMPILER=clang++ \
+                -DDRACO_TESTS=ON
+            cmake_build_command: cmake --build .
+            draco_test_command: Release/draco_tests
           - test_name: ubuntu-latest-make-gcc10-release-shared
             os: ubuntu-latest
             cmake_configure_command: |-
