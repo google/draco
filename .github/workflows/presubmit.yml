@@ -9,11 +9,13 @@ jobs:
             os: ubuntu-latest
             cmake_configure_command: >-
               cmake .. -G "Unix Makefiles"
-                -DBUILD_SHARED_LIBS=ON
+                -DBUILD_SHARED_LIBS=OFF
                 -DCMAKE_BUILD_TYPE=Release
                 -DCMAKE_C_COMPILER=gcc-10
                 -DCMAKE_CXX_COMPILER=g++-10
                 -DDRACO_TESTS=ON
+
+
             cmake_build_command: cmake --build . -- -j2
     name: ${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}
