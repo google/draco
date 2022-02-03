@@ -141,10 +141,8 @@ def run_process_and_capture_output(cmd, env=None):
     decoded_line = line.decode('utf-8')
     if VERBOSE:
       sys.stdout.write(decoded_line)
+      sys.stdout.flush()
     stdout += decoded_line
-
-  if VERBOSE:
-    sys.stdout.flush()
 
   # Wait for the process to exit so that the exit code is available.
   proc.wait()
