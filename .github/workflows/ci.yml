@@ -7,31 +7,27 @@ jobs:
     strategy:
       matrix:
         include:
-          - test_name: macos-latest-make-clang-release-shared
+          - test_name: macos-make-release-shared
             os: macos-latest
             cmake_configure_command: |-
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=clang \
-                -DCMAKE_CXX_COMPILER=clang++ \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
 
-          - test_name: macos-latest-make-clang-release-static
+          - test_name: macos-make-release-static
             os: macos-latest
             cmake_configure_command: |-
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=clang \
-                -DCMAKE_CXX_COMPILER=clang++ \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
 
-          - test_name: macos-latest-xcode-release-shared
+          - test_name: macos-xcode-release-shared
             os: macos-latest
             cmake_configure_command: |-
               cmake .. -G Xcode \
@@ -41,7 +37,7 @@ jobs:
             cmake_build_command: cmake --build . --config Release
             draco_test_command: Release/draco_tests
 
-          - test_name: macos-latest-xcode-release-static
+          - test_name: macos-xcode-release-static
             os: macos-latest
             cmake_configure_command: |-
               cmake .. -G Xcode \
@@ -51,7 +47,7 @@ jobs:
             cmake_build_command: cmake --build . --config Release
             draco_test_command: Release/draco_tests
 
-          - test_name: ubuntu-latest-make-gcc10-release-shared
+          - test_name: ubuntu-make-release-shared
             os: ubuntu-latest
             cmake_configure_command: |-
               cmake .. -G "Unix Makefiles" \
@@ -63,7 +59,7 @@ jobs:
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
 
-          - test_name: ubuntu-latest-make-gcc10-release-static
+          - test_name: ubuntu-make-release-static
             os: ubuntu-latest
             cmake_configure_command: |-
               cmake .. -G "Unix Makefiles" \
@@ -75,7 +71,7 @@ jobs:
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
 
-          - test_name: windows-latest-msvc-release-shared
+          - test_name: windows-msvc-release-shared
             os: windows-latest
             cmake_configure_command: |-
               cmake .. -G "Visual Studio 16 2019" \
@@ -85,7 +81,7 @@ jobs:
             cmake_build_command: cmake --build . --config Release -- -m:2
             draco_test_command: Release/draco_tests
 
-          - test_name: windows-latest-msvc-release-static
+          - test_name: windows-msvc-release-static
             os: windows-latest
             cmake_configure_command: |-
               cmake .. -G "Visual Studio 16 2019" \
@@ -95,7 +91,7 @@ jobs:
             cmake_build_command: cmake --build . --config Release -- -m:2
             draco_test_command: Release/draco_tests
 
-          - test_name: windows-latest-make-mingww64-release-shared
+          - test_name: windows-make-release-shared
             os: windows-latest
             cmake_configure_command: |-
               cmake .. -G "MinGW Makefiles" \
@@ -107,7 +103,7 @@ jobs:
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
 
-          - test_name: windows-latest-make-mingww64-release-static
+          - test_name: windows-make-release-static
             os: windows-latest
             cmake_configure_command: |-
               cmake .. -G "MinGW Makefiles" \
@@ -119,7 +115,7 @@ jobs:
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
 
-    name: ${{ matrix.test_name }}
+    name: draco-tests-${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -152,27 +148,27 @@ jobs:
     strategy:
       matrix:
         include:
-          - test_name: ubuntu-latest-make
+          - test_name: ubuntu-make
             os: ubuntu-latest
             test_command: python3 test.py -v -G "Unix Makefiles"
 
-          - test_name: macos-latest-make
+          - test_name: macos-make
             os: macos-latest
             test_command: python3 test.py -v -G "Unix Makefiles"
 
-          - test_name: macos-latest-xcode
+          - test_name: macos-xcode
             os: macos-latest
             test_command: python3 test.py -v -G Xcode
 
-          - test_name: windows-latest-make
+          - test_name: windows-make
             os: windows-latest
             test_command: python3 test.py -v -G "MinGW Makefiles"
 
-          - test_name: windows-latest-msvc
+          - test_name: windows-msvc
             os: windows-latest
             test_command: python3 test.py -v -G "Visual Studio 16 2019"
 
-    name: ${{ matrix.test_name }}
+    name: draco-install-test-${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}
 
     steps:
