@@ -36,7 +36,7 @@ jobs:
                 -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_CONFIGURATION_TYPES=Release \
                 -DDRACO_TESTS=ON
-            cmake_build_command: cmake --build .
+            cmake_build_command: cmake --build . --config Release
             draco_test_command: Release/draco_tests
 
           - test_name: macos-latest-xcode-release-static
@@ -46,7 +46,7 @@ jobs:
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_CONFIGURATION_TYPES=Release \
                 -DDRACO_TESTS=ON
-            cmake_build_command: cmake --build .
+            cmake_build_command: cmake --build . --config Release
             draco_test_command: Release/draco_tests
 
           - test_name: ubuntu-latest-make-gcc10-release-shared
@@ -80,8 +80,19 @@ jobs:
                 -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_CONFIGURATION_TYPES=Release \
                 -DDRACO_TESTS=ON
-            cmake_build_command: cmake --build . -- -m:2
+            cmake_build_command: cmake --build . --config Release -- -m:2
             draco_test_command: Release/draco_tests
+
+          - test_name: windows-latest-msvc-release-static
+            os: windows-latest
+            cmake_configure_command: |-
+              cmake .. -G "Visual Studio 16 2019" \
+                -DBUILD_SHARED_LIBS=OFF \
+                -DCMAKE_CONFIGURATION_TYPES=Release \
+                -DDRACO_TESTS=ON
+            cmake_build_command: cmake --build . --config Release -- -m:2
+            draco_test_command: Release/draco_tests
+
 
     name: ${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}
