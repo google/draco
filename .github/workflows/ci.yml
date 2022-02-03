@@ -1,7 +1,9 @@
 on: [pull_request]
-name: draco-presubmit
+name: draco-ci
 jobs:
-  test:
+
+  # Main build and test job.
+  draco-tests:
     strategy:
       matrix:
         include:
@@ -144,3 +146,42 @@ jobs:
         shell: bash
         run: ${{ matrix.draco_test_command }}
         working-directory: ./_gh_build
+
+  # Runs src/draco/tools/install_test.
+  draco-install-test:
+    strategy:
+      matrix:
+        include:
+          - test_name: ubuntu-latest-make
+            os: ubuntu-latest
+            test_command: python3 test.py -v -G "Unix Makefiles"
+
+          - test_name: macos-latest-make
+            os: macos-latest
+            test_command: python3 test.py -v -G "Unix Makefiles"
+
+          - test_name: macos-latest-xcode
+            os: macos-latest
+            test_command: python3 test.py -v -G Xcode
+
+          - test_name: windows-latest-make
+            os: windows-latest
+            test_command: python3 test.py -v -G "MinGW Makefiles"
+
+          - test_name: windows-latest-msvc
+            os: windows-latest
+            test_command: python3 test.py -v -G "Visual Studio 16 2019"
+
+    name: ${{ matrix.test_name }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Clone Draco with Submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Run src/draco/tools/install_test/test.py
+        shell: bash
+        run: ${{ matrix.test_command }}
+        working-directory: ./src/draco/tools/install_test
