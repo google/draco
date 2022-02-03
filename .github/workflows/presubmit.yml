@@ -70,9 +70,9 @@ jobs:
           - test_name: windows-latest-msvc-release-shared
             os: windows-latest
             cmake_configure_command: |-
-              echo cmake .. -G "Visual Studio 16 2019" \
-                -DBUILD_SHARED_LIBS=ON \
-                -DCMAKE_CONFIGURATION_TYPES=Release \
+              echo cmake .. -G "Visual Studio 16 2019" \\
+                -DBUILD_SHARED_LIBS=ON \\
+                -DCMAKE_CONFIGURATION_TYPES=Release \\
                 -DDRACO_TESTS=ON
             cmake_build_command: echo cmake --build . -- -m:2
             draco_test_command: echo Release/draco_tests
