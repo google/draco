@@ -39,6 +39,7 @@ endif()
 include(FindPythonInterp)
 include("${draco_root}/cmake/draco_build_definitions.cmake")
 include("${draco_root}/cmake/draco_cpu_detection.cmake")
+include("${draco_root}/cmake/draco_dependencies.cmake")
 include("${draco_root}/cmake/draco_emscripten.cmake")
 include("${draco_root}/cmake/draco_flags.cmake")
 include("${draco_root}/cmake/draco_helpers.cmake")
@@ -1064,7 +1065,11 @@ else()
                        ${draco_include_paths}
                        LIB_DEPS
                        ${draco_dependency})
-
+  # These belong INSIDE the if
+  # These call needs better names. ARE SUCK.
+  #draco_add_eigen()
+  draco_add_filesystem()
+  #draco_add_tinygltf()
   if(DRACO_TRANSCODER_SUPPORTED)
     draco_add_executable(NAME
                          draco_transcoder
