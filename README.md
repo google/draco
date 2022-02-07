@@ -2,7 +2,7 @@
 <img width="350px" src="docs/artwork/draco3d-vert.svg" />
 </p>
 
-![draco-ci](https://github.com/google/draco/actions/workflows/ci.yml/badge.svg)
+![draco-ci](https://github.com/google/draco/actions/workflows/ci.yml/badge.svg?branch=master)
 
 
 News
