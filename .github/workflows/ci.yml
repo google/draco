@@ -1,7 +1,19 @@
-on: [pull_request]
-name: draco-ci
-jobs:
+on:
+  pull_request:
+  # Run on all pull requests.
 
+  push:
+    # Run on merges/pushes to master.
+    branches:
+      - master
+
+  schedule:
+    # Run nightly, at midnight.
+    - cron: '8 0 * * *'
+
+name: draco-ci
+
+jobs:
   # Main build and test job.
   draco-tests:
     strategy:
