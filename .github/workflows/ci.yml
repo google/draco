@@ -4,7 +4,7 @@ on:
 
   push:
     # Run on merges/pushes to master.
-    - branches:
+    branches:
       - master
 
   schedule:
