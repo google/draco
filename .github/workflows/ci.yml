@@ -1,12 +1,14 @@
 on:
-  - pull_request
+  - pull_request:
+    # Run on all pull requests.
 
   - push:
+    # Run on merges/pushes to master.
     - branches:
       - master
 
   - schedule:
-    # Daily, at midnight.
+    # Run nightly, at midnight.
     - cron: '8 0 * * *'
 
 name: draco-ci
