@@ -1,6 +1,8 @@
 on:
   - pull_request:
     # Run on all pull requests.
+    branches:
+      - '*'
 
   - push:
     # Run on merges/pushes to master.
