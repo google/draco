@@ -1,15 +1,13 @@
 on:
-  - pull_request:
-    # Run on all pull requests.
-    branches:
-      - '*'
+  pull_request:
+  # Run on all pull requests.
 
-  - push:
+  push:
     # Run on merges/pushes to master.
     - branches:
       - master
 
-  - schedule:
+  schedule:
     # Run nightly, at midnight.
     - cron: '8 0 * * *'
 
