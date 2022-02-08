@@ -7,7 +7,7 @@ on:
 
   - schedule:
     # Daily, at midnight.
-    - cron: '0 0 * * *'
+    - cron: '8 0 * * *'
 
 name: draco-ci
 
