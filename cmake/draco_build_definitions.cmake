@@ -77,28 +77,10 @@ macro(draco_set_build_definitions)
   endif()
 
   if(DRACO_TRANSCODER_SUPPORTED)
-    list(APPEND submodule_test_dirs
-                "${draco_root}/third_party/eigen/Eigen"
-                "${draco_root}/third_party/filesystem/include"
-                "${draco_root}/third_party/tinygltf")
-    foreach(dir IN LISTS submodule_test_dirs)
-      if(NOT EXISTS ${dir})
-        message(FATAL_ERROR "${dir} missing, run git submodule update --init")
-      endif()
-    endforeach()
-
-    list(APPEND draco_include_paths
-                "${draco_root}/third_party/eigen"
-                "${draco_root}/third_party/filesystem/include")
+    draco_setup_eigen()
+    draco_setup_filesystem()
+    draco_setup_tinygltf()
   endif()
-
-  list(APPEND draco_test_include_paths
-              ${draco_include_paths}
-              "${draco_root}/third_party/googletest/googlemock/include"
-              "${draco_root}/third_party/googletest/googlemock"
-              "${draco_root}/third_party/googletest/googletest/include"
-              "${draco_root}/third_party/googletest/googletest")
-
 
   list(APPEND draco_defines "DRACO_CMAKE=1"
               "DRACO_FLAGS_SRCDIR=\"${draco_root}\""

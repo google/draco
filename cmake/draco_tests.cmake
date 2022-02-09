@@ -90,13 +90,10 @@ if(DRACO_TRANSCODER_SUPPORTED)
       "${draco_src_root}/texture/texture_transform_test.cc")
 endif()
 
-list(APPEND draco_gtest_all
-            "${draco_root}/third_party/googletest/googletest/src/gtest-all.cc")
-list(APPEND draco_gtest_main
-            "${draco_root}/third_party/googletest/googletest/src/gtest_main.cc")
-
 macro(draco_setup_test_targets)
   if(DRACO_TESTS)
+    draco_setup_googletest()
+
     if(NOT (EXISTS ${draco_gtest_all} AND EXISTS ${draco_gtest_main}))
       message(FATAL_ERROR
               "googletest missing, run git submodule update --init")
