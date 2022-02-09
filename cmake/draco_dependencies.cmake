@@ -33,9 +33,13 @@ draco_track_configuration_variable(DRACO_EIGEN_PATH)
 set(DRACO_FILESYSTEM_PATH)
 draco_track_configuration_variable(DRACO_FILESYSTEM_PATH)
 
+# Path to the googletest installation. The path must be to the root of the
+# Googletest project directory.
 set(DRACO_GOOGLETEST_PATH)
 draco_track_configuration_variable(DRACO_GOOGLETEST_PATH)
 
+# Path to the syoyo/tinygltf installation. The path must be to the root of the
+# project directory.
 set(DRACO_TINYGLTF_PATH)
 draco_track_configuration_variable(DRACO_TINYGLTF_PATH)
 
@@ -91,9 +95,9 @@ endmacro()
 
 macro(draco_setup_googletest)
   if(DRACO_GOOGLETEST_PATH)
-    set(gtest_path "${DRACO_GOOGLE_TEST_PATH}")
+    set(gtest_path "${DRACO_GOOGLETEST_PATH}")
     if(NOT IS_DIRECTORY "${gtest_path}")
-      message(FATAL_ERROR "DRACO_GOOGLE_TEST_PATH does not exist.")
+      message(FATAL_ERROR "DRACO_GOOGLETEST_PATH does not exist.")
     endif()
   else()
     set(gtest_path "${draco_root}/third_party/googletest")
