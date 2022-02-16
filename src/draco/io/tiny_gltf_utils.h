@@ -24,7 +24,7 @@
 #include "draco/core/status.h"
 #include "draco/core/status_or.h"
 #include "draco/material/material.h"
-#include "third_party/tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 
 namespace draco {
 

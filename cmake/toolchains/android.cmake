@@ -30,9 +30,9 @@ if(NOT ANDROID_ABI)
   set(ANDROID_ABI arm64-v8a)
 endif()
 
-# Force arm mode for 32-bit targets (instead of the default thumb) to improve
-# performance.
-if(NOT ANDROID_ARM_MODE)
+# Force arm mode for 32-bit arm targets (instead of the default thumb) to
+# improve performance.
+if(ANDROID_ABI MATCHES "^armeabi" AND NOT ANDROID_ARM_MODE)
   set(ANDROID_ARM_MODE arm)
 endif()
 

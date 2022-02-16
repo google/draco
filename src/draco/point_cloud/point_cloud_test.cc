@@ -14,6 +14,9 @@
 //
 #include "draco/point_cloud/point_cloud.h"
 
+#include <string>
+#include <utility>
+
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 #include "draco/metadata/geometry_metadata.h"

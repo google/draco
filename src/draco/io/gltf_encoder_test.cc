@@ -174,6 +174,7 @@ class GltfEncoderTest : public ::testing::Test {
               scene1->GetMaterialLibrary().NumMaterials());
     ASSERT_EQ(scene0->NumAnimations(), scene1->NumAnimations());
     ASSERT_EQ(scene0->NumSkins(), scene1->NumSkins());
+    ASSERT_EQ(scene0->NumLights(), scene1->NumLights());
 
     // Check materials are the same.
     for (int i = 0; i < scene0->GetMaterialLibrary().NumMaterials(); ++i) {
@@ -190,6 +191,7 @@ class GltfEncoderTest : public ::testing::Test {
       ASSERT_NE(scene_node0, nullptr);
       ASSERT_NE(scene_node1, nullptr);
       ASSERT_EQ(scene_node0->GetName(), scene_node1->GetName());
+      ASSERT_EQ(scene_node0->GetLightIndex(), scene_node1->GetLightIndex());
     }
 
     // Check MeshGroups are the same.
@@ -214,6 +216,23 @@ class GltfEncoderTest : public ::testing::Test {
       ASSERT_EQ(animation0->NumChannels(), animation1->NumChannels());
       ASSERT_EQ(animation0->NumNodeAnimationData(),
                 animation1->NumNodeAnimationData());
+    }
+
+    // Check that lights are the same.
+    for (draco::LightIndex i(0); i < scene0->NumLights(); ++i) {
+      const Light *const light0 = scene0->GetLight(i);
+      const Light *const light1 = scene1->GetLight(i);
+      ASSERT_NE(light0, nullptr);
+      ASSERT_NE(light1, nullptr);
+      ASSERT_EQ(light0->GetName(), light1->GetName());
+      ASSERT_EQ(light0->GetColor(), light1->GetColor());
+      ASSERT_EQ(light0->GetIntensity(), light1->GetIntensity());
+      ASSERT_EQ(light0->GetType(), light1->GetType());
+      ASSERT_EQ(light0->GetRange(), light1->GetRange());
+      if (light0->GetType() == Light::SPOT) {
+        ASSERT_EQ(light0->GetInnerConeAngle(), light1->GetInnerConeAngle());
+        ASSERT_EQ(light0->GetOuterConeAngle(), light1->GetOuterConeAngle());
+      }
     }
   }
 
@@ -1369,6 +1388,15 @@ TEST_F(GltfEncoderTest, EncodeWithMissingMaterial) {
   EncoderBuffer buffer;
   const draco::Status status = encoder.EncodeToBuffer(scene, &buffer);
   EXPECT_FALSE(status.ok());
+}
+
+// Tests that a scene with lights can be encoded into a file.
+TEST_F(GltfEncoderTest, EncodeLights) {
+  const std::string file_name = "sphere_lights.gltf";
+  const std::unique_ptr<Scene> scene = ReadSceneFromTestFile(file_name);
+  ASSERT_NE(scene, nullptr);
+  ASSERT_EQ(scene->NumLights(), 4);
+  EncodeSceneToGltfAndCompare(scene.get());
 }
 
 }  // namespace draco

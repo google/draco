@@ -77,6 +77,8 @@ class Material {
   void SetTransparencyMode(TransparencyMode mode) { transparency_mode_ = mode; }
   float GetAlphaCutoff() const { return alpha_cutoff_; }
   void SetAlphaCutoff(float alpha_cutoff) { alpha_cutoff_ = alpha_cutoff; }
+  float GetNormalTextureScale() const { return normal_texture_scale_; }
+  void SetNormalTextureScale(float scale) { normal_texture_scale_ = scale; }
 
   // Properties of glTF material extension KHR_materials_unlit.
   bool GetUnlit() const { return unlit_; }
@@ -221,6 +223,7 @@ class Material {
   bool double_sided_;
   TransparencyMode transparency_mode_;
   float alpha_cutoff_;
+  float normal_texture_scale_;
 
   // Properties of glTF material extension KHR_materials_unlit.
   bool unlit_;

@@ -126,6 +126,8 @@ TEST(MaterialTest, TestMaterialAccess) {
             draco::Material::TRANSPARENCY_BLEND);
   material.SetAlphaCutoff(0.2f);
   ASSERT_EQ(material.GetAlphaCutoff(), 0.2f);
+  material.SetNormalTextureScale(0.75f);
+  ASSERT_EQ(material.GetNormalTextureScale(), 0.75f);
 
   material.ClearTextureMaps();
   ASSERT_EQ(material.NumTextureMaps(), 0);
@@ -153,6 +155,7 @@ TEST(MaterialTest, TestMaterialCopy) {
   material.SetTransparencyMode(draco::Material::TRANSPARENCY_MASK);
   material.SetAlphaCutoff(0.25f);
   material.SetDoubleSided(true);
+  material.SetNormalTextureScale(0.75f);
 
   // Set the properties of material extensions.
   material.SetUnlit(true);
@@ -191,6 +194,8 @@ TEST(MaterialTest, TestMaterialCopy) {
   ASSERT_EQ(material.GetTransparencyMode(), new_material.GetTransparencyMode());
   ASSERT_EQ(material.GetAlphaCutoff(), new_material.GetAlphaCutoff());
   ASSERT_EQ(material.GetDoubleSided(), new_material.GetDoubleSided());
+  ASSERT_EQ(material.GetNormalTextureScale(),
+            new_material.GetNormalTextureScale());
 
   // Check that the properties of material extensions have been copied.
   ASSERT_EQ(material.GetUnlit(), new_material.GetUnlit());

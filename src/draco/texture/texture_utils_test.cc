@@ -14,6 +14,8 @@
 //
 #include "draco/texture/texture_utils.h"
 
+#include <utility>
+
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/core/draco_test_utils.h"
 #include "draco/io/texture_io.h"
@@ -227,6 +229,66 @@ TEST(TextureUtilsTest, TestFindMutableTexturesWithType) {
   }
 }
 #endif  // DRACO_UNRLEASED_FEATURES
+
+TEST(TextureUtilsTest, TestComputeRequiredNumChannels) {
+  // Tests that the number of texture channels can be computed. Material library
+  // under test is created programmatically.
+
+  // Load textures.
+  DRACO_ASSIGN_OR_ASSERT(
+      auto texture0, draco::ReadTextureFromFile(
+                         draco::GetTestFileFullPath("fully_transparent.png")));
+  ASSERT_NE(texture0, nullptr);
+  draco::Texture *texture0_ptr = texture0.get();
+  DRACO_ASSIGN_OR_ASSERT(
+      auto texture1,
+      draco::ReadTextureFromFile(draco::GetTestFileFullPath("squares.png")));
+  ASSERT_NE(texture1, nullptr);
+  const draco::Texture *texture1_ptr = texture1.get();
+  DRACO_ASSIGN_OR_ASSERT(
+      auto texture2, draco::ReadTextureFromFile(
+                         draco::GetTestFileFullPath("fully_transparent.png")));
+  ASSERT_NE(texture2, nullptr);
+  const draco::Texture *texture2_ptr = texture2.get();
+
+  // Compute number of channels for occlusion-only texture.
+  draco::MaterialLibrary library;
+  draco::Material *const material0 = library.MutableMaterial(0);
+  material0->SetTextureMap(std::move(texture0),
+                           draco::TextureMap::AMBIENT_OCCLUSION, 0);
+  ASSERT_EQ(
+      draco::TextureUtils::ComputeRequiredNumChannels(*texture0_ptr, library),
+      1);
+
+  // Compute number of channels for occlusion-only texture with MR present but
+  // not using the same texture.
+  draco::Material *const material1 = library.MutableMaterial(1);
+  material1->SetTextureMap(std::move(texture1),
+                           draco::TextureMap::METALLIC_ROUGHNESS, 0);
+  ASSERT_EQ(
+      draco::TextureUtils::ComputeRequiredNumChannels(*texture0_ptr, library),
+      1);
+
+  // Compute number of channels for metallic-roughness texture.
+  ASSERT_EQ(
+      draco::TextureUtils::ComputeRequiredNumChannels(*texture1_ptr, library),
+      3);
+
+  // Compute number of channels texture that is used for occlusin map in one
+  // material and also shared with metallic-roughness map in another material.
+  draco::Material *const material2 = library.MutableMaterial(2);
+  DRACO_ASSERT_OK(material2->SetTextureMap(
+      texture0_ptr, draco::TextureMap::METALLIC_ROUGHNESS, 0));
+  ASSERT_EQ(
+      draco::TextureUtils::ComputeRequiredNumChannels(*texture0_ptr, library),
+      3);
+
+  // Compute number of channels for non-opaque texture.
+  material0->SetTextureMap(std::move(texture2), draco::TextureMap::COLOR, 0);
+  ASSERT_EQ(
+      draco::TextureUtils::ComputeRequiredNumChannels(*texture2_ptr, library),
+      4);
+}
 
 }  // namespace
 

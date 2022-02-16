@@ -126,6 +126,17 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::SplitMesh(
           std::unique_ptr<GeometryMetadata>(new GeometryMetadata(metadata)));
     }
 
+    // Copy over attribute unique ids.
+    for (int att_id = 0; att_id < mesh.num_attributes(); ++att_id) {
+      const int mapped_att_id = att_id_map[att_id];
+      if (mapped_att_id == -1) {
+        continue;
+      }
+      const PointAttribute *const src_att = mesh.attribute(att_id);
+      PointAttribute *const dst_att = out_meshes[mi]->attribute(mapped_att_id);
+      dst_att->set_unique_id(src_att->unique_id());
+    }
+
     // Copy compression settings of the original mesh to the output meshes.
     out_meshes[mi]->SetCompressionEnabled(mesh.IsCompressionEnabled());
     out_meshes[mi]->SetCompressionOptions(mesh.GetCompressionOptions());

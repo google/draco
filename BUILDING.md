@@ -89,6 +89,19 @@ builds but all other use cases are supported. Note that binaries and libraries
 built with the transcoder support may result in increased binary sizes of the
 produced libraries and executables compared to the default CMake settings.
 
+The following CMake variables can be used to configure Draco to use local
+copies of third party dependencies.
+
+- `DRACO_EIGEN_PATH`: this path must contain an Eigen directory that includes
+  the Eigen sources.
+- `DRACO_FILESYSTEM_PATH`: this path must contain the ghc directory where the
+  filesystem includes are located.
+- `DRACO_TINYGLTF_PATH`: this path must contain tiny_gltf.h and its
+  dependencies.
+
+If not specified the Draco build requires the presence of the submodules that
+are stored within `draco/third_party`.
+
 Debugging and Optimization
 --------------------------
 
@@ -151,6 +164,10 @@ To run the tests execute `draco_tests` from your build output directory:
 ~~~~~ bash
 $ ./draco_tests
 ~~~~~
+
+Draco can be configured to use a local Googletest installation. The
+`DRACO_GOOGLETEST_PATH` variable overrides the behavior described above and
+configures Draco to use the Googletest at the specified path.
 
 Third Party Libraries
 ---------------------

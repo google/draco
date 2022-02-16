@@ -93,7 +93,7 @@ class JsonWriter {
   template <typename T>
   void OutputValue(const T &value) {
     FinishPreviousLine(VALUE);
-    o_ << indent_ << std::setprecision(16) << value;
+    o_ << indent_ << std::setprecision(17) << value;
   }
 
   void OutputValue(const bool &value) {

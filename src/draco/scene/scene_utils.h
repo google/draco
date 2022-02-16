@@ -93,8 +93,10 @@ class SceneUtils {
   static void PrintInfo(const Scene &input, const Scene &simplified,
                         bool verbose);
 
-  // Converts a Draco Mesh to a Draco Scene. Currently this only works for
-  // meshes with less than two materials.
+  // Converts a draco::Mesh into a draco::Scene. If the passed-in `mesh` has
+  // multiple materials, the returned scene will contain multiple meshes, one
+  // for each of the source mesh's materials; if `mesh` has no material, one
+  // will be created for it.
   static StatusOr<std::unique_ptr<Scene>> MeshToScene(
       std::unique_ptr<Mesh> mesh);
 

@@ -230,14 +230,15 @@ TEST_F(GltfUtilsTest, TestGltfValues) {
   const GltfValue float_value_high(float_value_max);
   json_writer.OutputValue(float_value_low);
   json_writer.OutputValue(float_value_high);
-  CompareGolden(&json_writer, "1.175494350822288e-38,\n3.402823466385289e+38");
+  CompareGolden(&json_writer,
+                "1.1754943508222875e-38,\n3.4028234663852886e+38");
 
   json_writer.Reset();
   const GltfValue float_value_0(0.1f);
   const GltfValue float_value_1(1.f);
   json_writer.OutputValue(float_value_0);
   json_writer.OutputValue(float_value_1);
-  CompareGolden(&json_writer, "0.1000000014901161,\n1");
+  CompareGolden(&json_writer, "0.10000000149011612,\n1");
 }
 
 }  // namespace draco

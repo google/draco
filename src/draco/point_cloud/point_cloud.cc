@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <unordered_map>
+#include <utility>
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/attributes/point_attribute.h"

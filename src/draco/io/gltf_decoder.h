@@ -20,6 +20,7 @@
 #ifdef DRACO_TRANSCODER_SUPPORTED
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -31,7 +32,7 @@
 #include "draco/mesh/mesh.h"
 #include "draco/mesh/triangle_soup_mesh_builder.h"
 #include "draco/scene/scene.h"
-#include "third_party/tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 
 namespace draco {
 
@@ -58,6 +59,17 @@ class GltfDecoder {
       const std::string &file_name, std::vector<std::string> *scene_files);
   StatusOr<std::unique_ptr<Scene>> DecodeFromBufferToScene(
       DecoderBuffer *buffer);
+
+  // Scene graph can be loaded either as a tree or a general directed acyclic
+  // graph (DAG) that allows multiple parent nodes. By default. we decode the
+  // scene graph as a tree. If the tree mode is selected and the input contains
+  // nodes with multiple parents, these nodes are duplicated to form a tree.
+  // TODO(ostava): Add support for DAG mode to other parts of the Draco
+  // library.
+  enum class GltfSceneGraphMode { TREE, DAG };
+  void SetSceneGraphMode(GltfSceneGraphMode mode) {
+    gltf_scene_graph_mode_ = mode;
+  }
 
  private:
   // Loads |file_name| into |gltf_model_|. Fills |input_files| with paths to all
@@ -212,13 +224,17 @@ class GltfDecoder {
   // Decode glTF file to scene.
   Status DecodeGltfToScene();
 
+  // Decode glTF lights into a scene.
+  Status AddLightsToScene();
+
   // Decode glTF animations into a scene. All of the glTF nodes must be decoded
   // to the scene before this function is called.
   Status AddAnimationsToScene();
 
   // Decode glTF node into a Draco scene. |parent_index| is the index of the
   // parent node. If |node| is a root node set |parent_index| to
-  // |kInvalidSceneNodeIndex|.
+  // |kInvalidSceneNodeIndex|. All glTF lights must be decoded to the scene
+  // before this function is called.
   Status DecodeNodeForScene(int node_index, SceneNodeIndex parent_index);
 
   // Decode glTF primitive into a Draco scene.
@@ -264,6 +280,7 @@ class GltfDecoder {
 
   // Adds volume properties from glTF |input_material| to |output_material|.
   Status DecodeMaterialVolumeExtension(const tinygltf::Material &input_material,
+                                       int input_material_index,
                                        Material *output_material);
 
   // Adds ior properties from glTF |input_material| to |output_material|.
@@ -342,6 +359,9 @@ class GltfDecoder {
   // Map of glTF material to Draco material index.
   std::map<int, int> gltf_primitive_material_to_draco_material_;
 
+  // Map of glTF material index to transformation scales of primitives.
+  std::map<int, std::vector<float>> gltf_primitive_material_to_scales_;
+
   // Map of glTF image to Draco textures.
   std::map<int, Texture *> gltf_image_to_draco_texture_;
 
@@ -349,6 +369,9 @@ class GltfDecoder {
 
   // Map of glTF Node to local store order.
   std::map<int, SceneNodeIndex> gltf_node_to_scenenode_index_;
+
+  // Selected mode of the decoded scene graph.
+  GltfSceneGraphMode gltf_scene_graph_mode_ = GltfSceneGraphMode::TREE;
 
   // Functionality for deduping primitives on decode.
   struct PrimitiveSignature {

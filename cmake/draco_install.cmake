@@ -79,6 +79,10 @@ macro(draco_setup_install_target)
   install(TARGETS draco_decoder DESTINATION "${bin_path}")
   install(TARGETS draco_encoder DESTINATION "${bin_path}")
 
+  if(DRACO_TRANSCODER_SUPPORTED)
+    install(TARGETS draco_transcoder DESTINATION "${bin_path}")
+  endif()
+
   if(MSVC)
     install(TARGETS draco DESTINATION "${libs_path}")
   else()

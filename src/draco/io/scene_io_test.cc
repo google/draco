@@ -14,9 +14,13 @@
 //
 #include "draco/io/scene_io.h"
 
+#include <string>
+#include <utility>
+
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/core/draco_test_utils.h"
 #include "draco/io/file_utils.h"
+#include "draco/io/mesh_io.h"
 
 namespace {
 
@@ -42,6 +46,40 @@ TEST(SceneTest, TestSceneIO) {
       0);
   ASSERT_GT(draco::GetFileSize(draco::GetTestTempFileFullPath("buffer0.bin")),
             0);
+}
+
+TEST(SceneTest, TestSaveToPly) {
+  // A simple test that verifies that a loaded scene can be stored in a PLY file
+  // format.
+  const std::string file_name =
+      draco::GetTestFileFullPath("CesiumMilkTruck/glTF/CesiumMilkTruck.gltf");
+  DRACO_ASSIGN_OR_ASSERT(std::unique_ptr<draco::Scene> scene,
+                         draco::ReadSceneFromFile(file_name));
+
+  const std::string out_file_name =
+      draco::GetTestTempFileFullPath("out_scene.ply");
+  DRACO_ASSERT_OK(draco::WriteSceneToFile(out_file_name, *scene));
+
+  // Verify that we can read the saved mesh.
+  DRACO_ASSIGN_OR_ASSERT(auto mesh, draco::ReadMeshFromFile(out_file_name));
+  ASSERT_NE(mesh, nullptr);
+}
+
+TEST(SceneTest, TestSaveToObj) {
+  // A simple test that verifies that a loaded scene can be stored in an OBJ
+  // file format.
+  const std::string file_name =
+      draco::GetTestFileFullPath("CesiumMilkTruck/glTF/CesiumMilkTruck.gltf");
+  DRACO_ASSIGN_OR_ASSERT(std::unique_ptr<draco::Scene> scene,
+                         draco::ReadSceneFromFile(file_name));
+
+  const std::string out_file_name =
+      draco::GetTestTempFileFullPath("out_scene.obj");
+  DRACO_ASSERT_OK(draco::WriteSceneToFile(out_file_name, *scene));
+
+  // Verify that we can read the saved mesh.
+  DRACO_ASSIGN_OR_ASSERT(auto mesh, draco::ReadMeshFromFile(out_file_name));
+  ASSERT_NE(mesh, nullptr);
 }
 
 }  // namespace

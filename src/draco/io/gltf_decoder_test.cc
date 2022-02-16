@@ -14,6 +14,13 @@
 //
 #include "draco/io/gltf_decoder.h"
 
+#include <cmath>
+#include <limits>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
@@ -21,6 +28,7 @@
 #include "draco/mesh/mesh_are_equivalent.h"
 #include "draco/mesh/mesh_utils.h"
 #include "draco/scene/scene_indices.h"
+#include "draco/scene/scene_utils.h"
 #include "draco/texture/texture_utils.h"
 
 namespace draco {
@@ -181,6 +189,7 @@ TEST(GltfDecoderTest, SceneMilkTruckGltf) {
   ASSERT_EQ(scene->NumMeshGroups(), 2);
   ASSERT_EQ(scene->NumNodes(), 5);
   ASSERT_EQ(scene->NumRootNodes(), 1);
+  ASSERT_EQ(scene->NumLights(), 0);
   ASSERT_EQ(scene->GetMaterialLibrary().NumMaterials(), 4);
   ASSERT_EQ(scene->GetMaterialLibrary().GetMaterial(0)->NumTextureMaps(), 1);
   ASSERT_EQ(scene->GetMaterialLibrary().GetMaterial(1)->NumTextureMaps(), 0);
@@ -1047,6 +1056,133 @@ TEST(GltfDecoderTest, DecodeFromBufferToMesh) {
   // Check that meshes decoded from the buffer and from GLB file are equivalent.
   MeshAreEquivalent eq;
   ASSERT_TRUE(eq(*mesh, *expected_mesh));
+}
+
+TEST(GltfDecoderTest, DecodeGraph) {
+  // Checks that we can decode a scene with a general graph structure where a
+  // node has multiple parents.
+  // The input model has one root node, 4 children nodes that all point to a
+  // single node that contains the cube mesh.
+  const std::string file_name = "CubeScaledInstances/glTF/cube_att.gltf";
+  const std::string file_path = GetTestFileFullPath(file_name);
+
+  // First decode the scene into a tree-graph.
+  draco::GltfDecoder dec_tree;
+  DRACO_ASSIGN_OR_ASSERT(auto scene_tree,
+                         dec_tree.DecodeFromFileToScene(file_path));
+  // We expect to have 9 nodes with 4 mesh instances. The leaf node with the
+  // cube is duplicated 4 times, once for each instance.
+  ASSERT_EQ(scene_tree->NumNodes(), 9);
+  auto instances_tree = draco::SceneUtils::ComputeAllInstances(*scene_tree);
+  ASSERT_EQ(instances_tree.size(), 4);
+
+  // Decode the scene into a scene-graph.
+  draco::GltfDecoder dec_graph;
+  dec_graph.SetSceneGraphMode(draco::GltfDecoder::GltfSceneGraphMode::DAG);
+  DRACO_ASSIGN_OR_ASSERT(auto scene_graph,
+                         dec_graph.DecodeFromFileToScene(file_path));
+
+  // We expect to have 6 nodes with 4 mesh instances. The leaf node is shared
+  // for all mesh instances.
+  ASSERT_EQ(scene_graph->NumNodes(), 6);
+  auto instances_graph = draco::SceneUtils::ComputeAllInstances(*scene_graph);
+  ASSERT_EQ(instances_graph.size(), 4);
+
+  // Check that all instances share the same scene node.
+  for (draco::MeshInstanceIndex mii(1); mii < 4; ++mii) {
+    ASSERT_EQ(instances_graph[mii - 1].scene_node_index,
+              instances_graph[mii].scene_node_index);
+  }
+}
+
+TEST(GltfDecoderTest, CorrectVolumeThicknessFactor) {
+  // Checks that when a model is decoded as draco::Mesh the PBR material volume
+  // thickness factor is corrected according to geometry transformation scale in
+  // the scene graph.
+  constexpr float kDragonScale = 0.25f;
+  constexpr float kDragonVolumeThickness = 2.27f;
+
+  // Read model as draco::Scene and check dragon mesh transformation scale and
+  // its PBR material volume thickness factor.
+  const std::unique_ptr<draco::Scene> scene = draco::ReadSceneFromTestFile(
+      "KhronosSampleModels/DragonAttenuation/glTF/DragonAttenuation.gltf");
+  ASSERT_NE(scene, nullptr);
+  auto instances = draco::SceneUtils::ComputeAllInstances(*scene);
+  ASSERT_EQ(instances.size(), 2);
+  ASSERT_EQ(instances[MeshInstanceIndex(0)].transform.col(0).norm(),
+            kDragonScale);
+  ASSERT_EQ(scene->GetMaterialLibrary().GetMaterial(1)->GetThicknessFactor(),
+            kDragonVolumeThickness);
+
+  // Read model as draco::Mesh and check corrected volume thickness factor.
+  const std::unique_ptr<draco::Mesh> mesh = draco::ReadMeshFromTestFile(
+      "KhronosSampleModels/DragonAttenuation/glTF/DragonAttenuation.gltf");
+  ASSERT_NE(mesh, nullptr);
+  ASSERT_EQ(mesh->GetMaterialLibrary().GetMaterial(1)->GetThicknessFactor(),
+            kDragonScale * kDragonVolumeThickness);
+}
+
+TEST(GltfDecoderTest, DecodeLightsIntoMesh) {
+  // Checks that a model with lights can be decoded into draco::Mesh with the
+  // lights discarded.
+  const std::string file_name = "sphere_lights.gltf";
+  const std::unique_ptr<Mesh> mesh(DecodeGltfFile(file_name));
+  ASSERT_NE(mesh, nullptr);
+  ASSERT_EQ(mesh->num_faces(), 224);
+}
+
+TEST(GltfDecoderTest, DecodeLightsIntoScene) {
+  // Checks that a model with lights can be decoded into draco::Scene.
+  const std::string file_name = "sphere_lights.gltf";
+  const std::unique_ptr<Scene> scene(DecodeGltfFileToScene(file_name));
+  ASSERT_NE(scene, nullptr);
+  ASSERT_EQ(scene->NumLights(), 4);
+
+  // Check spot light with all properties specified.
+  Light &light = *scene->GetLight(LightIndex(0));
+  ASSERT_EQ(light.GetName(), "Blue Lightsaber");
+  ASSERT_EQ(light.GetColor(), draco::Vector3f(0.72f, 0.71f, 1.00f));
+  ASSERT_EQ(light.GetIntensity(), 3.0);
+  ASSERT_EQ(light.GetType(), draco::Light::SPOT);
+  ASSERT_EQ(light.GetRange(), 100);
+  ASSERT_EQ(light.GetInnerConeAngle(), 0.2);
+  ASSERT_EQ(light.GetOuterConeAngle(), 0.8);
+
+  // Check point light with all properties specified.
+  light = *scene->GetLight(LightIndex(1));
+  ASSERT_EQ(light.GetName(), "The Star of Earendil");
+  ASSERT_EQ(light.GetColor(), draco::Vector3f(0.90f, 0.97f, 1.0f));
+  ASSERT_EQ(light.GetIntensity(), 5.0);
+  ASSERT_EQ(light.GetType(), draco::Light::POINT);
+  ASSERT_EQ(light.GetRange(), 1000);
+  ASSERT_EQ(light.GetInnerConeAngle(), 0.0);
+  ASSERT_NEAR(light.GetOuterConeAngle(), M_PI / 4.0f, 1e-8);
+
+  // Check directional light with some properties specified.
+  light = *scene->GetLight(LightIndex(2));
+  ASSERT_EQ(light.GetName(), "Arc Reactor");
+  ASSERT_EQ(light.GetColor(), draco::Vector3f(0.9f, 0.9, 0.9f));
+  ASSERT_EQ(light.GetIntensity(), 1.0);
+  ASSERT_EQ(light.GetType(), draco::Light::DIRECTIONAL);
+  ASSERT_EQ(light.GetRange(), 200.0);
+
+  // Check spot light with no properties specified.
+  light = *scene->GetLight(LightIndex(3));
+  ASSERT_EQ(light.GetName(), "");
+  ASSERT_EQ(light.GetColor(), draco::Vector3f(1.0f, 1.0f, 1.0f));
+  ASSERT_EQ(light.GetIntensity(), 1.0);
+  ASSERT_EQ(light.GetType(), draco::Light::SPOT);
+  ASSERT_EQ(light.GetRange(), std::numeric_limits<float>::max());
+  ASSERT_EQ(light.GetInnerConeAngle(), 0.0);
+  ASSERT_NEAR(light.GetOuterConeAngle(), M_PI / 4.0f, 1e-8);
+
+  // Check that lights are referenced by the scene nodes.
+  ASSERT_EQ(scene->GetNode(SceneNodeIndex(0))->GetLightIndex(),
+            kInvalidLightIndex);
+  ASSERT_EQ(scene->GetNode(SceneNodeIndex(1))->GetLightIndex(), LightIndex(0));
+  ASSERT_EQ(scene->GetNode(SceneNodeIndex(2))->GetLightIndex(), LightIndex(2));
+  ASSERT_EQ(scene->GetNode(SceneNodeIndex(3))->GetLightIndex(), LightIndex(3));
+  ASSERT_EQ(scene->GetNode(SceneNodeIndex(4))->GetLightIndex(), LightIndex(1));
 }
 
 }  // namespace draco

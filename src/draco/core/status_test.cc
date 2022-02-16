@@ -33,6 +33,10 @@ TEST_F(StatusTest, TestStatusOutput) {
   std::stringstream str;
   str << status;
   ASSERT_EQ(str.str(), "Error msg.");
+
+  const draco::Status status2 = draco::ErrorStatus("Error msg2.");
+  ASSERT_EQ(status2.code(), draco::Status::DRACO_ERROR);
+  ASSERT_EQ(status2.error_msg_string(), "Error msg2.");
 }
 
 }  // namespace
