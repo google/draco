@@ -84,7 +84,7 @@ jobs:
             draco_test_command: ./draco_tests
 
           - test_name: windows-msvc-release-shared
-            os: windows-latest
+            os: windows-2019
             cmake_configure_command: |-
               cmake .. -G "Visual Studio 16 2019" \
                 -DBUILD_SHARED_LIBS=ON \
@@ -94,7 +94,7 @@ jobs:
             draco_test_command: Release/draco_tests
 
           - test_name: windows-msvc-release-static
-            os: windows-latest
+            os: windows-2019
             cmake_configure_command: |-
               cmake .. -G "Visual Studio 16 2019" \
                 -DBUILD_SHARED_LIBS=OFF \
@@ -104,7 +104,7 @@ jobs:
             draco_test_command: Release/draco_tests
 
           - test_name: windows-make-release-shared
-            os: windows-latest
+            os: windows-2019
             cmake_configure_command: |-
               cmake .. -G "MinGW Makefiles" \
                 -DBUILD_SHARED_LIBS=ON \
@@ -116,7 +116,7 @@ jobs:
             draco_test_command: ./draco_tests
 
           - test_name: windows-make-release-static
-            os: windows-latest
+            os: windows-2019
             cmake_configure_command: |-
               cmake .. -G "MinGW Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
@@ -173,11 +173,11 @@ jobs:
             test_command: python3 test.py -v -G Xcode
 
           - test_name: windows-make
-            os: windows-latest
+            os: windows-2019
             test_command: python3 test.py -v -G "MinGW Makefiles"
 
           - test_name: windows-msvc
-            os: windows-latest
+            os: windows-2019
             test_command: python3 test.py -v -G "Visual Studio 16 2019"
 
     name: install-test-${{ matrix.test_name }}
