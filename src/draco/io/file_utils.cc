@@ -14,6 +14,8 @@
 //
 #include "draco/io/file_utils.h"
 
+#include <string>
+
 #include "draco/io/file_reader_factory.h"
 #include "draco/io/file_reader_interface.h"
 #include "draco/io/file_writer_factory.h"

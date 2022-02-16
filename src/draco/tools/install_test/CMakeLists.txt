@@ -48,9 +48,9 @@ target_link_libraries(install_check "${DRACO_LIBRARY}")
 install(TARGETS install_check DESTINATION "${CMAKE_INSTALL_FULL_BINDIR}")
 
 if(BUILD_SHARED_LIBS AND WIN32)
-  # Copy the Draco DLL into the bin dir for Windows: Windows doesn't really have
-  # a concept of rpath, but it does look in the current directory by default
-  # when a program tries to load a DLL.
+  # Copy the Draco DLL into the bin dir for Windows: Windows does not really
+  # have a concept of rpath, but it does look in the current directory by
+  # default when a program tries to load a DLL.
   install(FILES "${DRACO_LIBRARY_DLL}"
           DESTINATION "${CMAKE_INSTALL_FULL_BINDIR}")
 endif()

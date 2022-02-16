@@ -83,12 +83,14 @@ struct GltfScene {
 
 // Struct to hold glTF Node data.
 struct GltfNode {
-  GltfNode() : mesh_index(-1), skin_index(-1), root_node(false) {}
+  GltfNode()
+      : mesh_index(-1), skin_index(-1), light_index(-1), root_node(false) {}
 
   std::string name;
   std::vector<int> childern_indices;
   int mesh_index;
   int skin_index;
+  int light_index;
   bool root_node;
   TrsMatrix trs_matrix;
 };
@@ -365,6 +367,10 @@ class GltfAsset {
   // skins.
   Status AddSkins(const Scene &scene);
 
+  // Iterate through the lights that are associated with |scene| and add them to
+  // the asset. Returns OkStatus() if |scene| does not contain any lights.
+  Status AddLights(const Scene &scene);
+
   bool EncodeAssetProperty(EncoderBuffer *buf_out);
   bool EncodeScenesProperty(EncoderBuffer *buf_out);
   bool EncodeInitialSceneProperty(EncoderBuffer *buf_out);
@@ -383,7 +389,8 @@ class GltfAsset {
   // is the index into the texture coordinates. |texture_map| is a reference to
   // the texture map that is going to be encoded.
   Status EncodeTextureMap(const std::string &object_name, int image_index,
-                          int tex_coord_index, const TextureMap &texture_map);
+                          int tex_coord_index, const Material &material,
+                          const TextureMap &texture_map);
   Status EncodeMaterialsProperty(EncoderBuffer *buf_out);
 
   // TODO(vytyaz): Use this type in other places.
@@ -417,6 +424,7 @@ class GltfAsset {
                        TextureToImageIndexMapType *map);
   Status EncodeAnimationsProperty(EncoderBuffer *buf_out);
   Status EncodeSkinsProperty(EncoderBuffer *buf_out);
+  Status EncodeLightsProperty(EncoderBuffer *buf_out);
   bool EncodeAccessorsProperty(EncoderBuffer *buf_out);
   bool EncodeBufferViewsProperty(EncoderBuffer *buf_out);
   bool EncodeBuffersProperty(EncoderBuffer *buf_out);
@@ -511,6 +519,7 @@ class GltfAsset {
     int skeleton_index;
   };
   std::vector<std::unique_ptr<EncoderSkin>> skins_;
+  std::vector<std::unique_ptr<Light>> lights_;
 
   // Indicates whether Draco compression is used for any of the asset meshes.
   bool draco_compression_used_;
@@ -645,6 +654,7 @@ Status GltfAsset::Output(EncoderBuffer *buf_out) {
   }
   DRACO_RETURN_IF_ERROR(EncodeAnimationsProperty(buf_out));
   DRACO_RETURN_IF_ERROR(EncodeSkinsProperty(buf_out));
+  DRACO_RETURN_IF_ERROR(EncodeLightsProperty(buf_out));
   if (!EncodeBufferViewsProperty(buf_out)) {
     return Status(Status::DRACO_ERROR, "Failed encoding buffer views.");
   }
@@ -1249,6 +1259,7 @@ Status GltfAsset::AddScene(const Scene &scene) {
   }
   DRACO_RETURN_IF_ERROR(AddAnimations(scene));
   DRACO_RETURN_IF_ERROR(AddSkins(scene));
+  DRACO_RETURN_IF_ERROR(AddLights(scene));
   return OkStatus();
 }
 
@@ -1314,6 +1325,7 @@ Status GltfAsset::AddSceneNode(const Scene &scene,
     node.mesh_index = mesh_group_index_to_gltf_mesh_[mesh_group_index];
   }
   node.skin_index = scene_node->GetSkinIndex().value();
+  node.light_index = scene_node->GetLightIndex().value();
 
   nodes_.push_back(node);
   return OkStatus();
@@ -1490,6 +1502,19 @@ Status GltfAsset::AddSkins(const Scene &scene) {
   return OkStatus();
 }
 
+Status GltfAsset::AddLights(const Scene &scene) {
+  if (scene.NumLights() == 0) {
+    return OkStatus();
+  }
+
+  for (LightIndex i(0); i < scene.NumLights(); ++i) {
+    std::unique_ptr<Light> light = std::unique_ptr<Light>(new Light());
+    light->Copy(*scene.GetLight(i));
+    lights_.push_back(std::move(light));
+  }
+  return OkStatus();
+}
+
 bool GltfAsset::EncodeAssetProperty(EncoderBuffer *buf_out) {
   gltf_json_.BeginObject("asset");
   gltf_json_.OutputValue("version", version_);
@@ -1538,6 +1563,13 @@ bool GltfAsset::EncodeNodesProperty(EncoderBuffer *buf_out) {
     }
     if (nodes_[i].skin_index >= 0) {
       gltf_json_.OutputValue("skin", nodes_[i].skin_index);
+    }
+    if (nodes_[i].light_index >= 0) {
+      gltf_json_.BeginObject("extensions");
+      gltf_json_.BeginObject("KHR_lights_punctual");
+      gltf_json_.OutputValue("light", nodes_[i].light_index);
+      gltf_json_.EndObject();
+      gltf_json_.EndObject();
     }
 
     if (!nodes_[i].childern_indices.empty()) {
@@ -1707,6 +1739,7 @@ Status GltfAsset::EncodeDefaultMaterial(EncoderBuffer *buf_out) {
 
 Status GltfAsset::EncodeTextureMap(const std::string &object_name,
                                    int image_index, int tex_coord_index,
+                                   const Material &material,
                                    const TextureMap &texture_map) {
   // Create a new texture sampler (or reuse an existing one if possible).
   const TextureSampler sampler(texture_map.min_filter(),
@@ -1731,6 +1764,12 @@ Status GltfAsset::EncodeTextureMap(const std::string &object_name,
   gltf_json_.BeginObject(object_name);
   gltf_json_.OutputValue("index", texture_index);
   gltf_json_.OutputValue("texCoord", tex_coord_index);
+  if (object_name == "normalTexture") {
+    const float scale = material.GetNormalTextureScale();
+    if (scale != 1.0f) {
+      gltf_json_.OutputValue("scale", scale);
+    }
+  }
 
   // Check if |texture_map| is using the KHR_texture_transform extension.
   if (!TextureTransform::IsDefault(texture_map.texture_transform())) {
@@ -1822,9 +1861,9 @@ Status GltfAsset::EncodeMaterialsProperty(EncoderBuffer *buf_out) {
           const int color_image_index,
           AddImage(texture_stem, color->texture(), rgba ? 4 : 3,
                    &texture_to_image_index_map));
-      DRACO_RETURN_IF_ERROR(EncodeTextureMap("baseColorTexture",
-                                             color_image_index,
-                                             color->tex_coord_index(), *color));
+      DRACO_RETURN_IF_ERROR(
+          EncodeTextureMap("baseColorTexture", color_image_index,
+                           color->tex_coord_index(), *material, *color));
     }
     // Try to combine metallic and occlusion only if they have the same tex
     // coord index.
@@ -1840,10 +1879,10 @@ Status GltfAsset::EncodeMaterialsProperty(EncoderBuffer *buf_out) {
                                         &texture_to_image_index_map));
       }
       if (occlusion_metallic_roughness_image_index != -1)
-        DRACO_RETURN_IF_ERROR(
-            EncodeTextureMap("metallicRoughnessTexture",
-                             occlusion_metallic_roughness_image_index,
-                             metallic->tex_coord_index(), *metallic));
+        DRACO_RETURN_IF_ERROR(EncodeTextureMap(
+            "metallicRoughnessTexture",
+            occlusion_metallic_roughness_image_index,
+            metallic->tex_coord_index(), *material, *metallic));
     }
 
     if (metallic && occlusion_metallic_roughness_image_index == -1) {
@@ -1854,7 +1893,7 @@ Status GltfAsset::EncodeMaterialsProperty(EncoderBuffer *buf_out) {
                                       &texture_to_image_index_map));
       DRACO_RETURN_IF_ERROR(EncodeTextureMap(
           "metallicRoughnessTexture", metallic_roughness_image_index,
-          metallic->tex_coord_index(), *metallic));
+          metallic->tex_coord_index(), *material, *metallic));
     }
 
     EncodeVectorArray<Vector4f>("baseColorFactor", material->GetColorFactor());
@@ -1870,35 +1909,31 @@ Status GltfAsset::EncodeMaterialsProperty(EncoderBuffer *buf_out) {
                                       &texture_to_image_index_map));
       DRACO_RETURN_IF_ERROR(
           EncodeTextureMap("normalTexture", normal_image_index,
-                           normal->tex_coord_index(), *normal));
+                           normal->tex_coord_index(), *material, *normal));
     }
 
     if (occlusion_metallic_roughness_image_index != -1) {
       DRACO_RETURN_IF_ERROR(EncodeTextureMap(
           "occlusionTexture", occlusion_metallic_roughness_image_index,
-          metallic->tex_coord_index(), *metallic));
+          metallic->tex_coord_index(), *material, *metallic));
     } else if (occlusion) {
       // Store occlusion texture in a grayscale format, unless it is used by
-      // metallic-roughness map of some other matierial.
-      int num_components = 1;
-      std::string suffix = "_Occlusion";
-      const auto mr = TextureUtils::FindTextures(TextureMap::METALLIC_ROUGHNESS,
-                                                 &material_library_);
-      if (std::find(mr.begin(), mr.end(), occlusion->texture()) != mr.end()) {
-        // This material uses occlusion (R channel) and some other material uses
-        // metallic-roughness (GB channels) from this texture.
-        num_components = 3;
-        suffix = "_OcclusionMetallicRoughness";
-      }
+      // metallic-roughness map of some other matierial. It is possible that
+      // this material uses occlusion (R channel) and some other material uses
+      // metallic-roughness (GB channels) from this texture.
+      const int num_components = TextureUtils::ComputeRequiredNumChannels(
+          *occlusion->texture(), material_library_);
+      const std::string suffix =
+          (num_components == 1) ? "_Occlusion" : "_OcclusionMetallicRoughness";
       const std::string texture_stem = TextureUtils::GetOrGenerateTargetStem(
           *occlusion->texture(), i, suffix);
       DRACO_ASSIGN_OR_RETURN(
           const int occlusion_image_index,
           AddImage(texture_stem, occlusion->texture(), num_components,
                    &texture_to_image_index_map));
-      DRACO_RETURN_IF_ERROR(
-          EncodeTextureMap("occlusionTexture", occlusion_image_index,
-                           occlusion->tex_coord_index(), *occlusion));
+      DRACO_RETURN_IF_ERROR(EncodeTextureMap(
+          "occlusionTexture", occlusion_image_index,
+          occlusion->tex_coord_index(), *material, *occlusion));
     }
 
     if (emissive) {
@@ -1909,7 +1944,7 @@ Status GltfAsset::EncodeMaterialsProperty(EncoderBuffer *buf_out) {
                                       &texture_to_image_index_map));
       DRACO_RETURN_IF_ERROR(
           EncodeTextureMap("emissiveTexture", emissive_image_index,
-                           emissive->tex_coord_index(), *emissive));
+                           emissive->tex_coord_index(), *material, *emissive));
     }
 
     EncodeVectorArray<Vector3f>("emissiveFactor",
@@ -2262,8 +2297,9 @@ Status GltfAsset::EncodeTexture(const std::string &name,
     DRACO_ASSIGN_OR_RETURN(
         const int image_index,
         AddImage(texture_stem, texture_map->texture(), num_components, map));
-    DRACO_RETURN_IF_ERROR(EncodeTextureMap(
-        name, image_index, texture_map->tex_coord_index(), *texture_map));
+    DRACO_RETURN_IF_ERROR(EncodeTextureMap(name, image_index,
+                                           texture_map->tex_coord_index(),
+                                           material, *texture_map));
   }
   return OkStatus();
 }
@@ -2358,6 +2394,62 @@ Status GltfAsset::EncodeSkinsProperty(EncoderBuffer *buf_out) {
   return OkStatus();
 }
 
+Status GltfAsset::EncodeLightsProperty(EncoderBuffer *buf_out) {
+  if (lights_.empty()) {
+    return OkStatus();
+  }
+
+  gltf_json_.BeginObject("extensions");
+  gltf_json_.BeginObject("KHR_lights_punctual");
+  gltf_json_.BeginArray("lights");
+  const Light defaults;
+  for (const auto &light : lights_) {
+    gltf_json_.BeginObject();
+    if (light->GetName() != defaults.GetName()) {
+      gltf_json_.OutputValue("name", light->GetName());
+    }
+    if (light->GetColor() != defaults.GetColor()) {
+      gltf_json_.BeginArray("color");
+      gltf_json_.OutputValue(light->GetColor()[0]);
+      gltf_json_.OutputValue(light->GetColor()[1]);
+      gltf_json_.OutputValue(light->GetColor()[2]);
+      gltf_json_.EndArray();
+    }
+    if (light->GetIntensity() != defaults.GetIntensity()) {
+      gltf_json_.OutputValue("intensity", light->GetIntensity());
+    }
+    switch (light->GetType()) {
+      case Light::DIRECTIONAL:
+        gltf_json_.OutputValue("type", "directional");
+        break;
+      case Light::POINT:
+        gltf_json_.OutputValue("type", "point");
+        break;
+      case Light::SPOT:
+        gltf_json_.OutputValue("type", "spot");
+        break;
+    }
+    if (light->GetRange() != defaults.GetRange()) {
+      gltf_json_.OutputValue("range", light->GetRange());
+    }
+    if (light->GetType() == Light::SPOT) {
+      gltf_json_.BeginObject("spot");
+      if (light->GetInnerConeAngle() != defaults.GetInnerConeAngle()) {
+        gltf_json_.OutputValue("innerConeAngle", light->GetInnerConeAngle());
+      }
+      if (light->GetOuterConeAngle() != defaults.GetOuterConeAngle()) {
+        gltf_json_.OutputValue("outerConeAngle", light->GetOuterConeAngle());
+      }
+      gltf_json_.EndObject();
+    }
+    gltf_json_.EndObject();
+  }
+  gltf_json_.EndArray();
+  gltf_json_.EndObject();  // KHR_lights_punctual entry.
+  gltf_json_.EndObject();  // extensions entry.
+  return OkStatus();
+}
+
 bool GltfAsset::EncodeAccessorsProperty(EncoderBuffer *buf_out) {
   gltf_json_.BeginArray("accessors");
 
@@ -2441,6 +2533,9 @@ Status GltfAsset::EncodeExtensionsProperties(EncoderBuffer *buf_out) {
     const std::string draco_tag = "KHR_draco_mesh_compression";
     extensions_used_.insert(draco_tag);
     extensions_required_.insert(draco_tag);
+  }
+  if (!lights_.empty()) {
+    extensions_used_.insert("KHR_lights_punctual");
   }
 
   if (!extensions_required_.empty()) {

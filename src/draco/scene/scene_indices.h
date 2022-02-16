@@ -42,6 +42,9 @@ DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, AnimationIndex)
 // Index of a skin in a scene.
 DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, SkinIndex)
 
+// Index of a light in a scene.
+DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, LightIndex)
+
 // Constants denoting invalid indices.
 static constexpr MeshIndex kInvalidMeshIndex(
     std::numeric_limits<uint32_t>::max());
@@ -54,6 +57,8 @@ static constexpr SceneNodeIndex kInvalidSceneNodeIndex(
 static constexpr AnimationIndex kInvalidAnimationIndex(
     std::numeric_limits<uint32_t>::max());
 static constexpr SkinIndex kInvalidSkinIndex(
+    std::numeric_limits<uint32_t>::max());
+static constexpr LightIndex kInvalidLightIndex(
     std::numeric_limits<uint32_t>::max());
 
 }  // namespace draco

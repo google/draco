@@ -25,7 +25,7 @@ namespace draco {
 // space transformed into scene space.
 class SceneNode {
  public:
-  SceneNode() : mesh_group_index_(-1), skin_index_(-1) {}
+  SceneNode() : mesh_group_index_(-1), skin_index_(-1), light_index_(-1) {}
 
   void Copy(const SceneNode &sn) {
     name_ = sn.name_;
@@ -34,6 +34,7 @@ class SceneNode {
     skin_index_ = sn.skin_index_;
     parents_ = sn.parents_;
     children_ = sn.children_;
+    light_index_ = sn.light_index_;
   }
 
   // Sets a name.
@@ -54,6 +55,10 @@ class SceneNode {
   void SetSkinIndex(SkinIndex index) { skin_index_ = index; }
   SkinIndex GetSkinIndex() const { return skin_index_; }
 
+  // Set the index to the light in the scene.
+  void SetLightIndex(LightIndex index) { light_index_ = index; }
+  LightIndex GetLightIndex() const { return light_index_; }
+
   // Functions to set and get zero or more parent nodes of this node.
   SceneNodeIndex Parent(int index) const { return parents_[index]; }
   void AddParentIndex(SceneNodeIndex index) { parents_.push_back(index); }
@@ -73,6 +78,7 @@ class SceneNode {
   draco::SkinIndex skin_index_;
   std::vector<SceneNodeIndex> parents_;
   std::vector<SceneNodeIndex> children_;
+  LightIndex light_index_;
 };
 
 }  // namespace draco

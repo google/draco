@@ -14,6 +14,16 @@ delays can result in transient errors that can be difficult to diagnose when
 new Draco releases are launched. To avoid the issue pin your sites to a
 versioned release.
 
+### Version 1.5.1 release
+* Adds assertion enabled Emscripten builds to the release, and a subset of the
+  assertion enabled builds to GStatic. See the file listing below.
+* Custom paths to third party dependencies are now supported. See BUILDING.md
+  for more information.
+* The CMake configuration file draco-config.cmake is now tested and known to
+  work for using Draco in Linux, MacOS, and Windows CMake projects. See the
+  `install_test` subdirectory of `src/draco/tools` for more information.
+* Bug fixes.
+
 ### Version 1.5.0 release
 * Adds the draco_transcoder tool. See the section below on the glTF transcoding
   tool, and BUILDING.md for build and dependency information.
@@ -518,6 +528,13 @@ As of the v1.4.3 release the files available are:
 - [draco_decoder_gltf.wasm](https://www.gstatic.com/draco/versioned/decoders/1.4.3/draco_decoder_gltf.wasm)
 - [draco_wasm_wrapper.js](https://www.gstatic.com/draco/versioned/decoders/1.4.3/draco_wasm_wrapper.js)
 - [draco_wasm_wrapper_gltf.js](https://www.gstatic.com/draco/versioned/decoders/1.4.3/draco_wasm_wrapper_gltf.js)
+
+Beginning with the v1.5.1 release assertion enabled builds of the following
+files are available:
+
+- [draco_decoder.js](https://www.gstatic.com/draco/versioned/decoders/1.5.1/with_asserts/draco_decoder.js)
+- [draco_decoder.wasm](https://www.gstatic.com/draco/versioned/decoders/1.5.1/with_asserts/draco_decoder.wasm)
+- [draco_wasm_wrapper.js](https://www.gstatic.com/draco/versioned/decoders/1.5.1/with_asserts/draco_wasm_wrapper.js)
 
 Support
 =======

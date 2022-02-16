@@ -17,10 +17,13 @@
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include <numeric>
+#include <string>
 #include <unordered_set>
+#include <utility>
 
 #include "draco/core/hash_utils.h"
 #include "draco/core/vector_d.h"
+#include "draco/mesh/mesh_splitter.h"
 #include "draco/mesh/mesh_utils.h"
 #include "draco/scene/scene_indices.h"
 #include "draco/texture/texture_utils.h"
@@ -199,11 +202,6 @@ BoundingBox SceneUtils::ComputeMeshInstanceBoundingBox(
 StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
     std::unique_ptr<Mesh> mesh) {
   const size_t num_mesh_materials = mesh->GetMaterialLibrary().NumMaterials();
-  if (num_mesh_materials > 1) {
-    return Status(Status::DRACO_ERROR,
-                  "Number of mesh materials must be less than 2.");
-  }
-
   std::unique_ptr<Scene> scene(new Scene());
   if (num_mesh_materials > 0) {
     scene->GetMaterialLibrary().Copy(mesh->GetMaterialLibrary());
@@ -218,12 +216,55 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
   const MeshGroupIndex mesh_group_index = scene->AddMeshGroup();
   MeshGroup *const mesh_group = scene->GetMeshGroup(mesh_group_index);
 
-  const MeshIndex mesh_index = scene->AddMesh(std::move(mesh));
-  if (mesh_index == kInvalidMeshIndex) {
-    return Status(Status::DRACO_ERROR, "Could not add Draco mesh to scene.");
+  if (num_mesh_materials <= 1) {
+    const MeshIndex mesh_index = scene->AddMesh(std::move(mesh));
+    if (mesh_index == kInvalidMeshIndex) {
+      // No idea whether this can happen.  It's not covered by any unit test.
+      return Status(Status::DRACO_ERROR, "Could not add Draco mesh to scene.");
+    }
+    mesh_group->AddMeshIndex(mesh_index);
+    mesh_group->AddMaterialIndex(0);
+  } else {
+    const int32_t mat_att_id =
+        mesh->GetNamedAttributeId(GeometryAttribute::MATERIAL);
+    if (mat_att_id == -1) {
+      // Probably dead code, not covered by any unit test.
+      return Status(Status::DRACO_ERROR,
+                    "Internal error in MeshToScene: "
+                    "GetNamedAttributeId(MATERIAL) returned -1");
+    }
+    const PointAttribute *const mat_att =
+        mesh->GetNamedAttribute(GeometryAttribute::MATERIAL);
+    if (mat_att == nullptr) {
+      // Probably dead code, not covered by any unit test.
+      return Status(Status::DRACO_ERROR,
+                    "Internal error in MeshToScene: "
+                    "GetNamedAttribute(MATERIAL) returned nullptr");
+    }
+
+    MeshSplitter splitter;
+    DRACO_ASSIGN_OR_RETURN(MeshSplitter::MeshVector split_meshes,
+                           splitter.SplitMesh(*mesh, mat_att_id));
+    // Note: cannot clear mesh here, since mat_att points into it.
+    for (size_t i = 0; i < split_meshes.size(); ++i) {
+      if (split_meshes[i] == nullptr) {
+        // Probably dead code, not covered by any unit test.
+        continue;
+      }
+      const MeshIndex mesh_index = scene->AddMesh(std::move(split_meshes[i]));
+      if (mesh_index == kInvalidMeshIndex) {
+        // No idea whether this can happen.  It's not covered by any unit test.
+        return Status(Status::DRACO_ERROR,
+                      "Could not add Draco mesh to scene.");
+      }
+
+      uint32_t material_index = 0;
+      mat_att->GetValue(AttributeValueIndex(i), &material_index);
+
+      mesh_group->AddMeshIndex(mesh_index);
+      mesh_group->AddMaterialIndex(material_index);
+    }
   }
-  mesh_group->AddMeshIndex(mesh_index);
-  mesh_group->AddMaterialIndex(0);
 
   scene_node->SetMeshGroupIndex(mesh_group_index);
   scene->AddRootNodeIndex(scene_node_index);

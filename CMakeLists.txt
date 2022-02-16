@@ -39,6 +39,7 @@ endif()
 include(FindPythonInterp)
 include("${draco_root}/cmake/draco_build_definitions.cmake")
 include("${draco_root}/cmake/draco_cpu_detection.cmake")
+include("${draco_root}/cmake/draco_dependencies.cmake")
 include("${draco_root}/cmake/draco_emscripten.cmake")
 include("${draco_root}/cmake/draco_flags.cmake")
 include("${draco_root}/cmake/draco_helpers.cmake")
@@ -546,6 +547,8 @@ if(DRACO_TRANSCODER_SUPPORTED)
     "${draco_src_root}/mesh/mesh_utils.h")
 
   list(APPEND draco_scene_sources
+    "${draco_src_root}/scene/light.h"
+    "${draco_src_root}/scene/light.cc"
     "${draco_src_root}/scene/mesh_group.h"
     "${draco_src_root}/scene/scene.cc"
     "${draco_src_root}/scene/scene.h"

@@ -14,13 +14,17 @@
 //
 #include "draco/io/scene_io.h"
 
+#include <string>
+
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/io/gltf_decoder.h"
 #include "draco/io/gltf_encoder.h"
+#include "draco/io/obj_encoder.h"
+#include "draco/io/ply_encoder.h"
 
 namespace draco {
 
-enum SceneFileFormat { UNKNOWN, GLTF, USD };
+enum SceneFileFormat { UNKNOWN, GLTF, USD, PLY, OBJ };
 
 SceneFileFormat GetSceneFileFormat(const std::string &file_name) {
   const std::string extension = LowercaseFileExtension(file_name);
@@ -30,6 +34,12 @@ SceneFileFormat GetSceneFileFormat(const std::string &file_name) {
   if (extension == "usd" || extension == "usda" || extension == "usdc" ||
       extension == "usdz") {
     return USD;
+  }
+  if (extension == "obj") {
+    return OBJ;
+  }
+  if (extension == "ply") {
+    return PLY;
   }
   return UNKNOWN;
 }
@@ -67,7 +77,8 @@ Status WriteSceneToFile(const std::string &file_name, const Scene &scene,
   std::string folder_path;
   std::string out_file_name;
   draco::SplitPath(file_name, &folder_path, &out_file_name);
-  switch (GetSceneFileFormat(file_name)) {
+  const auto format = GetSceneFileFormat(file_name);
+  switch (format) {
     case GLTF: {
       GltfEncoder encoder;
       if (!encoder.EncodeToFile(scene, file_name, folder_path)) {
@@ -77,6 +88,32 @@ Status WriteSceneToFile(const std::string &file_name, const Scene &scene,
     }
     case USD: {
       return Status(Status::DRACO_ERROR, "USD is not supported yet.");
+    }
+    case PLY:
+    case OBJ: {
+      // Convert the scene to mesh and save the scene as a mesh. For now we do
+      // that by converting the scene to GLB and decoding the GLB into a mesh.
+      GltfEncoder gltf_encoder;
+      EncoderBuffer buffer;
+      DRACO_RETURN_IF_ERROR(gltf_encoder.EncodeToBuffer(scene, &buffer));
+      GltfDecoder gltf_decoder;
+      DecoderBuffer dec_buffer;
+      dec_buffer.Init(buffer.data(), buffer.size());
+      DRACO_ASSIGN_OR_RETURN(auto mesh,
+                             gltf_decoder.DecodeFromBuffer(&dec_buffer));
+      if (format == PLY) {
+        PlyEncoder ply_encoder;
+        if (!ply_encoder.EncodeToFile(*mesh, file_name)) {
+          return ErrorStatus("Failed to encode the scene as PLY.");
+        }
+      }
+      if (format == OBJ) {
+        ObjEncoder obj_encoder;
+        if (!obj_encoder.EncodeToFile(*mesh, file_name)) {
+          return ErrorStatus("Failed to encode the scene as OBJ.");
+        }
+      }
+      return OkStatus();
     }
     default: {
       return Status(Status::DRACO_ERROR, "Unknown output file format.");
