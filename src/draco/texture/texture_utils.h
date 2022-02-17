@@ -60,6 +60,13 @@ class TextureUtils {
   // extension is returned when the |format| is NONE.
   static std::string GetExtension(ImageFormat format);
 
+  // Returns the number of channels required for encoding a |texture| from a
+  // given |material_library|, taking into account texture opacity and assuming
+  // that occlusion and metallic-roughness texture maps may share a texture.
+  // TODO(vytyaz): Move this and FindTextures() to MaterialLibrary class.
+  static int ComputeRequiredNumChannels(
+      const Texture &texture, const MaterialLibrary &material_library);
+
   static std::vector<const Texture *> FindTextures(
       const TextureMap::Type texture_type,
       const MaterialLibrary *material_library);

@@ -1,0 +1,329 @@
+{
+    "asset" : {
+        "generator" : "Khronos glTF Blender I/O v1.5.17, with hand-edits for newer glTF extensions.",
+        "version" : "2.0"
+    },
+    "extensionsUsed": [
+        "KHR_materials_transmission",
+        "KHR_materials_volume",
+        "KHR_materials_variants"
+    ],
+    "extensions": {
+        "KHR_materials_variants": {
+            "variants": [
+                {
+                    "name": "Attenuation"
+                },
+                {
+                    "name": "Surface Color"
+                }
+            ]
+        }
+    },
+    "scene": 0,
+    "scenes" : [
+        {
+            "name" : "Scene",
+            "nodes" : [
+                0,
+                1
+            ]
+        }
+    ],
+    "nodes" : [
+        {
+            "mesh" : 0,
+            "name" : "Cloth Backdrop",
+            "scale" : [
+                3.5,
+                3.5,
+                3.5
+            ],
+            "translation" : [
+                -0.15470129251480103,
+                -0.841584324836731,
+                -0.1703687310218811
+            ]
+        },
+        {
+            "mesh" : 1,
+            "name" : "Dragon",
+            "rotation" : [
+                0.7071068286895752,
+                0,
+                0,
+                0.7071068286895752
+            ],
+            "scale" : [
+                0.25,
+                0.25,
+                0.25
+            ],
+            "translation" : [
+                0,
+                -0.7306479811668396,
+                0
+            ]
+        }
+    ],
+    "materials" : [
+        {
+            "name" : "Cloth Backdrop",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 0
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.4934999942779541
+            }
+        },
+        {
+            "name": "Dragon with Attenuation",
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    1,
+                    1,
+                    1,
+                    1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 0
+            },
+            "extensions": {
+                "KHR_materials_transmission": {
+                    "transmissionFactor": 1
+                },
+                "KHR_materials_volume": {
+                    "attenuationColor": [
+                        0.921,
+                        0.640,
+                        0.064
+                    ],
+                    "attenuationDistance": 0.155,
+                    "thicknessFactor": 2.27,
+                    "thicknessTexture": {
+                        "index": 1,
+                        "texCoord": 0
+                    }
+                }
+            }
+        },
+        {
+            "name": "Dragon with Surface Coloring Only",
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [
+                    0.921,
+                    0.640,
+                    0.064,
+                    1
+                ],
+                "metallicFactor": 0,
+                "roughnessFactor": 0
+            },
+            "extensions": {
+                "KHR_materials_transmission": {
+                    "transmissionFactor": 1
+                },
+                "KHR_materials_volume": {
+                    "thicknessFactor": 2.27,
+                    "thicknessTexture": {
+                        "index": 1,
+                        "texCoord": 0
+                    }
+                }
+            }
+        }
+    ],
+    "meshes" : [
+        {
+            "name" : "Cloth Backdrop",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 0,
+                        "NORMAL" : 1,
+                        "TEXCOORD_0" : 2
+                    },
+                    "indices" : 3,
+                    "material" : 0
+                }
+            ]
+        },
+        {
+            "name" : "Dragon",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 4,
+                        "NORMAL" : 5,
+                        "TEXCOORD_0" : 6
+                    },
+                    "indices" : 7,
+                    "material" : 1,
+                    "extensions": {
+                        "KHR_materials_variants": {
+                            "mappings": [
+                                {
+                                    "material": 1,
+                                    "variants": [
+                                        0
+                                    ]
+                                },
+                                {
+                                    "material": 2,
+                                    "variants": [
+                                        1
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "textures" : [
+        {
+            "sampler" : 0,
+            "source" : 0
+        },
+        {
+            "sampler" : 0,
+            "source" : 1
+        }
+    ],
+    "images" : [
+        {
+            "mimeType" : "image/jpeg",
+            "uri" : "checkerboard.jpg"
+        },
+        {
+            "mimeType" : "image/jpeg",
+            "uri" : "Dragon_ThicknessMap.jpg"
+        }
+    ],
+    "accessors" : [
+        {
+            "bufferView" : 0,
+            "componentType" : 5126,
+            "count" : 62570,
+            "max" : [
+                0.9809443354606628,
+                1.0221298933029175,
+                1.4283748865127563
+            ],
+            "min" : [
+                -0.8216659426689148,
+                0.0015843699220567942,
+                -0.46063709259033203
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 1,
+            "componentType" : 5126,
+            "count" : 62570,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 2,
+            "componentType" : 5126,
+            "count" : 62570,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5123,
+            "count" : 131337,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 4,
+            "componentType" : 5126,
+            "count" : 76809,
+            "max" : [
+                7.0467000007629395,
+                3.1512999534606934,
+                0
+            ],
+            "min" : [
+                -7.0467000007629395,
+                -3.1512999534606934,
+                -9.939900398254395
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 5,
+            "componentType" : 5126,
+            "count" : 76809,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 6,
+            "componentType" : 5126,
+            "count" : 76809,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 7,
+            "componentType" : 5125,
+            "count" : 273648,
+            "type" : "SCALAR"
+        }
+    ],
+    "bufferViews" : [
+        {
+            "buffer" : 0,
+            "byteLength" : 750840,
+            "byteOffset" : 0
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 750840,
+            "byteOffset" : 750840
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 500560,
+            "byteOffset" : 1501680
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 262674,
+            "byteOffset" : 2002240
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 921708,
+            "byteOffset" : 2264916
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 921708,
+            "byteOffset" : 3186624
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 614472,
+            "byteOffset" : 4108332
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 1094592,
+            "byteOffset" : 4722804
+        }
+    ],
+    "samplers" : [
+        {
+            "magFilter" : 9729,
+            "minFilter" : 9987
+        }
+    ],
+    "buffers" : [
+        {
+            "byteLength" : 5817396,
+            "uri" : "DragonAttenuation.bin"
+        }
+    ]
+}
