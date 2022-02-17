@@ -14,6 +14,11 @@ delays can result in transient errors that can be difficult to diagnose when
 new Draco releases are launched. To avoid the issue pin your sites to a
 versioned release.
 
+### Version 1.5.2 release
+* This is the same as v1.5.1 with the following two bug fixes:
+  * Fixes DRACO_TRANSCODER_SUPPORTED enabled builds.
+  * ABI version updated.
+
 ### Version 1.5.1 release
 * Adds assertion enabled Emscripten builds to the release, and a subset of the
   assertion enabled builds to GStatic. See the file listing below.

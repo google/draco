@@ -99,6 +99,21 @@ std::string TextureUtils::GetExtension(ImageFormat format) {
   }
 }
 
+int TextureUtils::ComputeRequiredNumChannels(
+    const Texture &texture, const MaterialLibrary &material_library) {
+  // TODO(vytyaz): Consider a case where |texture| is not only used in OMR but
+  // also in other texture map types.
+  const auto mr_textures = TextureUtils::FindTextures(
+      TextureMap::METALLIC_ROUGHNESS, &material_library);
+  if (std::find(mr_textures.begin(), mr_textures.end(), &texture) ==
+      mr_textures.end()) {
+    // Occlusion-only texture.
+    return 1;
+  }
+  // Occlusion-metallic-roughness texture.
+  return 3;
+}
+
 std::vector<const Texture *> TextureUtils::FindTextures(
     const TextureMap::Type texture_type,
     const MaterialLibrary *material_library) {
