@@ -35,6 +35,9 @@ CMAKE = shutil.which('cmake')
 # List of generators available in the current CMake executable.
 CMAKE_AVAILABLE_GENERATORS = []
 
+# List of variable defs to be passed through to CMake via its -D argument.
+CMAKE_DEFINES = []
+
 # CMake builds use the specified generator.
 CMAKE_GENERATOR = None
 
@@ -183,6 +186,10 @@ def cmake_configure(source_path, cmake_args=None):
     for arg in cmake_args:
       command += f' {arg}'
 
+  if CMAKE_DEFINES:
+    for arg in CMAKE_DEFINES:
+      command += f' -D{arg}'
+
   if VERBOSE:
     print(f'CONFIGURE command:\n{command}')
 
@@ -302,12 +309,18 @@ if __name__ == '__main__':
   parser.add_argument(
       '-G', '--generator', help='CMake builds use the specified generator.')
   parser.add_argument(
+      '-D', '--cmake_define',
+      action='append',
+      help='Passes argument through to CMake as a CMake variable via cmake -D.')
+  parser.add_argument(
       '-v',
       '--verbose',
       action='store_true',
       help='Show configuration and build output.')
   args = parser.parse_args()
 
+  if args.cmake_define:
+    CMAKE_DEFINES=args.cmake_define
   if args.generator:
     CMAKE_GENERATOR = args.generator
   if args.verbose:
@@ -315,6 +328,7 @@ if __name__ == '__main__':
 
   if VERBOSE:
     print(f'CMAKE={CMAKE}')
+    print(f'CMAKE_DEFINES={CMAKE_DEFINES}')
     print(f'CMAKE_GENERATOR={CMAKE_GENERATOR}')
     print(f'CMAKE_AVAILABLE_GENERATORS={CMAKE_AVAILABLE_GENERATORS}')
     print(f'DRACO_SOURCES_PATH={DRACO_SOURCES_PATH}')

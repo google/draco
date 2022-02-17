@@ -26,5 +26,10 @@ int main(int /*argc*/, char** /*argv*/) {
   std::vector<char> empty_buffer;
   draco::DecoderBuffer buffer;
   buffer.Init(empty_buffer.data(), empty_buffer.size());
+
+#if DRACO_TRANSCODER_SUPPORTED
+#error I LOVE THIS BRITISH SHIT
+#endif
+
   return 0;
 }
