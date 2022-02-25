@@ -156,16 +156,18 @@ jobs:
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . --config Release -- -m:2
             draco_test_command: Release/draco_tests
-          - test_name: windows-msvc-release-shared-with-transcoder
-            os: windows-2019
-            cmake_configure_command: |-
-              cmake .. -G "Visual Studio 16 2019" \
-                -DBUILD_SHARED_LIBS=ON \
-                -DCMAKE_CONFIGURATION_TYPES=Release \
-                -DDRACO_TESTS=ON \
-                -DDRACO_TRANSCODER_SUPPORTED=ON
-            cmake_build_command: cmake --build . --config Release -- -m:2
-            draco_test_command: Release/draco_tests
+          # Temporarily disabled: We have some work to do on the Windows
+          # transcoder-enabled builds.
+          #- test_name: windows-msvc-release-shared-with-transcoder
+          #  os: windows-2019
+          #  cmake_configure_command: |-
+          #    cmake .. -G "Visual Studio 16 2019" \
+          #      -DBUILD_SHARED_LIBS=ON \
+          #      -DCMAKE_CONFIGURATION_TYPES=Release \
+          #      -DDRACO_TESTS=ON \
+          #      -DDRACO_TRANSCODER_SUPPORTED=ON
+          #  cmake_build_command: cmake --build . --config Release -- -m:2
+          #  draco_test_command: Release/draco_tests
 
 
           - test_name: windows-msvc-release-static
@@ -177,16 +179,18 @@ jobs:
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . --config Release -- -m:2
             draco_test_command: Release/draco_tests
-          - test_name: windows-msvc-release-static-with-transcoder
-            os: windows-2019
-            cmake_configure_command: |-
-              cmake .. -G "Visual Studio 16 2019" \
-                -DBUILD_SHARED_LIBS=OFF \
-                -DCMAKE_CONFIGURATION_TYPES=Release \
-                -DDRACO_TESTS=ON \
-                -DDRACO_TRANSCODER_SUPPORTED=ON
-            cmake_build_command: cmake --build . --config Release -- -m:2
-            draco_test_command: Release/draco_tests
+          # Temporarily disabled: We have some work to do on the Windows
+          # transcoder-enabled builds.
+          #- test_name: windows-msvc-release-static-with-transcoder
+          #  os: windows-2019
+          #  cmake_configure_command: |-
+          #    cmake .. -G "Visual Studio 16 2019" \
+          #      -DBUILD_SHARED_LIBS=OFF \
+          #      -DCMAKE_CONFIGURATION_TYPES=Release \
+          #      -DDRACO_TESTS=ON \
+          #      -DDRACO_TRANSCODER_SUPPORTED=ON
+          #  cmake_build_command: cmake --build . --config Release -- -m:2
+          #  draco_test_command: Release/draco_tests
 
           - test_name: windows-make-release-shared
             os: windows-2019
