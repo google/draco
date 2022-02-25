@@ -265,14 +265,21 @@ def build_and_install_transcoder_dependencies():
   # "Install" Eigen for the shared install root.
   eigen_install_path = os.path.join(
       DRACO_SHARED_INSTALL_PATH, 'include', 'Eigen')
-  shutil.copytree(
-      src=eigen_submodule_path, dst=eigen_install_path, dirs_exist_ok=True)
+  if sys.version_info >= (3, 8):
+    shutil.copytree(
+        src=eigen_submodule_path, dst=eigen_install_path, dirs_exist_ok=True)
+  else:
+    shutil.copytree(src=eigen_submodule_path, dst=eigen_install_path)
 
   # "Install" Eigen for the static install root.
   eigen_install_path = os.path.join(
       DRACO_STATIC_INSTALL_PATH, 'include', 'Eigen')
-  shutil.copytree(
-      src=eigen_submodule_path, dst=eigen_install_path, dirs_exist_ok=True)
+  if sys.version_info >= (3, 8):
+    shutil.copytree(
+        src=eigen_submodule_path, dst=eigen_install_path, dirs_exist_ok=True)
+  else:
+    shutil.copytree(src=eigen_submodule_path, dst=eigen_install_path)
+
 
   # Build and install gulrak/filesystem for shared and static configurations.
   # Note that this is basically running gulrak/filesystem's CMake build as an
