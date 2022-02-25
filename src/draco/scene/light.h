@@ -20,12 +20,6 @@
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include <string>
 
-#ifdef _WIN32
-// M_PI is non-standard: enable use on windows.
-// Note: Defined here because vector_d.h also includes <cmath>.
-#define _USE_MATH_DEFINES
-#endif
-
 #include "draco/core/vector_d.h"
 
 namespace draco {
