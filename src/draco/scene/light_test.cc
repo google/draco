@@ -14,7 +14,13 @@
 //
 #include "draco/scene/light.h"
 
-#include <cmath>
+#ifdef _WIN32
+// M_PI is non-standard: enable use on windows.
+#define _USE_MATH_DEFINES
+#endif
+
+#include <math.h>
+
 #include <limits>
 
 #include "draco/core/draco_test_base.h"
