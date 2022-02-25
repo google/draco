@@ -16,6 +16,11 @@
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 
+#ifdef _WIN32
+// M_PI is non-standard: enable use on windows.
+#define _USE_MATH_DEFINES
+#endif
+
 #include <cmath>
 #include <limits>
 
