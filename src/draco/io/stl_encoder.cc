@@ -1,4 +1,4 @@
-// Copyright 2016 The Draco Authors.
+// Copyright 2022 The Draco Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 #include "draco/io/stl_encoder.h"
 
 #include <memory>
+#include <iomanip>
 #include <sstream>
 
 #include "draco/io/file_writer_factory.h"
@@ -25,36 +26,35 @@ namespace draco {
 StlEncoder::StlEncoder()
     : out_buffer_(nullptr), in_point_cloud_(nullptr), in_mesh_(nullptr) {}
 
-bool StlEncoder::EncodeToFile(const Mesh &mesh, const std::string &file_name) {
+Status StlEncoder::EncodeToFile(const Mesh &mesh, const std::string &file_name) {
   in_mesh_ = &mesh;
   std::unique_ptr<FileWriterInterface> file =
       FileWriterFactory::OpenWriter(file_name);
   if (!file) {
-    return false;  // File couldn't be opened.
+    return Status(Status::IO_ERROR, "File couldn't be opened");
   }
   // Encode the mesh into a buffer.
   EncoderBuffer buffer;
-  if (!EncodeToBuffer(mesh, &buffer)) {
-    return false;
-  }
+  DRACO_RETURN_IF_ERROR(EncodeToBuffer(mesh, &buffer));
   // Write the buffer into the file.
   file->Write(buffer.data(), buffer.size());
-  return true;
+  return OkStatus();
 }
 
-bool StlEncoder::EncodeToBuffer(const Mesh &mesh, EncoderBuffer *out_buffer) {
+Status StlEncoder::EncodeToBuffer(const Mesh &mesh, EncoderBuffer *out_buffer) {
   in_mesh_ = &mesh;
   out_buffer_ = out_buffer;
-  if (!EncodeInternal()) {
-    return ExitAndCleanup(false);
-  }
-  return ExitAndCleanup(true);
+  Status s = EncodeInternal();
+  in_mesh_ = nullptr; // cleanup
+  in_point_cloud_ = nullptr;
+  out_buffer_ = nullptr;
+  return s;
 }
-bool StlEncoder::EncodeInternal() {
+
+Status StlEncoder::EncodeInternal() {
   // Write STL header.
   std::stringstream out;
-  out << "generated using draco_decoder           "; // 40 bytes +
-  out << "                                        "; // 40 bytes == header
+  out << std::left << std::setw(80) << "generated using Draco";  // header is 80 bytes fixed size.
   const std::string header_str = out.str();
   buffer()->Encode(header_str.data(), header_str.length());
 
@@ -69,7 +69,7 @@ bool StlEncoder::EncodeInternal() {
       in_mesh_->GetNamedAttributeId(GeometryAttribute::NORMAL);
 
   if (pos_att_id < 0) {
-    return false;
+    return ErrorStatus("Mesh is missing the position attribute.");
   }
 
   // Ensure normals are 3 component. Don't encode them otherwise.
@@ -80,11 +80,11 @@ bool StlEncoder::EncodeInternal() {
 
   if (in_mesh_->attribute(pos_att_id)->data_type() !=
       DT_FLOAT32) {
-    return false;
+    return ErrorStatus("Mesh position attribute is not of type float32.");
   }
 
   if (in_mesh_->attribute(normal_att_id)->data_type() != DT_FLOAT32) {
-    return false;
+    return ErrorStatus("Mesh normal attribute is not of type float32.");
   }
 
   uint16_t unused = 0;
@@ -111,15 +111,7 @@ bool StlEncoder::EncodeInternal() {
 
     }
   }
-  return true;
+  return OkStatus();
 }
-
-bool StlEncoder::ExitAndCleanup(bool return_value) {
-  in_mesh_ = nullptr;
-  in_point_cloud_ = nullptr;
-  out_buffer_ = nullptr;
-  return return_value;
-}
-
 
 }  // namespace draco

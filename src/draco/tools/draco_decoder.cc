@@ -161,7 +161,8 @@ int main(int argc, char **argv) {
   } else if (extension == ".stl") {
     draco::StlEncoder stl_encoder;
     if (mesh) {
-      if (!stl_encoder.EncodeToFile(*mesh, options.output)) {
+      draco::Status s = stl_encoder.EncodeToFile(*mesh, options.output);
+      if (s.code() != draco::Status::OK) {
         printf("Failed to store the decoded mesh as STL.\n");
         return -1;
       }

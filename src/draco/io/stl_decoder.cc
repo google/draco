@@ -1,4 +1,4 @@
-// Copyright 2016 The Draco Authors.
+// Copyright 2022 The Draco Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,9 +24,14 @@ namespace draco {
 
 StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromFile(
     const std::string &file_name) {
+  std::vector<char> solid_keyword = {'s', 'o', 'l', 'i', 'd', ' '};
   std::vector<char> data;
   if (!ReadFileToBuffer(file_name, &data)) {
-    return Status(Status::DRACO_ERROR, "Unable to read input file.");
+    return Status(Status::IO_ERROR, "Unable to read input file.");
+  }
+  if (std::equal(solid_keyword.begin(), solid_keyword.end(),
+                  data.begin())) {
+    return Status(Status::IO_ERROR, "Currently only binary STL files are supported.");
   }
   DecoderBuffer buffer;
   buffer.Init(data.data(), data.size());

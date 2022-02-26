@@ -1,4 +1,4 @@
-// Copyright 2016 The Draco Authors.
+// Copyright 2022 The Draco Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,15 +28,14 @@ class StlEncoder {
   // Encodes the mesh and saves it into a file.
   // Returns false when either the encoding failed or when the file couldn't be
   // opened.
-  bool EncodeToFile(const Mesh &mesh, const std::string &file_name);
+  Status EncodeToFile(const Mesh &mesh, const std::string &file_name);
 
   // Encodes the mesh into a buffer.
-  bool EncodeToBuffer(const Mesh &mesh, EncoderBuffer *out_buffer);
+  Status EncodeToBuffer(const Mesh &mesh, EncoderBuffer *out_buffer);
 
  protected:
-  bool EncodeInternal();
+  Status EncodeInternal();
   EncoderBuffer *buffer() const { return out_buffer_; }
-  bool ExitAndCleanup(bool return_value);
 
  private:
   
