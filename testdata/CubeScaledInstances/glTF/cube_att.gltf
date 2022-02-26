@@ -1,0 +1,165 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "draco_decoder"
+  },
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "scene": 0,
+  "nodes": [
+    {
+      "children": [1, 2, 3, 4]
+    },
+    {
+      "children": [5]
+    },
+    {
+      "translation": [0.0, 2.0, 0.0],
+      "scale": [4, 4, 4],
+      "children": [5]
+    },
+    {
+      "translation": [2.0, 0.0, 0.0],
+      "scale": [2, 2, 2],
+      "children": [5]
+    },
+    {
+      "translation": [-2.0, 0.0, 0.0],
+      "scale": [3, 3, 3],
+      "children": [5]
+    },
+    {
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 2,
+            "POSITION": 1,
+            "TEXCOORD_0": 3
+          },
+          "indices": 0,
+          "mode": 4,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.75,
+          0.75,
+          0.75,
+          1
+        ],
+        "metallicFactor": 0
+      }
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "byteOffset": 0,
+      "componentType": 5121,
+      "count": 36,
+      "normalized": false,
+      "max": [
+        23
+      ],
+      "min": [
+        0
+      ],
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 24,
+      "normalized": false,
+      "max": [
+        1,
+        1,
+        1
+      ],
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 24,
+      "normalized": false,
+      "max": [
+        1,
+        1,
+        1
+      ],
+      "min": [
+        -1,
+        -1,
+        -1
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 24,
+      "normalized": false,
+      "max": [
+        1,
+        1
+      ],
+      "min": [
+        0,
+        0
+      ],
+      "type": "VEC2"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 36
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 36,
+      "byteLength": 288
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 324,
+      "byteLength": 288
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 612,
+      "byteLength": 192
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 804,
+      "uri": "buffer0.bin"
+    }
+  ]
+}

@@ -14,6 +14,8 @@
 //
 #include "draco/scene/scene.h"
 
+#include <utility>
+
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/core/macros.h"
 #include "draco/scene/scene_indices.h"
@@ -51,6 +53,12 @@ void Scene::Copy(const Scene &s) {
   for (SkinIndex i(0); i < skins_.size(); ++i) {
     skins_[i] = std::unique_ptr<Skin>(new Skin());
     skins_[i]->Copy(*s.skins_[i]);
+  }
+
+  lights_.resize(s.lights_.size());
+  for (LightIndex i(0); i < lights_.size(); ++i) {
+    lights_[i] = std::unique_ptr<Light>(new Light());
+    lights_[i]->Copy(*s.lights_[i]);
   }
 
   material_library_.Copy(s.material_library_);
@@ -101,7 +109,7 @@ Status Scene::RemoveMeshGroup(MeshGroupIndex index) {
     const MeshGroupIndex mgi = node->GetMeshGroupIndex();
     if (mgi == index) {
       // TODO(vytyaz): Remove the node if possible, e.g., when node has no
-      // geometry, no child nodes, and no skins.
+      // geometry, no child nodes, no skins, and no lights.
       node->SetMeshGroupIndex(kInvalidMeshGroupIndex);
     } else if (mgi > index && mgi != kInvalidMeshGroupIndex) {
       node->SetMeshGroupIndex(mgi - 1);

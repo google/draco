@@ -1,0 +1,288 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "draco_decoder"
+  },
+  "extensionsUsed": [
+    "KHR_lights_punctual"
+  ],
+  "extensions": {
+    "KHR_lights_punctual": {
+      "lights": [
+        {
+          "name": "Blue Lightsaber",
+          "type": "spot",
+          "intensity": 3,
+          "color": [
+            0.72,
+            0.71,
+            1.00
+          ],
+          "range": 100,
+          "spot": {
+            "innerConeAngle": 0.2,
+            "outerConeAngle": 0.8
+          }
+        },
+        {
+          "name": "The Star of Earendil",
+          "type": "point",
+          "intensity": 5.0,
+          "color": [
+            0.90,
+            0.97,
+            1.00
+          ],
+          "range": 1000
+        },
+        {
+          "name": "Arc Reactor",
+          "type": "directional",
+          "color": [
+            0.9,
+            0.9,
+            0.9
+          ],
+          "range": 200
+        },
+        {
+          "type": "spot",
+          "spot": {
+          }
+        }
+      ]
+    }
+  },
+  "scenes": [
+    {
+      "nodes": [
+        0,
+        1
+      ]
+    }
+  ],
+  "scene": 0,
+  "nodes": [
+    {
+      "mesh": 0
+    },
+    {
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        -0.13959079166529637,
+        -0.6590063691119785,
+        -0.12632793024247307,
+        0.7281938412213848
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "extensions": {
+        "KHR_lights_punctual": {
+            "light": 0
+        }
+      },
+      "children": [
+        2,
+        3
+      ]
+    },
+    {
+      "extensions": {
+        "KHR_lights_punctual": {
+            "light": 2
+        }
+      }
+    },
+    {
+      "extensions": {
+        "KHR_lights_punctual": {
+            "light": 3
+        }
+      },
+      "children": [
+        4
+      ]
+    },
+    {
+      "extensions": {
+        "KHR_lights_punctual": {
+            "light": 1
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 2,
+            "POSITION": 1,
+            "TANGENT": 4,
+            "TEXCOORD_0": 3
+          },
+          "indices": 0,
+          "mode": 4,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "normalTexture": {
+        "index": 0
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicFactor": 0
+      }
+    }
+  ],
+  "textures": [
+    {
+      "source": 0
+    },
+    {
+      "source": 1
+    }
+  ],
+  "images": [
+    {
+      "uri": "sphere_Texture0_Normal.png"
+    },
+    {
+      "uri": "sphere_Texture1_BaseColor.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "byteOffset": 0,
+      "componentType": 5121,
+      "count": 672,
+      "normalized": false,
+      "max": [
+        230
+      ],
+      "min": [
+        0
+      ],
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 231,
+      "normalized": false,
+      "max": [
+        1,
+        1,
+        1
+      ],
+      "min": [
+        -1,
+        -1,
+        -1
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 231,
+      "normalized": false,
+      "max": [
+        1,
+        1,
+        1
+      ],
+      "min": [
+        -1,
+        -1,
+        -1
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 231,
+      "normalized": false,
+      "max": [
+        0.920301,
+        0.991284
+      ],
+      "min": [
+        0.00871642,
+        0.00967127
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 4,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 231,
+      "normalized": false,
+      "max": [
+        0.997891,
+        0.961565,
+        0.962921,
+        1
+      ],
+      "min": [
+        -0.926271,
+        -0.9153,
+        -0.994848,
+        1
+      ],
+      "type": "VEC4"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 672
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 672,
+      "byteLength": 2772
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 3444,
+      "byteLength": 2772
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 6216,
+      "byteLength": 1848
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 8064,
+      "byteLength": 3696
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 11760,
+      "uri": "sphere_buffer0.bin"
+    }
+  ]
+}

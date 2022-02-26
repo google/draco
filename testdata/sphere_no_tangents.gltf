@@ -35,7 +35,8 @@
   "materials": [
     {
       "normalTexture": {
-        "index": 0
+        "index": 0,
+        "scale": 0.75
       },
       "pbrMetallicRoughness": {
         "baseColorTexture": {

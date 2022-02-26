@@ -34,6 +34,7 @@ void Material::Copy(const Material &src) {
   transparency_mode_ = src.transparency_mode_;
   alpha_cutoff_ = src.alpha_cutoff_;
   double_sided_ = src.double_sided_;
+  normal_texture_scale_ = src.normal_texture_scale_;
 
   // Copy properties of material extensions.
   unlit_ = src.unlit_;
@@ -76,6 +77,7 @@ void Material::Clear() {
   transparency_mode_ = TRANSPARENCY_OPAQUE;
   alpha_cutoff_ = 0.5f;
   double_sided_ = false;
+  normal_texture_scale_ = 1.0f;
 
   // Clear properties of material extensions to glTF 2.0 spec defaults.
   unlit_ = false;

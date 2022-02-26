@@ -37,6 +37,7 @@ TEST(SceneTest, TestCopy) {
   ASSERT_EQ(src_scene->NumNodes(), dst_scene.NumNodes());
   ASSERT_EQ(src_scene->NumAnimations(), dst_scene.NumAnimations());
   ASSERT_EQ(src_scene->NumSkins(), dst_scene.NumSkins());
+  ASSERT_EQ(src_scene->NumLights(), dst_scene.NumLights());
 
   for (draco::MeshIndex i(0); i < src_scene->NumMeshes(); ++i) {
     draco::MeshAreEquivalent eq;
@@ -69,6 +70,8 @@ TEST(SceneTest, TestCopy) {
               dst_scene.GetNode(i)->GetMeshGroupIndex());
     ASSERT_EQ(src_scene->GetNode(i)->GetSkinIndex(),
               dst_scene.GetNode(i)->GetSkinIndex());
+    ASSERT_EQ(src_scene->GetNode(i)->GetLightIndex(),
+              dst_scene.GetNode(i)->GetLightIndex());
   }
 }
 

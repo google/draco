@@ -14,6 +14,9 @@
 //
 #include "draco/scene/scene_utils.h"
 
+#include <string>
+#include <utility>
+
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/core/bounding_box.h"
 #include "draco/core/draco_test_base.h"
@@ -247,7 +250,13 @@ TEST(SceneUtilsTest, TestMeshToSceneZeroMaterials) {
   DRACO_ASSIGN_OR_ASSERT(const std::unique_ptr<draco::Scene> scene_from_mesh,
                          draco::SceneUtils::MeshToScene(std::move(mesh)));
   ASSERT_NE(scene_from_mesh, nullptr);
+  ASSERT_EQ(scene_from_mesh->NumMeshes(), 1);
   ASSERT_EQ(scene_from_mesh->GetMaterialLibrary().NumMaterials(), 1);
+  ASSERT_EQ(scene_from_mesh->NumMeshGroups(), 1);
+  const draco::MeshGroup *const mesh_group =
+      scene_from_mesh->GetMeshGroup(draco::MeshGroupIndex(0));
+  ASSERT_EQ(mesh_group->NumMeshIndices(), 1);
+  ASSERT_EQ(mesh_group->NumMaterialIndices(), 1);
 }
 
 TEST(SceneUtilsTest, TestMeshToSceneOneMaterial) {
@@ -264,7 +273,13 @@ TEST(SceneUtilsTest, TestMeshToSceneOneMaterial) {
   DRACO_ASSIGN_OR_ASSERT(const std::unique_ptr<draco::Scene> scene_from_mesh,
                          draco::SceneUtils::MeshToScene(std::move(mesh)));
   ASSERT_NE(scene_from_mesh, nullptr);
+  ASSERT_EQ(scene_from_mesh->NumMeshes(), 1);
   ASSERT_EQ(scene_from_mesh->GetMaterialLibrary().NumMaterials(), 1);
+  ASSERT_EQ(scene_from_mesh->NumMeshGroups(), 1);
+  const draco::MeshGroup *const mesh_group =
+      scene_from_mesh->GetMeshGroup(draco::MeshGroupIndex(0));
+  ASSERT_EQ(mesh_group->NumMeshIndices(), 1);
+  ASSERT_EQ(mesh_group->NumMaterialIndices(), 1);
 
   CompareScenes(scene.get(), scene_from_mesh.get());
 }
@@ -278,8 +293,19 @@ TEST(SceneUtilsTest, TestMeshToSceneMultipleMaterials) {
   ASSERT_NE(mesh, nullptr);
   ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), 4);
 
-  auto maybe_scene_from_mesh = draco::SceneUtils::MeshToScene(std::move(mesh));
-  ASSERT_FALSE(maybe_scene_from_mesh.ok());
+  DRACO_ASSIGN_OR_ASSERT(const std::unique_ptr<draco::Scene> scene_from_mesh,
+                         draco::SceneUtils::MeshToScene(std::move(mesh)));
+  ASSERT_NE(scene_from_mesh, nullptr);
+  ASSERT_EQ(scene_from_mesh->NumMeshes(), 4);
+  ASSERT_EQ(scene_from_mesh->GetMaterialLibrary().NumMaterials(), 4);
+  ASSERT_EQ(scene_from_mesh->NumMeshGroups(), 1);
+  const draco::MeshGroup *const mesh_group =
+      scene_from_mesh->GetMeshGroup(draco::MeshGroupIndex(0));
+  ASSERT_EQ(mesh_group->NumMeshIndices(), 4);
+  ASSERT_EQ(mesh_group->NumMaterialIndices(), 4);
+
+  // Unfortunately we can't CompareScenes(scene.get(), scene_from_mesh.get()),
+  // because scene has two mesh groups and scene_from_mesh has only one.
 }
 
 TEST(SceneUtilsTest, TestInstantiateMeshWithIdentityTransformation) {

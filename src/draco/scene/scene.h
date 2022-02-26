@@ -23,6 +23,7 @@
 #include "draco/animation/animation.h"
 #include "draco/animation/skin.h"
 #include "draco/mesh/mesh.h"
+#include "draco/scene/light.h"
 #include "draco/scene/mesh_group.h"
 #include "draco/scene/scene_indices.h"
 #include "draco/scene/scene_node.h"
@@ -156,6 +157,20 @@ class Scene {
   Skin *GetSkin(SkinIndex index) { return skins_[index].get(); }
   const Skin *GetSkin(SkinIndex index) const { return skins_[index].get(); }
 
+  // Creates a light and returns the index to the light.
+  LightIndex AddLight() {
+    std::unique_ptr<Light> light(new Light());
+    lights_.push_back(std::move(light));
+    return LightIndex(lights_.size() - 1);
+  }
+
+  // Returns the number of lights in a scene.
+  int NumLights() const { return lights_.size(); }
+
+  // Returns a light in the scene.
+  Light *GetLight(LightIndex index) { return lights_[index].get(); }
+  const Light *GetLight(LightIndex index) const { return lights_[index].get(); }
+
  private:
   IndexTypeVector<MeshIndex, std::unique_ptr<Mesh>> meshes_;
   IndexTypeVector<MeshGroupIndex, std::unique_ptr<MeshGroup>> mesh_groups_;
@@ -163,6 +178,10 @@ class Scene {
   std::vector<SceneNodeIndex> root_node_indices_;
   IndexTypeVector<AnimationIndex, std::unique_ptr<Animation>> animations_;
   IndexTypeVector<SkinIndex, std::unique_ptr<Skin>> skins_;
+
+  // The lights will be written to the output scene but not used for internal
+  // rendering in Draco, e.g, while computing distortion metric.
+  IndexTypeVector<LightIndex, std::unique_ptr<Light>> lights_;
 
   // Materials used by this scene.
   MaterialLibrary material_library_;

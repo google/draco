@@ -16,7 +16,11 @@
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 
+#include <memory>
+#include <string>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "draco/core/hash_utils.h"
 #include "draco/core/status.h"
@@ -27,7 +31,7 @@
 #include "draco/scene/scene_indices.h"
 #include "draco/texture/source_image.h"
 #include "draco/texture/texture_utils.h"
-#include "third_party/tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 
 namespace draco {
 
@@ -568,6 +572,13 @@ Status GltfDecoder::DecodePrimitive(const tinygltf::Primitive &primitive,
     return Status(Status::DRACO_ERROR, "Primitive does not contain triangles.");
   }
 
+  // Store the transformation scale of this primitive loading as draco::Mesh.
+  if (scene_ == nullptr) {
+    // TODO(vytyaz): Do something for non-uniform scaling.
+    const float scale = transform_matrix.col(0).norm();
+    gltf_primitive_material_to_scales_[primitive.material].push_back(scale);
+  }
+
   // Handle indices first.
   DRACO_ASSIGN_OR_RETURN(const std::vector<uint32_t> indices_data,
                          DecodePrimitiveIndices(primitive));
@@ -1071,6 +1082,7 @@ Status GltfDecoder::CheckAndAddTextureToDracoMaterial(
 
 Status GltfDecoder::DecodeGltfToScene() {
   DRACO_RETURN_IF_ERROR(GatherAttributeAndMaterialStats());
+  DRACO_RETURN_IF_ERROR(AddLightsToScene());
   for (const tinygltf::Scene &scene : gltf_model_.scenes) {
     for (int i = 0; i < scene.nodes.size(); ++i) {
       DRACO_RETURN_IF_ERROR(
@@ -1084,6 +1096,49 @@ Status GltfDecoder::DecodeGltfToScene() {
   DRACO_RETURN_IF_ERROR(AddMaterialsToScene());
   DRACO_RETURN_IF_ERROR(AddSkinsToScene());
 
+  return OkStatus();
+}
+
+Status GltfDecoder::AddLightsToScene() {
+  // Add all lights to Draco scene.
+  for (const auto &light : gltf_model_.lights) {
+    // Add a new light to the scene.
+    const LightIndex light_index = scene_->AddLight();
+    Light *scene_light = scene_->GetLight(light_index);
+
+    // Decode light type.
+    const std::map<std::string, Light::Type> types = {
+        {"directional", Light::DIRECTIONAL},
+        {"point", Light::POINT},
+        {"spot", Light::SPOT}};
+    if (types.count(light.type) == 0) {
+      return ErrorStatus("Light type is invalid.");
+    }
+    scene_light->SetType(types.at(light.type));
+
+    // Decode spot light properties.
+    if (scene_light->GetType() == Light::SPOT) {
+      scene_light->SetInnerConeAngle(light.spot.innerConeAngle);
+      scene_light->SetOuterConeAngle(light.spot.outerConeAngle);
+    }
+
+    // Decode other light properties.
+    scene_light->SetName(light.name);
+    if (!light.color.empty()) {  // Empty means that color is not specified.
+      if (light.color.size() != 3) {
+        return ErrorStatus("Light color is malformed.");
+      }
+      scene_light->SetColor(
+          Vector3f(light.color[0], light.color[1], light.color[2]));
+    }
+    scene_light->SetIntensity(light.intensity);
+    if (light.range != 0.0) {  // Zero means that range is not specified.
+      if (light.range < 0.0) {
+        return ErrorStatus("Light range must be positive.");
+      }
+      scene_light->SetRange(light.range);
+    }
+  }
   return OkStatus();
 }
 
@@ -1108,17 +1163,24 @@ Status GltfDecoder::AddAnimationsToScene() {
 
 Status GltfDecoder::DecodeNodeForScene(int node_index,
                                        SceneNodeIndex parent_index) {
-  const tinygltf::Node &node = gltf_model_.nodes[node_index];
-  const SceneNodeIndex scene_node_index = scene_->AddNode();
-  // Update mapping between glTF Nodes and indices in the scene.
-  gltf_node_to_scenenode_index_[node_index] = scene_node_index;
+  SceneNodeIndex scene_node_index = kInvalidSceneNodeIndex;
+  SceneNode *scene_node = nullptr;
+  bool is_new_node;
+  if (gltf_scene_graph_mode_ == GltfSceneGraphMode::DAG &&
+      gltf_node_to_scenenode_index_.find(node_index) !=
+          gltf_node_to_scenenode_index_.end()) {
+    // Node has been decoded already.
+    scene_node_index = gltf_node_to_scenenode_index_[node_index];
+    scene_node = scene_->GetNode(scene_node_index);
+    is_new_node = false;
+  } else {
+    scene_node_index = scene_->AddNode();
+    // Update mapping between glTF Nodes and indices in the scene.
+    gltf_node_to_scenenode_index_[node_index] = scene_node_index;
 
-  SceneNode *const scene_node = scene_->GetNode(scene_node_index);
-  if (!node.name.empty()) {
-    scene_node->SetName(node.name);
+    scene_node = scene_->GetNode(scene_node_index);
+    is_new_node = true;
   }
-  std::unique_ptr<TrsMatrix> trsm = GetNodeTrsMatrix(node);
-  scene_node->SetTrsMatrix(*trsm);
 
   if (parent_index != kInvalidSceneNodeIndex) {
     scene_node->AddParentIndex(parent_index);
@@ -1126,6 +1188,15 @@ Status GltfDecoder::DecodeNodeForScene(int node_index,
     parent_node->AddChildIndex(scene_node_index);
   }
 
+  if (!is_new_node) {
+    return OkStatus();
+  }
+  const tinygltf::Node &node = gltf_model_.nodes[node_index];
+  if (!node.name.empty()) {
+    scene_node->SetName(node.name);
+  }
+  std::unique_ptr<TrsMatrix> trsm = GetNodeTrsMatrix(node);
+  scene_node->SetTrsMatrix(*trsm);
   if (node.skin >= 0) {
     // Save the index to the source skins in the node. This will be updated
     // later when the skins are processed.
@@ -1153,6 +1224,25 @@ Status GltfDecoder::DecodeNodeForScene(int node_index,
       gltf_mesh_to_scene_mesh_group_[node.mesh] = scene_mesh_group_index;
     }
   }
+
+  // Decode light index.
+  const auto &e = node.extensions.find("KHR_lights_punctual");
+  if (e != node.extensions.end()) {
+    const tinygltf::Value::Object &o = e->second.Get<tinygltf::Value::Object>();
+    const auto &light = o.find("light");
+    if (light != o.end()) {
+      const tinygltf::Value &value = light->second;
+      if (!value.IsInt()) {
+        return ErrorStatus("Node light index is malformed.");
+      }
+      const int light_index = value.Get<int>();
+      if (light_index < 0 || light_index >= scene_->NumLights()) {
+        return ErrorStatus("Node light index is out of bounds.");
+      }
+      scene_node->SetLightIndex(LightIndex(light_index));
+    }
+  }
+
   for (int i = 0; i < node.children.size(); ++i) {
     DRACO_RETURN_IF_ERROR(
         DecodeNodeForScene(node.children[i], scene_node_index));
@@ -1381,6 +1471,9 @@ Status GltfDecoder::AddGltfMaterial(int input_material_index,
       input_material.normalTexture.index, input_material.normalTexture.texCoord,
       input_material.normalTexture.extensions, output_material,
       TextureMap::NORMAL_TANGENT_SPACE));
+  if (input_material.normalTexture.scale != 1.0) {
+    output_material->SetNormalTextureScale(input_material.normalTexture.scale);
+  }
   DRACO_RETURN_IF_ERROR(CheckAndAddTextureToDracoMaterial(
       input_material.occlusionTexture.index,
       input_material.occlusionTexture.texCoord,
@@ -1400,8 +1493,8 @@ Status GltfDecoder::AddGltfMaterial(int input_material_index,
       DecodeMaterialTransmissionExtension(input_material, output_material));
   DRACO_RETURN_IF_ERROR(
       DecodeMaterialClearcoatExtension(input_material, output_material));
-  DRACO_RETURN_IF_ERROR(
-      DecodeMaterialVolumeExtension(input_material, output_material));
+  DRACO_RETURN_IF_ERROR(DecodeMaterialVolumeExtension(
+      input_material, input_material_index, output_material));
   DRACO_RETURN_IF_ERROR(
       DecodeMaterialIorExtension(input_material, output_material));
   DRACO_RETURN_IF_ERROR(
@@ -1543,7 +1636,8 @@ Status GltfDecoder::DecodeMaterialClearcoatExtension(
 }
 
 Status GltfDecoder::DecodeMaterialVolumeExtension(
-    const tinygltf::Material &input_material, Material *output_material) {
+    const tinygltf::Material &input_material, int input_material_index,
+    Material *output_material) {
   // Do nothing if extension is absent.
   const auto &extension_it =
       input_material.extensions.find("KHR_materials_volume");
@@ -1561,7 +1655,30 @@ Status GltfDecoder::DecodeMaterialVolumeExtension(
   DRACO_ASSIGN_OR_RETURN(
       success, DecodeFloat("thicknessFactor", extension_object, &value));
   if (success) {
-    output_material->SetThicknessFactor(value);
+    // Volume thickness factor is given in the coordinate space of the model.
+    // When the model is loaded as draco::Mesh, the scene graph transformations
+    // are applied to position attribute. Since this effectively scales the
+    // model coordinate space, the volume thickness factor also must be scaled.
+    // No scaling is done when the model is loaded as draco::Scene.
+    float scale = 1.0f;
+    if (scene_ == nullptr) {
+      if (gltf_primitive_material_to_scales_.count(input_material_index) == 1) {
+        const std::vector<float> &scales =
+            gltf_primitive_material_to_scales_[input_material_index];
+
+        // It is only possible to scale the volume thickness factor if all
+        // primitives using this material have the same transformation scale.
+        // An alternative would be to create a separate meterial for each scale.
+        scale = scales[0];
+        for (int i = 1; i < scales.size(); i++) {
+          // Note that close-enough scales could also be permitted.
+          if (scales[i] != scale) {
+            return ErrorStatus("Cannot represent volume thickness in a mesh.");
+          }
+        }
+      }
+    }
+    output_material->SetThicknessFactor(scale * value);
   }
 
   // Decode attenuation distance.

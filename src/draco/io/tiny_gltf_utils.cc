@@ -19,7 +19,7 @@
 #include "draco/animation/node_animation_data.h"
 #include "draco/core/status.h"
 #include "draco/core/vector_d.h"
-#include "third_party/tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 
 namespace draco {
 
@@ -225,6 +225,6 @@ void TinyGltfUtils::SetDataImpl(float value, int index,
 #define TINYGLTF_ENABLE_DRACO
 #define TINYGLTF_IMPLEMENTATION
 
-#include "third_party/tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 
 #endif  // DRACO_TRANSCODER_SUPPORTED
