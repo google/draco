@@ -284,7 +284,8 @@ class GeometryAttribute {
 
       // Make sure the in_value fits within the range of values that OutT
       // is able to represent. Perform the check only for integral types.
-      if (std::is_integral<T>::value && std::is_integral<OutT>::value) {
+      if (!std::is_same<T, bool>::value && std::is_integral<T>::value &&
+          std::is_integral<OutT>::value) {
         static constexpr OutT kOutMin =
             std::is_signed<T>::value ? std::numeric_limits<OutT>::lowest() : 0;
         if (in_value < kOutMin || in_value > std::numeric_limits<OutT>::max()) {
