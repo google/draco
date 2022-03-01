@@ -65,27 +65,14 @@ Status StlEncoder::EncodeInternal() {
 
   const int pos_att_id =
       in_mesh_->GetNamedAttributeId(GeometryAttribute::POSITION);
-  int normal_att_id =
-      in_mesh_->GetNamedAttributeId(GeometryAttribute::NORMAL);
 
   if (pos_att_id < 0) {
     return ErrorStatus("Mesh is missing the position attribute.");
   }
 
-  // Ensure normals are 3 component. Don't encode them otherwise.
-  if (normal_att_id >= 0 &&
-      in_mesh_->attribute(normal_att_id)->num_components() != 3) {
-    normal_att_id = -1;
-  }
-
   if (in_mesh_->attribute(pos_att_id)->data_type() !=
       DT_FLOAT32) {
     return ErrorStatus("Mesh position attribute is not of type float32.");
-  }
-
-  if (normal_att_id >= 0 &&
-      in_mesh_->attribute(normal_att_id)->data_type() != DT_FLOAT32) {
-    return ErrorStatus("Mesh normal attribute is not of type float32.");
   }
 
   uint16_t unused = 0;
@@ -96,35 +83,18 @@ Status StlEncoder::EncodeInternal() {
       const auto &f = in_mesh_->face(i);
       const auto *const pos_att = in_mesh_->attribute(pos_att_id);
 
-      if (normal_att_id >= 0) {
-        const auto *const normal_att =
-            in_mesh_->attribute(normal_att_id);
-        buffer()->Encode(normal_att->GetAddress(normal_att->mapped_index(f[0])),
-                         normal_att->byte_stride());
-      } else {
-        // In case the source data does not contain normal vectors, we calculate them
-        // using the points of the trianlge face: cross(p2-p1, p3-p1)
-        // Finally we normalize the vector.
-        // TODO: can Eigen::Vector3f math be used here ?
+      // The normal attribute can contain arbitrary normals that may not
+      // correspond to the winding of the face.
+      // Therefor we simply always calculate them
+      // using the points of the triangle face: norm(cross(p2-p1, p3-p1))
 
-        std::array<float, 3> p1 =
-            pos_att->GetValue<float, 3>(pos_att->mapped_index(f[0]));
-        std::array<float, 3> p2 = pos_att->GetValue<float, 3>(pos_att->mapped_index(f[1]));
-        std::array<float, 3> p3 = pos_att->GetValue<float, 3>(pos_att->mapped_index(f[2]));
-        std::array<float, 3> a = {p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]};
-        std::array<float, 3> b = {p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]};
-        std::array<float, 3> c = {a[1] * b[2] - a[2] * b[1],
-                                      a[2] * b[0] - a[0] * b[2],
-                                      a[0] * b[1] - a[1] * b[0]};
-        float len = sqrt(c[0] * c[0] + c[1] * c[1] + c[2] * c[2]);
-        if (len > 0) {
-          c = {c[0] / len, c[1] / len, c[2] / len};
-        } else {
-          // Degenerate data in position attribute, let's use a default normalized vector. 
-          c = {0, 0, 1};
-        }
-        buffer()->Encode(c);
-      }
+      Vector3f pos[3];
+      pos_att->GetMappedValue(f[0], &pos[0][0]);
+      pos_att->GetMappedValue(f[1], &pos[1][0]);
+      pos_att->GetMappedValue(f[2], &pos[2][0]);
+      Vector3f norm = CrossProduct(pos[1] - pos[0], pos[2] - pos[0]);
+      norm.Normalize();
+      buffer()->Encode(norm.data(), sizeof(float) * 3);
 
       for (int c = 0; c < 3; ++c) {
         buffer()->Encode(pos_att->GetAddress(pos_att->mapped_index(f[c])),

@@ -24,14 +24,9 @@ namespace draco {
 
 StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromFile(
     const std::string &file_name) {
-  std::vector<char> solid_keyword = {'s', 'o', 'l', 'i', 'd', ' '};
   std::vector<char> data;
   if (!ReadFileToBuffer(file_name, &data)) {
     return Status(Status::IO_ERROR, "Unable to read input file.");
-  }
-  if (std::equal(solid_keyword.begin(), solid_keyword.end(),
-                  data.begin())) {
-    return Status(Status::IO_ERROR, "Currently only binary STL files are supported.");
   }
   DecoderBuffer buffer;
   buffer.Init(data.data(), data.size());
@@ -40,6 +35,10 @@ StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromFile(
 
 StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromBuffer(
     DecoderBuffer *buffer) {
+  if (!strncmp(buffer->data_head() , "solid ", 6)) {
+    return Status(Status::IO_ERROR,
+                  "Currently only binary STL files are supported.");
+  }
   buffer->Advance(80);
   uint32_t face_count;
   buffer->Decode(&face_count, 4);

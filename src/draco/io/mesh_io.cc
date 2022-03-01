@@ -80,10 +80,7 @@ StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(
   if (extension == "stl") {
     // STL file format.
     StlDecoder stl_decoder;
-    StatusOr<std::unique_ptr<Mesh>> status_or_mesh =
-        stl_decoder.DecodeFromFile(file_name);
-    DRACO_RETURN_IF_ERROR(status_or_mesh.status());
-    return status_or_mesh;
+    return stl_decoder.DecodeFromFile(file_name);
   }
 #ifdef DRACO_TRANSCODER_SUPPORTED
   if (extension == "gltf" || extension == "glb") {

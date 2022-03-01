@@ -29,12 +29,8 @@ namespace draco {
 // connectivity data is not needed).
 class StlDecoder {
  public:
-  
   StatusOr<std::unique_ptr<Mesh>> DecodeFromFile(const std::string &file_name);
   StatusOr<std::unique_ptr<Mesh>> DecodeFromBuffer(DecoderBuffer *buffer);
-
- private:
-  bool isMesh=false;
 };
 
 }  // namespace draco
