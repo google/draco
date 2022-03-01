@@ -83,7 +83,8 @@ Status StlEncoder::EncodeInternal() {
     return ErrorStatus("Mesh position attribute is not of type float32.");
   }
 
-  if (in_mesh_->attribute(normal_att_id)->data_type() != DT_FLOAT32) {
+  if (normal_att_id >= 0 &&
+      in_mesh_->attribute(normal_att_id)->data_type() != DT_FLOAT32) {
     return ErrorStatus("Mesh normal attribute is not of type float32.");
   }
 
@@ -93,15 +94,38 @@ Status StlEncoder::EncodeInternal() {
     for (FaceIndex i(0); i < in_mesh_->num_faces(); ++i) {
 
       const auto &f = in_mesh_->face(i);
+      const auto *const pos_att = in_mesh_->attribute(pos_att_id);
 
       if (normal_att_id >= 0) {
         const auto *const normal_att =
             in_mesh_->attribute(normal_att_id);
         buffer()->Encode(normal_att->GetAddress(normal_att->mapped_index(f[0])),
                          normal_att->byte_stride());
+      } else {
+        // In case the source data does not contain normal vectors, we calculate them
+        // using the points of the trianlge face: cross(p2-p1, p3-p1)
+        // Finally we normalize the vector.
+        // TODO: can Eigen::Vector3f math be used here ?
+
+        std::array<float, 3> p1 =
+            pos_att->GetValue<float, 3>(pos_att->mapped_index(f[0]));
+        std::array<float, 3> p2 = pos_att->GetValue<float, 3>(pos_att->mapped_index(f[1]));
+        std::array<float, 3> p3 = pos_att->GetValue<float, 3>(pos_att->mapped_index(f[2]));
+        std::array<float, 3> a = {p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]};
+        std::array<float, 3> b = {p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]};
+        std::array<float, 3> c = {a[1] * b[2] - a[2] * b[1],
+                                      a[2] * b[0] - a[0] * b[2],
+                                      a[0] * b[1] - a[1] * b[0]};
+        float len = sqrt(c[0] * c[0] + c[1] * c[1] + c[2] * c[2]);
+        if (len > 0) {
+          c = {c[0] / len, c[1] / len, c[2] / len};
+        } else {
+          // Degenerate data in position attribute, let's use a default normalized vector. 
+          c = {0, 0, 1};
+        }
+        buffer()->Encode(c);
       }
 
-      const auto *const pos_att = in_mesh_->attribute(pos_att_id);
       for (int c = 0; c < 3; ++c) {
         buffer()->Encode(pos_att->GetAddress(pos_att->mapped_index(f[c])),
                          pos_att->byte_stride());
