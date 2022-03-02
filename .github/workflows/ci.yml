@@ -165,7 +165,10 @@ jobs:
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . --config Release -- -m:2
-            draco_test_command: Release/draco_tests
+            # TODO(https://github.com/google/draco/issues/826)
+            draco_test_command: |-
+              Release/draco_tests \
+                --gtest_filter=-GltfDecoderTest.ThreeMeshesOneNoMaterialMesh
 
 
           - test_name: windows-msvc-release-static
@@ -177,23 +180,20 @@ jobs:
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . --config Release -- -m:2
             draco_test_command: Release/draco_tests
-          # Tests in MSVC are failing. Specifically,
-          # GltfDecoderTest.ThreeMeshesOneNoMaterialMesh only on Windows, only
-          # when built with MSVC, and only in Release mode. So far, this has
-          # been narrowed down to something in draco_io: when optimizations are
-          # are disabled in draco_io, the test passes as expected. Otherwise
-          # it fails. Until this issue is resolved this build configuration
-          # will remain disabled.
-          #- test_name: windows-msvc-release-static-with-transcoder
-          #  os: windows-2019
-          #  cmake_configure_command: |-
-          #    cmake .. -G "Visual Studio 16 2019" \
-          #      -DBUILD_SHARED_LIBS=OFF \
-          #      -DCMAKE_CONFIGURATION_TYPES=Release \
-          #      -DDRACO_TESTS=ON \
-          #      -DDRACO_TRANSCODER_SUPPORTED=ON
-          #  cmake_build_command: cmake --build . --config Release -- -m:2
-          #  draco_test_command: Release/draco_tests
+          - test_name: windows-msvc-release-static-with-transcoder
+            os: windows-2019
+            cmake_configure_command: |-
+              cmake .. -G "Visual Studio 16 2019" \
+                -DBUILD_SHARED_LIBS=OFF \
+                -DCMAKE_CONFIGURATION_TYPES=Release \
+                -DDRACO_TESTS=ON \
+                -DDRACO_TRANSCODER_SUPPORTED=ON
+            cmake_build_command: cmake --build . --config Release -- -m:2
+            # TODO(https://github.com/google/draco/issues/826)
+            draco_test_command: |-
+              Release/draco_tests \
+                --gtest_filter=-GltfDecoderTest.ThreeMeshesOneNoMaterialMesh
+
 
           - test_name: windows-make-release-shared
             os: windows-2019
