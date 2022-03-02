@@ -16,7 +16,9 @@
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include <sstream>
+#include <string>
 #include <unordered_set>
+#include <utility>
 
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
@@ -411,8 +413,9 @@ TEST_F(GltfEncoderTest, EncodeNamedGenericAttribute) {
   // Set metadata for first attribute so it gets written out by glTF encoder.
   std::unique_ptr<draco::AttributeMetadata> am(new draco::AttributeMetadata());
   constexpr char kAttributeName[] = "MyAttributeName";
-  am->AddEntryString(GltfEncoder::kDracoMetadataGltfAttributeName,
-                     kAttributeName);
+  constexpr char kDracoMetadataGltfAttributeName[] =
+      "//GLTF/ApplicationSpecificAttributeName";
+  am->AddEntryString(kDracoMetadataGltfAttributeName, kAttributeName);
   mesh->AddAttributeMetadata(new_att_id_0, std::move(am));
 
   // Make sure the GLTF contains a reference to the named attribute.

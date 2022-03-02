@@ -339,6 +339,7 @@ list(APPEND draco_core_sources
             "${draco_src_root}/core/bit_utils.h"
             "${draco_src_root}/core/bounding_box.cc"
             "${draco_src_root}/core/bounding_box.h"
+            "${draco_src_root}/core/constants.h"
             "${draco_src_root}/core/cycle_timer.cc"
             "${draco_src_root}/core/cycle_timer.h"
             "${draco_src_root}/core/data_buffer.cc"

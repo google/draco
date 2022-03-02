@@ -14,13 +14,7 @@
 //
 #include "draco/io/gltf_decoder.h"
 
-#ifdef _WIN32
-// M_PI is non-standard: enable use on windows.
-#define _USE_MATH_DEFINES
-#endif
-
-#include <math.h>
-
+#include <cmath>
 #include <limits>
 #include <memory>
 #include <string>
@@ -28,6 +22,7 @@
 #include <vector>
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include "draco/core/constants.h"
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 #include "draco/core/draco_types.h"
@@ -1162,7 +1157,7 @@ TEST(GltfDecoderTest, DecodeLightsIntoScene) {
   ASSERT_EQ(light.GetType(), draco::Light::POINT);
   ASSERT_EQ(light.GetRange(), 1000);
   ASSERT_EQ(light.GetInnerConeAngle(), 0.0);
-  ASSERT_NEAR(light.GetOuterConeAngle(), M_PI / 4.0f, 1e-8);
+  ASSERT_NEAR(light.GetOuterConeAngle(), DRACO_PI / 4.0f, 1e-8);
 
   // Check directional light with some properties specified.
   light = *scene->GetLight(LightIndex(2));
@@ -1180,7 +1175,7 @@ TEST(GltfDecoderTest, DecodeLightsIntoScene) {
   ASSERT_EQ(light.GetType(), draco::Light::SPOT);
   ASSERT_EQ(light.GetRange(), std::numeric_limits<float>::max());
   ASSERT_EQ(light.GetInnerConeAngle(), 0.0);
-  ASSERT_NEAR(light.GetOuterConeAngle(), M_PI / 4.0f, 1e-8);
+  ASSERT_NEAR(light.GetOuterConeAngle(), DRACO_PI / 4.0f, 1e-8);
 
   // Check that lights are referenced by the scene nodes.
   ASSERT_EQ(scene->GetNode(SceneNodeIndex(0))->GetLightIndex(),
