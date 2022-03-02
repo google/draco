@@ -28,7 +28,7 @@
 #include "draco/scene/scene_utils.h"
 #endif
 
-int main(int /*argc*/, char **/*argv*/) {
+int main(int /*argc*/, char** /*argv*/) {
   std::vector<char> empty_buffer;
   draco::DecoderBuffer buffer;
   buffer.Init(empty_buffer.data(), empty_buffer.size());
