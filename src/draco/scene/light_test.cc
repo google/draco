@@ -14,9 +14,9 @@
 //
 #include "draco/scene/light.h"
 
-#include <cmath>
 #include <limits>
 
+#include "draco/core/constants.h"
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 
@@ -33,7 +33,7 @@ TEST(LightTest, TestDefaults) {
   ASSERT_EQ(light.GetType(), draco::Light::POINT);
   ASSERT_EQ(light.GetRange(), std::numeric_limits<float>::max());
   ASSERT_EQ(light.GetInnerConeAngle(), 0.0);
-  ASSERT_EQ(light.GetOuterConeAngle(), M_PI / 4.0);
+  ASSERT_EQ(light.GetOuterConeAngle(), DRACO_PI / 4.0);
 }
 
 TEST(LightTest, TestCopy) {
@@ -44,8 +44,8 @@ TEST(LightTest, TestCopy) {
   light.SetIntensity(5.0);
   light.SetType(draco::Light::SPOT);
   light.SetRange(1000.0);
-  light.SetInnerConeAngle(M_PI / 8.0);
-  light.SetOuterConeAngle(M_PI / 2.0);
+  light.SetInnerConeAngle(DRACO_PI / 8.0);
+  light.SetOuterConeAngle(DRACO_PI / 2.0);
 
   // Create a copy of the initialized light and check all properties.
   draco::Light copy;
@@ -55,8 +55,8 @@ TEST(LightTest, TestCopy) {
   ASSERT_EQ(copy.GetIntensity(), 5.0);
   ASSERT_EQ(copy.GetType(), draco::Light::SPOT);
   ASSERT_EQ(copy.GetRange(), 1000.0);
-  ASSERT_EQ(copy.GetInnerConeAngle(), M_PI / 8.0);
-  ASSERT_EQ(copy.GetOuterConeAngle(), M_PI / 2.0);
+  ASSERT_EQ(copy.GetInnerConeAngle(), DRACO_PI / 8.0);
+  ASSERT_EQ(copy.GetOuterConeAngle(), DRACO_PI / 2.0);
 }
 
 #endif  // DRACO_TRANSCODER_SUPPORTED

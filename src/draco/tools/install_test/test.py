@@ -35,8 +35,15 @@ CMAKE = shutil.which('cmake')
 # List of generators available in the current CMake executable.
 CMAKE_AVAILABLE_GENERATORS = []
 
+# List of variable defs to be passed through to CMake via its -D argument.
+CMAKE_DEFINES = []
+
 # CMake builds use the specified generator.
 CMAKE_GENERATOR = None
+
+# Enable the transcoder before running tests (sets DRACO_TRANSCODER_SUPPORTED
+# and builds transcoder support dependencies).
+ENABLE_TRANSCODER = False
 
 # The Draco tree that this script uses.
 DRACO_SOURCES_PATH = os.path.abspath(os.path.join('..', '..', '..', '..'))
@@ -136,6 +143,9 @@ def run_process_and_capture_output(cmd, env=None):
   proc = subprocess.Popen(
       cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
 
+  if VERBOSE:
+    print('COMMAND output:')
+
   stdout = ''
   for line in iter(proc.stdout.readline, b''):
     decoded_line = line.decode('utf-8')
@@ -183,6 +193,10 @@ def cmake_configure(source_path, cmake_args=None):
     for arg in cmake_args:
       command += f' {arg}'
 
+  if CMAKE_DEFINES:
+    for arg in CMAKE_DEFINES:
+      command += f' -D{arg}'
+
   if VERBOSE:
     print(f'CONFIGURE command:\n{command}')
 
@@ -190,9 +204,6 @@ def cmake_configure(source_path, cmake_args=None):
 
   if result[0] != 0:
     raise Exception(f'CONFIGURE failed!\nexit_code: {result[0]}\n{result[1]}')
-
-  if VERBOSE:
-    print(f'CONFIGURE result:\nexit_code: {result[0]}\n{result[1]}')
 
 
 def cmake_build(cmake_args=None, build_args=None):
@@ -225,23 +236,107 @@ def cmake_build(cmake_args=None, build_args=None):
   if result[0] != 0:
     raise Exception(f'BUILD failed!\nexit_code: {result[0]}\n{result[1]}')
 
-  if VERBOSE:
-    print(f'BUILD result:\nexit_code: {result[0]}\n{result[1]}')
-
 
 def run_install_check(install_path):
   """Runs the install_check program."""
   cmd = os.path.join(install_path, 'bin', 'install_check')
-  result = run_process_and_capture_output(cmd)
+  if VERBOSE:
+    print(f'RUN command: {cmd}')
 
+  result = run_process_and_capture_output(cmd)
   if result[0] != 0:
     raise Exception(
         f'install_check run failed!\nexit_code: {result[0]}\n{result[1]}')
 
 
+def build_and_install_transcoder_dependencies():
+  """Builds and installs Draco dependencies for transcoder enabled builds."""
+  orig_dir = os.getcwd()
+
+  # The Eigen CMake build in the release Draco has pinned is, to put it mildly,
+  # user unfriendly. Instead of wasting time trying to integrate it here, just
+  # shutil.copytree() everything in $eigen_submodule_path to
+  # $CMAKE_INSTALL_PREFIX/include/Eigen.
+  # Eigen claims to be header-only, so this should be adequate for Draco's
+  # needs here.
+  eigen_submodule_path = os.path.join(
+      DRACO_SOURCES_PATH, 'third_party', 'eigen', 'Eigen')
+
+  # "Install" Eigen for the shared install root.
+  eigen_install_path = os.path.join(
+      DRACO_SHARED_INSTALL_PATH, 'include', 'Eigen')
+  shutil.copytree(src=eigen_submodule_path, dst=eigen_install_path)
+
+  # "Install" Eigen for the static install root.
+  eigen_install_path = os.path.join(
+      DRACO_STATIC_INSTALL_PATH, 'include', 'Eigen')
+  shutil.copytree(src=eigen_submodule_path, dst=eigen_install_path)
+
+  # Build and install gulrak/filesystem for shared and static configurations.
+  # Note that this is basically running gulrak/filesystem's CMake build as an
+  # install script.
+  fs_submodule_path = os.path.join(
+      DRACO_SOURCES_PATH, 'third_party', 'filesystem')
+
+  # Install gulrak/filesystem in the shared draco install root.
+  fs_shared_build = os.path.join(DRACO_SHARED_BUILD_PATH, '_fs')
+  pathlib.Path(fs_shared_build).mkdir(parents=True, exist_ok=True)
+  os.chdir(fs_shared_build)
+  cmake_args = []
+  cmake_args.append(f'-DCMAKE_INSTALL_PREFIX={DRACO_SHARED_INSTALL_PATH}')
+  cmake_args.append('-DBUILD_SHARED_LIBS=ON')
+  cmake_args.append('-DGHC_FILESYSTEM_BUILD_TESTING=OFF')
+  cmake_args.append('-DGHC_FILESYSTEM_BUILD_EXAMPLES=OFF')
+  cmake_configure(source_path=fs_submodule_path, cmake_args=cmake_args)
+  cmake_build(cmake_args=['--target install'])
+
+  # Install gulrak/filesystem in the shared draco install root.
+  fs_static_build = os.path.join(DRACO_STATIC_BUILD_PATH, '_fs')
+  pathlib.Path(fs_static_build).mkdir(parents=True, exist_ok=True)
+  os.chdir(fs_static_build)
+  cmake_args = []
+  cmake_args.append(f'-DCMAKE_INSTALL_PREFIX={DRACO_SHARED_INSTALL_PATH}')
+  cmake_args.append('-DBUILD_SHARED_LIBS=OFF')
+  cmake_args.append('-DGHC_FILESYSTEM_BUILD_TESTING=OFF')
+  cmake_args.append('-DGHC_FILESYSTEM_BUILD_EXAMPLES=OFF')
+  cmake_configure(source_path=fs_submodule_path, cmake_args=cmake_args)
+  cmake_build(cmake_args=['--target install'])
+
+  # Build and install TinyGLTF for shared and static configurations.
+  # Note, as above, that this is basically running TinyGLTF's CMake build as an
+  # install script.
+  tinygltf_submodule_path = os.path.join(
+      DRACO_SOURCES_PATH, 'third_party', 'tinygltf')
+
+  # Install TinyGLTF in the shared draco install root.
+  tinygltf_shared_build = os.path.join(DRACO_SHARED_BUILD_PATH, '_TinyGLTF')
+  pathlib.Path(tinygltf_shared_build).mkdir(parents=True, exist_ok=True)
+  os.chdir(tinygltf_shared_build)
+  cmake_args = []
+  cmake_args.append(f'-DCMAKE_INSTALL_PREFIX={DRACO_SHARED_INSTALL_PATH}')
+  cmake_args.append('-DTINYGLTF_BUILD_EXAMPLES=OFF')
+  cmake_configure(source_path=tinygltf_submodule_path, cmake_args=cmake_args)
+  cmake_build(cmake_args=['--target install'])
+
+  # Install TinyGLTF in the static draco install root.
+  tinygltf_static_build = os.path.join(DRACO_STATIC_BUILD_PATH, '_TinyGLTF')
+  pathlib.Path(tinygltf_static_build).mkdir(parents=True, exist_ok=True)
+  os.chdir(tinygltf_static_build)
+  cmake_args = []
+  cmake_args.append(f'-DCMAKE_INSTALL_PREFIX={DRACO_STATIC_INSTALL_PATH}')
+  cmake_args.append('-DTINYGLTF_BUILD_EXAMPLES=OFF')
+  cmake_configure(source_path=tinygltf_submodule_path, cmake_args=cmake_args)
+  cmake_build(cmake_args=['--target install'])
+
+  os.chdir(orig_dir)
+
+
 def build_and_install_draco():
   """Builds Draco in shared and static configurations."""
   orig_dir = os.getcwd()
+
+  if ENABLE_TRANSCODER:
+    build_and_install_transcoder_dependencies()
 
   # Build and install Draco in shared library config for the current host
   # machine.
@@ -249,6 +344,8 @@ def build_and_install_draco():
   cmake_args = []
   cmake_args.append(f'-DCMAKE_INSTALL_PREFIX={DRACO_SHARED_INSTALL_PATH}')
   cmake_args.append('-DBUILD_SHARED_LIBS=ON')
+  if ENABLE_TRANSCODER:
+    cmake_args.append('-DDRACO_TRANSCODER_SUPPORTED=ON')
   cmake_configure(source_path=DRACO_SOURCES_PATH, cmake_args=cmake_args)
   cmake_build(cmake_args=['--target install'])
 
@@ -257,6 +354,8 @@ def build_and_install_draco():
   cmake_args = []
   cmake_args.append(f'-DCMAKE_INSTALL_PREFIX={DRACO_STATIC_INSTALL_PATH}')
   cmake_args.append('-DBUILD_SHARED_LIBS=OFF')
+  if ENABLE_TRANSCODER:
+    cmake_args.append('-DDRACO_TRANSCODER_SUPPORTED=ON')
   cmake_configure(source_path=DRACO_SOURCES_PATH, cmake_args=cmake_args)
   cmake_build(cmake_args=['--target install'])
 
@@ -302,21 +401,35 @@ if __name__ == '__main__':
   parser.add_argument(
       '-G', '--generator', help='CMake builds use the specified generator.')
   parser.add_argument(
+      '-D', '--cmake_define',
+      action='append',
+      help='Passes argument through to CMake as a CMake variable via cmake -D.')
+  parser.add_argument(
+      '-t', '--with_transcoder',
+      action='store_true',
+      help='Run tests with Draco transcoder support enabled.')
+  parser.add_argument(
       '-v',
       '--verbose',
       action='store_true',
       help='Show configuration and build output.')
   args = parser.parse_args()
 
+  if args.cmake_define:
+    CMAKE_DEFINES = args.cmake_define
   if args.generator:
     CMAKE_GENERATOR = args.generator
   if args.verbose:
     VERBOSE = True
+  if args.with_transcoder:
+    ENABLE_TRANSCODER = True
 
   if VERBOSE:
     print(f'CMAKE={CMAKE}')
+    print(f'CMAKE_DEFINES={CMAKE_DEFINES}')
     print(f'CMAKE_GENERATOR={CMAKE_GENERATOR}')
     print(f'CMAKE_AVAILABLE_GENERATORS={CMAKE_AVAILABLE_GENERATORS}')
+    print(f'ENABLE_TRANSCODER={ENABLE_TRANSCODER}')
     print(f'DRACO_SOURCES_PATH={DRACO_SOURCES_PATH}')
     print(f'DRACO_SHARED_BUILD_PATH={DRACO_SHARED_BUILD_PATH}')
     print(f'DRACO_STATIC_BUILD_PATH={DRACO_STATIC_BUILD_PATH}')
