@@ -46,12 +46,12 @@ class StlEncoderTest : public ::testing::Test {
     DecoderBuffer decoder_buffer;
     decoder_buffer.Init(encoder_buffer.data(), encoder_buffer.size());
     StlDecoder decoder;
-    StatusOr<std::unique_ptr<Mesh>> statusOrMesh =
+    StatusOr<std::unique_ptr<Mesh>> status_or_mesh =
         decoder.DecodeFromBuffer(&decoder_buffer);
-    if (!statusOrMesh.ok()) {
+    if (!status_or_mesh.ok()) {
       return nullptr;
     }
-    std::unique_ptr<Mesh> decoded_mesh = std::move(statusOrMesh).value();
+    std::unique_ptr<Mesh> decoded_mesh = std::move(status_or_mesh).value();
     return decoded_mesh;
   }
 

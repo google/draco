@@ -24,15 +24,10 @@ class StlDecoderTest : public ::testing::Test {
   void test_decoding(const std::string &file_name) {
     const std::string path = GetTestFileFullPath(file_name);
     StlDecoder decoder;
-    StatusOr<std::unique_ptr<Mesh>> statusOrMesh = decoder.DecodeFromFile(path);
-    if (!statusOrMesh.ok()) {
-      LOG(ERROR) << "Failed to decode " << file_name << ": " << statusOrMesh.status();
-    } else {
-      std::unique_ptr<Mesh> mesh = std::move(statusOrMesh).value();
-      ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
-      ASSERT_GT(mesh->num_faces(), 0);
-      ASSERT_GT(mesh->num_points(), 0);
-    }
+    DRACO_ASSIGN_OR_ASSERT(std::unique_ptr<Mesh> mesh,
+                           decoder.DecodeFromFile(path));
+    ASSERT_GT(mesh->num_faces(), 0);
+    ASSERT_GT(mesh->num_points(), 0);
   }
 
   void test_decoding_should_fail(const std::string &file_name) {
