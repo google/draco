@@ -60,6 +60,8 @@ list(
     "${draco_src_root}/io/obj_encoder_test.cc"
     "${draco_src_root}/io/ply_decoder_test.cc"
     "${draco_src_root}/io/ply_reader_test.cc"
+    "${draco_src_root}/io/stl_decoder_test.cc"
+    "${draco_src_root}/io/stl_encoder_test.cc"
     "${draco_src_root}/io/point_cloud_io_test.cc"
     "${draco_src_root}/mesh/mesh_are_equivalent_test.cc"
     "${draco_src_root}/mesh/mesh_cleanup_test.cc"
