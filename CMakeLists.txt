@@ -246,9 +246,11 @@ list(APPEND draco_dec_config_sources
 
 list(APPEND draco_compression_decode_sources
             "${draco_src_root}/compression/decode.cc"
-            "${draco_src_root}/compression/decode.h")
+            "${draco_src_root}/compression/decode.h"
+            "${draco_src_root}/compression/draco_compression_options.h")
 
 list(APPEND draco_compression_encode_sources
+            "${draco_src_root}/compression/draco_compression_options.h"
             "${draco_src_root}/compression/encode.cc"
             "${draco_src_root}/compression/encode.h"
             "${draco_src_root}/compression/encode_base.h"
@@ -337,6 +339,7 @@ list(APPEND draco_core_sources
             "${draco_src_root}/core/bit_utils.h"
             "${draco_src_root}/core/bounding_box.cc"
             "${draco_src_root}/core/bounding_box.h"
+            "${draco_src_root}/core/constants.h"
             "${draco_src_root}/core/cycle_timer.cc"
             "${draco_src_root}/core/cycle_timer.h"
             "${draco_src_root}/core/data_buffer.cc"

@@ -16,8 +16,9 @@
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 
-#include <cmath>
 #include <limits>
+
+#include "draco/core/constants.h"
 
 namespace draco {
 
@@ -27,7 +28,7 @@ Light::Light()
       type_(POINT),
       range_(std::numeric_limits<float>::max()),  // Infinity.
       inner_cone_angle_(0.0),
-      outer_cone_angle_(M_PI / 4.0) {}
+      outer_cone_angle_(DRACO_PI / 4.0) {}
 
 void Light::Copy(const Light &light) {
   name_ = light.name_;
