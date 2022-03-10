@@ -866,7 +866,7 @@ else()
       # TODO(https://github.com/google/draco/issues/826)
       set_source_files_properties(
         "${draco_src_root}/io/gltf_decoder.cc"
-        PROPERTIES COMPILER_OPTIONS "/Od")
+        PROPERTIES COMPILE_OPTIONS "/Od")
     endif()
 
     draco_add_library(
