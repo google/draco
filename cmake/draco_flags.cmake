@@ -142,6 +142,10 @@ macro(draco_replace_compiler_flags_for_sources)
     #if(DRACO_VERBOSE GREATER 1)
       message("^^^^")
     #endif()
+
+    # It looks like this may be the only thing that actually works; all the
+    # fancy junk above is for just noise.
+    set_source_files_properties(${source} PROPERTIES COMPILE_OPTIONS "${source_flags}")
   endforeach()
 
   #if(DRACO_VERBOSE)
