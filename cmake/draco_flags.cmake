@@ -123,12 +123,12 @@ macro(draco_replace_compiler_flags_for_sources)
         set(source_flags "${CMAKE_CXX_FLAGS_${config}}")
       endif()
 
-      foreach(flag ${flags_FLAGS_ADD})
-        string(APPEND source_flags " ${flag}")
-      endforeach()
-
       foreach(flag ${flags_FLAGS_REMOVE})
         string(REPLACE "${flag}" "" source_flags "${source_flags}")
+      endforeach()
+
+      foreach(flag ${flags_FLAGS_ADD})
+        string(APPEND source_flags " ${flag}")
       endforeach()
 
       #if(DRACO_VERBOSE GREATER 1)
