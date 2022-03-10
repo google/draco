@@ -867,7 +867,8 @@ else()
       draco_replace_compiler_flags_for_sources(
         SOURCES "${draco_src_root}/io/gltf_decoder.cc"
         FLAGS_ADD "/Od"
-        FLAGS_REMOVE "-g")
+        FLAGS_REMOVE "/Od;/O1;/O2")
+
     endif()
 
     draco_add_library(
