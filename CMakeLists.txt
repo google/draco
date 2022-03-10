@@ -537,6 +537,19 @@ if(DRACO_TRANSCODER_SUPPORTED)
     "${draco_src_root}/io/tiny_gltf_utils.cc"
     "${draco_src_root}/io/tiny_gltf_utils.h")
 
+  if(MSVC)
+    # TODO(https://github.com/google/draco/issues/826)
+    draco_replace_compiler_flags_for_sources(
+      SOURCES "${draco_src_root}/io/gltf_decoder.cc"
+      FLAGS_ADD "/Od"
+      FLAGS_REMOVE "/Od;/O1;/O2;-g")
+
+    draco_replace_compiler_flags_for_sources(
+      SOURCES "${draco_src_root}/io/gltf_decoder.cc"
+      FLAGS_ADD "/DFOO=BAR"
+      FLAGS_REMOVE "/Od;/O1;/O2;-g")
+  endif()
+
   list(APPEND draco_material_sources
     "${draco_src_root}/material/material.cc"
     "${draco_src_root}/material/material.h"
@@ -862,15 +875,6 @@ else()
                     ${draco_include_paths})
 
   if(DRACO_TRANSCODER_SUPPORTED)
-    if(MSVC)
-      # TODO(https://github.com/google/draco/issues/826)
-      draco_replace_compiler_flags_for_sources(
-        SOURCES "${draco_src_root}/io/gltf_decoder.cc"
-        FLAGS_ADD "/Od"
-        FLAGS_REMOVE "/Od;/O1;/O2")
-
-    endif()
-
     draco_add_library(
       NAME
       draco_material

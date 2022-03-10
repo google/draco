@@ -149,9 +149,6 @@ macro(draco_replace_compiler_flags_for_sources)
   #endif()
 endmacro()
 
-
-
-
 # Tests compiler flags stored in list(s) specified by FLAG_LIST_VAR_NAMES, adds
 # flags to $DRACO_CXX_FLAGS when tests pass. Terminates configuration if
 # FLAG_REQUIRED is specified and any flag check fails.
