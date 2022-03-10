@@ -541,13 +541,7 @@ if(DRACO_TRANSCODER_SUPPORTED)
     # TODO(https://github.com/google/draco/issues/826)
     draco_replace_compiler_flags_for_sources(
       SOURCES "${draco_src_root}/io/gltf_decoder.cc"
-      FLAGS_ADD "/Od"
-      FLAGS_REMOVE "/Od;/O1;/O2;-g")
-
-    draco_replace_compiler_flags_for_sources(
-      SOURCES "${draco_src_root}/io/gltf_decoder.cc"
-      FLAGS_ADD "/DFOO=BAR"
-      FLAGS_REMOVE "/Od;/O1;/O2;-g")
+      FLAGS_ADD "/Od")
   endif()
 
   list(APPEND draco_material_sources
