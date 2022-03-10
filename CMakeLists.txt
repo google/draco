@@ -862,6 +862,14 @@ else()
                     ${draco_include_paths})
 
   if(DRACO_TRANSCODER_SUPPORTED)
+    if(MSVC)
+      # TODO(https://github.com/google/draco/issues/826)
+      draco_replace_compiler_flags_for_sources(
+        SOURCES "${draco_src_root}/io/gltf_decoder.cc"
+        FLAGS_ADD "/Od"
+        FLAGS_REMOVE "-g")
+    endif()
+
     draco_add_library(
       NAME
       draco_material
