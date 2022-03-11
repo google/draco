@@ -165,11 +165,7 @@ jobs:
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . --config Release -- -m:2
-            # TODO(https://github.com/google/draco/issues/826)
-            draco_test_command: |-
-              Release/draco_tests \
-                --gtest_filter=-GltfDecoderTest.ThreeMeshesOneNoMaterialMesh
-
+            draco_test_command: Release/draco_tests
 
           - test_name: windows-msvc-release-static
             os: windows-2019
@@ -189,11 +185,7 @@ jobs:
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . --config Release -- -m:2
-            # TODO(https://github.com/google/draco/issues/826)
-            draco_test_command: |-
-              Release/draco_tests \
-                --gtest_filter=-GltfDecoderTest.ThreeMeshesOneNoMaterialMesh
-
+            draco_test_command: Release/draco_tests
 
           - test_name: windows-make-release-shared
             os: windows-2019
