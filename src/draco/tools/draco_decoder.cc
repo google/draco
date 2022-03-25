@@ -20,6 +20,7 @@
 #include "draco/io/obj_encoder.h"
 #include "draco/io/parser_utils.h"
 #include "draco/io/ply_encoder.h"
+#include "draco/io/stl_encoder.h"
 
 namespace {
 
@@ -157,8 +158,20 @@ int main(int argc, char **argv) {
         return -1;
       }
     }
+  } else if (extension == ".stl") {
+    draco::StlEncoder stl_encoder;
+    if (mesh) {
+      draco::Status s = stl_encoder.EncodeToFile(*mesh, options.output);
+      if (s.code() != draco::Status::OK) {
+        printf("Failed to store the decoded mesh as STL.\n");
+        return -1;
+      }
+    } else {
+      printf("Can't store a point cloud as STL.\n");
+      return -1;
+    }
   } else {
-    printf("Invalid extension of the output file. Use either .ply or .obj.\n");
+    printf("Invalid extension of the output file. Use either .ply, .stl or .obj.\n");
     return -1;
   }
   printf("Decoded geometry saved to %s (%" PRId64 " ms to decode)\n",
