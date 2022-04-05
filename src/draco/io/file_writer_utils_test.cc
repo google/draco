@@ -28,6 +28,7 @@ TEST(FileWriterUtilsTest, SplitPathPrivateWindows) {
 
 TEST(FileWriterUtilsTest, DirectoryExistsTest) {
   ASSERT_TRUE(DirectoryExists(GetTestTempDir()));
+  ASSERT_TRUE(DirectoryExists("."));
   ASSERT_FALSE(DirectoryExists("fake/test/subdir"));
 }
 
