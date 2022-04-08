@@ -39,7 +39,7 @@ macro(draco_setup_install_target)
   configure_package_config_file(
     "${draco_root}/cmake/draco-config.cmake.template"
     "${draco_build}/draco-config.cmake"
-    INSTALL_DESTINATION "${data_path}/cmake")
+    INSTALL_DESTINATION "${data_path}/cmake/draco")
   install(
     FILES "${draco_build}/draco-config.cmake"
     DESTINATION "${data_path}/cmake/draco")
