@@ -61,8 +61,9 @@ DRACO_SHARED_INSTALL_PATH = os.path.join(TEST_SOURCES_PATH,
 DRACO_STATIC_INSTALL_PATH = os.path.join(TEST_SOURCES_PATH,
                                          '_draco_install_static')
 
-DRACO_SHARED_INSTALL_BIN_PATH = os.path.join(DRACO_SHARED_INSTALL_PATH,
-                                         'bin')
+DRACO_SHARED_INSTALL_BIN_PATH = os.path.join(DRACO_SHARED_INSTALL_PATH, 'bin')
+
+DRACO_SHARED_INSTALL_LIB_PATH = os.path.join(DRACO_SHARED_INSTALL_PATH, 'lib')
 
 # Argument for -j when using make, or -m when using Visual Studio. Number of
 # build jobs.
@@ -378,7 +379,7 @@ def build_test_project():
   cmake_args = []
   cmake_args.append(f'-DCMAKE_INSTALL_PREFIX={TEST_SHARED_INSTALL_PATH}')
   cmake_args.append(f'-DCMAKE_PREFIX_PATH={DRACO_SHARED_INSTALL_PATH}')
-  cmake_args.append(f'-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON')
+  cmake_args.append(f'-DCMAKE_INSTALL_RPATH={DRACO_SHARED_INSTALL_LIB_PATH}')
   cmake_configure(source_path=f'{TEST_SOURCES_PATH}', cmake_args=cmake_args)
   cmake_build(cmake_args=['--target install'])
   run_install_check(TEST_SHARED_INSTALL_PATH)
