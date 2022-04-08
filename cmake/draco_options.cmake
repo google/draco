@@ -89,6 +89,8 @@ macro(draco_set_default_options)
                "Build plugin library for Maya." VALUE OFF)
   draco_option(NAME DRACO_TRANSCODER_SUPPORTED HELPSTRING
                "Enable the Draco transcoder." VALUE OFF)
+  draco_option(NAME DRACO_INSTALL_STATIC HELPSTRING
+               "Enable installation of static draco lib when BUILD_SHARED_LIBS ON and not msvc." VALUE ON)
   draco_check_deprecated_options()
 endmacro()
 
