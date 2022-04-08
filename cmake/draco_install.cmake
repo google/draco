@@ -90,9 +90,7 @@ macro(draco_setup_install_target)
       ARCHIVE DESTINATION "${libs_path}"
       LIBRARY DESTINATION "${libs_path}")
   else()
-    if(NOT BUILD_SHARED_LIBS OR DRACO_INSTALL_STATIC)
-      install(TARGETS draco_static DESTINATION "${libs_path}")
-    endif()
+    install(TARGETS draco_static DESTINATION "${libs_path}")
 
     if(BUILD_SHARED_LIBS)
       install(
