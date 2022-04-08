@@ -88,8 +88,7 @@ macro(draco_setup_install_target)
       TARGETS draco
       RUNTIME DESTINATION "${bin_path}"
       ARCHIVE DESTINATION "${libs_path}"
-      LIBRARY DESTINATION "${libs_path}"
-    )
+      LIBRARY DESTINATION "${libs_path}")
   else()
     if(NOT BUILD_SHARED_LIBS OR DRACO_INSTALL_STATIC)
       install(TARGETS draco_static DESTINATION "${libs_path}")
@@ -100,8 +99,7 @@ macro(draco_setup_install_target)
         TARGETS draco_shared
         RUNTIME DESTINATION "${bin_path}"
         ARCHIVE DESTINATION "${libs_path}"
-        LIBRARY DESTINATION "${libs_path}"
-      )
+        LIBRARY DESTINATION "${libs_path}")
     endif()
   endif()
 
