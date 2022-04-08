@@ -39,19 +39,19 @@ macro(draco_setup_install_target)
   configure_package_config_file(
     "${draco_root}/cmake/draco-config.cmake.template"
     "${draco_build}/draco-config.cmake"
-    INSTALL_DESTINATION "${data_path}/cmake")
+    INSTALL_DESTINATION "${data_path}/cmake/draco")
   install(
     FILES "${draco_build}/draco-config.cmake"
-    DESTINATION "${data_path}/cmake")
+    DESTINATION "${data_path}/cmake/draco")
 
-  # CMake version: draco-version.cmake
+  # CMake version: draco-config-version.cmake
   write_basic_package_version_file(
-    "${draco_build}/draco-version.cmake"
+    "${draco_build}/draco-config-version.cmake"
     VERSION ${DRACO_VERSION}
     COMPATIBILITY AnyNewerVersion)
   install(
-      FILES "${draco_build}/draco-version.cmake"
-      DESTINATION "${data_path}/cmake")
+      FILES "${draco_build}/draco-config-version.cmake"
+      DESTINATION "${data_path}/cmake/draco")
 
   foreach(file ${draco_sources})
     if(file MATCHES "h$")

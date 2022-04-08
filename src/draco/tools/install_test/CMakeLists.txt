@@ -23,10 +23,10 @@ include(GNUInstallDirs)
 # Tell find_package() where Draco is installed.
 if(BUILD_SHARED_LIBS)
   set(CMAKE_PREFIX_PATH
-      "${CMAKE_CURRENT_LIST_DIR}/_draco_install_shared/share/cmake")
+      "${CMAKE_CURRENT_LIST_DIR}/_draco_install_shared")
 else()
   set(CMAKE_PREFIX_PATH
-      "${CMAKE_CURRENT_LIST_DIR}/_draco_install_static/share/cmake")
+      "${CMAKE_CURRENT_LIST_DIR}/_draco_install_static")
 endif()
 
 find_package(draco REQUIRED)
