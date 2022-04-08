@@ -177,6 +177,7 @@ def cleanup():
   shutil.rmtree(TEST_STATIC_BUILD_PATH)
   shutil.rmtree(TEST_SHARED_INSTALL_PATH)
   shutil.rmtree(TEST_STATIC_INSTALL_PATH)
+  pass
 
 
 def cmake_configure(source_path, cmake_args=None):
