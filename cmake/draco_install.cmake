@@ -27,31 +27,6 @@ macro(draco_setup_install_target)
   set(data_path "${CMAKE_INSTALL_FULL_DATAROOTDIR}")
   set(includes_path "${CMAKE_INSTALL_FULL_INCLUDEDIR}")
   set(libs_path "${CMAKE_INSTALL_FULL_LIBDIR}")
-  set(draco_lib_name "draco")
-
-  # pkg-config: draco.pc
-  configure_file("${draco_root}/cmake/draco.pc.template"
-                 "${draco_build}/draco.pc" @ONLY NEWLINE_STYLE UNIX)
-  install(FILES "${draco_build}/draco.pc" DESTINATION "${libs_path}/pkgconfig")
-
-  # CMake config: draco-config.cmake
-  set(DRACO_INCLUDE_DIR "${includes_path}")
-  configure_package_config_file(
-    "${draco_root}/cmake/draco-config.cmake.template"
-    "${draco_build}/draco-config.cmake"
-    INSTALL_DESTINATION "${data_path}/cmake/draco")
-  install(
-    FILES "${draco_build}/draco-config.cmake"
-    DESTINATION "${data_path}/cmake/draco")
-
-  # CMake version: draco-config-version.cmake
-  write_basic_package_version_file(
-    "${draco_build}/draco-config-version.cmake"
-    VERSION ${DRACO_VERSION}
-    COMPATIBILITY AnyNewerVersion)
-  install(
-      FILES "${draco_build}/draco-config-version.cmake"
-      DESTINATION "${data_path}/cmake/draco")
 
   foreach(file ${draco_sources})
     if(file MATCHES "h$")
@@ -86,15 +61,20 @@ macro(draco_setup_install_target)
   if(MSVC)
     install(
       TARGETS draco
+      EXPORT dracoExport
       RUNTIME DESTINATION "${bin_path}"
       ARCHIVE DESTINATION "${libs_path}"
       LIBRARY DESTINATION "${libs_path}")
   else()
-    install(TARGETS draco_static DESTINATION "${libs_path}")
+    install(
+        TARGETS draco_static
+        EXPORT dracoExport
+        DESTINATION "${libs_path}")
 
     if(BUILD_SHARED_LIBS)
       install(
         TARGETS draco_shared
+        EXPORT dracoExport
         RUNTIME DESTINATION "${bin_path}"
         ARCHIVE DESTINATION "${libs_path}"
         LIBRARY DESTINATION "${libs_path}")
@@ -109,4 +89,36 @@ macro(draco_setup_install_target)
     install(TARGETS draco_maya_wrapper DESTINATION "${libs_path}")
   endif()
 
+  # pkg-config: draco.pc
+  configure_file("${draco_root}/cmake/draco.pc.template"
+                 "${draco_build}/draco.pc" @ONLY NEWLINE_STYLE UNIX)
+  install(FILES "${draco_build}/draco.pc" DESTINATION "${libs_path}/pkgconfig")
+
+  # CMake config: draco-config.cmake
+  configure_package_config_file(
+    "${draco_root}/cmake/draco-config.cmake.template"
+    "${draco_build}/draco-config.cmake"
+    INSTALL_DESTINATION "${data_path}/cmake/draco")
+
+  write_basic_package_version_file(
+    "${draco_build}/draco-config-version.cmake"
+    VERSION ${DRACO_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+
+  export(
+    EXPORT dracoExport
+    NAMESPACE draco::
+    FILE "${draco_build}/draco-targets.cmake")
+
+  install(
+    EXPORT dracoExport
+    NAMESPACE draco::
+    FILE draco-targets.cmake
+    DESTINATION "${data_path}/cmake/draco")
+
+  install(
+    FILES
+      "${draco_build}/draco-config.cmake"
+      "${draco_build}/draco-config-version.cmake"
+    DESTINATION "${data_path}/cmake/draco")
 endmacro()

@@ -275,6 +275,7 @@ macro(draco_add_library)
 
   add_library(${lib_NAME} ${lib_TYPE} ${lib_SOURCES})
   target_compile_features(${lib_NAME} PUBLIC cxx_std_11)
+  target_include_directories(${lib_NAME} PUBLIC $<INSTALL_INTERFACE:include>)
   if(lib_SOURCES)
     draco_process_intrinsics_sources(TARGET ${lib_NAME} SOURCES ${lib_SOURCES})
   endif()
