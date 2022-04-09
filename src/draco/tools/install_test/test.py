@@ -61,6 +61,10 @@ DRACO_SHARED_INSTALL_PATH = os.path.join(TEST_SOURCES_PATH,
 DRACO_STATIC_INSTALL_PATH = os.path.join(TEST_SOURCES_PATH,
                                          '_draco_install_static')
 
+DRACO_SHARED_INSTALL_BIN_PATH = os.path.join(DRACO_SHARED_INSTALL_PATH, 'bin')
+
+DRACO_SHARED_INSTALL_LIB_PATH = os.path.join(DRACO_SHARED_INSTALL_PATH, 'lib')
+
 # Argument for -j when using make, or -m when using Visual Studio. Number of
 # build jobs.
 NUM_PROCESSES = multiprocessing.cpu_count() - 1
@@ -243,7 +247,11 @@ def run_install_check(install_path):
   if VERBOSE:
     print(f'RUN command: {cmd}')
 
-  result = run_process_and_capture_output(cmd)
+  result = run_process_and_capture_output(
+      cmd,
+      # On Windows, add location of draco.dll into PATH env var
+      {"PATH": DRACO_SHARED_INSTALL_BIN_PATH + os.pathsep + os.environ["PATH"]},
+    )
   if result[0] != 0:
     raise Exception(
         f'install_check run failed!\nexit_code: {result[0]}\n{result[1]}')
@@ -366,20 +374,21 @@ def build_test_project():
   """Builds the test application in shared and static configurations."""
   orig_dir = os.getcwd()
 
-  # Configure the test project in shared mode and build it.
+  # Configure the test project against draco shared and build it.
   os.chdir(TEST_SHARED_BUILD_PATH)
   cmake_args = []
   cmake_args.append(f'-DCMAKE_INSTALL_PREFIX={TEST_SHARED_INSTALL_PATH}')
-  cmake_args.append('-DBUILD_SHARED_LIBS=ON')
+  cmake_args.append(f'-DCMAKE_PREFIX_PATH={DRACO_SHARED_INSTALL_PATH}')
+  cmake_args.append(f'-DCMAKE_INSTALL_RPATH={DRACO_SHARED_INSTALL_LIB_PATH}')
   cmake_configure(source_path=f'{TEST_SOURCES_PATH}', cmake_args=cmake_args)
   cmake_build(cmake_args=['--target install'])
   run_install_check(TEST_SHARED_INSTALL_PATH)
 
-  # Configure in static mode and build it.
+  # Configure the test project against draco static and build it.
   os.chdir(TEST_STATIC_BUILD_PATH)
   cmake_args = []
   cmake_args.append(f'-DCMAKE_INSTALL_PREFIX={TEST_STATIC_INSTALL_PATH}')
-  cmake_args.append('-DBUILD_SHARED_LIBS=OFF')
+  cmake_args.append(f'-DCMAKE_PREFIX_PATH={DRACO_STATIC_INSTALL_PATH}')
   cmake_configure(source_path=f'{TEST_SOURCES_PATH}', cmake_args=cmake_args)
   cmake_build(cmake_args=['--target install'])
   run_install_check(TEST_STATIC_INSTALL_PATH)

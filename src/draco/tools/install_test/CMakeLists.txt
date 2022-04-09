@@ -12,45 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
-
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 11)
+cmake_minimum_required(VERSION 3.12)
 project(install_test C CXX)
 
 include(GNUInstallDirs)
 
-# Tell find_package() where Draco is installed.
-if(BUILD_SHARED_LIBS)
-  set(CMAKE_PREFIX_PATH
-      "${CMAKE_CURRENT_LIST_DIR}/_draco_install_shared")
-else()
-  set(CMAKE_PREFIX_PATH
-      "${CMAKE_CURRENT_LIST_DIR}/_draco_install_static")
-endif()
+find_package(draco REQUIRED CONFIG)
 
-find_package(draco REQUIRED)
-
-if(BUILD_SHARED_LIBS)
-  # Add rpath to resolve dylib dependency on Linux/MacOS.
-  list(APPEND CMAKE_BUILD_RPATH "${DRACO_LIBRARY_DIR}")
-  list(APPEND CMAKE_INSTALL_RPATH "${DRACO_LIBRARY_DIR}")
-endif()
-
-list(APPEND install_test_sources "main.cc")
-add_executable(install_check ${install_test_sources})
-
+add_executable(install_check main.cc)
 # Update include paths and dependencies to allow for successful build of the
 # install_check target using Draco as configured for the current installation.
 target_include_directories(install_check PUBLIC "${DRACO_INCLUDE_DIR}")
 target_link_libraries(install_check "${DRACO_LIBRARY}")
+target_compile_features(install_check PRIVATE cxx_std_11)
 
-install(TARGETS install_check DESTINATION "${CMAKE_INSTALL_FULL_BINDIR}")
-
-if(BUILD_SHARED_LIBS AND WIN32)
-  # Copy the Draco DLL into the bin dir for Windows: Windows does not really
-  # have a concept of rpath, but it does look in the current directory by
-  # default when a program tries to load a DLL.
-  install(FILES "${DRACO_LIBRARY_DLL}"
-          DESTINATION "${CMAKE_INSTALL_FULL_BINDIR}")
-endif()
+install(TARGETS install_check DESTINATION ${CMAKE_INSTALL_BINDIR})

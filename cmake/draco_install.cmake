@@ -84,12 +84,20 @@ macro(draco_setup_install_target)
   endif()
 
   if(MSVC)
-    install(TARGETS draco DESTINATION "${libs_path}")
+    install(
+      TARGETS draco
+      RUNTIME DESTINATION "${bin_path}"
+      ARCHIVE DESTINATION "${libs_path}"
+      LIBRARY DESTINATION "${libs_path}")
   else()
     install(TARGETS draco_static DESTINATION "${libs_path}")
 
     if(BUILD_SHARED_LIBS)
-      install(TARGETS draco_shared DESTINATION "${libs_path}")
+      install(
+        TARGETS draco_shared
+        RUNTIME DESTINATION "${bin_path}"
+        ARCHIVE DESTINATION "${libs_path}"
+        LIBRARY DESTINATION "${libs_path}")
     endif()
   endif()
 
