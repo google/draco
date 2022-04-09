@@ -13,10 +13,6 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
-
-# Draco requires modern compiler support.
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 11)
 project(draco C CXX)
 
 if(NOT CMAKE_BUILD_TYPE)

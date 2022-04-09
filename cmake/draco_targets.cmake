@@ -101,6 +101,7 @@ macro(draco_add_executable)
   endif()
 
   add_executable(${exe_NAME} ${exe_SOURCES})
+  target_compile_features(${exe_NAME} PRIVATE cxx_std_11)
 
   if(NOT EMSCRIPTEN)
     set_target_properties(${exe_NAME} PROPERTIES VERSION ${DRACO_VERSION})
@@ -273,6 +274,7 @@ macro(draco_add_library)
   endif()
 
   add_library(${lib_NAME} ${lib_TYPE} ${lib_SOURCES})
+  target_compile_features(${lib_NAME} PUBLIC cxx_std_11)
   if(lib_SOURCES)
     draco_process_intrinsics_sources(TARGET ${lib_NAME} SOURCES ${lib_SOURCES})
   endif()
