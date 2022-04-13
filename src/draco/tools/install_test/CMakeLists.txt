@@ -20,10 +20,6 @@ include(GNUInstallDirs)
 find_package(draco REQUIRED CONFIG)
 
 add_executable(install_check main.cc)
-# Update include paths and dependencies to allow for successful build of the
-# install_check target using Draco as configured for the current installation.
-target_include_directories(install_check PUBLIC "${DRACO_INCLUDE_DIR}")
-target_link_libraries(install_check "${DRACO_LIBRARY}")
-target_compile_features(install_check PRIVATE cxx_std_11)
+target_link_libraries(install_check PRIVATE draco::draco)
 
 install(TARGETS install_check DESTINATION ${CMAKE_INSTALL_BINDIR})

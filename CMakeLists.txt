@@ -13,10 +13,6 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
-
-# Draco requires modern compiler support.
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 11)
 project(draco C CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -970,6 +966,7 @@ else()
                       ${draco_include_paths}
                       OBJLIB_DEPS
                       ${draco_object_library_deps})
+    add_library(draco::draco ALIAS draco)
 
   else()
     draco_add_library(NAME
@@ -1000,6 +997,11 @@ else()
                         ${draco_include_paths}
                         LIB_DEPS
                         draco_static)
+      add_library(draco::draco ALIAS draco_shared)
+      set_target_properties(draco_shared PROPERTIES EXPORT_NAME draco)
+    else()
+      add_library(draco::draco ALIAS draco_static)
+      set_target_properties(draco_static PROPERTIES EXPORT_NAME draco)
     endif()
   endif()
 
