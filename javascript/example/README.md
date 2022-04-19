@@ -45,7 +45,7 @@ Create DracoLoader by setting the decoder type:
 // the static URL.
 THREE.DRACOLoader.setDecoderPath('./path/to/decoder/');
 
-// (Optional) Use JS decoder (defaults to WebAssembly if supported).
+// (Optional) Force non-WebAssembly JS decoder (without this line, WebAssembly is the default if supported).
 THREE.DRACOLoader.setDecoderConfig({type: 'js'});
 
 // (Optional) Pre-fetch decoder source files (defaults to load on demand).
