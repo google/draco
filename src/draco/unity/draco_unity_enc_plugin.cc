@@ -60,6 +60,8 @@ namespace draco {
       
       if (preserveTriangleOrder) {
           dracoEncoder.SetEncodingMethod(draco::MESH_SEQUENTIAL_ENCODING);
+      } else {
+          dracoEncoder.SetEncodingMethod(draco::MESH_EDGEBREAKER_ENCODING);
       }
       
       auto encoderStatus = dracoEncoder.EncodeMeshToBuffer(encoder->mesh, &encoder->encoderBuffer);
