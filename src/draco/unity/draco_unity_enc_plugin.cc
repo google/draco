@@ -21,11 +21,19 @@
 
 namespace draco {
 
-  DracoEncoder * dracoEncoderCreate(uint32_t vertexCount)
+  DracoEncoder *dracoEncoderCreate(uint32_t vertexCount)
   {
-      DracoEncoder *encoder = new DracoEncoder;
-      encoder->mesh.set_num_points(vertexCount);
-      return encoder;
+    DracoMeshEncoder *encoder = new DracoMeshEncoder;
+    encoder->is_point_cloud = false;
+    encoder->mesh.set_num_points(vertexCount);
+    return encoder;
+  }
+
+  DracoEncoder *dracoEncoderCreatePointCloud(uint32_t vertexCount) {
+    DracoPointsEncoder *encoder = new DracoPointsEncoder;
+    encoder->is_point_cloud = true;
+    encoder->mesh.set_num_points(vertexCount);
+    return encoder;
   }
 
   void dracoEncoderRelease(DracoEncoder *encoder)
@@ -47,31 +55,64 @@ namespace draco {
       encoder->quantization.generic = generic;
   }
 
-  bool dracoEncoderEncode(DracoEncoder *encoder, uint8_t preserveTriangleOrder)
+  bool dracoEncoderEncode(DracoEncoder *encoder, uint8_t sequentialEncode)
   {
-      draco::Encoder dracoEncoder;
-      dracoEncoder.SetSpeedOptions(encoder->encodingSpeed, encoder->decodingSpeed);
-      dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, encoder->quantization.position);
-      dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::NORMAL, encoder->quantization.normal);
-      dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::TEX_COORD, encoder->quantization.uv);
-      dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::COLOR, encoder->quantization.color);
-      dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::GENERIC, encoder->quantization.generic);
-      dracoEncoder.SetTrackEncodedProperties(true);
-      
-      if (preserveTriangleOrder) {
-          dracoEncoder.SetEncodingMethod(draco::MESH_SEQUENTIAL_ENCODING);
+    if (encoder->is_point_cloud) {
+      return dracoEncode((DracoPointsEncoder *)encoder, sequentialEncode);
+    } else {
+      return dracoEncode((DracoMeshEncoder *)encoder, sequentialEncode);
+    }
+  }
+
+  template<class T>
+  bool dracoEncode(T *encoderT, uint8_t sequentialEncode) {
+    auto encoder = (DracoEncoder *)encoderT;
+    draco::Encoder dracoEncoder;
+    dracoEncoder.SetSpeedOptions(encoder->encodingSpeed,
+                                 encoder->decodingSpeed);
+    dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION,
+                                          encoder->quantization.position);
+    dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::NORMAL,
+                                          encoder->quantization.normal);
+    dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::TEX_COORD,
+                                          encoder->quantization.uv);
+    dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::COLOR,
+                                          encoder->quantization.color);
+    dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::GENERIC,
+                                          encoder->quantization.generic);
+    dracoEncoder.SetTrackEncodedProperties(true);
+
+    draco::Status encodeStatus;
+
+    if (encoder->is_point_cloud) {
+      if (sequentialEncode) {
+        dracoEncoder.SetEncodingMethod(draco::POINT_CLOUD_SEQUENTIAL_ENCODING);
       } else {
-          dracoEncoder.SetEncodingMethod(draco::MESH_EDGEBREAKER_ENCODING);
+        dracoEncoder.SetEncodingMethod(draco::POINT_CLOUD_KD_TREE_ENCODING);
       }
-      
-      auto encoderStatus = dracoEncoder.EncodeMeshToBuffer(encoder->mesh, &encoder->encoderBuffer);
-      if (encoderStatus.ok()) {
-          encoder->encodedVertices = static_cast<uint32_t>(dracoEncoder.num_encoded_points());
-          encoder->encodedIndices = static_cast<uint32_t>(dracoEncoder.num_encoded_faces() * 3);
-          return true;
+
+      encodeStatus = dracoEncoder.EncodePointCloudToBuffer(
+          ((DracoPointsEncoder *)encoder)->mesh, &encoder->encoderBuffer);
+    } else {
+      if (sequentialEncode) {
+        dracoEncoder.SetEncodingMethod(draco::MESH_SEQUENTIAL_ENCODING);
       } else {
-          return false;
+        dracoEncoder.SetEncodingMethod(draco::MESH_EDGEBREAKER_ENCODING);
       }
+
+      encodeStatus = dracoEncoder.EncodeMeshToBuffer(
+          ((DracoMeshEncoder *)encoder)->mesh, &encoder->encoderBuffer);
+    }
+
+    if (encodeStatus.ok()) {
+      encoder->encodedVertices =
+          static_cast<uint32_t>(dracoEncoder.num_encoded_points());
+      encoder->encodedIndices =
+          static_cast<uint32_t>(dracoEncoder.num_encoded_faces() * 3);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   uint32_t dracoEncoderGetEncodedVertexCount(DracoEncoder *encoder)
@@ -94,7 +135,7 @@ namespace draco {
       memcpy(data, encoder->encoderBuffer.data(), encoder->encoderBuffer.size());
   }
 
-  bool dracoEncodeIndices(DracoEncoder *encoder, uint32_t indexCount, DataType indexType, void *indices)
+  bool dracoEncodeIndices(DracoMeshEncoder *encoder, uint32_t indexCount, DataType indexType, void *indices)
   {
     switch (indexType)
     {
@@ -112,7 +153,7 @@ namespace draco {
   }
 
   template<class T>
-  void dracoEncodeIndices(DracoEncoder *encoder, uint32_t indexCount, T *indices)
+  void dracoEncodeIndices(DracoMeshEncoder *encoder, uint32_t indexCount, T *indices)
   {
       int face_count = indexCount / 3;
       encoder->mesh.SetNumFaces(static_cast<size_t>(face_count));
@@ -129,7 +170,7 @@ namespace draco {
       }
   }
 
-  bool dracoEncoderSetIndices(DracoEncoder *encoder, DataType indexComponentType, uint32_t indexCount, void *indices)
+  bool dracoEncoderSetIndices(DracoMeshEncoder *encoder, DataType indexComponentType, uint32_t indexCount, void *indices)
   {
       switch (indexComponentType)
       {
@@ -154,7 +195,30 @@ namespace draco {
       return true;
   }
 
-  uint32_t dracoEncoderSetAttribute(DracoEncoder *encoder, GeometryAttribute::Type attributeType, draco::DataType dracoDataType, int32_t componentCount, int32_t stride, void *data)
+  
+  uint32_t dracoEncoderSetAttribute(DracoEncoder *encoder,
+                                    GeometryAttribute::Type attributeType,
+                                    draco::DataType dracoDataType,
+                                    int32_t componentCount, int32_t stride,
+                                    void *data) {
+    if (encoder->is_point_cloud) {
+      return dracoSetAttribute<DracoPointsEncoder>(
+          (DracoPointsEncoder*)encoder, attributeType, dracoDataType,
+                               componentCount, stride, data);
+    } else {
+      return dracoSetAttribute((DracoMeshEncoder *)encoder, attributeType,
+                               dracoDataType,
+                               componentCount, stride, data);
+    }
+
+  }
+
+  template <class T>
+  uint32_t dracoSetAttribute(T *encoder,
+                                    GeometryAttribute::Type attributeType,
+                                    draco::DataType dracoDataType,
+                                    int32_t componentCount, int32_t stride,
+                                    void *data)
   {
       auto buffer = std::unique_ptr<draco::DataBuffer>( new draco::DataBuffer());
       uint32_t count = encoder->mesh.num_points();

@@ -36,7 +36,6 @@ namespace draco {
 
   struct DracoEncoder
   {
-      draco::Mesh mesh;
       uint32_t encodedVertices;
       uint32_t encodedIndices;
       std::vector<std::unique_ptr<draco::DataBuffer>> buffers;
@@ -52,14 +51,34 @@ namespace draco {
           uint32_t color = 10;
           uint32_t generic = 12;
       } quantization;
+      bool is_point_cloud;
+  };
+
+  struct DracoMeshEncoder : DracoEncoder {
+    draco::Mesh mesh;
+  };
+
+  struct DracoPointsEncoder : DracoEncoder {
+    draco::PointCloud mesh;
   };
 
   template<class T>
-  void dracoEncodeIndices(DracoEncoder *encoder, uint32_t indexCount, T *indices);
+  void dracoEncodeIndices(DracoMeshEncoder *encoder, uint32_t indexCount,
+                          T *indices);
+  template <class T>
+  uint32_t dracoSetAttribute(T *encoder, GeometryAttribute::Type attributeType,
+                                    draco::DataType dracoDataType,
+                                    int32_t componentCount, int32_t stride,
+                                    void *data);
+
+  template<class T>
+  bool dracoEncode(T *encoder, uint8_t sequentialEncode);
+
 
 extern "C" {
 
-  EXPORT_API DracoEncoder * dracoEncoderCreate(uint32_t vertexCount);
+  EXPORT_API DracoEncoder *dracoEncoderCreate(uint32_t vertexCount);
+  EXPORT_API DracoEncoder *dracoEncoderCreatePointCloud(uint32_t pointCount);
   void EXPORT_API dracoEncoderRelease(DracoEncoder *encoder);
   void EXPORT_API dracoEncoderSetCompressionSpeed(DracoEncoder *encoder, uint32_t encodingSpeed, uint32_t decodingSpeed);
   void EXPORT_API dracoEncoderSetQuantizationBits(DracoEncoder *encoder, uint32_t position, uint32_t normal, uint32_t uv, uint32_t color, uint32_t generic);
@@ -68,10 +87,11 @@ extern "C" {
   uint32_t EXPORT_API dracoEncoderGetEncodedIndexCount(DracoEncoder *encoder);
   uint64_t EXPORT_API dracoEncoderGetByteLength(DracoEncoder *encoder);
   void EXPORT_API dracoEncoderCopy(DracoEncoder *encoder, uint8_t *data);
-  bool EXPORT_API dracoEncoderSetIndices(DracoEncoder *encoder, DataType indexComponentType, uint32_t indexCount, void *indices);
-  uint32_t EXPORT_API dracoEncoderSetAttribute(DracoEncoder *encoder, GeometryAttribute::Type attributeType, draco::DataType dracoDataType, int32_t componentCount, int32_t stride, void *data);
-
-}  // extern "C"
+  bool EXPORT_API dracoEncoderSetIndices(DracoMeshEncoder *encoder,
+                                         DataType indexComponentType,
+                                         uint32_t indexCount, void *indices);
+  uint32_t EXPORT_API dracoEncoderSetAttribute(DracoEncoder *encoder, GeometryAttribute::Type attributeType, draco::DataType dracoDataType, int32_t componentCount, int32_t stride, void *data); 
+  }  // extern "C"
 
 }  // namespace draco
 
