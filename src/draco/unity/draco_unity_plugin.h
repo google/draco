@@ -113,7 +113,7 @@ bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DataType dataType, void* i
 // with ReleaseDracoData.
 bool EXPORT_API GetAttributeData(const DracoMesh *mesh,
                                  const DracoAttribute *attribute,
-                                 DracoData **data, bool flip);
+                                 DracoData **data, bool flip, int component_stride);
 
 // DracoToUnityMesh is deprecated.
 struct EXPORT_API DracoToUnityMesh {

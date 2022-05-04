@@ -31,29 +31,25 @@ draco::DracoAttribute *CreateDracoAttribute(const draco::PointAttribute *attr) {
 
 // Returns the attribute data in |attr| as an array of type T.
 template <typename T>
-T *CopyAttributeData(int num_points, const draco::PointAttribute *attr) {
+T *CopyAttributeData(int num_points, const draco::PointAttribute *attr, int component_stride) {
   const int num_components = attr->num_components();
-  T *const data = new T[num_points * num_components];
+  T *const data = new T[num_points * component_stride];
 
   for (draco::PointIndex i(0); i < num_points; ++i) {
     const draco::AttributeValueIndex val_index = attr->mapped_index(i);
     bool got_data = false;
     switch (num_components) {
       case 1:
-        got_data = attr->ConvertValue<T, 1>(val_index,
-                                            data + i.value() * num_components);
+        got_data = attr->ConvertValue<T, 1>(val_index, data + i.value() * component_stride);
         break;
       case 2:
-        got_data = attr->ConvertValue<T, 2>(val_index,
-                                            data + i.value() * num_components);
+        got_data = attr->ConvertValue<T, 2>(val_index, data + i.value() * component_stride);
         break;
       case 3:
-        got_data = attr->ConvertValue<T, 3>(val_index,
-                                            data + i.value() * num_components);
+        got_data = attr->ConvertValue<T, 3>(val_index, data + i.value() * component_stride);
         break;
       case 4:
-        got_data = attr->ConvertValue<T, 4>(val_index,
-                                            data + i.value() * num_components);
+        got_data = attr->ConvertValue<T, 4>(val_index, data + i.value() * component_stride);
         break;
       default:
         break;
@@ -69,14 +65,14 @@ T *CopyAttributeData(int num_points, const draco::PointAttribute *attr) {
 
 // Returns the attribute data in |attr| as an array of type T.
 template <typename T>
-T *CopyAttributeDataFlipped(int num_points, const draco::PointAttribute *attr) {
+T *CopyAttributeDataFlipped(int num_points, const draco::PointAttribute *attr, int component_stride) {
   const int num_components = attr->num_components();
-  T *const data = new T[num_points * num_components];
+  T *const data = new T[num_points * component_stride];
 
   for (draco::PointIndex i(0); i < num_points; ++i) {
     const draco::AttributeValueIndex val_index = attr->mapped_index(i);
     bool got_data = false;
-    T* outPtr = data + i.value() * num_components;
+    T *outPtr = data + i.value() * component_stride;
     switch (num_components) {
       case 1:
         got_data = attr->ConvertValue<T, 1>(val_index,outPtr);
@@ -110,22 +106,23 @@ T *CopyAttributeDataFlipped(int num_points, const draco::PointAttribute *attr) {
 }
 
 // Returns the attribute data in |attr| as an array of void*.
-void *ConvertAttributeData(int num_points, const draco::PointAttribute *attr, bool flip) {
+void *ConvertAttributeData(int num_points, const draco::PointAttribute *attr,
+                           bool flip, int component_stride) {
   switch (attr->data_type()) {
     case draco::DataType::DT_INT8:
-      return static_cast<void *>(flip ? CopyAttributeDataFlipped<int8_t>(num_points, attr) : CopyAttributeData<int8_t>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<int8_t>(num_points, attr, component_stride) : CopyAttributeData<int8_t>(num_points, attr, component_stride));
     case draco::DataType::DT_UINT8:
-      return static_cast<void *>(flip ? CopyAttributeDataFlipped<uint8_t>(num_points, attr) : CopyAttributeData<uint8_t>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<uint8_t>(num_points, attr, component_stride) : CopyAttributeData<uint8_t>(num_points, attr, component_stride));
     case draco::DataType::DT_INT16:
-      return static_cast<void *>(flip ? CopyAttributeDataFlipped<int16_t>(num_points, attr) : CopyAttributeData<int16_t>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<int16_t>(num_points, attr, component_stride) : CopyAttributeData<int16_t>(num_points, attr, component_stride));
     case draco::DataType::DT_UINT16:
-      return static_cast<void *>(flip ? CopyAttributeDataFlipped<uint16_t>(num_points, attr) : CopyAttributeData<uint16_t>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<uint16_t>(num_points, attr, component_stride) : CopyAttributeData<uint16_t>(num_points, attr, component_stride));
     case draco::DataType::DT_INT32:
-      return static_cast<void *>(flip ? CopyAttributeDataFlipped<int32_t>(num_points, attr) : CopyAttributeData<int32_t>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<int32_t>(num_points, attr, component_stride) : CopyAttributeData<int32_t>(num_points, attr, component_stride));
     case draco::DataType::DT_UINT32:
-      return static_cast<void *>(flip ? CopyAttributeDataFlipped<uint32_t>(num_points, attr) : CopyAttributeData<uint32_t>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<uint32_t>(num_points, attr, component_stride) : CopyAttributeData<uint32_t>(num_points, attr, component_stride));
     case draco::DataType::DT_FLOAT32:
-      return static_cast<void *>(flip ? CopyAttributeDataFlipped<float>(num_points, attr) : CopyAttributeData<float>(num_points, attr));
+      return static_cast<void *>(flip ? CopyAttributeDataFlipped<float>(num_points, attr, component_stride) : CopyAttributeData<float>(num_points, attr, component_stride));
     default:
       return nullptr;
   }
@@ -294,7 +291,7 @@ int EXPORT_API DecodeDracoMeshStep1(
   } else if (geom_type == draco::POINT_CLOUD) {
     auto statusor = (*decoder)->DecodePointCloudFromBuffer(*buffer);
     if (!statusor.ok()) {
-      return -4;
+      return -5;
     }
 
     std::unique_ptr<draco::PointCloud> in_cloud = std::move(statusor).value();
@@ -390,7 +387,7 @@ bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DataType dataType, void* i
 
 bool EXPORT_API GetAttributeData(const DracoMesh *mesh,
                                  const DracoAttribute *attribute,
-                                 DracoData **data, bool flip) {
+                                 DracoData **data, bool flip,int stride) {
   if (mesh == nullptr || data == nullptr || *data != nullptr) {
     return false;
   }
@@ -398,7 +395,7 @@ bool EXPORT_API GetAttributeData(const DracoMesh *mesh,
   const PointAttribute *const attr =
       static_cast<const PointAttribute *>(attribute->private_attribute);
 
-  void *temp_data = ConvertAttributeData(m->num_points(), attr, flip);
+  void *temp_data = ConvertAttributeData(m->num_points(), attr, flip, stride);
   if (temp_data == nullptr) {
     return false;
   }
