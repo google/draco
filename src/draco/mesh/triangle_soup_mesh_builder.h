@@ -15,6 +15,8 @@
 #ifndef DRACO_MESH_TRIANGLE_SOUP_MESH_BUILDER_H_
 #define DRACO_MESH_TRIANGLE_SOUP_MESH_BUILDER_H_
 
+#include <utility>
+
 #include "draco/draco_features.h"
 #include "draco/mesh/mesh.h"
 
@@ -51,6 +53,17 @@ class TriangleSoupMeshBuilder {
   // it will be marked as per-corner attribute.
   void SetPerFaceAttributeValueForFace(int att_id, FaceIndex face_id,
                                        const void *value);
+
+  // Add metadata.
+  void AddMetadata(std::unique_ptr<GeometryMetadata> metadata) {
+    mesh_->AddMetadata(std::move(metadata));
+  }
+
+  // Add metadata for an attribute.
+  void AddAttributeMetadata(int32_t att_id,
+                            std::unique_ptr<AttributeMetadata> metadata) {
+    mesh_->AddAttributeMetadata(att_id, std::move(metadata));
+  }
 
   // Finalizes the mesh or returns nullptr on error.
   // Once this function is called, the builder becomes invalid and cannot be

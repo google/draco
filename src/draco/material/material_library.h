@@ -20,6 +20,7 @@
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include <map>
 #include <memory>
+#include <string>
 
 #include "draco/material/material.h"
 #include "draco/texture/texture_library.h"
@@ -75,8 +76,23 @@ class MaterialLibrary {
   std::map<TextureMap *, int> ComputeTextureMapToTextureIndexMapping(
       const TextureLibrary &library) const;
 
+  // Creates a named materials variant and returns its index.
+  int AddMaterialsVariant(const std::string &name) {
+    materials_variants_names_.push_back(name);
+    return materials_variants_names_.size() - 1;
+  }
+
+  // Returns the number of materials variants.
+  int NumMaterialsVariants() const { return materials_variants_names_.size(); }
+
+  // Returns the name of a materials variant.
+  const std::string &GetMaterialsVariantName(int index) const {
+    return materials_variants_names_[index];
+  }
+
  private:
   std::vector<std::unique_ptr<Material>> materials_;
+  std::vector<std::string> materials_variants_names_;
 
   // Container for storing all textures used by materials of this library.
   TextureLibrary texture_library_;

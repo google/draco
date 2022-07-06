@@ -33,6 +33,9 @@ void MaterialLibrary::Append(const MaterialLibrary &src) {
 
   const size_t old_num_textures = texture_library_.NumTextures();
   texture_library_.Append(src.texture_library_);
+  for (int i = 0; i < src.materials_variants_names_.size(); i++) {
+    materials_variants_names_.push_back(src.materials_variants_names_[i]);
+  }
 
   // Remap all texture maps to the textures in the new texture library.
 
@@ -98,6 +101,7 @@ MaterialLibrary::ComputeTextureMapToTextureIndexMapping(
 void MaterialLibrary::Clear() {
   materials_.clear();
   texture_library_.Clear();
+  materials_variants_names_.clear();
 }
 
 Material *MaterialLibrary::MutableMaterial(int index) {

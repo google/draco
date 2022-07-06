@@ -107,8 +107,19 @@ class SceneUtils {
       const Scene &scene, const MeshInstance &instance);
 
   // Cleans up a |scene| by removing unused base meshes, unused and empty mesh
-  // groups, unused materials, and unused texture coordinates.
+  // groups, unused materials, unused texture coordinates and unused scene
+  // nodes. The actual behavior of the cleanup operation can be controller via
+  // the user provided |options|.
+  struct CleanupOptions {
+    bool remove_invalid_mesh_instances = true;
+    bool remove_unused_mesh_groups = true;
+    bool remove_unused_meshes = true;
+    bool remove_unused_nodes = false;
+    bool remove_unused_tex_coords = true;
+    bool remove_unused_materials = true;
+  };
   static void Cleanup(Scene *scene);
+  static void Cleanup(Scene *scene, const CleanupOptions &options);
 
   // Removes mesh |instances| from |scene|.
   static void RemoveMeshInstances(const std::vector<MeshInstance> &instances,

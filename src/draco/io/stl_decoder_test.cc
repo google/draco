@@ -13,6 +13,9 @@
 // limitations under the License.
 //
 #include "draco/io/stl_decoder.h"
+
+#include <string>
+
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 
@@ -20,7 +23,6 @@ namespace draco {
 
 class StlDecoderTest : public ::testing::Test {
  protected:
-
   void test_decoding(const std::string &file_name) {
     const std::string path = GetTestFileFullPath(file_name);
     StlDecoder decoder;

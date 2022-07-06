@@ -12,14 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#include "draco/io/stl_encoder.h"
+
 #include <sstream>
+#include <string>
+#include <utility>
 
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 #include "draco/io/file_reader_factory.h"
 #include "draco/io/file_reader_interface.h"
 #include "draco/io/stl_decoder.h"
-#include "draco/io/stl_encoder.h"
 
 namespace draco {
 

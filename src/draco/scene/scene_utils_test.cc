@@ -255,8 +255,7 @@ TEST(SceneUtilsTest, TestMeshToSceneZeroMaterials) {
   ASSERT_EQ(scene_from_mesh->NumMeshGroups(), 1);
   const draco::MeshGroup *const mesh_group =
       scene_from_mesh->GetMeshGroup(draco::MeshGroupIndex(0));
-  ASSERT_EQ(mesh_group->NumMeshIndices(), 1);
-  ASSERT_EQ(mesh_group->NumMaterialIndices(), 1);
+  ASSERT_EQ(mesh_group->NumMeshInstances(), 1);
 }
 
 TEST(SceneUtilsTest, TestMeshToSceneOneMaterial) {
@@ -278,8 +277,7 @@ TEST(SceneUtilsTest, TestMeshToSceneOneMaterial) {
   ASSERT_EQ(scene_from_mesh->NumMeshGroups(), 1);
   const draco::MeshGroup *const mesh_group =
       scene_from_mesh->GetMeshGroup(draco::MeshGroupIndex(0));
-  ASSERT_EQ(mesh_group->NumMeshIndices(), 1);
-  ASSERT_EQ(mesh_group->NumMaterialIndices(), 1);
+  ASSERT_EQ(mesh_group->NumMeshInstances(), 1);
 
   CompareScenes(scene.get(), scene_from_mesh.get());
 }
@@ -301,8 +299,7 @@ TEST(SceneUtilsTest, TestMeshToSceneMultipleMaterials) {
   ASSERT_EQ(scene_from_mesh->NumMeshGroups(), 1);
   const draco::MeshGroup *const mesh_group =
       scene_from_mesh->GetMeshGroup(draco::MeshGroupIndex(0));
-  ASSERT_EQ(mesh_group->NumMeshIndices(), 4);
-  ASSERT_EQ(mesh_group->NumMaterialIndices(), 4);
+  ASSERT_EQ(mesh_group->NumMeshInstances(), 4);
 
   // Unfortunately we can't CompareScenes(scene.get(), scene_from_mesh.get()),
   // because scene has two mesh groups and scene_from_mesh has only one.
@@ -389,9 +386,9 @@ TEST(SceneUtilsTest, TestCleanupEmptyMeshGroup) {
 
   // Invalidate references to the three truck body parts in mesh group.
   draco::MeshGroup &mesh_group = *scene->GetMeshGroup(draco::MeshGroupIndex(0));
-  mesh_group.SetMeshIndex(0, draco::kInvalidMeshIndex);
-  mesh_group.SetMeshIndex(1, draco::kInvalidMeshIndex);
-  mesh_group.SetMeshIndex(2, draco::kInvalidMeshIndex);
+  mesh_group.SetMeshInstance(0, {draco::kInvalidMeshIndex, 0});
+  mesh_group.SetMeshInstance(1, {draco::kInvalidMeshIndex, 0});
+  mesh_group.SetMeshInstance(2, {draco::kInvalidMeshIndex, 0});
 
   // Cleanup scene.
   draco::SceneUtils::Cleanup(scene.get());
@@ -439,9 +436,9 @@ TEST(SceneUtilsTest, TestCleanupInvalidMeshIndex) {
 
   // Invalidate references to two truck body parts in mesh group.
   draco::MeshGroup &mesh_group = *scene->GetMeshGroup(draco::MeshGroupIndex(0));
-  ASSERT_EQ(mesh_group.NumMeshIndices(), 3);
-  mesh_group.SetMeshIndex(0, draco::kInvalidMeshIndex);
-  mesh_group.SetMeshIndex(2, draco::kInvalidMeshIndex);
+  ASSERT_EQ(mesh_group.NumMeshInstances(), 3);
+  mesh_group.SetMeshInstance(0, {draco::kInvalidMeshIndex, 0});
+  mesh_group.SetMeshInstance(2, {draco::kInvalidMeshIndex, 0});
 
   // Cleanup scene.
   draco::SceneUtils::Cleanup(scene.get());
@@ -450,7 +447,61 @@ TEST(SceneUtilsTest, TestCleanupInvalidMeshIndex) {
   ASSERT_EQ(scene->NumMeshes(), 2);
   ASSERT_EQ(scene->NumMeshGroups(), 2);
   ASSERT_EQ(draco::SceneUtils::ComputeAllInstances(*scene).size(), 3);
-  ASSERT_EQ(scene->GetMeshGroup(draco::MeshGroupIndex(0))->NumMeshIndices(), 1);
+  ASSERT_EQ(scene->GetMeshGroup(draco::MeshGroupIndex(0))->NumMeshInstances(),
+            1);
+}
+
+TEST(SceneUtilsTest, TestCleanupUnusedNodes) {
+  auto scene =
+      draco::ReadSceneFromTestFile("CesiumMilkTruck/glTF/CesiumMilkTruck.gltf");
+  ASSERT_NE(scene, nullptr);
+  ASSERT_EQ(scene->NumNodes(), 5);
+
+  draco::SceneUtils::CleanupOptions options;
+  options.remove_unused_nodes = true;
+
+  // Delete mesh on node 2 and try to remove unused nodes.
+  // Node 2 is connected to node 1 that has no mesh as well. But node 2 is also
+  // used in an animation so we don't actually expect anything to be deleted.
+  scene->GetNode(draco::SceneNodeIndex(2))
+      ->SetMeshGroupIndex(draco::kInvalidMeshGroupIndex);
+  draco::SceneUtils::Cleanup(scene.get(), options);
+
+  ASSERT_EQ(scene->NumNodes(), 5);
+
+  // Now remove the animation channel that used the node and try it again. This
+  // time, we expect two nodes to be deleted (node 1 and node 2). Node 1 will be
+  // deleted because it doesn't contain a mesh and all its children are unused.
+  ASSERT_EQ(scene->GetAnimation(draco::AnimationIndex(0))
+                ->GetChannel(0)
+                ->target_index,
+            2);
+  // Change the mapped node to node 4 (we can't actually remove channel as of
+  // the time this test was written).
+  scene->GetAnimation(draco::AnimationIndex(0))->GetChannel(0)->target_index =
+      4;
+
+  // Cleanup again.
+  draco::SceneUtils::Cleanup(scene.get(), options);
+  ASSERT_EQ(scene->NumNodes(), 3);  // Two nodes should be deleted.
+
+  // Ensure all node indices are remapped to the new values.
+  for (draco::SceneNodeIndex sni(0); sni < scene->NumNodes(); ++sni) {
+    const auto *node = scene->GetNode(sni);
+    for (int i = 0; i < node->NumChildren(); ++i) {
+      ASSERT_LT(node->Child(i).value(), 3);
+    }
+    for (int i = 0; i < node->NumParents(); ++i) {
+      ASSERT_LT(node->Parent(i).value(), 3);
+    }
+  }
+
+  // Ensure the animation channels are mapped to the updated node indices (node
+  // 4 should be new node 2 because two nodes were removed).
+  ASSERT_EQ(scene->GetAnimation(draco::AnimationIndex(0))
+                ->GetChannel(0)
+                ->target_index,
+            2);
 }
 
 TEST(SceneUtilsTest, TestDeduplicateMeshGroups) {

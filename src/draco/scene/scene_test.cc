@@ -16,6 +16,7 @@
 
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
+#include "draco/core/status.h"
 #include "draco/mesh/mesh_are_equivalent.h"
 #include "draco/scene/scene_indices.h"
 
@@ -23,12 +24,62 @@ namespace {
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 
+// Helper method for adding mesh group GPU instancing to the milk truck scene.
+draco::Status AddGpuInstancingToMilkTruck(draco::Scene *scene) {
+  // Create an instance and set its transformation TRS vectors.
+  draco::InstanceArray::Instance instance_0;
+  instance_0.trs.SetTranslation(Eigen::Vector3d(1.0, 2.0, 3.0));
+  instance_0.trs.SetRotation(Eigen::Quaterniond(4.0, 5.0, 6.0, 7.0));
+  instance_0.trs.SetScale(Eigen::Vector3d(8.0, 9.0, 10.0));
+
+  // Create another instance.
+  draco::InstanceArray::Instance instance_1;
+  instance_1.trs.SetTranslation(Eigen::Vector3d(1.1, 2.1, 3.1));
+  instance_1.trs.SetRotation(Eigen::Quaterniond(4.1, 5.1, 6.1, 7.1));
+  instance_1.trs.SetScale(Eigen::Vector3d(8.1, 9.1, 10.1));
+
+  // Add an empty GPU instancing object to the scene.
+  const draco::InstanceArrayIndex index = scene->AddInstanceArray();
+  draco::InstanceArray *gpu_instancing = scene->GetInstanceArray(index);
+
+  // Add two instances to the GPU instancing object stored in the scene.
+  DRACO_RETURN_IF_ERROR(gpu_instancing->AddInstance(instance_0));
+  DRACO_RETURN_IF_ERROR(gpu_instancing->AddInstance(instance_1));
+
+  // Assign the GPU instancing object to two mesh groups in two scene nodes.
+  scene->GetNode(draco::SceneNodeIndex(2))->SetInstanceArrayIndex(index);
+  scene->GetNode(draco::SceneNodeIndex(4))->SetInstanceArrayIndex(index);
+
+  return draco::OkStatus();
+}
+
 TEST(SceneTest, TestCopy) {
   // Test copying of scene data.
   auto src_scene =
       draco::ReadSceneFromTestFile("CesiumMilkTruck/glTF/CesiumMilkTruck.gltf");
   ASSERT_NE(src_scene, nullptr);
 
+  // Add GPU instancing to the scene for testing.
+  DRACO_ASSERT_OK(AddGpuInstancingToMilkTruck(src_scene.get()));
+  ASSERT_EQ(src_scene->NumInstanceArrays(), 1);
+  ASSERT_EQ(src_scene->NumNodes(), 5);
+  ASSERT_EQ(
+      src_scene->GetNode(draco::SceneNodeIndex(0))->GetInstanceArrayIndex(),
+      draco::kInvalidInstanceArrayIndex);
+  ASSERT_EQ(
+      src_scene->GetNode(draco::SceneNodeIndex(1))->GetInstanceArrayIndex(),
+      draco::kInvalidInstanceArrayIndex);
+  ASSERT_EQ(
+      src_scene->GetNode(draco::SceneNodeIndex(2))->GetInstanceArrayIndex(),
+      draco::InstanceArrayIndex(0));
+  ASSERT_EQ(
+      src_scene->GetNode(draco::SceneNodeIndex(3))->GetInstanceArrayIndex(),
+      draco::kInvalidInstanceArrayIndex);
+  ASSERT_EQ(
+      src_scene->GetNode(draco::SceneNodeIndex(4))->GetInstanceArrayIndex(),
+      draco::InstanceArrayIndex(0));
+
+  // Make a copy of the scene.
   draco::Scene dst_scene;
   dst_scene.Copy(*src_scene);
 
@@ -38,19 +89,26 @@ TEST(SceneTest, TestCopy) {
   ASSERT_EQ(src_scene->NumAnimations(), dst_scene.NumAnimations());
   ASSERT_EQ(src_scene->NumSkins(), dst_scene.NumSkins());
   ASSERT_EQ(src_scene->NumLights(), dst_scene.NumLights());
+  ASSERT_EQ(src_scene->NumInstanceArrays(), dst_scene.NumInstanceArrays());
 
   for (draco::MeshIndex i(0); i < src_scene->NumMeshes(); ++i) {
     draco::MeshAreEquivalent eq;
     ASSERT_TRUE(eq(src_scene->GetMesh(i), dst_scene.GetMesh(i)));
   }
   for (draco::MeshGroupIndex i(0); i < src_scene->NumMeshGroups(); ++i) {
-    ASSERT_EQ(src_scene->GetMeshGroup(i)->NumMeshIndices(),
-              dst_scene.GetMeshGroup(i)->NumMeshIndices());
-    for (int j = 0; j < src_scene->GetMeshGroup(i)->NumMeshIndices(); ++j) {
-      ASSERT_EQ(src_scene->GetMeshGroup(i)->GetMeshIndex(j),
-                dst_scene.GetMeshGroup(i)->GetMeshIndex(j));
-      ASSERT_EQ(src_scene->GetMeshGroup(i)->GetMaterialIndex(j),
-                dst_scene.GetMeshGroup(i)->GetMaterialIndex(j));
+    ASSERT_EQ(src_scene->GetMeshGroup(i)->NumMeshInstances(),
+              dst_scene.GetMeshGroup(i)->NumMeshInstances());
+    for (int j = 0; j < src_scene->GetMeshGroup(i)->NumMeshInstances(); ++j) {
+      ASSERT_EQ(src_scene->GetMeshGroup(i)->GetMeshInstance(j).mesh_index,
+                dst_scene.GetMeshGroup(i)->GetMeshInstance(j).mesh_index);
+      ASSERT_EQ(src_scene->GetMeshGroup(i)->GetMeshInstance(j).material_index,
+                dst_scene.GetMeshGroup(i)->GetMeshInstance(j).material_index);
+      ASSERT_EQ(src_scene->GetMeshGroup(i)
+                    ->GetMeshInstance(j)
+                    .materials_variants_mappings.size(),
+                dst_scene.GetMeshGroup(i)
+                    ->GetMeshInstance(j)
+                    .materials_variants_mappings.size());
     }
   }
   for (draco::SceneNodeIndex i(0); i < src_scene->NumNodes(); ++i) {
@@ -72,6 +130,8 @@ TEST(SceneTest, TestCopy) {
               dst_scene.GetNode(i)->GetSkinIndex());
     ASSERT_EQ(src_scene->GetNode(i)->GetLightIndex(),
               dst_scene.GetNode(i)->GetLightIndex());
+    ASSERT_EQ(src_scene->GetNode(i)->GetInstanceArrayIndex(),
+              dst_scene.GetNode(i)->GetInstanceArrayIndex());
   }
 }
 
@@ -162,8 +222,8 @@ void CheckMeshMaterials(const draco::Scene &scene,
   std::vector<int> scene_material_indices;
   for (draco::MeshGroupIndex i(0); i < scene.NumMeshGroups(); i++) {
     const auto mg = scene.GetMeshGroup(i);
-    for (int mi = 0; mi < mg->NumMaterialIndices(); ++mi) {
-      scene_material_indices.push_back(mg->GetMaterialIndex(mi));
+    for (int mi = 0; mi < mg->NumMeshInstances(); ++mi) {
+      scene_material_indices.push_back(mg->GetMeshInstance(mi).material_index);
     }
   }
   ASSERT_EQ(scene_material_indices, expected_material_indices);

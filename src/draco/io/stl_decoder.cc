@@ -14,6 +14,8 @@
 //
 #include "draco/io/stl_decoder.h"
 
+#include <string>
+
 #include "draco/core/macros.h"
 #include "draco/core/status.h"
 #include "draco/core/status_or.h"
@@ -35,7 +37,7 @@ StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromFile(
 
 StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromBuffer(
     DecoderBuffer *buffer) {
-  if (!strncmp(buffer->data_head() , "solid ", 6)) {
+  if (!strncmp(buffer->data_head(), "solid ", 6)) {
     return Status(Status::IO_ERROR,
                   "Currently only binary STL files are supported.");
   }
@@ -46,10 +48,10 @@ StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromBuffer(
   TriangleSoupMeshBuilder builder;
   builder.Start(face_count);
 
-  const int32_t pos_att_id = builder.AddAttribute(GeometryAttribute::POSITION,
-                                                  3, DT_FLOAT32);
-  const int32_t norm_att_id = builder.AddAttribute(GeometryAttribute::NORMAL,
-                                                  3, DT_FLOAT32);
+  const int32_t pos_att_id =
+      builder.AddAttribute(GeometryAttribute::POSITION, 3, DT_FLOAT32);
+  const int32_t norm_att_id =
+      builder.AddAttribute(GeometryAttribute::NORMAL, 3, DT_FLOAT32);
 
   for (uint32_t i = 0; i < face_count; i++) {
     float data[48];
@@ -57,14 +59,15 @@ StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromBuffer(
     uint16_t unused;
     buffer->Decode(&unused, 2);
 
-    builder.SetPerFaceAttributeValueForFace(norm_att_id, draco::FaceIndex(i),
+    builder.SetPerFaceAttributeValueForFace(
+        norm_att_id, draco::FaceIndex(i),
         draco::Vector3f(data[0], data[1], data[2]).data());
 
-    builder.SetAttributeValuesForFace(pos_att_id, draco::FaceIndex(i),
+    builder.SetAttributeValuesForFace(
+        pos_att_id, draco::FaceIndex(i),
         draco::Vector3f(data[3], data[4], data[5]).data(),
         draco::Vector3f(data[6], data[7], data[8]).data(),
         draco::Vector3f(data[9], data[10], data[11]).data());
-  
   }
 
   std::unique_ptr<Mesh> mesh = builder.Finalize();

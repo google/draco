@@ -25,140 +25,170 @@ namespace {
 using draco::MeshGroup;
 using draco::MeshIndex;
 
-TEST(MeshGroupTest, TestRemoveMeshIndexWithNoOccurrences) {
-  // Test that no meshes are removed from mesh group when removing a mesh that
-  // is not in the mesh group.
+// Test helper method generates materials variants mappings based on a |seed|.
+std::vector<MeshGroup::MaterialsVariantsMapping> MakeMappings(int seed) {
+  MeshGroup::MaterialsVariantsMapping a(10 * seed + 0, {seed + 0, seed + 1});
+  MeshGroup::MaterialsVariantsMapping b(10 * seed + 1, {seed + 2, seed + 3});
+  return {a, b};
+}
+
+TEST(MeshGroupTest, TestMeshInstanceTwoArgumentConstructor) {
+  MeshGroup::MeshInstance instance(MeshIndex(2), 3);
+  ASSERT_EQ(instance.mesh_index, MeshIndex(2));
+  ASSERT_EQ(instance.material_index, 3);
+  ASSERT_EQ(instance.materials_variants_mappings.size(), 0);
+}
+
+TEST(MeshGroupTest, TestMeshInstanceThreeArgumentConstructor) {
+  const auto mappings = MakeMappings(4);
+  MeshGroup::MeshInstance instance(MeshIndex(2), 3, mappings);
+  ASSERT_EQ(instance.mesh_index, MeshIndex(2));
+  ASSERT_EQ(instance.material_index, 3);
+  ASSERT_EQ(instance.materials_variants_mappings, mappings);
+}
+
+TEST(MeshGroupTest, TestMeshInstanceEqualsOperator) {
+  MeshGroup::MeshInstance instance_a(MeshIndex(2), 3, MakeMappings(4));
+  MeshGroup::MeshInstance instance_b(MeshIndex(2), 3, MakeMappings(4));
+  ASSERT_TRUE(instance_a == instance_b);
+  ASSERT_FALSE(instance_a != instance_b);
+
+  MeshGroup::MeshInstance instance_c(MeshIndex(1), 3, MakeMappings(4));
+  MeshGroup::MeshInstance instance_d(MeshIndex(2), 1, MakeMappings(4));
+  MeshGroup::MeshInstance instance_e(MeshIndex(2), 3, MakeMappings(1));
+  ASSERT_FALSE(instance_a == instance_c);
+  ASSERT_FALSE(instance_a == instance_d);
+  ASSERT_FALSE(instance_a == instance_e);
+  ASSERT_TRUE(instance_a != instance_c);
+  ASSERT_TRUE(instance_a != instance_d);
+  ASSERT_TRUE(instance_a != instance_e);
+}
+
+TEST(MeshGroupTest, TestRemoveMeshInstanceWithNoOccurrences) {
+  // Test that no mesh instances are removed from mesh group when removing the
+  // instances by the base mesh index that is not in the mesh group.
 
   // Create test mesh group.
   MeshGroup mesh_group;
-  mesh_group.AddMeshIndex(MeshIndex(1));
-  mesh_group.AddMeshIndex(MeshIndex(3));
+  mesh_group.AddMeshInstance({MeshIndex(1), 0, {}});
+  mesh_group.AddMeshInstance({MeshIndex(3), 0, {}});
 
   // Try to remove mesh that is not in the mesh group.
-  mesh_group.RemoveMeshIndex(MeshIndex(2));
+  mesh_group.RemoveMeshInstances(MeshIndex(2));
 
   // Check result.
-  ASSERT_EQ(mesh_group.NumMeshIndices(), 2);
-  ASSERT_EQ(mesh_group.GetMeshIndex(0), MeshIndex(1));
-  ASSERT_EQ(mesh_group.GetMeshIndex(1), MeshIndex(3));
-  ASSERT_EQ(mesh_group.NumMaterialIndices(), 0);
+  ASSERT_EQ(mesh_group.NumMeshInstances(), 2);
+  ASSERT_EQ(mesh_group.GetMeshInstance(0).mesh_index, MeshIndex(1));
+  ASSERT_EQ(mesh_group.GetMeshInstance(1).mesh_index, MeshIndex(3));
 }
 
-TEST(MeshGroupTest, TestRemoveMeshIndexWithSingleEnrtyWithMaterial) {
-  // Test the only mesh can be removed from mesh group.
+TEST(MeshGroupTest, TestRemoveTheOnlyMeshInstance) {
+  // Test that the only mesh instance can be removed from mesh group.
 
   // Create test mesh group.
   MeshGroup mesh_group;
-  mesh_group.AddMeshIndex(MeshIndex(7));
-  mesh_group.AddMaterialIndex(70);
+  MeshGroup::MaterialsVariantsMapping mapping(70, {0, 1});
+  mesh_group.AddMeshInstance({MeshIndex(7), 70, {mapping}});
 
-  // Remove a mesh.
-  mesh_group.RemoveMeshIndex(MeshIndex(7));
+  // Remove a mesh instance.
+  mesh_group.RemoveMeshInstances(MeshIndex(7));
 
   // Check result.
-  ASSERT_EQ(mesh_group.NumMeshIndices(), 0);
-  ASSERT_EQ(mesh_group.NumMaterialIndices(), 0);
+  ASSERT_EQ(mesh_group.NumMeshInstances(), 0);
 }
 
-TEST(MeshGroupTest, TestRemoveMeshIndexWithOneOccurrence) {
-  // Test a mesh can be removed from mesh group.
+TEST(MeshGroupTest, TestRemoveOneMeshInstances) {
+  // Test a mesh instance can be removed from mesh group.
 
   // Create test mesh group.
   MeshGroup mesh_group;
-  mesh_group.AddMeshIndex(MeshIndex(1));
-  mesh_group.AddMeshIndex(MeshIndex(3));
-  mesh_group.AddMeshIndex(MeshIndex(5));
-  mesh_group.AddMeshIndex(MeshIndex(7));
+  mesh_group.AddMeshInstance({MeshIndex(1), 0, {}});
+  mesh_group.AddMeshInstance({MeshIndex(3), 0, {}});
+  mesh_group.AddMeshInstance({MeshIndex(5), 0, {}});
+  mesh_group.AddMeshInstance({MeshIndex(7), 0, {}});
 
   // Remove a mesh.
-  mesh_group.RemoveMeshIndex(MeshIndex(3));
+  mesh_group.RemoveMeshInstances(MeshIndex(3));
 
   // Check result.
-  ASSERT_EQ(mesh_group.NumMeshIndices(), 3);
-  ASSERT_EQ(mesh_group.GetMeshIndex(0), MeshIndex(1));
-  ASSERT_EQ(mesh_group.GetMeshIndex(1), MeshIndex(5));
-  ASSERT_EQ(mesh_group.GetMeshIndex(2), MeshIndex(7));
-  ASSERT_EQ(mesh_group.NumMaterialIndices(), 0);
+  ASSERT_EQ(mesh_group.NumMeshInstances(), 3);
+  ASSERT_EQ(mesh_group.GetMeshInstance(0).mesh_index, MeshIndex(1));
+  ASSERT_EQ(mesh_group.GetMeshInstance(1).mesh_index, MeshIndex(5));
+  ASSERT_EQ(mesh_group.GetMeshInstance(2).mesh_index, MeshIndex(7));
 }
 
-TEST(MeshGroupTest, TestRemoveMeshIndexWithThreeOccurrencesWithMaterials) {
-  // Test that multiple meshes can be removed from a mesh group.
+TEST(MeshGroupTest, TestRemoveThreeMeshInstances) {
+  // Test that multiple mesh instances can be removed from a mesh group.
 
   // Create test mesh group.
   MeshGroup mesh_group;
-  mesh_group.AddMeshIndex(MeshIndex(1));
-  mesh_group.AddMeshIndex(MeshIndex(3));
-  mesh_group.AddMeshIndex(MeshIndex(5));
-  mesh_group.AddMeshIndex(MeshIndex(1));
-  mesh_group.AddMeshIndex(MeshIndex(7));
-  mesh_group.AddMeshIndex(MeshIndex(1));
-  mesh_group.AddMaterialIndex(10);
-  mesh_group.AddMaterialIndex(30);
-  mesh_group.AddMaterialIndex(50);
-  mesh_group.AddMaterialIndex(10);
-  mesh_group.AddMaterialIndex(70);
-  mesh_group.AddMaterialIndex(10);
+  mesh_group.AddMeshInstance({MeshIndex(1), 10, MakeMappings(1)});
+  mesh_group.AddMeshInstance({MeshIndex(3), 30, MakeMappings(3)});
+  mesh_group.AddMeshInstance({MeshIndex(5), 50, MakeMappings(5)});
+  mesh_group.AddMeshInstance({MeshIndex(1), 10, MakeMappings(1)});
+  mesh_group.AddMeshInstance({MeshIndex(7), 70, MakeMappings(7)});
+  mesh_group.AddMeshInstance({MeshIndex(1), 10, MakeMappings(1)});
 
-  // Remove a mesh.
-  mesh_group.RemoveMeshIndex(MeshIndex(1));
+  // Remove mesh instances.
+  mesh_group.RemoveMeshInstances(MeshIndex(1));
 
   // Check result.
-  ASSERT_EQ(mesh_group.NumMeshIndices(), 3);
-  ASSERT_EQ(mesh_group.GetMeshIndex(0), MeshIndex(3));
-  ASSERT_EQ(mesh_group.GetMeshIndex(1), MeshIndex(5));
-  ASSERT_EQ(mesh_group.GetMeshIndex(2), MeshIndex(7));
-  ASSERT_EQ(mesh_group.NumMaterialIndices(), 3);
-  ASSERT_EQ(mesh_group.GetMaterialIndex(0), 30);
-  ASSERT_EQ(mesh_group.GetMaterialIndex(1), 50);
-  ASSERT_EQ(mesh_group.GetMaterialIndex(2), 70);
+  ASSERT_EQ(mesh_group.NumMeshInstances(), 3);
+  const MeshGroup::MeshInstance mi0 = mesh_group.GetMeshInstance(0);
+  const MeshGroup::MeshInstance mi1 = mesh_group.GetMeshInstance(1);
+  const MeshGroup::MeshInstance mi2 = mesh_group.GetMeshInstance(2);
+  ASSERT_EQ(mi0.mesh_index, MeshIndex(3));
+  ASSERT_EQ(mi1.mesh_index, MeshIndex(5));
+  ASSERT_EQ(mi2.mesh_index, MeshIndex(7));
+  ASSERT_EQ(mi0.material_index, 30);
+  ASSERT_EQ(mi1.material_index, 50);
+  ASSERT_EQ(mi2.material_index, 70);
+  ASSERT_EQ(mi0.materials_variants_mappings, MakeMappings(3));
+  ASSERT_EQ(mi1.materials_variants_mappings, MakeMappings(5));
+  ASSERT_EQ(mi2.materials_variants_mappings, MakeMappings(7));
 }
 
 TEST(MeshGroupTest, TestCopy) {
+  // Tests that a mesh group can be copied.
+
   // Create test mesh group.
   MeshGroup mesh_group;
   mesh_group.SetName("Mesh-1-3-5-7");
-  mesh_group.AddMeshIndex(MeshIndex(1));
-  mesh_group.AddMeshIndex(MeshIndex(3));
-  mesh_group.AddMeshIndex(MeshIndex(5));
-  mesh_group.AddMeshIndex(MeshIndex(7));
-  mesh_group.AddMaterialIndex(10);
-  mesh_group.AddMaterialIndex(30);
-  mesh_group.AddMaterialIndex(50);
-  mesh_group.AddMaterialIndex(70);
+  mesh_group.AddMeshInstance({MeshIndex(1), 10, MakeMappings(1)});
+  mesh_group.AddMeshInstance({MeshIndex(3), 30, MakeMappings(3)});
+  mesh_group.AddMeshInstance({MeshIndex(5), 50, MakeMappings(5)});
+  mesh_group.AddMeshInstance({MeshIndex(7), 70, MakeMappings(7)});
 
   // Verify source MeshGroup.
   ASSERT_EQ(mesh_group.GetName(), "Mesh-1-3-5-7");
-  ASSERT_EQ(mesh_group.NumMeshIndices(), 4);
-  ASSERT_EQ(mesh_group.GetMeshIndex(0), MeshIndex(1));
-  ASSERT_EQ(mesh_group.GetMeshIndex(1), MeshIndex(3));
-  ASSERT_EQ(mesh_group.GetMeshIndex(2), MeshIndex(5));
-  ASSERT_EQ(mesh_group.GetMeshIndex(3), MeshIndex(7));
-  ASSERT_EQ(mesh_group.NumMaterialIndices(), 4);
-  ASSERT_EQ(mesh_group.GetMaterialIndex(0), 10);
-  ASSERT_EQ(mesh_group.GetMaterialIndex(1), 30);
-  ASSERT_EQ(mesh_group.GetMaterialIndex(2), 50);
-  ASSERT_EQ(mesh_group.GetMaterialIndex(3), 70);
+  ASSERT_EQ(mesh_group.NumMeshInstances(), 4);
+  const MeshGroup::MeshInstance mi0 = mesh_group.GetMeshInstance(0);
+  const MeshGroup::MeshInstance mi1 = mesh_group.GetMeshInstance(1);
+  const MeshGroup::MeshInstance mi2 = mesh_group.GetMeshInstance(2);
+  const MeshGroup::MeshInstance mi3 = mesh_group.GetMeshInstance(3);
+  ASSERT_EQ(mi0.mesh_index, MeshIndex(1));
+  ASSERT_EQ(mi1.mesh_index, MeshIndex(3));
+  ASSERT_EQ(mi2.mesh_index, MeshIndex(5));
+  ASSERT_EQ(mi3.mesh_index, MeshIndex(7));
+  ASSERT_EQ(mi0.material_index, 10);
+  ASSERT_EQ(mi1.material_index, 30);
+  ASSERT_EQ(mi2.material_index, 50);
+  ASSERT_EQ(mi3.material_index, 70);
+  ASSERT_EQ(mi0.materials_variants_mappings, MakeMappings(1));
+  ASSERT_EQ(mi1.materials_variants_mappings, MakeMappings(3));
+  ASSERT_EQ(mi2.materials_variants_mappings, MakeMappings(5));
+  ASSERT_EQ(mi3.materials_variants_mappings, MakeMappings(7));
 
-  MeshGroup copy_mesh_group;
-  copy_mesh_group.Copy(mesh_group);
+  MeshGroup copy;
+  copy.Copy(mesh_group);
 
-  // Verify Copy worked.
-  ASSERT_EQ(mesh_group.GetName(), copy_mesh_group.GetName());
-  ASSERT_EQ(mesh_group.NumMeshIndices(), copy_mesh_group.NumMeshIndices());
-  ASSERT_EQ(mesh_group.GetMeshIndex(0), copy_mesh_group.GetMeshIndex(0));
-  ASSERT_EQ(mesh_group.GetMeshIndex(1), copy_mesh_group.GetMeshIndex(1));
-  ASSERT_EQ(mesh_group.GetMeshIndex(2), copy_mesh_group.GetMeshIndex(2));
-  ASSERT_EQ(mesh_group.GetMeshIndex(3), copy_mesh_group.GetMeshIndex(3));
-  ASSERT_EQ(mesh_group.NumMaterialIndices(),
-            copy_mesh_group.NumMaterialIndices());
-  ASSERT_EQ(mesh_group.GetMaterialIndex(0),
-            copy_mesh_group.GetMaterialIndex(0));
-  ASSERT_EQ(mesh_group.GetMaterialIndex(1),
-            copy_mesh_group.GetMaterialIndex(1));
-  ASSERT_EQ(mesh_group.GetMaterialIndex(2),
-            copy_mesh_group.GetMaterialIndex(2));
-  ASSERT_EQ(mesh_group.GetMaterialIndex(3),
-            copy_mesh_group.GetMaterialIndex(3));
+  // Verify that Copy worked.
+  ASSERT_EQ(mesh_group.GetName(), copy.GetName());
+  ASSERT_EQ(mesh_group.NumMeshInstances(), copy.NumMeshInstances());
+  ASSERT_EQ(mesh_group.GetMeshInstance(0), copy.GetMeshInstance(0));
+  ASSERT_EQ(mesh_group.GetMeshInstance(1), copy.GetMeshInstance(1));
+  ASSERT_EQ(mesh_group.GetMeshInstance(2), copy.GetMeshInstance(2));
+  ASSERT_EQ(mesh_group.GetMeshInstance(3), copy.GetMeshInstance(3));
 }
 
 #endif  // DRACO_TRANSCODER_SUPPORTED

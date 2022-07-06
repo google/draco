@@ -21,6 +21,9 @@
 #include <utility>
 #include <vector>
 
+#include "draco/material/material_library.h"
+#include "draco/scene/mesh_group.h"
+
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/core/constants.h"
 #include "draco/core/draco_test_base.h"
@@ -227,8 +230,9 @@ TEST(GltfDecoderTest, AnimatedBonesGltf) {
 
   ASSERT_EQ(scene->NumMeshes(), 1);
   ASSERT_EQ(scene->NumMeshGroups(), 1);
-  ASSERT_EQ(scene->GetMeshGroup(MeshGroupIndex(0))->NumMaterialIndices(), 1);
-  ASSERT_EQ(scene->GetMeshGroup(MeshGroupIndex(0))->GetMaterialIndex(0), 0);
+  const MeshGroup &mesh_group = *scene->GetMeshGroup(MeshGroupIndex(0));
+  ASSERT_EQ(mesh_group.NumMeshInstances(), 1);
+  ASSERT_EQ(mesh_group.GetMeshInstance(0).material_index, 0);
   ASSERT_EQ(scene->NumNodes(), 22);
   ASSERT_EQ(scene->NumRootNodes(), 1);
   ASSERT_EQ(scene->GetMaterialLibrary().NumMaterials(), 1);
@@ -254,8 +258,9 @@ TEST(GltfDecoderTest, AnimatedBonesGlb) {
   const std::unique_ptr<Scene> scene(DecodeGltfFileToScene(file_name));
   ASSERT_EQ(scene->NumMeshes(), 1);
   ASSERT_EQ(scene->NumMeshGroups(), 1);
-  ASSERT_EQ(scene->GetMeshGroup(MeshGroupIndex(0))->NumMaterialIndices(), 1);
-  ASSERT_EQ(scene->GetMeshGroup(MeshGroupIndex(0))->GetMaterialIndex(0), 0);
+  const MeshGroup &mesh_group = *scene->GetMeshGroup(MeshGroupIndex(0));
+  ASSERT_EQ(mesh_group.NumMeshInstances(), 1);
+  ASSERT_EQ(mesh_group.GetMeshInstance(0).material_index, 0);
   ASSERT_EQ(scene->NumNodes(), 22);
   ASSERT_EQ(scene->NumRootNodes(), 1);
   ASSERT_EQ(scene->GetMaterialLibrary().NumMaterials(), 1);
@@ -385,8 +390,9 @@ TEST(GltfDecoderTest, SimpleScene) {
 
   ASSERT_EQ(scene->NumMeshes(), 1);
   ASSERT_EQ(scene->NumMeshGroups(), 1);
-  ASSERT_EQ(scene->GetMeshGroup(MeshGroupIndex(0))->NumMaterialIndices(), 1);
-  ASSERT_EQ(scene->GetMeshGroup(MeshGroupIndex(0))->GetMaterialIndex(0), 0);
+  const MeshGroup &mesh_group = *scene->GetMeshGroup(MeshGroupIndex(0));
+  ASSERT_EQ(mesh_group.NumMeshInstances(), 1);
+  ASSERT_EQ(mesh_group.GetMeshInstance(0).material_index, 0);
   ASSERT_EQ(scene->NumNodes(), 2);
   ASSERT_EQ(scene->NumRootNodes(), 1);
   ASSERT_EQ(scene->GetMaterialLibrary().NumMaterials(), 1);
@@ -444,8 +450,9 @@ TEST(GltfDecoderTest, SimpleTriangleScene) {
 
   EXPECT_EQ(scene->NumMeshes(), 1);
   EXPECT_EQ(scene->NumMeshGroups(), 1);
-  ASSERT_EQ(scene->GetMeshGroup(MeshGroupIndex(0))->NumMaterialIndices(), 1);
-  ASSERT_EQ(scene->GetMeshGroup(MeshGroupIndex(0))->GetMaterialIndex(0), 0);
+  const MeshGroup &mesh_group = *scene->GetMeshGroup(MeshGroupIndex(0));
+  ASSERT_EQ(mesh_group.NumMeshInstances(), 1);
+  ASSERT_EQ(mesh_group.GetMeshInstance(0).material_index, 0);
   EXPECT_EQ(scene->NumNodes(), 1);
   EXPECT_EQ(scene->NumRootNodes(), 1);
   EXPECT_EQ(scene->GetMaterialLibrary().NumMaterials(), 1);
@@ -745,8 +752,9 @@ TEST(GltfDecoderTest, GlbTextureSource) {
   const std::unique_ptr<Scene> scene(DecodeGltfFileToScene(file_name));
   EXPECT_EQ(scene->NumMeshes(), 1);
   EXPECT_EQ(scene->NumMeshGroups(), 1);
-  ASSERT_EQ(scene->GetMeshGroup(MeshGroupIndex(0))->NumMaterialIndices(), 1);
-  ASSERT_EQ(scene->GetMeshGroup(MeshGroupIndex(0))->GetMaterialIndex(0), 0);
+  const MeshGroup &mesh_group = *scene->GetMeshGroup(MeshGroupIndex(0));
+  ASSERT_EQ(mesh_group.NumMeshInstances(), 1);
+  ASSERT_EQ(mesh_group.GetMeshInstance(0).material_index, 0);
   EXPECT_EQ(scene->NumNodes(), 3);
   EXPECT_EQ(scene->NumRootNodes(), 1);
   EXPECT_EQ(scene->GetMaterialLibrary().NumMaterials(), 1);
@@ -768,8 +776,9 @@ TEST(GltfDecoderTest, GltfTextureSource) {
   const std::unique_ptr<Scene> scene(DecodeGltfFileToScene(file_name));
   EXPECT_EQ(scene->NumMeshes(), 1);
   EXPECT_EQ(scene->NumMeshGroups(), 1);
-  ASSERT_EQ(scene->GetMeshGroup(MeshGroupIndex(0))->NumMaterialIndices(), 1);
-  ASSERT_EQ(scene->GetMeshGroup(MeshGroupIndex(0))->GetMaterialIndex(0), 0);
+  const MeshGroup &mesh_group = *scene->GetMeshGroup(MeshGroupIndex(0));
+  ASSERT_EQ(mesh_group.NumMeshInstances(), 1);
+  ASSERT_EQ(mesh_group.GetMeshInstance(0).material_index, 0);
   EXPECT_EQ(scene->NumNodes(), 3);
   EXPECT_EQ(scene->NumRootNodes(), 1);
   EXPECT_EQ(scene->GetMaterialLibrary().NumMaterials(), 1);
@@ -852,7 +861,7 @@ TEST(GltfDecoderTest, SimpleSkin) {
   // Check scene size.
   ASSERT_EQ(scene->NumMeshes(), 1);
   ASSERT_EQ(scene->NumMeshGroups(), 1);
-  ASSERT_EQ(scene->GetMeshGroup(draco::MeshGroupIndex(0))->NumMaterialIndices(),
+  ASSERT_EQ(scene->GetMeshGroup(draco::MeshGroupIndex(0))->NumMeshInstances(),
             1);
   ASSERT_EQ(scene->NumNodes(), 3);
   ASSERT_EQ(scene->NumRootNodes(), 1);
@@ -1184,6 +1193,44 @@ TEST(GltfDecoderTest, DecodeLightsIntoScene) {
   ASSERT_EQ(scene->GetNode(SceneNodeIndex(2))->GetLightIndex(), LightIndex(2));
   ASSERT_EQ(scene->GetNode(SceneNodeIndex(3))->GetLightIndex(), LightIndex(3));
   ASSERT_EQ(scene->GetNode(SceneNodeIndex(4))->GetLightIndex(), LightIndex(1));
+}
+
+TEST(GltfDecoderTest, MaterialsVariants) {
+  // Checks that a model with KHR_materials_variants extension can be decoded.
+  draco::GltfDecoder decoder;
+  DRACO_ASSIGN_OR_ASSERT(auto scene,
+                         decoder.DecodeFromFileToScene(GetTestFileFullPath(
+                             "KhronosSampleModels/DragonAttenuation/glTF/"
+                             "DragonAttenuation.gltf")));
+  ASSERT_NE(scene, nullptr);
+  const draco::MaterialLibrary &library = scene->GetMaterialLibrary();
+  ASSERT_EQ(library.NumMaterialsVariants(), 2);
+  ASSERT_EQ(library.GetMaterialsVariantName(0), "Attenuation");
+  ASSERT_EQ(library.GetMaterialsVariantName(1), "Surface Color");
+
+  // Check that the cloth mesh has no material variants.
+  const draco::MeshGroup &cloth_group =
+      *scene->GetMeshGroup(draco::MeshGroupIndex(0));
+  ASSERT_EQ(cloth_group.GetName(), "Cloth Backdrop");
+  ASSERT_EQ(cloth_group.NumMeshInstances(), 1);
+  const auto &cloth_mappings =
+      cloth_group.GetMeshInstance(0).materials_variants_mappings;
+  ASSERT_EQ(cloth_mappings.size(), 0);
+
+  // Check that the dragon has correct materials variants.
+  const draco::MeshGroup &dragon_group =
+      *scene->GetMeshGroup(draco::MeshGroupIndex(1));
+  ASSERT_EQ(dragon_group.GetName(), "Dragon");
+  ASSERT_EQ(dragon_group.NumMeshInstances(), 1);
+  const auto &dragon_mappings =
+      dragon_group.GetMeshInstance(0).materials_variants_mappings;
+  ASSERT_EQ(dragon_mappings.size(), 2);
+  ASSERT_EQ(dragon_mappings[0].material, 1);
+  ASSERT_EQ(dragon_mappings[1].material, 2);
+  ASSERT_EQ(dragon_mappings[0].variants.size(), 1);
+  ASSERT_EQ(dragon_mappings[1].variants.size(), 1);
+  ASSERT_EQ(dragon_mappings[0].variants[0], 0);
+  ASSERT_EQ(dragon_mappings[1].variants[0], 1);
 }
 
 }  // namespace draco

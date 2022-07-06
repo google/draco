@@ -15,7 +15,10 @@
 #ifndef DRACO_IO_STL_ENCODER_H_
 #define DRACO_IO_STL_ENCODER_H_
 
+#include <string>
+
 #include "draco/core/encoder_buffer.h"
+#include "draco/draco_features.h"
 #include "draco/mesh/mesh.h"
 
 namespace draco {
@@ -38,7 +41,6 @@ class StlEncoder {
   EncoderBuffer *buffer() const { return out_buffer_; }
 
  private:
-  
   EncoderBuffer *out_buffer_;
 
   const PointCloud *in_point_cloud_;

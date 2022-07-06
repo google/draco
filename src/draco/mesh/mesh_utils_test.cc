@@ -140,8 +140,9 @@ TEST(MeshUtilsTest, CountDegenerateValuesLantern) {
         scene->GetMeshGroup(draco::MeshGroupIndex(mgi));
     ASSERT_NE(mesh_group, nullptr);
 
-    for (int mi = 0; mi < mesh_group->NumMeshIndices(); ++mi) {
-      const draco::MeshIndex mesh_index = mesh_group->GetMeshIndex(mi);
+    for (int mi = 0; mi < mesh_group->NumMeshInstances(); ++mi) {
+      const draco::MeshIndex mesh_index =
+          mesh_group->GetMeshInstance(mi).mesh_index;
       const draco::Mesh &m = scene->GetMesh(mesh_index);
 
       for (int i = 0; i < m.num_attributes(); ++i) {

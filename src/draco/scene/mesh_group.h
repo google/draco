@@ -18,6 +18,7 @@
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <string>
 #include <vector>
 
 #include "draco/core/macros.h"
@@ -25,63 +26,110 @@
 
 namespace draco {
 
-// This class is used to hold ordered indices to one or more meshes and
-// materials.
+// This class is used to hold ordered mesh instances that refer to one or more
+// base meshes, materials, and materials variants mappings.
 class MeshGroup {
  public:
+  // Stores a mapping from material index to materials variant indices. Each
+  // mesh instance may have multiple such mappings associated with it. See glTF
+  // extension KHR_materials_variants for more details.
+  struct MaterialsVariantsMapping {
+    MaterialsVariantsMapping() = delete;
+    MaterialsVariantsMapping(int material, const std::vector<int> &variants)
+        : material(material), variants(variants) {}
+    bool operator==(const MaterialsVariantsMapping &other) const {
+      if (material != other.material) {
+        return false;
+      }
+      if (variants != other.variants) {
+        return false;
+      }
+      return true;
+    }
+    bool operator!=(const MaterialsVariantsMapping &other) const {
+      return !(*this == other);
+    }
+    int material;
+    std::vector<int> variants;
+  };
+
+  // Describes mesh instance stored in a mesh group, including base mesh index,
+  // material index, and materials variants mappings.
+  struct MeshInstance {
+    MeshInstance() = delete;
+    MeshInstance(MeshIndex mesh_index, int material_index)
+        : MeshInstance(mesh_index, material_index, {}) {}
+    MeshInstance(MeshIndex mesh_index, int material_index,
+                 const std::vector<MaterialsVariantsMapping>
+                     &materials_variants_mappings)
+        : mesh_index(mesh_index),
+          material_index(material_index),
+          materials_variants_mappings(materials_variants_mappings) {}
+    bool operator==(const MeshInstance &other) const {
+      if (mesh_index != other.mesh_index) {
+        return false;
+      }
+      if (material_index != other.material_index) {
+        return false;
+      }
+      if (materials_variants_mappings.size() !=
+          other.materials_variants_mappings.size()) {
+        return false;
+      }
+      if (materials_variants_mappings != other.materials_variants_mappings) {
+        return false;
+      }
+      return true;
+    }
+    bool operator!=(const MeshInstance &other) const {
+      return !(*this == other);
+    }
+    MeshIndex mesh_index;
+    int material_index;
+    std::vector<MaterialsVariantsMapping> materials_variants_mappings;
+  };
+
   MeshGroup() {}
 
   void Copy(const MeshGroup &mg) {
     name_ = mg.name_;
-    mesh_indices_ = mg.mesh_indices_;
-    material_indices_ = mg.material_indices_;
+    mesh_instances_ = mg.mesh_instances_;
   }
 
   const std::string &GetName() const { return name_; }
   void SetName(const std::string &name) { name_ = name; }
 
-  // Add an index to the end.
-  void AddMeshIndex(MeshIndex index) { mesh_indices_.push_back(index); }
-  void SetMeshIndex(int index, MeshIndex mi) { mesh_indices_[index] = mi; }
+  void AddMeshInstance(const MeshInstance &instance) {
+    mesh_instances_.push_back(instance);
+  }
 
-  // Returns the mesh index at |index|.
-  MeshIndex GetMeshIndex(int index) const { return mesh_indices_[index]; }
+  void SetMeshInstance(int index, const MeshInstance &instance) {
+    mesh_instances_[index] = instance;
+  }
 
-  // Returns the number of indices.
-  int NumMeshIndices() const { return mesh_indices_.size(); }
+  const MeshInstance &GetMeshInstance(int index) const {
+    return mesh_instances_[index];
+  }
 
-  // Removes all occurrences of |mesh_index| from |mesh_indices_| as well as
-  // corresponding material indices from |material_indices_|.
-  void RemoveMeshIndex(MeshIndex mesh_index) {
-    DRACO_DCHECK(material_indices_.empty() ||
-                 material_indices_.size() == mesh_indices_.size());
+  MeshInstance &GetMeshInstance(int index) { return mesh_instances_[index]; }
+
+  int NumMeshInstances() const { return mesh_instances_.size(); }
+
+  // Removes all mesh instances referring to base mesh at |mesh_index|.
+  void RemoveMeshInstances(MeshIndex mesh_index) {
     int i = 0;
-    while (i != mesh_indices_.size()) {
-      if (mesh_indices_[i] == mesh_index) {
-        mesh_indices_.erase(mesh_indices_.begin() + i);
-        if (!material_indices_.empty()) {
-          material_indices_.erase(material_indices_.begin() + i);
-        }
+    while (i != mesh_instances_.size()) {
+      if (mesh_instances_[i].mesh_index == mesh_index) {
+        mesh_instances_.erase(mesh_instances_.begin() + i);
       } else {
         i++;
       }
     }
   }
 
-  // Add an index to the end.
-  void AddMaterialIndex(int index) { material_indices_.push_back(index); }
-
-  // Returns the material index at |index|.
-  int GetMaterialIndex(int index) const { return material_indices_[index]; }
-  void SetMaterialIndex(int index, int mi) { material_indices_[index] = mi; }
-
-  // Returns the number of indices.
-  int NumMaterialIndices() const { return material_indices_.size(); }
-
  private:
   std::string name_;
-  std::vector<MeshIndex> mesh_indices_;
-  std::vector<int> material_indices_;
+  std::vector<MeshInstance> mesh_instances_;
 };
 
 }  // namespace draco

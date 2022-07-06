@@ -894,6 +894,11 @@ int MeshEdgebreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
     VertexCornersIterator<CornerTable> vcit(corner_table_.get(), src_vert);
     for (; !vcit.End(); ++vcit) {
       const CornerIndex cid = vcit.Corner();
+      if (corner_table_->Vertex(cid) != src_vert) {
+        // Vertex mapped to |cid| was not |src_vert|. This indicates corrupted
+        // data and we should terminate the decoding.
+        return -1;
+      }
       corner_table_->MapCornerToVertex(cid, invalid_vert);
     }
     corner_table_->SetLeftMostCorner(invalid_vert,

@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
       return -1;
     }
   } else {
-    printf("Invalid extension of the output file. Use either .ply, .stl or .obj.\n");
+    printf("Invalid output file extension. Use .obj .ply or .stl.\n");
     return -1;
   }
   printf("Decoded geometry saved to %s (%" PRId64 " ms to decode)\n",

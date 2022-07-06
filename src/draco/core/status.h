@@ -45,6 +45,8 @@ class Status {
   Code code() const { return code_; }
   const std::string &error_msg_string() const { return error_msg_; }
   const char *error_msg() const { return error_msg_.c_str(); }
+  std::string code_string() const;
+  std::string code_and_error_string() const;
 
   bool operator==(Code code) const { return code == code_; }
   bool ok() const { return code_ == OK; }

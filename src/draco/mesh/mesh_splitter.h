@@ -20,6 +20,8 @@
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/core/status_or.h"
 #include "draco/mesh/mesh.h"
+#include "draco/mesh/mesh_connected_components.h"
+#include "draco/mesh/triangle_soup_mesh_builder.h"
 
 namespace draco {
 
@@ -45,7 +47,30 @@ class MeshSplitter {
   // the given value.
   StatusOr<MeshVector> SplitMesh(const Mesh &mesh, uint32_t split_attribute_id);
 
+  // Splits the input |mesh| into separate components defined in
+  // |connected_components|. That is, all faces associated with a given
+  // component index will be stored in the same mesh. The number of generated
+  // meshes will correspond to |connected_components.NumConnectedComponents()|.
+  StatusOr<MeshVector> SplitMeshToComponents(
+      const Mesh &mesh, const MeshConnectedComponents &connected_components);
+
  private:
+  struct WorkData {
+    // Map between attribute ids of the input and output meshes.
+    std::vector<int> att_id_map;
+    std::vector<int> num_sub_mesh_faces;
+    std::vector<TriangleSoupMeshBuilder> mesh_builders;
+  };
+
+  void InitializeMeshBuilder(int mb_index, int num_faces, const Mesh &mesh,
+                             int ignored_attribute_id,
+                             WorkData *work_data) const;
+  void AddFaceToMeshBuilder(int mb_index, FaceIndex source_fi,
+                            FaceIndex target_fi, const Mesh &mesh,
+                            WorkData *work_data) const;
+  StatusOr<MeshVector> FinalizeMeshes(const Mesh &mesh,
+                                      WorkData *work_data) const;
+
   bool preserve_materials_;
 };
 
