@@ -1489,54 +1489,6 @@ TEST_F(GltfEncoderTest, EncodeMaterialsVariants) {
   EncodeSceneToGltfAndCompare(scene.get());
 }
 
-// Tests encoding of Draco scene with second texture coordinate attribute in
-// glTF format. Some scene meshes have two texture coordinate attributes and
-// some meshes have only the second texture coordinate attribute.
-TEST_F(GltfEncoderTest, EncodeTwoTextureCoordinates) {
-  // Read scene from a test file.
-  std::unique_ptr<draco::Scene> scene = draco::ReadSceneFromTestFile(
-      "zero_one_encode_avrids_no_placeholder_preserve_textures.usda");
-
-  // Write scene to a temporary file in glTF format.
-  const std::string gltf_file_full_path =
-      draco::GetTestTempFileFullPath("test.gltf");
-  EncodeSceneToFile(*scene, gltf_file_full_path);
-
-  // Parse glTF JSON from a temporary file.
-  std::vector<char> buffer;
-  ASSERT_TRUE(ReadFileToBuffer(gltf_file_full_path, &buffer));
-  std::string str(buffer.data(), buffer.size());
-  Json::CharReaderBuilder builder;
-  std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
-  Json::Value root;
-  ASSERT_TRUE(reader->parse(buffer.data(), buffer.data() + buffer.size(), &root,
-                            nullptr));
-
-  // Check that the scene meshes have correct texture coordinate attributes.
-  const Json::Value meshes = root["meshes"];
-  EXPECT_TRUE(meshes.isArray());
-  EXPECT_EQ(meshes.size(), 3);
-  {
-    std::cout << root.toStyledString() << std::endl;
-    const Json::Value primitives = meshes[0]["primitives"];
-    const Json::Value attributes = primitives[0]["attributes"];
-    EXPECT_TRUE(attributes.isMember("TEXCOORD_0"));
-    EXPECT_TRUE(attributes.isMember("TEXCOORD_1"));
-  }
-  {
-    const Json::Value primitives = meshes[1]["primitives"];
-    const Json::Value attributes = primitives[0]["attributes"];
-    EXPECT_FALSE(attributes.isMember("TEXCOORD_0"));
-    EXPECT_TRUE(attributes.isMember("TEXCOORD_1"));
-  }
-  {
-    const Json::Value primitives = meshes[2]["primitives"];
-    const Json::Value attributes = primitives[0]["attributes"];
-    EXPECT_FALSE(attributes.isMember("TEXCOORD_0"));
-    EXPECT_TRUE(attributes.isMember("TEXCOORD_1"));
-  }
-}
-
 }  // namespace draco
 
 #endif  // DRACO_TRANSCODER_SUPPORTED
