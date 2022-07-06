@@ -19,6 +19,7 @@
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include <string>
+#include <vector>
 
 #include "draco/core/vector_d.h"
 #include "draco/scene/trs_matrix.h"
