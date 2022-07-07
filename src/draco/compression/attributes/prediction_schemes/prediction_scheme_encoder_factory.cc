@@ -33,7 +33,30 @@ PredictionSchemeMethod SelectPredictionMethod(
     const PointAttribute *const att = encoder->point_cloud()->attribute(att_id);
     if (att->attribute_type() == GeometryAttribute::TEX_COORD &&
         att->num_components() == 2) {
-      if (options.GetSpeed() < 4) {
+      // Texture coordinate predictor needs a position attribute that is either
+      // integer or quantized. For numerical reasons, we require the position
+      // quantization to be at most 21 bits (TODO(b/231259902)).
+      const PointAttribute *const pos_att =
+          encoder->point_cloud()->GetNamedAttribute(
+              GeometryAttribute::POSITION);
+      bool is_pos_att_valid = false;
+      if (pos_att) {
+        if (IsDataTypeIntegral(pos_att->data_type())) {
+          is_pos_att_valid = true;
+        } else {
+          // Check quantization of the position attribute.
+          const int pos_att_id = encoder->point_cloud()->GetNamedAttributeId(
+              GeometryAttribute::POSITION);
+          const int pos_quant =
+              options.GetAttributeInt(pos_att_id, "quantization_bits", -1);
+          // Must be quantized but the quantization is restricted to 21 bits.
+          if (pos_quant > 0 && pos_quant <= 21) {
+            is_pos_att_valid = true;
+          }
+        }
+      }
+
+      if (is_pos_att_valid && options.GetSpeed() < 4) {
         // Use texture coordinate prediction for speeds 0, 1, 2, 3.
         return MESH_PREDICTION_TEX_COORDS_PORTABLE;
       }

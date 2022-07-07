@@ -367,4 +367,5 @@ TEST(MeshTest, TestMeshBoundingBox) {
   EXPECT_EQ(min_pt[1], bounding_box.GetMinPoint()[1]);
   EXPECT_EQ(min_pt[2], bounding_box.GetMinPoint()[2]);
 }
+
 }  // namespace

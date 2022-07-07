@@ -23,6 +23,7 @@
 #include "draco/animation/animation.h"
 #include "draco/animation/skin.h"
 #include "draco/mesh/mesh.h"
+#include "draco/scene/instance_array.h"
 #include "draco/scene/light.h"
 #include "draco/scene/mesh_group.h"
 #include "draco/scene/scene_indices.h"
@@ -110,15 +111,29 @@ class Scene {
     return nodes_[index].get();
   }
 
+  // Either allocates new nodes or removes existing nodes that are beyond
+  // |num_nodes|.
+  void ResizeNodes(int num_nodes) {
+    const size_t old_num_nodes = nodes_.size();
+    nodes_.resize(num_nodes);
+    for (SceneNodeIndex i(old_num_nodes); i < num_nodes; ++i) {
+      nodes_[i].reset(new SceneNode());
+    }
+  }
+
   // Returns the number of root node indices in a scene.
   int NumRootNodes() const { return root_node_indices_.size(); }
   SceneNodeIndex GetRootNodeIndex(int i) const { return root_node_indices_[i]; }
+  const std::vector<SceneNodeIndex> &GetRootNodeIndices() const {
+    return root_node_indices_;
+  }
   void AddRootNodeIndex(SceneNodeIndex index) {
     root_node_indices_.push_back(index);
   }
   void SetRootNodeIndex(int i, SceneNodeIndex index) {
     root_node_indices_[i] = index;
   }
+  void RemoveAllRootNodeIndices() { root_node_indices_.clear(); }
 
   const MaterialLibrary &GetMaterialLibrary() const {
     return material_library_;
@@ -171,6 +186,26 @@ class Scene {
   Light *GetLight(LightIndex index) { return lights_[index].get(); }
   const Light *GetLight(LightIndex index) const { return lights_[index].get(); }
 
+  // Creates a mesh group instance array and returns the index to it. This array
+  // is used for storing the attributes of the EXT_mesh_gpu_instancing glTF
+  // extension.
+  InstanceArrayIndex AddInstanceArray() {
+    std::unique_ptr<InstanceArray> array(new InstanceArray());
+    instance_arrays_.push_back(std::move(array));
+    return InstanceArrayIndex(instance_arrays_.size() - 1);
+  }
+
+  // Returns the number of mesh group instance arrays in a scene.
+  int NumInstanceArrays() const { return instance_arrays_.size(); }
+
+  // Returns a mesh group instance array in the scene.
+  InstanceArray *GetInstanceArray(InstanceArrayIndex index) {
+    return instance_arrays_[index].get();
+  }
+  const InstanceArray *GetInstanceArray(InstanceArrayIndex index) const {
+    return instance_arrays_[index].get();
+  }
+
  private:
   IndexTypeVector<MeshIndex, std::unique_ptr<Mesh>> meshes_;
   IndexTypeVector<MeshGroupIndex, std::unique_ptr<MeshGroup>> mesh_groups_;
@@ -182,6 +217,11 @@ class Scene {
   // The lights will be written to the output scene but not used for internal
   // rendering in Draco, e.g, while computing distortion metric.
   IndexTypeVector<LightIndex, std::unique_ptr<Light>> lights_;
+
+  // The mesh group instance array information will be written to the output
+  // scene but not processed by Draco simplifier modules.
+  IndexTypeVector<InstanceArrayIndex, std::unique_ptr<InstanceArray>>
+      instance_arrays_;
 
   // Materials used by this scene.
   MaterialLibrary material_library_;

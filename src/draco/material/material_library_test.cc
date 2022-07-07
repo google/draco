@@ -42,8 +42,16 @@ TEST(MaterialLibraryTest, TestMaterials) {
   }
   ASSERT_EQ(library.NumMaterials(), 3);
 
+  // Check that material variants can be added and cleared.
+  library.AddMaterialsVariant("Milk Truck");
+  library.AddMaterialsVariant("Ice Cream Truck");
+  ASSERT_EQ(library.NumMaterialsVariants(), 2);
+  ASSERT_EQ(library.GetMaterialsVariantName(0), "Milk Truck");
+  ASSERT_EQ(library.GetMaterialsVariantName(1), "Ice Cream Truck");
+
   library.Clear();
   ASSERT_EQ(library.NumMaterials(), 0);
+  ASSERT_EQ(library.NumMaterialsVariants(), 0);
 }
 
 TEST(MaterialLibraryTest, TestMaterialsCopy) {
@@ -51,6 +59,8 @@ TEST(MaterialLibraryTest, TestMaterialsCopy) {
   draco::MaterialLibrary library;
   library.MutableMaterial(0)->SetMetallicFactor(2.4f);
   library.MutableMaterial(3)->SetRoughnessFactor(1.2f);
+  library.AddMaterialsVariant("Milk Truck");
+  library.AddMaterialsVariant("Ice Cream Truck");
 
   draco::MaterialLibrary new_library;
   new_library.Copy(library);
@@ -59,6 +69,9 @@ TEST(MaterialLibraryTest, TestMaterialsCopy) {
             new_library.GetMaterial(0)->GetMetallicFactor());
   ASSERT_EQ(library.GetMaterial(3)->GetRoughnessFactor(),
             new_library.GetMaterial(3)->GetRoughnessFactor());
+  ASSERT_EQ(new_library.NumMaterialsVariants(), 2);
+  ASSERT_EQ(new_library.GetMaterialsVariantName(0), "Milk Truck");
+  ASSERT_EQ(new_library.GetMaterialsVariantName(1), "Ice Cream Truck");
 }
 
 TEST(MaterialLibraryTest, TestTextureLibrary) {

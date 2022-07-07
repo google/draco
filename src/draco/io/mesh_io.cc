@@ -18,6 +18,7 @@
 #include <string>
 
 #include "draco/io/file_utils.h"
+#include "draco/io/file_writer_interface.h"
 #include "draco/io/obj_decoder.h"
 #include "draco/io/ply_decoder.h"
 #include "draco/io/stl_decoder.h"

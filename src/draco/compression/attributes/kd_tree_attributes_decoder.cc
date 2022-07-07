@@ -336,6 +336,10 @@ bool KdTreeAttributesDecoder::DecodeDataNeededByPortableTransforms(
     return false;
   }
   if (method == KdTreeAttributesEncodingMethod::kKdTreeQuantizationEncoding) {
+    // This method only supports one attribute with exactly three components.
+    if (atts.size() != 1 || std::get<4>(atts[0]) != 3) {
+      return false;
+    }
     uint8_t compression_level = 0;
     if (!in_buffer->Decode(&compression_level)) {
       return false;
@@ -455,7 +459,11 @@ bool KdTreeAttributesDecoder::TransformAttributeBackToSignedType(
     att->GetValue(avi, &unsigned_val[0]);
     for (int c = 0; c < att->num_components(); ++c) {
       // Up-cast |unsigned_val| to int32_t to ensure we don't overflow it for
-      // smaller data types.
+      // smaller data types. But first check that the up-casting does not cause
+      // signed integer overflow.
+      if (unsigned_val[c] > std::numeric_limits<int32_t>::max()) {
+        return false;
+      }
       signed_val[c] = static_cast<SignedDataTypeT>(
           static_cast<int32_t>(unsigned_val[c]) +
           min_signed_values_[num_processed_signed_components + c]);

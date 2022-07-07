@@ -544,14 +544,18 @@ if(DRACO_TRANSCODER_SUPPORTED)
     "${draco_src_root}/material/material_library.h")
 
   list(APPEND draco_mesh_sources
+    "${draco_src_root}/mesh/mesh_connected_components.cc"
+    "${draco_src_root}/mesh/mesh_connected_components.h"
     "${draco_src_root}/mesh/mesh_splitter.cc"
     "${draco_src_root}/mesh/mesh_splitter.h"
     "${draco_src_root}/mesh/mesh_utils.cc"
     "${draco_src_root}/mesh/mesh_utils.h")
 
   list(APPEND draco_scene_sources
-    "${draco_src_root}/scene/light.h"
+    "${draco_src_root}/scene/instance_array.cc"
+    "${draco_src_root}/scene/instance_array.h"
     "${draco_src_root}/scene/light.cc"
+    "${draco_src_root}/scene/light.h"
     "${draco_src_root}/scene/mesh_group.h"
     "${draco_src_root}/scene/scene.cc"
     "${draco_src_root}/scene/scene.h"

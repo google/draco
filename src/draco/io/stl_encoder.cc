@@ -14,9 +14,10 @@
 //
 #include "draco/io/stl_encoder.h"
 
-#include <memory>
 #include <iomanip>
+#include <memory>
 #include <sstream>
+#include <string>
 
 #include "draco/io/file_writer_factory.h"
 #include "draco/io/file_writer_interface.h"
@@ -26,7 +27,8 @@ namespace draco {
 StlEncoder::StlEncoder()
     : out_buffer_(nullptr), in_point_cloud_(nullptr), in_mesh_(nullptr) {}
 
-Status StlEncoder::EncodeToFile(const Mesh &mesh, const std::string &file_name) {
+Status StlEncoder::EncodeToFile(const Mesh &mesh,
+                                const std::string &file_name) {
   in_mesh_ = &mesh;
   std::unique_ptr<FileWriterInterface> file =
       FileWriterFactory::OpenWriter(file_name);
@@ -45,7 +47,7 @@ Status StlEncoder::EncodeToBuffer(const Mesh &mesh, EncoderBuffer *out_buffer) {
   in_mesh_ = &mesh;
   out_buffer_ = out_buffer;
   Status s = EncodeInternal();
-  in_mesh_ = nullptr; // cleanup
+  in_mesh_ = nullptr;  // cleanup
   in_point_cloud_ = nullptr;
   out_buffer_ = nullptr;
   return s;
@@ -54,7 +56,8 @@ Status StlEncoder::EncodeToBuffer(const Mesh &mesh, EncoderBuffer *out_buffer) {
 Status StlEncoder::EncodeInternal() {
   // Write STL header.
   std::stringstream out;
-  out << std::left << std::setw(80) << "generated using Draco";  // header is 80 bytes fixed size.
+  out << std::left << std::setw(80)
+      << "generated using Draco";  // header is 80 bytes fixed size.
   const std::string header_str = out.str();
   buffer()->Encode(header_str.data(), header_str.length());
 
@@ -70,8 +73,7 @@ Status StlEncoder::EncodeInternal() {
     return ErrorStatus("Mesh is missing the position attribute.");
   }
 
-  if (in_mesh_->attribute(pos_att_id)->data_type() !=
-      DT_FLOAT32) {
+  if (in_mesh_->attribute(pos_att_id)->data_type() != DT_FLOAT32) {
     return ErrorStatus("Mesh position attribute is not of type float32.");
   }
 
@@ -79,7 +81,6 @@ Status StlEncoder::EncodeInternal() {
 
   if (in_mesh_) {
     for (FaceIndex i(0); i < in_mesh_->num_faces(); ++i) {
-
       const auto &f = in_mesh_->face(i);
       const auto *const pos_att = in_mesh_->attribute(pos_att_id);
 
@@ -102,7 +103,6 @@ Status StlEncoder::EncodeInternal() {
       }
 
       buffer()->Encode(&unused, 2);
-
     }
   }
   return OkStatus();

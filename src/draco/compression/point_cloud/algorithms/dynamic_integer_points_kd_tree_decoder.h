@@ -300,7 +300,12 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
     uint32_t number = 0;
     DecodeNumber(incoming_bits, &number);
 
-    uint32_t first_half = num_remaining_points / 2 - number;
+    uint32_t first_half = num_remaining_points / 2;
+    if (first_half < number) {
+      // Invalid |number|.
+      return false;
+    }
+    first_half -= number;
     uint32_t second_half = num_remaining_points - first_half;
 
     if (first_half != second_half) {

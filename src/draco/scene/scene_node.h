@@ -25,7 +25,11 @@ namespace draco {
 // space transformed into scene space.
 class SceneNode {
  public:
-  SceneNode() : mesh_group_index_(-1), skin_index_(-1), light_index_(-1) {}
+  SceneNode()
+      : mesh_group_index_(-1),
+        skin_index_(-1),
+        light_index_(-1),
+        instance_array_index_(-1) {}
 
   void Copy(const SceneNode &sn) {
     name_ = sn.name_;
@@ -35,6 +39,7 @@ class SceneNode {
     parents_ = sn.parents_;
     children_ = sn.children_;
     light_index_ = sn.light_index_;
+    instance_array_index_ = sn.instance_array_index_;
   }
 
   // Sets a name.
@@ -59,14 +64,26 @@ class SceneNode {
   void SetLightIndex(LightIndex index) { light_index_ = index; }
   LightIndex GetLightIndex() const { return light_index_; }
 
+  // Set the index to the mesh group instance array in the scene. Note that
+  // according to EXT_mesh_gpu_instancing glTF extension there is no defined
+  // behavior for a node with instance array and without a mesh group.
+  void SetInstanceArrayIndex(InstanceArrayIndex index) {
+    instance_array_index_ = index;
+  }
+  InstanceArrayIndex GetInstanceArrayIndex() const {
+    return instance_array_index_;
+  }
+
   // Functions to set and get zero or more parent nodes of this node.
   SceneNodeIndex Parent(int index) const { return parents_[index]; }
+  const std::vector<SceneNodeIndex> &Parents() const { return parents_; }
   void AddParentIndex(SceneNodeIndex index) { parents_.push_back(index); }
   int NumParents() const { return parents_.size(); }
   void RemoveAllParents() { parents_.clear(); }
 
   // Functions to set and get zero or more child nodes of this node.
   SceneNodeIndex Child(int index) const { return children_[index]; }
+  const std::vector<SceneNodeIndex> &Children() const { return children_; }
   void AddChildIndex(SceneNodeIndex index) { children_.push_back(index); }
   int NumChildren() const { return children_.size(); }
   void RemoveAllChildren() { children_.clear(); }
@@ -79,6 +96,7 @@ class SceneNode {
   std::vector<SceneNodeIndex> parents_;
   std::vector<SceneNodeIndex> children_;
   LightIndex light_index_;
+  InstanceArrayIndex instance_array_index_;
 };
 
 }  // namespace draco

@@ -61,7 +61,7 @@ class OctahedronToolBox {
       return false;
     }
     quantization_bits_ = q;
-    max_quantized_value_ = (1 << quantization_bits_) - 1;
+    max_quantized_value_ = (1u << quantization_bits_) - 1;
     max_value_ = max_quantized_value_ - 1;
     dequantization_scale_ = 2.f / max_value_;
     center_value_ = max_value_ / 2;

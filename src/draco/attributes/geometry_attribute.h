@@ -16,6 +16,7 @@
 #define DRACO_ATTRIBUTES_GEOMETRY_ATTRIBUTE_H_
 
 #include <array>
+#include <cmath>
 #include <limits>
 
 #include "draco/attributes/geometry_indices.h"
@@ -282,14 +283,46 @@ class GeometryAttribute {
       }
       const T in_value = *reinterpret_cast<const T *>(src_address);
 
-      // Make sure the in_value fits within the range of values that OutT
-      // is able to represent. Perform the check only for integral types.
-      if (!std::is_same<T, bool>::value && std::is_integral<T>::value &&
-          std::is_integral<OutT>::value) {
-        static constexpr OutT kOutMin =
-            std::is_signed<T>::value ? std::numeric_limits<OutT>::lowest() : 0;
-        if (in_value < kOutMin || in_value > std::numeric_limits<OutT>::max()) {
-          return false;
+      // Make sure the |in_value| can be represented as an integral type OutT.
+      if (std::is_integral<OutT>::value) {
+        // Make sure the |in_value| fits within the range of values that OutT
+        // is able to represent. Perform the check only for integral types.
+        if (!std::is_same<T, bool>::value && std::is_integral<T>::value) {
+          static constexpr OutT kOutMin =
+              std::is_signed<T>::value ? std::numeric_limits<OutT>::min() : 0;
+          if (in_value < kOutMin ||
+              in_value > std::numeric_limits<OutT>::max()) {
+            return false;
+          }
+        }
+
+        // Check conversion of floating point |in_value| to integral value OutT.
+        if (std::is_floating_point<T>::value) {
+          // Make sure the floating point |in_value| is not NaN and not Inf as
+          // integral type OutT is unable to represent these values.
+          if (sizeof(in_value) > sizeof(double)) {
+            if (std::isnan(static_cast<long double>(in_value)) ||
+                std::isinf(static_cast<long double>(in_value))) {
+              return false;
+            }
+          } else if (sizeof(in_value) > sizeof(float)) {
+            if (std::isnan(static_cast<double>(in_value)) ||
+                std::isinf(static_cast<double>(in_value))) {
+              return false;
+            }
+          } else {
+            if (std::isnan(static_cast<float>(in_value)) ||
+                std::isinf(static_cast<float>(in_value))) {
+              return false;
+            }
+          }
+
+          // Make sure the floating point |in_value| fits within the range of
+          // values that integral type OutT is able to represent.
+          if (in_value < std::numeric_limits<OutT>::min() ||
+              in_value >= std::numeric_limits<OutT>::max()) {
+            return false;
+          }
         }
       }
 

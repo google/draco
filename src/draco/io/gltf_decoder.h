@@ -227,6 +227,9 @@ class GltfDecoder {
   // Decode glTF lights into a scene.
   Status AddLightsToScene();
 
+  // Decodes glTF materials variants names into a scene.
+  Status AddMaterialsVariantsNamesToScene();
+
   // Decode glTF animations into a scene. All of the glTF nodes must be decoded
   // to the scene before this function is called.
   Status AddAnimationsToScene();
@@ -240,6 +243,13 @@ class GltfDecoder {
   // Decode glTF primitive into a Draco scene.
   Status DecodePrimitiveForScene(const tinygltf::Primitive &primitive,
                                  MeshGroup *mesh_group);
+
+  // Decodes glTF materials variants from |extension| and adds it into materials
+  // variants |mappings|. Before calling this function, all materials variants
+  // names must be decoded by calling AddMaterialsVariantsNamesToScene().
+  Status DecodeMaterialsVariantsMappings(
+      const tinygltf::Value::Object &extension,
+      std::vector<MeshGroup::MaterialsVariantsMapping> *mappings);
 
   // Adds an attribute of type |attribute_name| to |mb|. Returns the
   // attribute id.

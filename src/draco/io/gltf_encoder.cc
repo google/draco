@@ -17,10 +17,12 @@
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include <sys/types.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <set>
 #include <sstream>
+#include <unordered_set>
 
 #include "draco/attributes/geometry_attribute.h"
 #include "draco/attributes/point_attribute.h"
@@ -33,6 +35,7 @@
 #include "draco/io/texture_io.h"
 #include "draco/mesh/mesh_splitter.h"
 #include "draco/mesh/mesh_utils.h"
+#include "draco/scene/instance_array.h"
 #include "draco/scene/scene_indices.h"
 #include "draco/texture/texture_utils.h"
 
@@ -84,13 +87,18 @@ struct GltfScene {
 // Struct to hold glTF Node data.
 struct GltfNode {
   GltfNode()
-      : mesh_index(-1), skin_index(-1), light_index(-1), root_node(false) {}
+      : mesh_index(-1),
+        skin_index(-1),
+        light_index(-1),
+        instance_array_index(-1),
+        root_node(false) {}
 
   std::string name;
   std::vector<int> childern_indices;
   int mesh_index;
   int skin_index;
   int light_index;
+  int instance_array_index;
   bool root_node;
   TrsMatrix trs_matrix;
 };
@@ -180,6 +188,7 @@ struct GltfPrimitive {
   int indices;
   int mode;
   int material;
+  std::vector<MeshGroup::MaterialsVariantsMapping> material_variants_mappings;
   std::map<std::string, int> attributes;
   GltfDracoCompressedMesh compressed_mesh_info;
 };
@@ -254,8 +263,10 @@ class GltfAsset {
                                int64_t *num_encoded_points,
                                int64_t *num_encoded_faces);
 
-  // Adds a Draco mesh associated with a material id.
-  bool AddDracoMesh(const Mesh &mesh, int material_id);
+  // Adds a Draco mesh associated with a material id and material variants.
+  bool AddDracoMesh(const Mesh &mesh, int material_id,
+                    const std::vector<MeshGroup::MaterialsVariantsMapping>
+                        &material_variants_mappings);
 
   // Add the Draco mesh indices to the glTF data. |num_encoded_faces| is the
   // number of faces encoded in |mesh|, which can be different than
@@ -371,11 +382,27 @@ class GltfAsset {
   // the asset. Returns OkStatus() if |scene| does not contain any lights.
   Status AddLights(const Scene &scene);
 
+  // Iterate through materials variants names that are associated with |scene|
+  // and add them to the asset. Returns OkStatus() if |scene| does not contain
+  // any materials variants.
+  Status AddMaterialsVariantsNames(const Scene &scene);
+
+  // Iterate through the mesh group instance arrays that are associated with
+  // |scene| and add them to the asset. Returns OkStatus() if |scene| does not
+  // contain any mesh group instance arrays.
+  Status AddInstanceArrays(const Scene &scene);
+
+  // Adds float |data| representing |num_components|-length vectors to the
+  // encoder as accessor and return the new accessor index.
+  StatusOr<int> AddData(const std::vector<float> &data, int num_components);
+
   bool EncodeAssetProperty(EncoderBuffer *buf_out);
   bool EncodeScenesProperty(EncoderBuffer *buf_out);
   bool EncodeInitialSceneProperty(EncoderBuffer *buf_out);
   bool EncodeNodesProperty(EncoderBuffer *buf_out);
   bool EncodeMeshesProperty(EncoderBuffer *buf_out);
+  void EncodePrimitiveExtensionsProperty(const GltfPrimitive &primitive,
+                                         EncoderBuffer *buf_out);
   Status EncodeMaterials(EncoderBuffer *buf_out);
 
   // Encodes a color material. |red|, |green|, |blue|, |alpha|, and
@@ -424,7 +451,9 @@ class GltfAsset {
                        TextureToImageIndexMapType *map);
   Status EncodeAnimationsProperty(EncoderBuffer *buf_out);
   Status EncodeSkinsProperty(EncoderBuffer *buf_out);
+  Status EncodeTopLevelExtensionsProperty(EncoderBuffer *buf_out);
   Status EncodeLightsProperty(EncoderBuffer *buf_out);
+  Status EncodeMaterialsVariantsNamesProperty(EncoderBuffer *buf_out);
   bool EncodeAccessorsProperty(EncoderBuffer *buf_out);
   bool EncodeBufferViewsProperty(EncoderBuffer *buf_out);
   bool EncodeBuffersProperty(EncoderBuffer *buf_out);
@@ -518,8 +547,19 @@ class GltfAsset {
     std::vector<int> joints;
     int skeleton_index;
   };
+
+  // Instance array is represented by its attribute accessors.
+  struct EncoderInstanceArray {
+    EncoderInstanceArray() : translation(-1), rotation(-1), scale(-1) {}
+    int translation;
+    int rotation;
+    int scale;
+  };
+
   std::vector<std::unique_ptr<EncoderSkin>> skins_;
   std::vector<std::unique_ptr<Light>> lights_;
+  std::vector<std::string> materials_variants_names_;
+  std::vector<EncoderInstanceArray> instance_arrays_;
 
   // Indicates whether Draco compression is used for any of the asset meshes.
   bool draco_compression_used_;
@@ -584,7 +624,7 @@ bool GltfAsset::AddDracoMesh(const Mesh &mesh) {
   const int32_t material_att_id =
       mesh.GetNamedAttributeId(GeometryAttribute::MATERIAL);
   if (material_att_id == -1) {
-    if (!AddDracoMesh(mesh, 0)) {
+    if (!AddDracoMesh(mesh, 0, {})) {
       return false;
     }
   } else {
@@ -606,7 +646,7 @@ bool GltfAsset::AddDracoMesh(const Mesh &mesh) {
 
       // The material index in the glTF file corresponds to the index of the
       // split mesh.
-      if (!AddDracoMesh(*(split_meshes[i].get()), mat_index)) {
+      if (!AddDracoMesh(*(split_meshes[i].get()), mat_index, {})) {
         return false;
       }
     }
@@ -654,7 +694,7 @@ Status GltfAsset::Output(EncoderBuffer *buf_out) {
   }
   DRACO_RETURN_IF_ERROR(EncodeAnimationsProperty(buf_out));
   DRACO_RETURN_IF_ERROR(EncodeSkinsProperty(buf_out));
-  DRACO_RETURN_IF_ERROR(EncodeLightsProperty(buf_out));
+  DRACO_RETURN_IF_ERROR(EncodeTopLevelExtensionsProperty(buf_out));
   if (!EncodeBufferViewsProperty(buf_out)) {
     return Status(Status::DRACO_ERROR, "Failed encoding buffer views.");
   }
@@ -814,7 +854,57 @@ Status GltfAsset::CompressMeshWithDraco(const Mesh &mesh,
   return OkStatus();
 }
 
-bool GltfAsset::AddDracoMesh(const Mesh &mesh, int material_id) {
+bool CheckAndGetTexCoordAttributeOrder(const Mesh &mesh,
+                                       std::vector<int> *tex_coord_order) {
+  // We will only consider at most two texture coordinate attributes.
+  *tex_coord_order = {0, 1};
+  const int num_attributes =
+      std::min(mesh.NumNamedAttributes(GeometryAttribute::TEX_COORD), 2);
+
+  // Collect texture coordinate attribute names from metadata.
+  std::vector<std::string> names(num_attributes, "");
+  for (int i = 0; i < num_attributes; i++) {
+    const auto metadata = mesh.GetAttributeMetadataByAttributeId(
+        mesh.GetNamedAttributeId(GeometryAttribute::TEX_COORD, i));
+    std::string attribute_name;
+    if (metadata != nullptr) {
+      metadata->GetEntryString("attribute_name", &attribute_name);
+      names[i] = attribute_name;
+    }
+  }
+
+  // Attribute names may be absent.
+  if (num_attributes == 0 ||
+      std::all_of(names.begin(), names.end(),
+                  [](const std::string &name) { return name.empty(); })) {
+    return true;
+  }
+
+  // Attribute names must be unique.
+  const std::unordered_set<std::string> unique_names(names.begin(),
+                                                     names.end());
+  if (unique_names.size() != num_attributes) {
+    return false;
+  }
+
+  // Attribute names must be valid.
+  if (std::any_of(names.begin(), names.end(), [](const std::string &name) {
+        return name != "TEXCOORD_0" && name != "TEXCOORD_1";
+      })) {
+    return false;
+  }
+
+  // Populate texture coordinate order index based on attribute names.
+  if (names[0] == "TEXCOORD_1") {
+    *tex_coord_order = {1, 0};
+  }
+  return true;
+}
+
+bool GltfAsset::AddDracoMesh(
+    const Mesh &mesh, int material_id,
+    const std::vector<MeshGroup::MaterialsVariantsMapping>
+        &material_variants_mappings) {
   GltfPrimitive primitive;
   int64_t num_encoded_points = mesh.num_points();
   int64_t num_encoded_faces = mesh.num_faces();
@@ -837,12 +927,17 @@ bool GltfAsset::AddDracoMesh(const Mesh &mesh, int material_id) {
   if (position_index < 0) {
     return false;
   }
+  // Check texture coordinate attributes and get the desired encoding order.
+  std::vector<int> tex_coord_order;
+  if (!CheckAndGetTexCoordAttributeOrder(mesh, &tex_coord_order)) {
+    return false;
+  }
   const int normals_accessor_index = AddDracoNormals(mesh, num_encoded_points);
   const int colors_accessor_index = AddDracoColors(mesh, num_encoded_points);
   const int texture0_accessor_index =
-      AddDracoTexture(mesh, 0, num_encoded_points);
+      AddDracoTexture(mesh, tex_coord_order[0], num_encoded_points);
   const int texture1_accessor_index =
-      AddDracoTexture(mesh, 1, num_encoded_points);
+      AddDracoTexture(mesh, tex_coord_order[1], num_encoded_points);
   const int tangent_accessor_index = AddDracoTangents(mesh, num_encoded_points);
   const int joints_accessor_index = AddDracoJoints(mesh, num_encoded_points);
   const int weights_accessor_index = AddDracoWeights(mesh, num_encoded_points);
@@ -853,6 +948,7 @@ bool GltfAsset::AddDracoMesh(const Mesh &mesh, int material_id) {
     primitive.mode = 0;  // POINTS mode.
   }
   primitive.material = material_id;
+  primitive.material_variants_mappings = material_variants_mappings;
   primitive.indices = indices_index;
   primitive.attributes.insert(
       std::pair<std::string, int>("POSITION", position_index));
@@ -1260,6 +1356,8 @@ Status GltfAsset::AddScene(const Scene &scene) {
   DRACO_RETURN_IF_ERROR(AddAnimations(scene));
   DRACO_RETURN_IF_ERROR(AddSkins(scene));
   DRACO_RETURN_IF_ERROR(AddLights(scene));
+  DRACO_RETURN_IF_ERROR(AddMaterialsVariantsNames(scene));
+  DRACO_RETURN_IF_ERROR(AddInstanceArrays(scene));
   return OkStatus();
 }
 
@@ -1284,30 +1382,26 @@ Status GltfAsset::AddSceneNode(const Scene &scene,
     if (it == mesh_group_index_to_gltf_mesh_.end()) {
       GltfMesh gltf_mesh;
       const MeshGroup *const mesh_group = scene.GetMeshGroup(mesh_group_index);
-      if (mesh_group->NumMeshIndices() != mesh_group->NumMaterialIndices()) {
-        return Status(Status::DRACO_ERROR,
-                      "Number of mesh indices and material indices do not "
-                      "match for the mesh group.");
-      }
       if (!mesh_group->GetName().empty()) {
         gltf_mesh.name = mesh_group->GetName();
       }
       meshes_.push_back(gltf_mesh);
 
-      for (int i = 0; i < mesh_group->NumMeshIndices(); ++i) {
-        const MeshIndex mesh_index = mesh_group->GetMeshIndex(i);
-        const int material_index = mesh_group->GetMaterialIndex(i);
-
-        const auto mi_it = mesh_index_to_gltf_mesh_primitive_.find(mesh_index);
+      for (int i = 0; i < mesh_group->NumMeshInstances(); ++i) {
+        const MeshGroup::MeshInstance &instance =
+            mesh_group->GetMeshInstance(i);
+        const auto mi_it =
+            mesh_index_to_gltf_mesh_primitive_.find(instance.mesh_index);
         if (mi_it == mesh_index_to_gltf_mesh_primitive_.end()) {
           // We have not added the mesh to the scene yet.
-          const Mesh &mesh = scene.GetMesh(mesh_index);
-          if (!AddDracoMesh(mesh, material_index)) {
+          const Mesh &mesh = scene.GetMesh(instance.mesh_index);
+          if (!AddDracoMesh(mesh, instance.material_index,
+                            instance.materials_variants_mappings)) {
             return Status(Status::DRACO_ERROR, "Adding a Draco mesh failed.");
           }
           const int gltf_mesh_index = meshes_.size() - 1;
           const int gltf_primitive_index = meshes_.back().primitives.size() - 1;
-          mesh_index_to_gltf_mesh_primitive_[mesh_index] =
+          mesh_index_to_gltf_mesh_primitive_[instance.mesh_index] =
               std::make_pair(gltf_mesh_index, gltf_primitive_index);
         } else {
           // The mesh was already added to the scene. This is a copy instance
@@ -1316,7 +1410,9 @@ Status GltfAsset::AddSceneNode(const Scene &scene,
           const int gltf_primitive_index = mi_it->second.second;
           GltfPrimitive primitive =
               meshes_[gltf_mesh_index].primitives[gltf_primitive_index];
-          primitive.material = material_index;
+          primitive.material = instance.material_index;
+          primitive.material_variants_mappings =
+              instance.materials_variants_mappings;
           meshes_.back().primitives.push_back(primitive);
         }
       }
@@ -1326,6 +1422,7 @@ Status GltfAsset::AddSceneNode(const Scene &scene,
   }
   node.skin_index = scene_node->GetSkinIndex().value();
   node.light_index = scene_node->GetLightIndex().value();
+  node.instance_array_index = scene_node->GetInstanceArrayIndex().value();
 
   nodes_.push_back(node);
   return OkStatus();
@@ -1515,6 +1612,159 @@ Status GltfAsset::AddLights(const Scene &scene) {
   return OkStatus();
 }
 
+Status GltfAsset::AddMaterialsVariantsNames(const Scene &scene) {
+  const MaterialLibrary &library = scene.GetMaterialLibrary();
+  for (int i = 0; i < library.NumMaterialsVariants(); ++i) {
+    materials_variants_names_.push_back(library.GetMaterialsVariantName(i));
+  }
+  return OkStatus();
+}
+
+Status GltfAsset::AddInstanceArrays(const Scene &scene) {
+  if (scene.NumInstanceArrays() == 0) {
+    return OkStatus();
+  }
+
+  // Add each of the instance arrays.
+  std::vector<float> t_data;
+  std::vector<float> r_data;
+  std::vector<float> s_data;
+  for (InstanceArrayIndex i(0); i < scene.NumInstanceArrays(); ++i) {
+    // Find which of the optional TRS components are set.
+    // TODO(vytyaz): Treat default TRS component vectors as absent.
+    const InstanceArray &array = *scene.GetInstanceArray(i);
+    bool is_t_set = false;
+    bool is_r_set = false;
+    bool is_s_set = false;
+    for (int i = 0; i < array.NumInstances(); i++) {
+      const InstanceArray::Instance &instance = array.GetInstance(i);
+      if (instance.trs.TranslationSet()) {
+        is_t_set = true;
+      }
+      if (instance.trs.RotationSet()) {
+        is_r_set = true;
+      }
+      if (instance.trs.ScaleSet()) {
+        is_s_set = true;
+      }
+    }
+
+    // Create contiguous data vectors for individual TRS components.
+    t_data.clear();
+    r_data.clear();
+    s_data.clear();
+    if (is_t_set) {
+      t_data.reserve(array.NumInstances() * 3);
+    }
+    if (is_r_set) {
+      r_data.reserve(array.NumInstances() * 4);
+    }
+    if (is_s_set) {
+      s_data.reserve(array.NumInstances() * 3);
+    }
+
+    // Add TRS vectors of each instance to corresponding data vectors.
+    for (int i = 0; i < array.NumInstances(); i++) {
+      const InstanceArray::Instance &instance = array.GetInstance(i);
+      if (is_t_set) {
+        DRACO_ASSIGN_OR_RETURN(const auto &t_vector,
+                               instance.trs.Translation());
+        t_data.push_back(t_vector.x());
+        t_data.push_back(t_vector.y());
+        t_data.push_back(t_vector.z());
+      }
+      if (is_r_set) {
+        DRACO_ASSIGN_OR_RETURN(const auto &r_vector, instance.trs.Rotation());
+        r_data.push_back(r_vector.x());
+        r_data.push_back(r_vector.y());
+        r_data.push_back(r_vector.z());
+        r_data.push_back(r_vector.w());
+      }
+      if (is_s_set) {
+        DRACO_ASSIGN_OR_RETURN(const auto &s_vector, instance.trs.Scale());
+        s_data.push_back(s_vector.x());
+        s_data.push_back(s_vector.y());
+        s_data.push_back(s_vector.z());
+      }
+    }
+
+    // Add TRS vectors to attribute buffers and collect their accessor indices.
+    EncoderInstanceArray accessors;
+    if (is_t_set) {
+      DRACO_ASSIGN_OR_RETURN(accessors.translation, AddData(t_data, 3));
+    }
+    if (is_r_set) {
+      DRACO_ASSIGN_OR_RETURN(accessors.rotation, AddData(r_data, 4));
+    }
+    if (is_s_set) {
+      DRACO_ASSIGN_OR_RETURN(accessors.scale, AddData(s_data, 3));
+    }
+
+    // Store accessors for later to encode as EXT_mesh_gpu_instancing extension.
+    instance_arrays_.push_back(accessors);
+  }
+  return OkStatus();
+}
+
+StatusOr<int> GltfAsset::AddData(const std::vector<float> &data,
+                                 int num_components) {
+  std::string type;
+  switch (num_components) {
+    case 3:
+      type = "VEC3";
+      break;
+    case 4:
+      type = "VEC4";
+      break;
+    default:
+      return ErrorStatus("Unsupported number of components.");
+  }
+
+  const size_t buffer_start_offset = buffer_.size();
+
+  std::vector<float> min_values(num_components);
+  for (int j = 0; j < num_components; ++j) {
+    min_values[j] = data[j];
+  }
+  std::vector<float> max_values = min_values;
+
+  const int count = data.size() / num_components;
+  for (int i = 0; i < count; ++i) {
+    for (int j = 0; j < num_components; ++j) {
+      const float value = data[(i * num_components) + j];
+      if (value < min_values[j]) {
+        min_values[j] = value;
+      }
+      if (value > max_values[j]) {
+        max_values[j] = value;
+      }
+      buffer_.Encode(&value, sizeof(float));
+    }
+  }
+
+  if (!PadBuffer()) {
+    return ErrorStatus("AddArray: PadBuffer returned DRACO_ERROR.");
+  }
+
+  GltfBufferView buffer_view;
+  buffer_view.buffer_byte_offset = buffer_start_offset;
+  buffer_view.byte_length = buffer_.size() - buffer_start_offset;
+  buffer_views_.push_back(buffer_view);
+
+  GltfAccessor accessor;
+  accessor.buffer_view_index = static_cast<int>(buffer_views_.size() - 1);
+  accessor.component_type = ComponentType::FLOAT;
+  accessor.count = count;
+  for (int j = 0; j < num_components; ++j) {
+    accessor.max.push_back(GltfValue(max_values[j]));
+    accessor.min.push_back(GltfValue(min_values[j]));
+  }
+  accessor.type = type;
+  accessor.normalized = false;
+  accessors_.push_back(accessor);
+  return static_cast<int>(accessors_.size() - 1);
+}
+
 bool GltfAsset::EncodeAssetProperty(EncoderBuffer *buf_out) {
   gltf_json_.BeginObject("asset");
   gltf_json_.OutputValue("version", version_);
@@ -1564,11 +1814,30 @@ bool GltfAsset::EncodeNodesProperty(EncoderBuffer *buf_out) {
     if (nodes_[i].skin_index >= 0) {
       gltf_json_.OutputValue("skin", nodes_[i].skin_index);
     }
-    if (nodes_[i].light_index >= 0) {
+    if (nodes_[i].instance_array_index >= 0 || nodes_[i].light_index >= 0) {
       gltf_json_.BeginObject("extensions");
-      gltf_json_.BeginObject("KHR_lights_punctual");
-      gltf_json_.OutputValue("light", nodes_[i].light_index);
-      gltf_json_.EndObject();
+      if (nodes_[i].instance_array_index >= 0) {
+        gltf_json_.BeginObject("EXT_mesh_gpu_instancing");
+        gltf_json_.BeginObject("attributes");
+        const int index = nodes_[i].instance_array_index;
+        const EncoderInstanceArray &accessors = instance_arrays_[index];
+        if (accessors.translation != -1) {
+          gltf_json_.OutputValue("TRANSLATION", accessors.translation);
+        }
+        if (accessors.rotation != -1) {
+          gltf_json_.OutputValue("ROTATION", accessors.rotation);
+        }
+        if (accessors.scale != -1) {
+          gltf_json_.OutputValue("SCALE", accessors.scale);
+        }
+        gltf_json_.EndObject();
+        gltf_json_.EndObject();
+      }
+      if (nodes_[i].light_index >= 0) {
+        gltf_json_.BeginObject("KHR_lights_punctual");
+        gltf_json_.OutputValue("light", nodes_[i].light_index);
+        gltf_json_.EndObject();
+      }
       gltf_json_.EndObject();
     }
 
@@ -1670,21 +1939,7 @@ bool GltfAsset::EncodeMeshesProperty(EncoderBuffer *buf_out) {
         if (primitive.material >= 0) {
           gltf_json_.OutputValue("material", primitive.material);
         }
-
-        if (primitive.compressed_mesh_info.buffer_view_index >= 0) {
-          gltf_json_.BeginObject("extensions");
-          gltf_json_.BeginObject("KHR_draco_mesh_compression");
-          gltf_json_.OutputValue(
-              "bufferView", primitive.compressed_mesh_info.buffer_view_index);
-          gltf_json_.BeginObject("attributes");
-          for (auto const &it : primitive.compressed_mesh_info.attributes) {
-            gltf_json_.OutputValue(it.first, it.second);
-          }
-          gltf_json_.EndObject();
-          gltf_json_.EndObject();
-          gltf_json_.EndObject();
-        }
-
+        EncodePrimitiveExtensionsProperty(primitive, buf_out);
         gltf_json_.EndObject();
       }
 
@@ -1698,6 +1953,49 @@ bool GltfAsset::EncodeMeshesProperty(EncoderBuffer *buf_out) {
 
   const std::string asset_str = gltf_json_.MoveData();
   return buf_out->Encode(asset_str.data(), asset_str.length());
+}
+
+void GltfAsset::EncodePrimitiveExtensionsProperty(
+    const GltfPrimitive &primitive, EncoderBuffer *buf_out) {
+  // Return if the primitive has no extensions to encode.
+  const bool has_draco_mesh_compression =
+      primitive.compressed_mesh_info.buffer_view_index >= 0;
+  const bool has_materials_variants =
+      !primitive.material_variants_mappings.empty();
+  if (!has_draco_mesh_compression && !has_materials_variants) {
+    return;
+  }
+
+  // Encode primitive extensions.
+  gltf_json_.BeginObject("extensions");
+  if (has_draco_mesh_compression) {
+    gltf_json_.BeginObject("KHR_draco_mesh_compression");
+    gltf_json_.OutputValue("bufferView",
+                           primitive.compressed_mesh_info.buffer_view_index);
+    gltf_json_.BeginObject("attributes");
+    for (auto const &it : primitive.compressed_mesh_info.attributes) {
+      gltf_json_.OutputValue(it.first, it.second);
+    }
+    gltf_json_.EndObject();  // attributes entry.
+    gltf_json_.EndObject();  // KHR_draco_mesh_compression entry.
+  }
+  if (has_materials_variants) {
+    gltf_json_.BeginObject("KHR_materials_variants");
+    gltf_json_.BeginArray("mappings");
+    for (const auto &mapping : primitive.material_variants_mappings) {
+      gltf_json_.BeginObject();
+      gltf_json_.OutputValue("material", mapping.material);
+      gltf_json_.BeginArray("variants");
+      for (const int variant : mapping.variants) {
+        gltf_json_.OutputValue(variant);
+      }
+      gltf_json_.EndArray();  // variants array.
+      gltf_json_.EndObject();
+    }
+    gltf_json_.EndArray();   // mappings array.
+    gltf_json_.EndObject();  // KHR_materials_variants entry.
+  }
+  gltf_json_.EndObject();  // extensions entry.
 }
 
 Status GltfAsset::EncodeMaterials(EncoderBuffer *buf_out) {
@@ -2394,12 +2692,25 @@ Status GltfAsset::EncodeSkinsProperty(EncoderBuffer *buf_out) {
   return OkStatus();
 }
 
+Status GltfAsset::EncodeTopLevelExtensionsProperty(EncoderBuffer *buf_out) {
+  // Return if there are no top-level asset extensions to encode.
+  if (lights_.empty() && materials_variants_names_.empty()) {
+    return OkStatus();
+  }
+
+  // Encode top-level extensions.
+  gltf_json_.BeginObject("extensions");
+  DRACO_RETURN_IF_ERROR(EncodeLightsProperty(buf_out));
+  DRACO_RETURN_IF_ERROR(EncodeMaterialsVariantsNamesProperty(buf_out));
+  gltf_json_.EndObject();  // extensions entry.
+  return OkStatus();
+}
+
 Status GltfAsset::EncodeLightsProperty(EncoderBuffer *buf_out) {
   if (lights_.empty()) {
     return OkStatus();
   }
 
-  gltf_json_.BeginObject("extensions");
   gltf_json_.BeginObject("KHR_lights_punctual");
   gltf_json_.BeginArray("lights");
   const Light defaults;
@@ -2446,7 +2757,23 @@ Status GltfAsset::EncodeLightsProperty(EncoderBuffer *buf_out) {
   }
   gltf_json_.EndArray();
   gltf_json_.EndObject();  // KHR_lights_punctual entry.
-  gltf_json_.EndObject();  // extensions entry.
+  return OkStatus();
+}
+
+Status GltfAsset::EncodeMaterialsVariantsNamesProperty(EncoderBuffer *buf_out) {
+  if (materials_variants_names_.empty()) {
+    return OkStatus();
+  }
+
+  gltf_json_.BeginObject("KHR_materials_variants");
+  gltf_json_.BeginArray("variants");
+  for (const std::string &name : materials_variants_names_) {
+    gltf_json_.BeginObject();
+    gltf_json_.OutputValue("name", name);
+    gltf_json_.EndObject();
+  }
+  gltf_json_.EndArray();
+  gltf_json_.EndObject();  // KHR_materials_variants entry.
   return OkStatus();
 }
 
@@ -2514,6 +2841,9 @@ bool GltfAsset::EncodeBufferViewsProperty(EncoderBuffer *buf_out) {
 }
 
 bool GltfAsset::EncodeBuffersProperty(EncoderBuffer *buf_out) {
+  if (buffer_.size() == 0) {
+    return true;
+  }
   // We currently only support one buffer.
   gltf_json_.BeginArray("buffers");
   gltf_json_.BeginObject();
@@ -2536,6 +2866,13 @@ Status GltfAsset::EncodeExtensionsProperties(EncoderBuffer *buf_out) {
   }
   if (!lights_.empty()) {
     extensions_used_.insert("KHR_lights_punctual");
+  }
+  if (!materials_variants_names_.empty()) {
+    extensions_used_.insert("KHR_materials_variants");
+  }
+  if (!instance_arrays_.empty()) {
+    extensions_used_.insert("EXT_mesh_gpu_instancing");
+    extensions_required_.insert("EXT_mesh_gpu_instancing");
   }
 
   if (!extensions_required_.empty()) {

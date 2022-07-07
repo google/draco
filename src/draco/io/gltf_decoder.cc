@@ -1083,6 +1083,7 @@ Status GltfDecoder::CheckAndAddTextureToDracoMaterial(
 Status GltfDecoder::DecodeGltfToScene() {
   DRACO_RETURN_IF_ERROR(GatherAttributeAndMaterialStats());
   DRACO_RETURN_IF_ERROR(AddLightsToScene());
+  DRACO_RETURN_IF_ERROR(AddMaterialsVariantsNamesToScene());
   for (const tinygltf::Scene &scene : gltf_model_.scenes) {
     for (int i = 0; i < scene.nodes.size(); ++i) {
       DRACO_RETURN_IF_ERROR(
@@ -1138,6 +1139,45 @@ Status GltfDecoder::AddLightsToScene() {
       }
       scene_light->SetRange(light.range);
     }
+  }
+  return OkStatus();
+}
+
+Status GltfDecoder::AddMaterialsVariantsNamesToScene() {
+  // Check whether the scene has materials variants.
+  const auto &e = gltf_model_.extensions.find("KHR_materials_variants");
+  if (e == gltf_model_.extensions.end()) {
+    // The scene has no materials variants.
+    return OkStatus();
+  }
+
+  // Decode all materials variants names into Draco scene from JSON like this:
+  //   "KHR_materials_variants": {
+  //     "variants": [
+  //       {"name": "Loki" },
+  //       {"name": "Odin" },
+  //     ]
+  //   }
+  const tinygltf::Value::Object &o = e->second.Get<tinygltf::Value::Object>();
+  const auto &variants = o.find("variants");
+  if (variants == o.end()) {
+    return ErrorStatus("Materials variants extension with names is malformed.");
+  }
+  const tinygltf::Value &variants_array = variants->second;
+  if (!variants_array.IsArray()) {
+    return ErrorStatus("Materials variants names array is malformed.");
+  }
+  for (int i = 0; i < variants_array.Size(); i++) {
+    const auto &variant_object = variants_array.Get(i);
+    if (!variant_object.IsObject() || !variant_object.Has("name")) {
+      return ErrorStatus("Materials variants name is missing.");
+    }
+    const auto &name_string = variant_object.Get("name");
+    if (!name_string.IsString()) {
+      return ErrorStatus("Materials variant name is malformed.");
+    }
+    const std::string &name = name_string.Get<std::string>();
+    scene_->GetMaterialLibrary().AddMaterialsVariant(name);
   }
   return OkStatus();
 }
@@ -1256,12 +1296,20 @@ Status GltfDecoder::DecodePrimitiveForScene(
     return Status(Status::DRACO_ERROR, "Primitive does not contain triangles.");
   }
 
+  // Decode materials variants mappings if present in this primitive.
+  std::vector<MeshGroup::MaterialsVariantsMapping> mappings;
+  const auto &e = primitive.extensions.find("KHR_materials_variants");
+  if (e != primitive.extensions.end()) {
+    DRACO_RETURN_IF_ERROR(DecodeMaterialsVariantsMappings(
+        e->second.Get<tinygltf::Value::Object>(), &mappings));
+  }
+
   const PrimitiveSignature signature(primitive);
-  const auto exisitng_mesh_index =
+  const auto existing_mesh_index =
       gltf_primitive_to_draco_mesh_index_.find(signature);
-  if (exisitng_mesh_index != gltf_primitive_to_draco_mesh_index_.end()) {
-    mesh_group->AddMeshIndex(exisitng_mesh_index->second);
-    mesh_group->AddMaterialIndex(primitive.material);
+  if (existing_mesh_index != gltf_primitive_to_draco_mesh_index_.end()) {
+    mesh_group->AddMeshInstance(
+        {existing_mesh_index->second, primitive.material, mappings});
     return OkStatus();
   }
 
@@ -1319,10 +1367,61 @@ Status GltfDecoder::DecodePrimitiveForScene(
   if (mesh_index == kInvalidMeshIndex) {
     return Status(Status::DRACO_ERROR, "Could not add Draco mesh to scene.");
   }
-  mesh_group->AddMeshIndex(mesh_index);
-  mesh_group->AddMaterialIndex(material_index);
+  mesh_group->AddMeshInstance({mesh_index, material_index, mappings});
 
   gltf_primitive_to_draco_mesh_index_[signature] = mesh_index;
+  return OkStatus();
+}
+
+Status GltfDecoder::DecodeMaterialsVariantsMappings(
+    const tinygltf::Value::Object &extension,
+    std::vector<MeshGroup::MaterialsVariantsMapping> *mappings) {
+  // Decode all materials variants mappings from JSON like this:
+  //   "KHR_materials_variants" : {
+  //     "mappings": [
+  //       {
+  //         "material": 2,
+  //         "variants": [0, 2, 4]
+  //       },
+  //       {
+  //         "material": 3,
+  //         "variants": [1, 3]
+  //       }
+  //     ]
+  //   }
+  const auto &mappings_object = extension.find("mappings");
+  if (mappings_object == extension.end()) {
+    return ErrorStatus("Materials variants extension is malformed.");
+  }
+  const tinygltf::Value &mappings_array = mappings_object->second;
+  if (!mappings_array.IsArray()) {
+    return ErrorStatus("Materials variants mappings array is malformed.");
+  }
+  for (int i = 0; i < mappings_array.Size(); i++) {
+    const auto &mapping_object = mappings_array.Get(i);
+    if (!mapping_object.IsObject() || !mapping_object.Has("material") ||
+        !mapping_object.Has("variants")) {
+      return ErrorStatus("Materials variants mapping is malformed.");
+    }
+    const tinygltf::Value &material_int = mapping_object.Get("material");
+    if (!material_int.IsInt()) {
+      return ErrorStatus("Materials variant mapping material is malformed.");
+    }
+    const int material = material_int.Get<int>();
+    const tinygltf::Value &variants_array = mapping_object.Get("variants");
+    if (!variants_array.IsArray()) {
+      return ErrorStatus("Materials variant mapping variants is malformed.");
+    }
+    std::vector<int> variants;
+    for (int j = 0; j < variants_array.Size(); j++) {
+      const tinygltf::Value &variant_int = variants_array.Get(j);
+      if (!variant_int.IsInt()) {
+        return ErrorStatus("Materials variants mapping variant is malformed.");
+      }
+      variants.push_back(variant_int.Get<int>());
+    }
+    mappings->push_back({material, variants});
+  }
   return OkStatus();
 }
 
@@ -1891,10 +1990,10 @@ Status GltfDecoder::AddMaterialsToScene() {
   bool default_material_needed = false;
   for (MeshGroupIndex mgi(0); mgi < scene_->NumMeshGroups(); ++mgi) {
     MeshGroup *const mg = scene_->GetMeshGroup(mgi);
-    for (int mi = 0; mi < mg->NumMaterialIndices(); ++mi) {
-      const int material_index = mg->GetMaterialIndex(mi);
-      if (material_index == -1) {
-        mg->SetMaterialIndex(mi, default_material_index);
+    for (int mi = 0; mi < mg->NumMeshInstances(); ++mi) {
+      MeshGroup::MeshInstance &mesh_instance = mg->GetMeshInstance(mi);
+      if (mesh_instance.material_index == -1) {
+        mesh_instance.material_index = default_material_index;
         default_material_needed = true;
       }
     }
@@ -1909,15 +2008,14 @@ Status GltfDecoder::AddMaterialsToScene() {
   // Check if we need to generate tangent space for any of the loaded meshes.
   for (MeshGroupIndex mgi(0); mgi < scene_->NumMeshGroups(); ++mgi) {
     const MeshGroup *const mg = scene_->GetMeshGroup(mgi);
-    for (int mi = 0; mi < mg->NumMaterialIndices(); ++mi) {
-      const int material_index = mg->GetMaterialIndex(mi);
+    for (int mi = 0; mi < mg->NumMeshInstances(); ++mi) {
+      const MeshGroup::MeshInstance &mesh_instance = mg->GetMeshInstance(mi);
       const auto tangent_map =
           scene_->GetMaterialLibrary()
-              .GetMaterial(material_index)
+              .GetMaterial(mesh_instance.material_index)
               ->GetTextureMapByType(TextureMap::NORMAL_TANGENT_SPACE);
       if (tangent_map != nullptr) {
-        const MeshIndex mesh_index = mg->GetMeshIndex(mi);
-        Mesh &mesh = scene_->GetMesh(mesh_index);
+        Mesh &mesh = scene_->GetMesh(mesh_instance.mesh_index);
         if (mesh.GetNamedAttribute(GeometryAttribute::TANGENT) == nullptr) {
           meshes_that_need_tangents.insert(&mesh);
         }

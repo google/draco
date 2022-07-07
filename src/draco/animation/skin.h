@@ -44,6 +44,7 @@ class Skin {
   }
   int NumJoints() const { return joints_.size(); }
   SceneNodeIndex GetJoint(int index) const { return joints_[index]; }
+  SceneNodeIndex &GetJoint(int index) { return joints_[index]; }
   const std::vector<SceneNodeIndex> &GetJoints() const { return joints_; }
 
   void SetJointRoot(SceneNodeIndex index) { joint_root_index_ = index; }

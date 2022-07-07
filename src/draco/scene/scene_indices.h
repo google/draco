@@ -45,6 +45,9 @@ DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, SkinIndex)
 // Index of a light in a scene.
 DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, LightIndex)
 
+// Index of a mesh group GPU instancing in a scene.
+DEFINE_NEW_DRACO_INDEX_TYPE(uint32_t, InstanceArrayIndex)
+
 // Constants denoting invalid indices.
 static constexpr MeshIndex kInvalidMeshIndex(
     std::numeric_limits<uint32_t>::max());
@@ -59,6 +62,8 @@ static constexpr AnimationIndex kInvalidAnimationIndex(
 static constexpr SkinIndex kInvalidSkinIndex(
     std::numeric_limits<uint32_t>::max());
 static constexpr LightIndex kInvalidLightIndex(
+    std::numeric_limits<uint32_t>::max());
+static constexpr InstanceArrayIndex kInvalidInstanceArrayIndex(
     std::numeric_limits<uint32_t>::max());
 
 }  // namespace draco
