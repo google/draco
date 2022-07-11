@@ -108,7 +108,7 @@ jobs:
 
     - name: configure_win32
       run: >
-        cmake . -G "Visual Studio 16 2019" -A Win32 -B build_win_32
+        cmake . -G "Visual Studio 17 2022" -A Win32 -B build_win_32
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
