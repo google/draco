@@ -91,7 +91,7 @@ jobs:
 
     - name: configure_win64
       run: >
-        cmake . -G "Visual Studio 16 2019" -A x64 -B build_win_64
+        cmake . -G "Visual Studio 17 2022" -A x64 -B build_win_64
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
@@ -120,7 +120,7 @@ jobs:
     # Universal Windows Platform
     - name: configure_uwp_arm
       run: >
-        cmake . -G "Visual Studio 16 2019" -A ARM -B build_uwp_arm
+        cmake . -G "Visual Studio 17 2022" -A ARM -B build_uwp_arm
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
@@ -139,7 +139,7 @@ jobs:
         
     - name: configure_uwp_arm64
       run: >
-        cmake . -G "Visual Studio 16 2019" -A ARM64 -B build_uwp_arm64
+        cmake . -G "Visual Studio 17 2022" -A ARM64 -B build_uwp_arm64
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
@@ -158,7 +158,7 @@ jobs:
 
     - name: configure_uwp_x86
       run: >
-        cmake . -G "Visual Studio 16 2019" -A Win32 -B build_uwp_x86
+        cmake . -G "Visual Studio 17 2022" -A Win32 -B build_uwp_x86
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
@@ -177,7 +177,7 @@ jobs:
         
     - name: configure_uwp_x64
       run: >
-        cmake . -G "Visual Studio 16 2019" -A x64 -B build_uwp_x64
+        cmake . -G "Visual Studio 17 2022" -A x64 -B build_uwp_x64
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
