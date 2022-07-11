@@ -62,9 +62,11 @@ jobs:
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
-    - name: build_ios
+    - name: build_ios_dracodec_unity
       run: cmake --build build_ios --config MinSizeRel --target dracodec_unity
-
+    - name: build_ios_dracoenc_unity
+      run: cmake --build build_ios --config MinSizeRel --target dracoenc_unity
+    
     - name: package Apple
       run: |
         mkdir draco_apple
@@ -110,8 +112,10 @@ jobs:
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
-    - name: build_win32
+    - name: build_win32_dracodec_unity
       run: cmake --build build_win_32 --config MinSizeRel --target dracodec_unity
+    - name: build_win32_dracoenc_unity
+      run: cmake --build build_win_32 --config MinSizeRel --target dracoenc_unity
 
     # Universal Windows Platform
     - name: configure_uwp_arm
@@ -122,12 +126,17 @@ jobs:
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
         -DCMAKE_SYSTEM_NAME:String=WindowsStore
         -DCMAKE_SYSTEM_VERSION:String="10.0"
-    - name: build_uwp_arm
+    - name: build_uwp_arm_dracodec_unity
       run: >
         cmake --build build_uwp_arm
         --config MinSizeRel
         --target dracodec_unity
-
+    - name: build_uwp_arm_dracoenc_unity
+      run: >
+        cmake --build build_uwp_arm
+        --config MinSizeRel
+        --target dracoenc_unity
+        
     - name: configure_uwp_arm64
       run: >
         cmake . -G "Visual Studio 16 2019" -A ARM64 -B build_uwp_arm64
@@ -136,11 +145,16 @@ jobs:
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
         -DCMAKE_SYSTEM_NAME:String=WindowsStore
         -DCMAKE_SYSTEM_VERSION:String="10.0"
-    - name: build_uwp_arm64
+    - name: build_uwp_arm64_dracodec_unity
       run: >
         cmake --build build_uwp_arm64
         --config MinSizeRel
         --target dracodec_unity
+    - name: build_uwp_arm64_dracoenc_unity
+      run: >
+        cmake --build build_uwp_arm64
+        --config MinSizeRel
+        --target dracoenc_unity
 
     - name: configure_uwp_x86
       run: >
@@ -150,12 +164,17 @@ jobs:
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
         -DCMAKE_SYSTEM_NAME:String=WindowsStore
         -DCMAKE_SYSTEM_VERSION:String="10.0"
-    - name: build_uwp_x86
+    - name: build_uwp_x86_dracodec_unity
       run: >
         cmake --build build_uwp_x86
         --config MinSizeRel
         --target dracodec_unity
-
+    - name: build_uwp_x86_dracoenc_unity
+      run: >
+        cmake --build build_uwp_x86
+        --config MinSizeRel
+        --target dracoenc_unity
+        
     - name: configure_uwp_x64
       run: >
         cmake . -G "Visual Studio 16 2019" -A x64 -B build_uwp_x64
@@ -164,12 +183,17 @@ jobs:
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
         -DCMAKE_SYSTEM_NAME:String=WindowsStore
         -DCMAKE_SYSTEM_VERSION:String="10.0"
-    - name: build_uwp_x64
+    - name: build_uwp_x64_dracodec_unity
       run: >
         cmake --build build_uwp_x64
         --config MinSizeRel
         --target dracodec_unity
-
+    - name: build_uwp_x64_dracoenc_unity
+      run: >
+        cmake --build build_uwp_x64
+        --config MinSizeRel
+        --target dracoenc_unity
+        
     - name: package Windows
       run: |
         mkdir draco_win/x86
@@ -223,9 +247,11 @@ jobs:
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
-    - name: build_android_arm64-v8a
+    - name: build_android_arm64-v8a_dracodec_unity
       run: cmake --build build_android_arm64-v8a --target dracodec_unity -j
-
+    - name: build_android_arm64-v8a_dracoenc_unity
+      run: cmake --build build_android_arm64-v8a --target dracoenc_unity -j
+      
     - name: configure_android_armeabi-v7a
       run: >
         cmake -B build_android_armeabi-v7a -DANDROID_ABI=armeabi-v7a
@@ -235,8 +261,10 @@ jobs:
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
-    - name: build_android_armeabi-v7a
+    - name: build_android_armeabi-v7a_dracodec_unity
       run: cmake --build build_android_armeabi-v7a --target dracodec_unity -j
+    - name: build_android_armeabi-v7a_dracoenc_unity
+      run: cmake --build build_android_armeabi-v7a --target dracoenc_unity -j
 
     - name: configure_android_x86
       run: >
@@ -248,8 +276,10 @@ jobs:
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
-    - name: build_android_x86
+    - name: build_android_x86_dracodec_unity
       run: cmake --build build_android_x86 --target dracodec_unity -j
+    - name: build_android_x86_dracoenc_unity
+      run: cmake --build build_android_x86 --target dracoenc_unity -j
 
     # Emscripten
     - name: setup Emscripten
@@ -265,8 +295,10 @@ jobs:
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
-    - name: build WebAssembly
+    - name: build_webassembly_dracodec_unity
       run: cmake --build build_web --target dracodec_unity -j
+    - name: build_webassembly_dracoenc_unity
+      run: cmake --build build_web --target dracoenc_unity -j
 
     # Linux artifacts
     - name: package Linux
@@ -375,9 +407,10 @@ jobs:
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
-    - name: build WebAssembly 1
+    - name: build_webassembly_1_dracodec_unity
       run: cmake --build build_web_1 --target dracodec_unity -j
-
+    - name: build_webassembly_1_dracoenc_unity
+      run: cmake --build build_web_1 --target dracoenc_unity -j
     # Linux legacy artifacts
     - name: package Linux legacy
       run: |
