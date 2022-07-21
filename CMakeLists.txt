@@ -103,6 +103,7 @@ list(
     draco_compression_attributes_dec_sources
     "${draco_src_root}/compression/attributes/attributes_decoder.cc"
     "${draco_src_root}/compression/attributes/attributes_decoder.h"
+    "${draco_src_root}/compression/attributes/attributes_decoder_interface.h"
     "${draco_src_root}/compression/attributes/kd_tree_attributes_decoder.cc"
     "${draco_src_root}/compression/attributes/kd_tree_attributes_decoder.h"
     "${draco_src_root}/compression/attributes/kd_tree_attributes_shared.h"
