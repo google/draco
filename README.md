@@ -18,6 +18,8 @@ versioned release.
 * Using the versioned www.gstatic.com WASM and Javascript decoders continues
   to be recommended. To use v1.5.4, use this URL:
   * https://www.gstatic.com/draco/versioned/decoders/1.5.4/*
+* Added partial support for glTF extensions EXT_mesh_features and
+  EXT_structural_metadata.
 * Bug fixes.
 * Security fixes.
 
