@@ -1,16 +1,16 @@
 # Copyright 2021 The Draco Authors
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
 
 if(DRACO_CMAKE_DRACO_BUILD_DEFINITIONS_CMAKE_)
   return()
@@ -60,7 +60,7 @@ macro(draco_set_build_definitions)
   # passed to libtool.
   #
   # We set DRACO_SOVERSION = [c-a].a.r
-  set(LT_CURRENT 5)
+  set(LT_CURRENT 6)
   set(LT_REVISION 0)
   set(LT_AGE 0)
   math(EXPR DRACO_SOVERSION_MAJOR "${LT_CURRENT} - ${LT_AGE}")
@@ -70,7 +70,7 @@ macro(draco_set_build_definitions)
   unset(LT_AGE)
 
   list(APPEND draco_include_paths "${draco_root}" "${draco_root}/src"
-              "${draco_build}")
+       "${draco_build}")
 
   if(DRACO_ABSL)
     list(APPEND draco_include_paths "${draco_root}/third_party/abseil-cpp")
@@ -84,8 +84,7 @@ macro(draco_set_build_definitions)
 
 
   list(APPEND draco_defines "DRACO_CMAKE=1"
-              "DRACO_FLAGS_SRCDIR=\"${draco_root}\""
-              "DRACO_FLAGS_TMPDIR=\"/tmp\"")
+       "DRACO_FLAGS_SRCDIR=\"${draco_root}\"" "DRACO_FLAGS_TMPDIR=\"/tmp\"")
 
   if(MSVC OR WIN32)
     list(APPEND draco_defines "_CRT_SECURE_NO_DEPRECATE=1" "NOMINMAX=1")
@@ -158,13 +157,9 @@ macro(draco_set_build_definitions)
   set(draco_neon_source_file_suffix "neon.cc")
   set(draco_sse4_source_file_suffix "sse4.cc")
 
-  if((${CMAKE_CXX_COMPILER_ID}
-      STREQUAL
-      "GNU"
-      AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 5)
-     OR (${CMAKE_CXX_COMPILER_ID}
-         STREQUAL
-         "Clang"
+  if((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND ${CMAKE_CXX_COMPILER_VERSION}
+                                                  VERSION_LESS 5)
+     OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"
          AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 4))
     message(
       WARNING "GNU/GCC < v5 or Clang/LLVM < v4, ENABLING COMPATIBILITY MODE.")
@@ -173,10 +168,9 @@ macro(draco_set_build_definitions)
 
   if(EMSCRIPTEN)
     draco_check_emscripten_environment()
-    draco_get_required_emscripten_flags(FLAG_LIST_VAR_COMPILER
-                                        draco_base_cxx_flags
-                                        FLAG_LIST_VAR_LINKER
-                                        draco_base_exe_linker_flags)
+    draco_get_required_emscripten_flags(
+      FLAG_LIST_VAR_COMPILER draco_base_cxx_flags
+      FLAG_LIST_VAR_LINKER draco_base_exe_linker_flags)
   endif()
 
   draco_configure_sanitizer()

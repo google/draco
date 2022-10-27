@@ -15,13 +15,17 @@
 #include "draco/mesh/mesh.h"
 
 #include <memory>
+#include <utility>
 
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/compression/draco_compression_options.h"
+#include "draco/material/material_utils.h"
 #include "draco/mesh/mesh_are_equivalent.h"
+#include "draco/mesh/mesh_features.h"
+#include "draco/mesh/mesh_utils.h"
 #include "draco/mesh/triangle_soup_mesh_builder.h"
 #endif  // DRACO_TRANSCODER_SUPPORTED
 
@@ -105,6 +109,92 @@ TEST(MeshTest, RemoveUnusedMaterials) {
     mat_att->GetMappedValue(mesh->face(fi)[0], &mat_index);
     ASSERT_EQ(mesh->GetMaterialLibrary().GetMaterial(mat_index),
               face_materials[fi.value()]);
+  }
+}
+
+TEST(MeshTest, RemoveUnusedMaterialsOnPointClud) {
+  // Input mesh has 29 materials defined in the source file but only 7 are
+  // actually used. Same as above test but we remove all faces and treat the
+  // model as a point cloud.
+  const std::unique_ptr<draco::Mesh> mesh =
+      draco::ReadMeshFromTestFile("mat_test.obj");
+  ASSERT_NE(mesh, nullptr);
+
+  // Make it a point cloud.
+  mesh->SetNumFaces(0);
+
+  const draco::PointAttribute *const mat_att =
+      mesh->GetNamedAttribute(draco::GeometryAttribute::MATERIAL);
+  ASSERT_NE(mat_att, nullptr);
+  ASSERT_EQ(mat_att->size(), 29);
+
+  ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), mat_att->size());
+
+  // Get materials on all points.
+  std::vector<const draco::Material *> point_materials(mesh->num_points(),
+                                                       nullptr);
+  for (draco::PointIndex pi(0); pi < mesh->num_points(); ++pi) {
+    uint32_t mat_index = 0;
+    mat_att->GetMappedValue(pi, &mat_index);
+    point_materials[pi.value()] =
+        mesh->GetMaterialLibrary().GetMaterial(mat_index);
+  }
+
+  mesh->RemoveUnusedMaterials();
+
+  ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), 7);
+
+  // Ensure the material attribute contains material indices in the valid range.
+  for (draco::AttributeValueIndex avi(0); avi < mat_att->size(); ++avi) {
+    uint32_t mat_index = 0;
+    mat_att->GetValue(avi, &mat_index);
+    ASSERT_LT(mat_index, mesh->GetMaterialLibrary().NumMaterials());
+  }
+
+  // Ensure all materials are still the same for all points.
+  for (draco::PointIndex pi(0); pi < mesh->num_points(); ++pi) {
+    uint32_t mat_index = 0;
+    mat_att->GetMappedValue(pi, &mat_index);
+    ASSERT_EQ(mesh->GetMaterialLibrary().GetMaterial(mat_index),
+              point_materials[pi.value()]);
+  }
+}
+
+TEST(MeshTest, RemoveUnusedMaterialsNoIndices) {
+  // The same as above but we actually want to remove only materials and not
+  // material indices. Therefore we should end up with the same number of
+  // materials as source but all unused materials should be "default".
+  const std::unique_ptr<draco::Mesh> mesh =
+      draco::ReadMeshFromTestFile("mat_test.obj");
+  ASSERT_NE(mesh, nullptr);
+
+  const draco::PointAttribute *const mat_att =
+      mesh->GetNamedAttribute(draco::GeometryAttribute::MATERIAL);
+  ASSERT_NE(mat_att, nullptr);
+  ASSERT_EQ(mat_att->size(), 29);
+
+  ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), mat_att->size());
+
+  // Do not remove unused material indices.
+  mesh->RemoveUnusedMaterials(false);
+
+  ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), 29);
+
+  // Gether which materials were actually used and check that all remaining
+  // materials are "default".
+  std::vector<bool> is_mat_used(mesh->GetMaterialLibrary().NumMaterials(),
+                                false);
+  for (draco::AttributeValueIndex avi(0); avi < mat_att->size(); ++avi) {
+    uint32_t mat_index = 0;
+    mat_att->GetValue(avi, &mat_index);
+    is_mat_used[mat_index] = true;
+  }
+
+  for (int mi = 0; mi < mesh->GetMaterialLibrary().NumMaterials(); ++mi) {
+    if (!is_mat_used[mi]) {
+      ASSERT_TRUE(draco::MaterialUtils::AreMaterialsEquivalent(
+          *mesh->GetMaterialLibrary().GetMaterial(mi), draco::Material()));
+    }
   }
 }
 
@@ -345,6 +435,189 @@ TEST(MeshTest, TestCompressionSettings) {
   mesh_copy.Copy(*mesh);
   ASSERT_TRUE(mesh_copy.IsCompressionEnabled());
   ASSERT_EQ(mesh_copy.GetCompressionOptions(), compression_options);
+}
+
+// Tests adding and removing of mesh features to a mesh.
+TEST(MeshTest, TestMeshFeatures) {
+  // Create a mesh with two feature ID sets.
+  draco::Mesh mesh;
+  ASSERT_EQ(mesh.NumMeshFeatures(), 0);
+  std::unique_ptr<draco::MeshFeatures> oceans(new draco::MeshFeatures());
+  std::unique_ptr<draco::MeshFeatures> continents(new draco::MeshFeatures());
+  oceans->SetLabel("oceans");
+  continents->SetLabel("continents");
+  const draco::MeshFeaturesIndex index_0 =
+      mesh.AddMeshFeatures(std::move(oceans));
+  const draco::MeshFeaturesIndex index_1 =
+      mesh.AddMeshFeatures(std::move(continents));
+  ASSERT_EQ(index_0, draco::MeshFeaturesIndex(0));
+  ASSERT_EQ(index_1, draco::MeshFeaturesIndex(1));
+
+  // Check that the mesh has two feature ID sets.
+  ASSERT_EQ(mesh.NumMeshFeatures(), 2);
+  ASSERT_EQ(mesh.GetMeshFeatures(index_0).GetLabel(), "oceans");
+  ASSERT_EQ(mesh.GetMeshFeatures(index_1).GetLabel(), "continents");
+
+  // Remove one feature ID set and check the remaining feature ID set.
+  mesh.RemoveMeshFeatures(draco::MeshFeaturesIndex(1));
+  ASSERT_EQ(mesh.NumMeshFeatures(), 1);
+  ASSERT_EQ(mesh.GetMeshFeatures(draco::MeshFeaturesIndex(0)).GetLabel(),
+            "oceans");
+
+  // Remove the remaining feature ID set and check that no sets remain.
+  mesh.RemoveMeshFeatures(draco::MeshFeaturesIndex(0));
+  ASSERT_EQ(mesh.NumMeshFeatures(), 0);
+}
+
+// Tests copying of a mesh with feature ID sets.
+TEST(MeshTest, MeshCopyWithMeshFeatures) {
+  const std::unique_ptr<draco::Mesh> mesh =
+      draco::ReadMeshFromTestFile("cube_att.obj");
+  ASSERT_NE(mesh, nullptr);
+
+  // Add two textures to the non-material texture library of the mesh.
+  std::unique_ptr<draco::Texture> texture0(new draco::Texture());
+  std::unique_ptr<draco::Texture> texture1(new draco::Texture());
+  texture0->Resize(128, 128);
+  texture1->Resize(256, 256);
+  texture0->FillImage(draco::RGBA(100, 0, 0, 0));
+  texture1->FillImage(draco::RGBA(200, 0, 0, 0));
+  draco::TextureLibrary &library = mesh->GetNonMaterialTextureLibrary();
+  library.PushTexture(std::move(texture0));
+  library.PushTexture(std::move(texture1));
+
+  // Add feature ID set referring to an attribute.
+  const draco::MeshFeaturesIndex index_0 = mesh->AddMeshFeatures(
+      std::unique_ptr<draco::MeshFeatures>(new draco::MeshFeatures()));
+  mesh->GetMeshFeatures(index_0).SetLabel("planet");
+  mesh->GetMeshFeatures(index_0).SetFeatureCount(2);
+  mesh->GetMeshFeatures(index_0).SetAttributeIndex(1);
+
+  // Add feature ID set referring to texture at index 0.
+  const draco::MeshFeaturesIndex index_1 = mesh->AddMeshFeatures(
+      std::unique_ptr<draco::MeshFeatures>(new draco::MeshFeatures()));
+  mesh->GetMeshFeatures(index_1).SetLabel("continents");
+  mesh->GetMeshFeatures(index_1).SetFeatureCount(7);
+  mesh->GetMeshFeatures(index_1).GetTextureMap().SetTexture(
+      library.GetTexture(0));
+
+  // Add feature ID set referring to a texture at index 1.
+  const draco::MeshFeaturesIndex index_2 = mesh->AddMeshFeatures(
+      std::unique_ptr<draco::MeshFeatures>(new draco::MeshFeatures()));
+  mesh->GetMeshFeatures(index_2).SetLabel("oceans");
+  mesh->GetMeshFeatures(index_2).SetFeatureCount(5);
+  mesh->GetMeshFeatures(index_2).GetTextureMap().SetTexture(
+      library.GetTexture(1));
+
+  // Check mesh feature ID set texture pointers.
+  ASSERT_EQ(library.NumTextures(), 2);
+  ASSERT_EQ(mesh->NumMeshFeatures(), 3);
+  ASSERT_EQ(mesh->GetMeshFeatures(index_0).GetTextureMap().texture(), nullptr);
+  ASSERT_EQ(mesh->GetMeshFeatures(index_1).GetTextureMap().texture(),
+            library.GetTexture(0));
+  ASSERT_EQ(mesh->GetMeshFeatures(index_2).GetTextureMap().texture(),
+            library.GetTexture(1));
+
+  // Copy the mesh.
+  draco::Mesh mesh_copy;
+  mesh_copy.Copy(*mesh);
+
+  // Check that the meshes are equivalent.
+  draco::MeshAreEquivalent eq;
+  ASSERT_TRUE(eq(*mesh, mesh_copy));
+
+  // Also check that the texture pointers have been updated correctly.
+  const draco::TextureLibrary &library_copy =
+      mesh_copy.GetNonMaterialTextureLibrary();
+  ASSERT_EQ(library_copy.NumTextures(), 2);
+  ASSERT_EQ(mesh_copy.NumMeshFeatures(), 3);
+  ASSERT_EQ(mesh_copy.GetMeshFeatures(index_0).GetTextureMap().texture(),
+            nullptr);
+  ASSERT_EQ(mesh_copy.GetMeshFeatures(index_1).GetTextureMap().texture(),
+            library_copy.GetTexture(0));
+  ASSERT_EQ(mesh_copy.GetMeshFeatures(index_2).GetTextureMap().texture(),
+            library_copy.GetTexture(1));
+}
+
+// Tests copying of a mesh with structural metadata.
+TEST(MeshTest, TestCopyWithStructuralMetadata) {
+  const std::unique_ptr<draco::Mesh> mesh =
+      draco::ReadMeshFromTestFile("cube_att.obj");
+  ASSERT_NE(mesh, nullptr);
+
+  // Add structural metadata to the mesh.
+  draco::PropertyTable::Schema schema;
+  schema.json.SetString("Data");
+  mesh->GetStructuralMetadata().SetPropertyTableSchema(schema);
+
+  // Copy the mesh.
+  draco::Mesh copy;
+  copy.Copy(*mesh);
+
+  // Check that the structural metadata has been copied.
+  ASSERT_EQ(
+      copy.GetStructuralMetadata().GetPropertyTableSchema().json.GetString(),
+      "Data");
+}
+
+// Tests removing of unused materials for a mesh with mesh features.
+TEST(MeshTest, RemoveUnusedMaterialsWithMeshFeatures) {
+  const std::unique_ptr<draco::Mesh> mesh =
+      draco::ReadMeshFromTestFile("BoxesMeta/glTF/BoxesMeta.gltf");
+  ASSERT_NE(mesh, nullptr);
+
+  // Input has five mesh features, two associated with material 0 and three with
+  // material 1.
+  ASSERT_EQ(mesh->NumMeshFeatures(), 5);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(0), 0),
+            0);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(1), 0),
+            0);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(2), 0),
+            1);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(3), 0),
+            1);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(4), 0),
+            1);
+
+  // Remove material 0.
+  draco::PointAttribute *mat_att = mesh->attribute(
+      mesh->GetNamedAttributeId(draco::GeometryAttribute::MATERIAL));
+  // Map mat value 0 to 1.
+  uint32_t new_mat_index = 1;
+  mat_att->SetAttributeValue(draco::AttributeValueIndex(0), &new_mat_index);
+
+  // This should not do anything because we still have the material 0 referenced
+  // by mesh features 0 and 1.
+  mesh->RemoveUnusedMaterials();
+
+  ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), 2);
+  ASSERT_EQ(mesh->NumMeshFeatures(), 5);
+
+  // Now remove unused mesh features (should be 0 and 1).
+  DRACO_ASSERT_OK(draco::MeshUtils::RemoveUnusedMeshFeatures(mesh.get()));
+
+  ASSERT_EQ(mesh->NumMeshFeatures(), 3);
+  // All remaining mesh features should be still mapped to material 1.
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(0), 0),
+            1);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(1), 0),
+            1);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(2), 0),
+            1);
+
+  // Now remove the unused materials (0).
+  mesh->RemoveUnusedMaterials();
+
+  // Only one material should be remaining and all the mesh features should now
+  // be mapped to material 0.
+  ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), 1);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(0), 0),
+            0);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(1), 0),
+            0);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(2), 0),
+            0);
 }
 #endif  // DRACO_TRANSCODER_SUPPORTED
 

@@ -15,6 +15,10 @@
 #include "draco/mesh/mesh.h"
 
 #include <array>
+#include <memory>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace draco {
 
@@ -37,6 +41,32 @@ void Mesh::Copy(const Mesh &src) {
   material_library_.Copy(src.material_library_);
   compression_enabled_ = src.compression_enabled_;
   compression_options_ = src.compression_options_;
+
+  // Copy mesh feature ID sets.
+  mesh_features_.clear();
+  for (MeshFeaturesIndex i(0); i < src.NumMeshFeatures(); i++) {
+    std::unique_ptr<MeshFeatures> mesh_features(new MeshFeatures());
+    mesh_features->Copy(src.GetMeshFeatures(i));
+    AddMeshFeatures(std::move(mesh_features));
+  }
+  mesh_features_material_mask_ = src.mesh_features_material_mask_;
+
+  // Copy non-material textures.
+  non_material_texture_library_.Copy(src.non_material_texture_library_);
+
+  // Update pointers to non-material textures in mesh feature ID sets.
+  if (non_material_texture_library_.NumTextures() != 0) {
+    const auto texture_to_index_map =
+        src.non_material_texture_library_.ComputeTextureToIndexMap();
+    for (MeshFeaturesIndex j(0); j < NumMeshFeatures(); ++j) {
+      Mesh::UpdateMeshFeaturesTexturePointer(texture_to_index_map,
+                                             &non_material_texture_library_,
+                                             &GetMeshFeatures(j));
+    }
+  }
+
+  // Copy structural metadata.
+  structural_metadata_.Copy(src.structural_metadata_);
 }
 
 namespace {
@@ -247,7 +277,9 @@ void Mesh::RemoveIsolatedPoints() {
   set_num_points(num_used_points);
 }
 
-void Mesh::RemoveUnusedMaterials() {
+void Mesh::RemoveUnusedMaterials() { RemoveUnusedMaterials(true); }
+
+void Mesh::RemoveUnusedMaterials(bool remove_unused_material_indices) {
   const int mat_att_index = GetNamedAttributeId(GeometryAttribute::MATERIAL);
   if (mat_att_index == -1) {
     // Remove all materials except for the first one.
@@ -261,42 +293,84 @@ void Mesh::RemoveUnusedMaterials() {
 
   // Deduplicate attribute values in the material attribute to ensure that one
   // attribute value index corresponds to one unique material index.
+  // Note that this does not remove unused material indices.
   mat_att->DeduplicateValues(*mat_att);
 
   // Gather all material indices that are referenced by faces of the mesh.
   const int num_materials = GetMaterialLibrary().NumMaterials();
   std::vector<bool> is_material_used(num_materials, false);
   int num_used_materials = 0;
-  for (FaceIndex fi(0); fi < num_faces(); ++fi) {
+
+  // Helper function that updates |is_material_used| for the processed mesh.
+  auto update_used_materials = [&is_material_used, &num_used_materials, mat_att,
+                                num_materials](PointIndex pi) {
     uint32_t mat_index = 0;
-    mat_att->GetMappedValue(faces_[fi][0], &mat_index);
+    mat_att->GetMappedValue(pi, &mat_index);
     if (mat_index < num_materials) {
       if (!is_material_used[mat_index]) {
         is_material_used[mat_index] = true;
         num_used_materials++;
       }
     }
+  };
+
+  if (num_faces() > 0) {
+    for (FaceIndex fi(0); fi < num_faces(); ++fi) {
+      update_used_materials(faces_[fi][0]);
+    }
+  } else {
+    // Handle the mesh as a point cloud and check materials used by points.
+    for (PointIndex pi(0); pi < num_points(); ++pi) {
+      update_used_materials(pi);
+    }
   }
+
+  // Check if any of the (unused) materials is used by mesh features. If so,
+  // user should remove unused mesh features first.
+  for (MeshFeaturesIndex mfi(0); mfi < NumMeshFeatures(); ++mfi) {
+    for (int mask_index = 0; mask_index < NumMeshFeaturesMaterialMasks(mfi);
+         ++mask_index) {
+      const int mat_index = GetMeshFeaturesMaterialMask(mfi, mask_index);
+      if (mat_index < num_materials && !is_material_used[mat_index]) {
+        is_material_used[mat_index] = true;
+        num_used_materials++;
+      }
+    }
+  }
+
   if (num_used_materials == num_materials) {
     return;  // All materials are used, don't do anything.
   }
 
-  // Remove unused materials from the material library.
+  // Remove unused materials from the material library or replace them with
+  // default materials if we do not remove unused material indices.
   for (int mi = num_materials - 1; mi >= 0; --mi) {
-    if (!is_material_used[mi]) {
-      GetMaterialLibrary().RemoveMaterial(mi);
+    if (!is_material_used[mi] && mi < GetMaterialLibrary().NumMaterials()) {
+      if (remove_unused_material_indices) {
+        GetMaterialLibrary().RemoveMaterial(mi);
+      } else {
+        GetMaterialLibrary().MutableMaterial(mi)->Clear();
+      }
     }
   }
   GetMaterialLibrary().RemoveUnusedTextures();
+
+  if (!remove_unused_material_indices) {
+    // All the code below handles updating of material indices. Since we do not
+    // want to update them, we can return early.
+    return;
+  }
 
   // Compute map between old and new material indices.
   int new_material_index = 0;
   IndexTypeVector<AttributeValueIndex, int>
       old_to_new_material_attribute_value_index_map(mat_att->size(), -1);
+  std::vector<int> old_to_new_material_value_map(num_materials, -1);
   for (AttributeValueIndex avi(0); avi < mat_att->size(); ++avi) {
     uint32_t mat_index = 0;
     mat_att->GetValue(avi, &mat_index);
     if (mat_index < num_materials && is_material_used[mat_index]) {
+      old_to_new_material_value_map[mat_index] = new_material_index;
       old_to_new_material_attribute_value_index_map[avi] = new_material_index++;
     }
   }
@@ -317,6 +391,64 @@ void Mesh::RemoveUnusedMaterials() {
         pi, AttributeValueIndex(
                 old_to_new_material_attribute_value_index_map[old_avi]));
   }
+
+  // Update material indices on mesh features.
+  for (MeshFeaturesIndex mfi(0); mfi < NumMeshFeatures(); ++mfi) {
+    for (int mask_index = 0; mask_index < NumMeshFeaturesMaterialMasks(mfi);
+         ++mask_index) {
+      const int old_mat_index = GetMeshFeaturesMaterialMask(mfi, mask_index);
+      if (old_mat_index < num_materials && is_material_used[old_mat_index]) {
+        mesh_features_material_mask_[mfi][mask_index] =
+            old_to_new_material_value_map[old_mat_index];
+      }
+    }
+  }
+}
+
+void Mesh::UpdateMeshFeaturesTexturePointer(
+    const std::unordered_map<const Texture *, int> &texture_to_index_map,
+    TextureLibrary *texture_library, MeshFeatures *mesh_features) {
+  TextureMap &texture_map = mesh_features->GetTextureMap();
+  if (texture_map.texture() == nullptr) {
+    return;
+  }
+  const auto it = texture_to_index_map.find(texture_map.texture());
+  DRACO_DCHECK(it != texture_to_index_map.end());
+  const int texture_index = it->second;
+  DRACO_DCHECK(texture_index < texture_library->NumTextures());
+  texture_map.SetTexture(texture_library->GetTexture(texture_index));
+}
+
+void Mesh::CopyMeshFeaturesForMaterial(const Mesh &source_mesh,
+                                       Mesh *target_mesh, int material_index) {
+  for (MeshFeaturesIndex mfi(0); mfi < source_mesh.NumMeshFeatures(); ++mfi) {
+    // Mesh features is used if it doesn't have any material mask or if one
+    // of the material masks matches |material_index|.
+    bool is_used = source_mesh.NumMeshFeaturesMaterialMasks(mfi) == 0;
+    for (int mask_index = 0;
+         !is_used && mask_index < source_mesh.NumMeshFeaturesMaterialMasks(mfi);
+         ++mask_index) {
+      if (source_mesh.GetMeshFeaturesMaterialMask(mfi, mask_index) ==
+          material_index) {
+        is_used = true;
+      }
+    }
+    if (is_used) {
+      // Copy over the mesh features to the target mesh. Note that texture
+      // pointers are not updated at this step.
+      std::unique_ptr<MeshFeatures> new_mf(new MeshFeatures());
+      new_mf->Copy(source_mesh.GetMeshFeatures(mfi));
+      target_mesh->AddMeshFeatures(std::move(new_mf));
+    }
+  }
+}
+
+int32_t Mesh::AddPerFaceAttribute(std::unique_ptr<PointAttribute> att) {
+  IndexTypeVector<CornerIndex, AttributeValueIndex> corner_map(num_faces() * 3);
+  for (CornerIndex ci(0); ci < num_faces() * 3; ++ci) {
+    corner_map[ci] = AttributeValueIndex(ci.value() / 3);
+  }
+  return AddAttributeWithConnectivity(std::move(att), corner_map);
 }
 #endif  // DRACO_TRANSCODER_SUPPORTED
 

@@ -131,6 +131,9 @@ bool MetadataDecoder::DecodeEntry(Metadata *metadata) {
   if (data_size == 0) {
     return false;
   }
+  if (data_size > buffer_->remaining_size()) {
+    return false;
+  }
   std::vector<uint8_t> entry_value(data_size);
   if (!buffer_->Decode(&entry_value[0], data_size)) {
     return false;

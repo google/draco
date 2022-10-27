@@ -14,6 +14,10 @@
 //
 #include "draco/mesh/mesh_utils.h"
 
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/attributes/attribute_quantization_transform.h"
 #include "draco/core/quantization_utils.h"
@@ -161,6 +165,86 @@ void MeshUtils::MergeMetadata(const Mesh &src_mesh, Mesh *dst_mesh) {
       MergeMetadataInternal(*src_metadata, dst_metadata);
     }
   }
+}
+
+Status MeshUtils::RemoveUnusedMeshFeatures(Mesh *mesh) {
+  // Unused mesh features are features that are not used by any face / vertex
+  // of the |mesh|. Currently, each mesh feature can be "masked" for specific
+  // materials, in which case we need to check whether the mask materials
+  // are present in the |mesh|. If not, we can remove the mesh features from the
+  // mesh.
+  const PointAttribute *const mat_att =
+      mesh->GetNamedAttribute(GeometryAttribute::MATERIAL);
+  // Find which materials are used.
+  std::unordered_set<int> used_materials;
+  if (mat_att == nullptr) {
+    // Only material with index 0 is assumed to be used.
+    used_materials.insert(0);
+  } else {
+    for (AttributeValueIndex avi(0); avi < mat_att->size(); ++avi) {
+      uint32_t mat_index = 0;
+      mat_att->GetValue(avi, &mat_index);
+      used_materials.insert(mat_index);
+    }
+  }
+
+  std::vector<MeshFeaturesIndex> unused_mesh_features;
+  for (MeshFeaturesIndex mfi(0); mfi < mesh->NumMeshFeatures(); ++mfi) {
+    bool is_used = false;
+    if (mesh->NumMeshFeaturesMaterialMasks(mfi) == 0) {
+      is_used = true;
+    } else {
+      for (int mask_i = 0; mask_i < mesh->NumMeshFeaturesMaterialMasks(mfi);
+           ++mask_i) {
+        const int material_index =
+            mesh->GetMeshFeaturesMaterialMask(mfi, mask_i);
+        if (used_materials.count(material_index)) {
+          is_used = true;
+          break;
+        }
+      }
+    }
+    if (!is_used) {
+      unused_mesh_features.push_back(mfi);
+    }
+  }
+
+  // Remove the unused mesh features (from back).
+  for (auto it = unused_mesh_features.rbegin();
+       it != unused_mesh_features.rend(); ++it) {
+    const MeshFeaturesIndex mfi = *it;
+    mesh->RemoveMeshFeatures(mfi);
+  }
+
+  // Remove all features textures that are not used anymore.
+
+  // First find which textures are referenced by the mesh features.
+  std::unordered_set<const Texture *> used_textures;
+  for (MeshFeaturesIndex mfi(0); mfi < mesh->NumMeshFeatures(); ++mfi) {
+    const Texture *const texture =
+        mesh->GetMeshFeatures(mfi).GetTextureMap().texture();
+    if (texture) {
+      used_textures.insert(texture);
+    }
+  }
+
+  if (!used_textures.empty() &&
+      mesh->GetNonMaterialTextureLibrary().NumTextures() == 0) {
+    return ErrorStatus(
+        "Trying to remove mesh features textures that are not owned by the "
+        "mesh.");
+  }
+
+  // Remove all unreferenced textures from the non-material texture library.
+  for (int ti = mesh->GetNonMaterialTextureLibrary().NumTextures() - 1; ti >= 0;
+       --ti) {
+    const Texture *const texture =
+        mesh->GetNonMaterialTextureLibrary().GetTexture(ti);
+    if (used_textures.count(texture) == 0) {
+      mesh->GetNonMaterialTextureLibrary().RemoveTexture(ti);
+    }
+  }
+  return OkStatus();
 }
 
 bool MeshUtils::FlipTextureUvValues(bool flip_u, bool flip_v,

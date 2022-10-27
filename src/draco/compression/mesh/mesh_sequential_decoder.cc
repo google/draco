@@ -158,6 +158,10 @@ bool MeshSequentialDecoder::DecodeAndDecompressIndices(uint32_t num_faces) {
         index_diff = -index_diff;
       }
       const int32_t index_value = index_diff + last_index_value;
+      if (index_value < 0) {
+        // Negative indices are not allowed.
+        return false;
+      }
       face[j] = index_value;
       last_index_value = index_value;
     }

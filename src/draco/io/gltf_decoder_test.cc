@@ -29,6 +29,7 @@
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 #include "draco/core/draco_types.h"
+#include "draco/io/gltf_test_helper.h"
 #include "draco/mesh/mesh_are_equivalent.h"
 #include "draco/mesh/mesh_utils.h"
 #include "draco/scene/scene_indices.h"
@@ -302,6 +303,24 @@ TEST(GltfDecoderTest, ColorAttributeGltf) {
   EXPECT_EQ(mesh->num_faces(), 224) << "Unexpected number of faces.";
   ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), 1);
   ASSERT_EQ(mesh->GetMaterialLibrary().GetMaterial(0)->NumTextureMaps(), 0);
+  ASSERT_NE(mesh->GetNamedAttribute(GeometryAttribute::COLOR), nullptr);
+  ASSERT_EQ(mesh->GetNamedAttribute(GeometryAttribute::COLOR)->data_type(),
+            draco::DT_UINT8);
+  // Ensure the normalized property for the color attribute is set properly.
+  ASSERT_TRUE(mesh->GetNamedAttribute(GeometryAttribute::COLOR)->normalized());
+}
+
+// Tests COLOR_0 input attribute when the asset is loaded into a scene.
+TEST(GltfDecoderTest, ColorAttributeGltfScene) {
+  const std::string file_name = "test_pos_color.gltf";
+  const std::unique_ptr<Scene> scene(DecodeGltfFileToScene(file_name));
+  ASSERT_EQ(scene->NumMeshes(), 1);
+  const Mesh &mesh = scene->GetMesh(MeshIndex(0));
+  ASSERT_NE(mesh.GetNamedAttribute(GeometryAttribute::COLOR), nullptr);
+  ASSERT_EQ(mesh.GetNamedAttribute(GeometryAttribute::COLOR)->data_type(),
+            draco::DT_UINT8);
+  // Ensure the normalized property for the color attribute is set properly.
+  ASSERT_TRUE(mesh.GetNamedAttribute(GeometryAttribute::COLOR)->normalized());
 }
 
 // Tests a mesh with two sets of texture coordinates.
@@ -1231,6 +1250,151 @@ TEST(GltfDecoderTest, MaterialsVariants) {
   ASSERT_EQ(dragon_mappings[1].variants.size(), 1);
   ASSERT_EQ(dragon_mappings[0].variants[0], 0);
   ASSERT_EQ(dragon_mappings[1].variants[0], 1);
+}
+
+TEST(GltfDecoderTest, DecodeMeshWithMeshFeaturesWithStructuralMetadata) {
+  // Checks decoding of a simple glTF with mesh features and structural metadata
+  // property table as draco::Mesh.
+  constexpr bool kDracoCompressionEnabled = false;
+  const auto path = GetTestFileFullPath("BoxMeta/glTF/BoxMeta.gltf");
+  draco::GltfDecoder decoder;
+  DRACO_ASSIGN_OR_ASSERT(auto mesh, decoder.DecodeFromFile(path));
+  ASSERT_NE(mesh, nullptr);
+  GltfTestHelper::CheckBoxMetaMeshFeatures(*mesh, kDracoCompressionEnabled);
+  GltfTestHelper::CheckBoxMetaStructuralMetadata(*mesh);
+}
+
+TEST(GltfDecoderTest, DecodeMeshWithMeshFeaturesWithDracoCompression) {
+  // Checks decoding of a simple glTF with mesh features compressed with Draco
+  // as draco::Mesh.
+  constexpr bool kDracoCompressionEnabled = true;
+  const auto path = GetTestFileFullPath("BoxMetaDraco/glTF/BoxMetaDraco.gltf");
+  draco::GltfDecoder decoder;
+  DRACO_ASSIGN_OR_ASSERT(auto mesh, decoder.DecodeFromFile(path));
+  ASSERT_NE(mesh, nullptr);
+  GltfTestHelper::CheckBoxMetaMeshFeatures(*mesh, kDracoCompressionEnabled);
+}
+
+TEST(GltfDecoderTest, DecodeSceneWithMeshFeaturesWithStructuralMetadata) {
+  // Checks decoding of a simple glTF with mesh features and structural metadata
+  // property table as draco::Scene.
+  constexpr bool kHasDracoCompression = false;
+  const auto path = GetTestFileFullPath("BoxMeta/glTF/BoxMeta.gltf");
+  draco::GltfDecoder decoder;
+  DRACO_ASSIGN_OR_ASSERT(auto scene, decoder.DecodeFromFileToScene(path));
+  ASSERT_NE(scene, nullptr);
+  GltfTestHelper::CheckBoxMetaMeshFeatures(*scene, kHasDracoCompression);
+  GltfTestHelper::CheckBoxMetaStructuralMetadata(*scene);
+}
+
+TEST(GltfDecoderTest, DecodeSceneWithMeshFeaturesWithDracoCompression) {
+  // Checks decoding of a simple glTF with mesh features compressed with Draco
+  // as draco::Scene.
+  constexpr bool kHasDracoCompression = true;
+  const auto path = GetTestFileFullPath("BoxMetaDraco/glTF/BoxMetaDraco.gltf");
+  draco::GltfDecoder decoder;
+  DRACO_ASSIGN_OR_ASSERT(auto scene, decoder.DecodeFromFileToScene(path));
+  ASSERT_NE(scene, nullptr);
+  GltfTestHelper::CheckBoxMetaMeshFeatures(*scene, kHasDracoCompression);
+}
+
+TEST(GltfDecoderTest, DecodePointCloudToMesh) {
+  // Checks decoding of a simple glTF with point primitives (no meshes).
+  const auto path = GetTestFileFullPath(
+      "SphereTwoMaterials/sphere_two_materials_point_cloud.gltf");
+  draco::GltfDecoder decoder;
+  DRACO_ASSIGN_OR_ASSERT(auto mesh, decoder.DecodeFromFile(path));
+  ASSERT_NE(mesh, nullptr);
+
+  // Check the point cloud has expected number of points and attributes.
+  ASSERT_EQ(mesh->num_faces(), 0);
+  ASSERT_EQ(mesh->num_points(), 462);
+
+  ASSERT_EQ(mesh->NumNamedAttributes(draco::GeometryAttribute::NORMAL), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(draco::GeometryAttribute::TEX_COORD), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(draco::GeometryAttribute::TANGENT), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(draco::GeometryAttribute::MATERIAL), 1);
+
+  // Check the point cloud has two materials.
+  ASSERT_EQ(mesh->GetNamedAttribute(draco::GeometryAttribute::MATERIAL)->size(),
+            2);
+}
+
+TEST(GltfDecoderTest, DecodeMeshAndPointCloudToMesh) {
+  // Checks decoding of a simple glTF with a mesh and point primitives into
+  // draco::Mesh. This should fail (draco::Mesh can't support mixed primitives).
+  const auto path = GetTestFileFullPath(
+      "SphereTwoMaterials/sphere_two_materials_mesh_and_point_cloud.gltf");
+  draco::GltfDecoder decoder;
+  ASSERT_FALSE(decoder.DecodeFromFile(path).ok());
+}
+
+TEST(GltfDecoderTest, DecodePointCloudToScene) {
+  // Checks decoding of a simple glTF with point primitives (no meshes) into
+  // draco::Scene.
+  const auto path = GetTestFileFullPath(
+      "SphereTwoMaterials/sphere_two_materials_point_cloud.gltf");
+  draco::GltfDecoder decoder;
+  DRACO_ASSIGN_OR_ASSERT(auto scene, decoder.DecodeFromFileToScene(path));
+  ASSERT_NE(scene, nullptr);
+
+  ASSERT_EQ(scene->NumMeshes(), 2);
+
+  // Check that each point cloud has expected number of points and attributes.
+  for (draco::MeshIndex mi(0); mi < scene->NumMeshes(); ++mi) {
+    const auto &mesh = scene->GetMesh(mi);
+    ASSERT_EQ(mesh.num_faces(), 0);
+    ASSERT_EQ(mesh.num_points(), 231);
+
+    ASSERT_EQ(mesh.NumNamedAttributes(draco::GeometryAttribute::NORMAL), 1);
+    ASSERT_EQ(mesh.NumNamedAttributes(draco::GeometryAttribute::TEX_COORD), 1);
+    ASSERT_EQ(mesh.NumNamedAttributes(draco::GeometryAttribute::TANGENT), 1);
+    ASSERT_EQ(mesh.NumNamedAttributes(draco::GeometryAttribute::MATERIAL), 0);
+  }
+
+  // Check the materials are properly assigned to each point cloud.
+  const auto instances = draco::SceneUtils::ComputeAllInstances(*scene);
+  ASSERT_EQ(instances.size(), 2);
+  ASSERT_EQ(draco::SceneUtils::GetMeshInstanceMaterialIndex(
+                *scene, instances[draco::MeshInstanceIndex(0)]),
+            0);
+  ASSERT_EQ(draco::SceneUtils::GetMeshInstanceMaterialIndex(
+                *scene, instances[draco::MeshInstanceIndex(1)]),
+            1);
+}
+
+TEST(GltfDecoderTest, DecodeMeshAndPointCloudToScene) {
+  // Checks decoding of a simple glTF with a mesh and point primitives into
+  // draco::Scene.
+  const auto path = GetTestFileFullPath(
+      "SphereTwoMaterials/sphere_two_materials_mesh_and_point_cloud.gltf");
+  draco::GltfDecoder decoder;
+  DRACO_ASSIGN_OR_ASSERT(auto scene, decoder.DecodeFromFileToScene(path));
+  ASSERT_NE(scene, nullptr);
+
+  ASSERT_EQ(scene->NumMeshes(), 2);
+
+  // First mesh should be a real mesh while the other one should be a point
+  // cloud (no faces). Otherwise, they should have the same properties.
+  for (draco::MeshIndex mi(0); mi < scene->NumMeshes(); ++mi) {
+    const auto &mesh = scene->GetMesh(mi);
+    ASSERT_EQ(mesh.num_faces(), mi.value() == 0 ? 224 : 0);
+    ASSERT_EQ(mesh.num_points(), 231);
+
+    ASSERT_EQ(mesh.NumNamedAttributes(draco::GeometryAttribute::NORMAL), 1);
+    ASSERT_EQ(mesh.NumNamedAttributes(draco::GeometryAttribute::TEX_COORD), 1);
+    ASSERT_EQ(mesh.NumNamedAttributes(draco::GeometryAttribute::TANGENT), 1);
+  }
+}
+
+TEST(GltfDecoderTest, TestLoadUnsupportedTexCoordAttributes) {
+  // Checks that unsupported attributes (TEXCOORD_2 ... TEXCOORD_7) are ignored
+  // without causing the decoder to fail.
+  auto scene = draco::ReadSceneFromTestFile("UnusedTexCoords/TexCoord2.gltf");
+  ASSERT_NE(scene, nullptr);
+  ASSERT_EQ(scene->GetMesh(draco::MeshIndex(0))
+                .NumNamedAttributes(draco::GeometryAttribute::TEX_COORD),
+            2);
 }
 
 }  // namespace draco

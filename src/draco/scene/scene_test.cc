@@ -14,10 +14,15 @@
 //
 #include "draco/scene/scene.h"
 
+#include <memory>
+#include <utility>
+#include <vector>
+
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 #include "draco/core/status.h"
 #include "draco/mesh/mesh_are_equivalent.h"
+#include "draco/scene/scene_are_equivalent.h"
 #include "draco/scene/scene_indices.h"
 
 namespace {
@@ -261,6 +266,28 @@ TEST(SceneTest, TestRemoveMaterial) {
   // Check that material cannot be removed when material index is out of range.
   ASSERT_FALSE(dst_scene.RemoveMaterial(-1).ok());
   ASSERT_FALSE(dst_scene.RemoveMaterial(3).ok());
+}
+
+TEST(SceneTest, TestCopyWithStructuralMetadata) {
+  // Tests copying of a scene with structural metadata.
+  auto scene_ptr =
+      draco::ReadSceneFromTestFile("CesiumMilkTruck/glTF/CesiumMilkTruck.gltf");
+  ASSERT_NE(scene_ptr, nullptr);
+  draco::Scene &scene = *scene_ptr;
+
+  // Add structural metadata to the scene.
+  draco::PropertyTable::Schema schema;
+  schema.json.SetString("Data");
+  scene.GetStructuralMetadata().SetPropertyTableSchema(schema);
+
+  // Copy the scene.
+  draco::Scene copy;
+  copy.Copy(scene);
+
+  // Check that the structural metadata has been copied.
+  ASSERT_EQ(
+      copy.GetStructuralMetadata().GetPropertyTableSchema().json.GetString(),
+      "Data");
 }
 
 #endif  // DRACO_TRANSCODER_SUPPORTED

@@ -38,7 +38,8 @@ class GltfEncoder {
  public:
   // Types of output modes for the glTF data encoder. |COMPACT| will output
   // required and non-default glTF data. |VERBOSE| will output required and
-  // default glTF data.
+  // default glTF data as well as readable JSON even when the output is saved in
+  // a glTF-Binary file.
   enum OutputType { COMPACT, VERBOSE };
 
   GltfEncoder();
@@ -94,6 +95,10 @@ class GltfEncoder {
                         EncoderBuffer *out_buffer);
   Status EncodeToBuffer(const Scene &scene, class GltfAsset *gltf_asset,
                         EncoderBuffer *out_buffer);
+
+  // Sets appropriate Json writer mode based on the provided |gltf_asset|
+  // options.
+  static void SetJsonWriterMode(class GltfAsset *gltf_asset);
 
   // Writes the ".gltf" and associted files. |gltf_asset| holds the glTF data.
   // |buffer| is the encoded glTF json data. |filename| is the name of the

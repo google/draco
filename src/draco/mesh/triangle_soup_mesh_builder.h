@@ -16,8 +16,13 @@
 #define DRACO_MESH_TRIANGLE_SOUP_MESH_BUILDER_H_
 
 #include <utility>
+#include <vector>
 
 #include "draco/draco_features.h"
+
+#ifdef DRACO_TRANSCODER_SUPPORTED
+#include "draco/core/status.h"
+#endif
 #include "draco/mesh/mesh.h"
 
 namespace draco {
@@ -27,6 +32,9 @@ namespace draco {
 // deduplicated.
 class TriangleSoupMeshBuilder {
  public:
+  // Index type of the inserted element.
+  typedef FaceIndex ElementIndex;
+
   // Starts mesh building for a given number of faces.
   // TODO(ostava): Currently it's necessary to select the correct number of
   // faces upfront. This should be generalized, but it will require us to
@@ -41,12 +49,25 @@ class TriangleSoupMeshBuilder {
   // Adds an empty attribute to the mesh. Returns the new attribute's id.
   int AddAttribute(GeometryAttribute::Type attribute_type,
                    int8_t num_components, DataType data_type);
+  int AddAttribute(GeometryAttribute::Type attribute_type,
+                   int8_t num_components, DataType data_type, bool normalized);
 
   // Sets values for a given attribute on all corners of a given face.
   void SetAttributeValuesForFace(int att_id, FaceIndex face_id,
                                  const void *corner_value_0,
                                  const void *corner_value_1,
                                  const void *corner_value_2);
+
+#ifdef DRACO_TRANSCODER_SUPPORTED
+  // Converts input values of type T into internal representation used by
+  // |att_id|. Each input value needs to have |input_num_components| entries.
+  template <typename T>
+  Status ConvertAndSetAttributeValuesForFace(int att_id, FaceIndex face_id,
+                                             int input_num_components,
+                                             const T *corner_value_0,
+                                             const T *corner_value_1,
+                                             const T *corner_value_2);
+#endif
 
   // Sets value for a per-face attribute. If all faces of a given attribute are
   // set with this method, the attribute will be marked as per-face, otherwise
@@ -75,6 +96,30 @@ class TriangleSoupMeshBuilder {
 
   std::unique_ptr<Mesh> mesh_;
 };
+
+#ifdef DRACO_TRANSCODER_SUPPORTED
+template <typename T>
+Status TriangleSoupMeshBuilder::ConvertAndSetAttributeValuesForFace(
+    int att_id, FaceIndex face_id, int input_num_components,
+    const T *corner_value_0, const T *corner_value_1, const T *corner_value_2) {
+  const int start_index = 3 * face_id.value();
+  PointAttribute *const att = mesh_->attribute(att_id);
+  DRACO_RETURN_IF_ERROR(
+      att->ConvertAndSetAttributeValue(AttributeValueIndex(start_index + 0),
+                                       input_num_components, corner_value_0));
+  DRACO_RETURN_IF_ERROR(
+      att->ConvertAndSetAttributeValue(AttributeValueIndex(start_index + 1),
+                                       input_num_components, corner_value_1));
+  DRACO_RETURN_IF_ERROR(
+      att->ConvertAndSetAttributeValue(AttributeValueIndex(start_index + 2),
+                                       input_num_components, corner_value_2));
+  mesh_->SetFace(face_id,
+                 {{PointIndex(start_index), PointIndex(start_index + 1),
+                   PointIndex(start_index + 2)}});
+  attribute_element_types_[att_id] = MESH_CORNER_ATTRIBUTE;
+  return OkStatus();
+}
+#endif  // DRACO_TRANSCODER_SUPPORTED
 
 }  // namespace draco
 

@@ -1,0 +1,363 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "draco_decoder"
+  },
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "scene": 0,
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "translation": [
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Mesh",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 2,
+            "POSITION": 1,
+            "TEXCOORD_0": 3,
+            "TEXCOORD_1": 4,
+            "_FEATURE_ID_0": 5,
+            "_FEATURE_ID_1": 6,
+            "_FEATURE_ID_2": 7
+          },
+          "indices": 0,
+          "mode": 4,
+          "material": 0,
+          "extensions": {
+            "EXT_mesh_features": {
+              "featureIds": [
+                {
+                  "label": "faces",
+                  "featureCount": 12,
+                  "attribute": 0,
+                  "propertyTable": 0,
+                  "nullFeatureId": 100
+                },
+                {
+                  "label": "vertices",
+                  "featureCount": 8,
+                  "attribute": 1,
+                  "propertyTable": 1,
+                  "nullFeatureId": 101
+                },
+                {
+                  "featureCount": 36,
+                  "attribute": 2
+                },
+                {
+                  "featureCount": 6,
+                  "texture": {
+                    "index": 0,
+                    "texCoord": 0,
+                    "channels": [
+                      0
+                    ]
+                  }
+                },
+                {
+                  "label": "water",
+                  "featureCount": 2,
+                  "texture": {
+                    "index": 1,
+                    "texCoord": 1,
+                    "channels": [
+                      1,
+                      2,
+                      3
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.80000001192092896,
+          0,
+          0,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 1
+      },
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "alphaMode": "OPAQUE",
+      "name": "Red"
+    }
+  ],
+  "textures": [
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 1,
+      "sampler": 0
+    }
+  ],
+  "samplers": [
+    {
+      "wrapS": 33071,
+      "wrapT": 33071
+    }
+  ],
+  "images": [
+    {
+      "uri": "Texture0_MeshFeatures.png"
+    },
+    {
+      "uri": "Texture1_MeshFeatures.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5121,
+      "count": 36,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 36,
+      "max": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "min": [
+        -0.5,
+        -0.5,
+        -0.5
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 36,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 36,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 36,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5121,
+      "count": 36,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5123,
+      "count": 36,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5126,
+      "count": 36,
+      "type": "SCALAR"
+    }
+  ],
+  "extensions": {
+    "EXT_structural_metadata": {
+      "schema": {
+        "id": "galaxy",
+        "classes": {
+          "planet": {
+            "properties": {
+              "color": {
+                "componentType": "UINT8",
+                "description": "The RGB color.",
+                "required": true,
+                "type": "VEC3"
+              },
+              "name": {
+                "description": "The name.",
+                "required": true,
+                "type": "STRING"
+              },
+              "sequence": {
+                "description": "The number sequence.",
+                "required": false,
+                "type": "SCALAR"
+              }
+            }
+          }
+        },
+        "enums": {
+          "classifications": {
+            "description": "Classifications of planets.",
+            "name": "classifications",
+            "values": [
+              {
+                "name": "Unspecified",
+                "value": 0
+              },
+              {
+                "name": "Gas Giant",
+                "value": 1
+              },
+              {
+                "name": "Waterworld",
+                "value": 2
+              },
+              {
+                "name": "Agriworld",
+                "value": 3
+              },
+              {
+                "name": "Ordnance",
+                "value": 4
+              }
+            ]
+          }
+        }
+      },
+      "propertyTables": [
+        {
+          "name": "Galaxy far far away.",
+          "class": "planet",
+          "count": 16,
+          "properties": {
+            "color": {
+              "values": 8
+            },
+            "name": {
+              "values": 9,
+              "stringOffsetType": "UINT32",
+              "stringOffsets": 10
+            },
+            "sequence": {
+              "values": 11,
+              "arrayOffsetType": "UINT8",
+              "arrayOffsets": 12
+            }
+          }
+        }
+      ]
+    }
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 36
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 36,
+      "byteLength": 432
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 468,
+      "byteLength": 432
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 900,
+      "byteLength": 288
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1188,
+      "byteLength": 288
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1476,
+      "byteLength": 36
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1512,
+      "byteLength": 72
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1584,
+      "byteLength": 144
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1728,
+      "byteLength": 48,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1776,
+      "byteLength": 296,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2072,
+      "byteLength": 68,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2140,
+      "byteLength": 164,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2304,
+      "byteLength": 20,
+      "target": 34963
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 2324,
+      "uri": "buffer0.bin"
+    }
+  ],
+  "extensionsUsed": [
+    "EXT_mesh_features",
+    "EXT_structural_metadata"
+  ]
+}

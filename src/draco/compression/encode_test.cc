@@ -402,4 +402,170 @@ TEST_F(EncodeTest, TestNoPosQuantizationNormalCoding) {
   ASSERT_NE(decoded_mesh, nullptr);
 }
 
+#ifdef DRACO_TRANSCODER_SUPPORTED
+TEST_F(EncodeTest, TestDracoCompressionOptions) {
+  // This test verifies that we can set the encoder's compression options via
+  // draco::Mesh's compression options.
+  const auto mesh = draco::ReadMeshFromTestFile("test_nm.obj");
+  ASSERT_NE(mesh, nullptr);
+
+  // First set compression level and quantization manually.
+  draco::Encoder encoder_manual;
+  draco::EncoderBuffer buffer_manual;
+  encoder_manual.SetAttributeQuantization(draco::GeometryAttribute::POSITION,
+                                          8);
+  encoder_manual.SetAttributeQuantization(draco::GeometryAttribute::NORMAL, 7);
+  encoder_manual.SetSpeedOptions(4, 4);
+
+  DRACO_ASSERT_OK(encoder_manual.EncodeMeshToBuffer(*mesh, &buffer_manual));
+
+  // Now do the same with options provided via DracoCompressionOptions.
+  draco::DracoCompressionOptions compression_options;
+  compression_options.compression_level = 6;
+  compression_options.quantization_position.SetQuantizationBits(8);
+  compression_options.quantization_bits_normal = 7;
+  mesh->SetCompressionOptions(compression_options);
+  mesh->SetCompressionEnabled(true);
+
+  draco::Encoder encoder_auto;
+  draco::EncoderBuffer buffer_auto;
+  DRACO_ASSERT_OK(encoder_auto.EncodeMeshToBuffer(*mesh, &buffer_auto));
+
+  // Ensure that both encoders produce the same result.
+  ASSERT_EQ(buffer_manual.size(), buffer_auto.size());
+
+  // Now change some of the mesh's compression settings and ensure the
+  // compression changes as well.
+  compression_options.compression_level = 7;
+  mesh->SetCompressionOptions(compression_options);
+  buffer_auto.Clear();
+  DRACO_ASSERT_OK(encoder_auto.EncodeMeshToBuffer(*mesh, &buffer_auto));
+  ASSERT_NE(buffer_manual.size(), buffer_auto.size());
+
+  // Check that |mesh| compression options do not override the encoder options.
+  mesh->GetCompressionOptions().compression_level = 10;
+  mesh->GetCompressionOptions().quantization_position.SetQuantizationBits(10);
+  mesh->GetCompressionOptions().quantization_bits_normal = 10;
+  draco::EncoderBuffer buffer;
+  DRACO_ASSERT_OK(encoder_manual.EncodeMeshToBuffer(*mesh, &buffer));
+  ASSERT_EQ(buffer.size(), buffer_manual.size());
+}
+
+TEST_F(EncodeTest, TestDracoCompressionOptionsManualOverride) {
+  // This test verifies that we can use encoder's option to override compression
+  // options provided in draco::Mesh's compression options.
+  const auto mesh = draco::ReadMeshFromTestFile("test_nm.obj");
+  ASSERT_NE(mesh, nullptr);
+
+  // Set some compression options.
+  draco::DracoCompressionOptions compression_options;
+  compression_options.compression_level = 6;
+  compression_options.quantization_position.SetQuantizationBits(8);
+  compression_options.quantization_bits_normal = 7;
+  mesh->SetCompressionOptions(compression_options);
+  mesh->SetCompressionEnabled(true);
+
+  draco::Encoder encoder;
+  draco::EncoderBuffer buffer_no_override;
+  DRACO_ASSERT_OK(encoder.EncodeMeshToBuffer(*mesh, &buffer_no_override));
+
+  // Now override some options and ensure the compression is different.
+  encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 5);
+  draco::EncoderBuffer buffer_with_override;
+  DRACO_ASSERT_OK(encoder.EncodeMeshToBuffer(*mesh, &buffer_with_override));
+  ASSERT_LT(buffer_with_override.size(), buffer_no_override.size());
+}
+
+TEST_F(EncodeTest, TestDracoCompressionOptionsGridQuantization) {
+  // Test verifies that we can set position quantization via grid spacing.
+
+  // 1x1x1 cube.
+  const auto mesh = draco::ReadMeshFromTestFile("cube_att.obj");
+  ASSERT_NE(mesh, nullptr);
+  mesh->SetCompressionEnabled(true);
+
+  // Set grid quantization for positions.
+  draco::DracoCompressionOptions compression_options;
+  // This should result in 10x10x10 quantization.
+  compression_options.quantization_position.SetGrid(0.1);
+  mesh->SetCompressionOptions(compression_options);
+
+  draco::ExpertEncoder encoder(*mesh);
+  draco::EncoderBuffer buffer;
+  DRACO_ASSERT_OK(encoder.EncodeToBuffer(&buffer));
+
+  // The grid options should be reflected in the |encoder|. Check that the
+  // computed values are correct.
+  const int pos_att_id =
+      mesh->GetNamedAttributeId(draco::GeometryAttribute::POSITION);
+  draco::Vector3f origin;
+  encoder.options().GetAttributeVector(pos_att_id, "quantization_origin", 3,
+                                       &origin[0]);
+  ASSERT_EQ(origin, draco::Vector3f(0.f, 0.f, 0.f));
+
+  // We need 4 quantization bits (for 10 values).
+  ASSERT_EQ(
+      encoder.options().GetAttributeInt(pos_att_id, "quantization_bits", -1),
+      4);
+
+  // The quantization range should be (1 << quantization_bits) * spacing.
+  ASSERT_NEAR(encoder.options().GetAttributeFloat(pos_att_id,
+                                                  "quantization_range", 0.f),
+              16.f * 0.1f, 1e-6f);
+}
+
+TEST_F(EncodeTest, TestDracoCompressionOptionsGridQuantizationWithOffset) {
+  // Test verifies that we can set position quantization via grid spacing when
+  // the geometry is not perfectly aligned with the quantization grid.
+
+  // 1x1x1 cube.
+  const auto mesh = draco::ReadMeshFromTestFile("cube_att.obj");
+  ASSERT_NE(mesh, nullptr);
+
+  // Move all positions a bit.
+  auto *pos_att = mesh->attribute(
+      mesh->GetNamedAttributeId(draco::GeometryAttribute::POSITION));
+  for (draco::AttributeValueIndex avi(0); avi < pos_att->size(); ++avi) {
+    draco::Vector3f pos;
+    pos_att->GetValue(avi, &pos[0]);
+    pos = pos + draco::Vector3f(-0.55f, 0.65f, 10.75f);
+    pos_att->SetAttributeValue(avi, &pos[0]);
+  }
+
+  mesh->SetCompressionEnabled(true);
+
+  // Set grid quantization for positions.
+  draco::DracoCompressionOptions compression_options;
+  // This should result in 16x16x16 quantization if the grid was perfectly
+  // aligned but since it is not we should expect 17 or 18 values per component.
+  compression_options.quantization_position.SetGrid(0.0625f);
+  mesh->SetCompressionOptions(compression_options);
+
+  draco::ExpertEncoder encoder(*mesh);
+  draco::EncoderBuffer buffer;
+  DRACO_ASSERT_OK(encoder.EncodeToBuffer(&buffer));
+
+  // The grid options should be reflected in the |encoder|. Check that the
+  // computed values are correct.
+  const int pos_att_id =
+      mesh->GetNamedAttributeId(draco::GeometryAttribute::POSITION);
+  draco::Vector3f origin;
+  encoder.options().GetAttributeVector(pos_att_id, "quantization_origin", 3,
+                                       &origin[0]);
+  // The origin is the first lower value on the quantization grid for each
+  // component of the mesh.
+  ASSERT_EQ(origin, draco::Vector3f(-0.5625f, 0.625f, 10.75f));
+
+  // We need 5 quantization bits (for 17-18 values).
+  ASSERT_EQ(
+      encoder.options().GetAttributeInt(pos_att_id, "quantization_bits", -1),
+      5);
+
+  // The quantization range should be (1 << quantization_bits) * spacing.
+  ASSERT_NEAR(encoder.options().GetAttributeFloat(pos_att_id,
+                                                  "quantization_range", 0.f),
+              32.f * 0.0625f, 1e-6f);
+}
+#endif  // DRACO_TRANSCODER_SUPPORTED
+
 }  // namespace

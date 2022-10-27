@@ -20,8 +20,6 @@
 
 namespace draco {
 
-Options::Options() {}
-
 void Options::MergeAndReplace(const Options &other_options) {
   for (const auto &item : other_options.options_) {
     options_[item.first] = item.second;

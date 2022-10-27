@@ -165,7 +165,8 @@ bool ObjEncoder::GetSubObjects() {
   }
   sub_obj_att_ = in_point_cloud_->GetAttributeByUniqueId(
       sub_obj_metadata->att_unique_id());
-  if (sub_obj_att_ == nullptr || sub_obj_att_->size() == 0) {
+  if (sub_obj_att_ == nullptr || sub_obj_att_->size() == 0 ||
+      sub_obj_att_->num_components() != 1) {
     return false;
   }
   return true;

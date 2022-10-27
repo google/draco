@@ -32,8 +32,14 @@ void TriangleSoupMeshBuilder::SetName(const std::string &name) {
 int TriangleSoupMeshBuilder::AddAttribute(
     GeometryAttribute::Type attribute_type, int8_t num_components,
     DataType data_type) {
+  return AddAttribute(attribute_type, num_components, data_type, false);
+}
+
+int TriangleSoupMeshBuilder::AddAttribute(
+    GeometryAttribute::Type attribute_type, int8_t num_components,
+    DataType data_type, bool normalized) {
   GeometryAttribute va;
-  va.Init(attribute_type, nullptr, num_components, data_type, false,
+  va.Init(attribute_type, nullptr, num_components, data_type, normalized,
           DataTypeLength(data_type) * num_components, 0);
   attribute_element_types_.push_back(-1);
   return mesh_->AddAttribute(va, true, mesh_->num_points());

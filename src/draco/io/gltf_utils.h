@@ -75,8 +75,11 @@ class Indent {
 class JsonWriter {
  public:
   enum OutputType { START, BEGIN, END, VALUE };
+  enum Mode { READABLE, COMPACT };
 
-  JsonWriter() : last_type_(START) {}
+  JsonWriter()
+      : last_type_(START), mode_(READABLE), indent_(*this), separator_(*this) {}
+  void SetMode(Mode mode) { mode_ = mode; }
 
   // Clear the stringstream and set last type to START.
   void Reset();
@@ -108,23 +111,25 @@ class JsonWriter {
 
   void OutputValue(const std::string &name, const std::string &value) {
     FinishPreviousLine(VALUE);
-    o_ << indent_ << "\"" << name << "\": \"" << value << "\"";
+    o_ << indent_ << "\"" << name << "\":" << separator_ << "\"" << value
+       << "\"";
   }
 
   void OutputValue(const std::string &name, const char *value) {
     FinishPreviousLine(VALUE);
-    o_ << indent_ << "\"" << name << "\": \"" << value << "\"";
+    o_ << indent_ << "\"" << name << "\":" << separator_ << "\"" << value
+       << "\"";
   }
 
   template <typename T>
   void OutputValue(const std::string &name, const T &value) {
     FinishPreviousLine(VALUE);
-    o_ << indent_ << "\"" << name << "\": " << value;
+    o_ << indent_ << "\"" << name << "\":" << separator_ << value;
   }
 
   void OutputValue(const std::string &name, const bool &value) {
     FinishPreviousLine(VALUE);
-    o_ << indent_ << "\"" << name << "\": " << ToString(value);
+    o_ << indent_ << "\"" << name << "\":" << separator_ << ToString(value);
   }
 
   // Return the current output and then clear the stringstream.
@@ -137,9 +142,27 @@ class JsonWriter {
   // Returns string representation of a Boolean |value|.
   static std::string ToString(bool value) { return value ? "true" : "false"; }
 
+  // Helper struct used for conditional indent writing to the output stream.
+  struct IndentWrapper {
+    explicit IndentWrapper(const JsonWriter &writer) : writer(writer) {}
+    const JsonWriter &writer;
+  };
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const IndentWrapper &indent);
+
+  // Helper struct used for conditional separator writing to the output stream.
+  struct Separator {
+    explicit Separator(const JsonWriter &writer) : writer(writer) {}
+    const JsonWriter &writer;
+  };
+  friend std::ostream &operator<<(std::ostream &os, const Separator &separator);
+
   std::stringstream o_;
-  Indent indent_;
+  Indent indent_writer_;
   OutputType last_type_;
+  Mode mode_;
+  IndentWrapper indent_;
+  Separator separator_;
 };
 
 }  // namespace draco

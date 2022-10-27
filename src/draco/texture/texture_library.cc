@@ -14,6 +14,8 @@
 //
 #include "draco/texture/texture_library.h"
 
+#include <unordered_map>
+
 #ifdef DRACO_TRANSCODER_SUPPORTED
 
 namespace draco {
@@ -37,6 +39,15 @@ void TextureLibrary::Clear() { textures_.clear(); }
 int TextureLibrary::PushTexture(std::unique_ptr<Texture> texture) {
   textures_.push_back(std::move(texture));
   return textures_.size() - 1;
+}
+
+std::unordered_map<const Texture *, int>
+TextureLibrary::ComputeTextureToIndexMap() const {
+  std::unordered_map<const Texture *, int> ret;
+  for (int i = 0; i < textures_.size(); ++i) {
+    ret[textures_[i].get()] = i;
+  }
+  return ret;
 }
 
 std::unique_ptr<Texture> TextureLibrary::RemoveTexture(int index) {

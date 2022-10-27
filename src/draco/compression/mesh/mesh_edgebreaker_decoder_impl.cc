@@ -484,7 +484,10 @@ bool MeshEdgebreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
       attribute_data_[i].connectivity_data.AddSeamEdge(CornerIndex(c));
     }
     // Recompute vertices from the newly added seam edges.
-    attribute_data_[i].connectivity_data.RecomputeVertices(nullptr, nullptr);
+    if (!attribute_data_[i].connectivity_data.RecomputeVertices(nullptr,
+                                                                nullptr)) {
+      return false;
+    }
   }
 
   pos_encoding_data_.Init(corner_table_->num_vertices());
@@ -574,6 +577,17 @@ int MeshEdgebreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       const CornerIndex corner_b =
           corner_table_->Next(corner_table_->LeftMostCorner(vertex_x));
 
+      if (corner_a == corner_b) {
+        // All matched corners must be different.
+        return -1;
+      }
+      if (corner_table_->Opposite(corner_a) != kInvalidCornerIndex ||
+          corner_table_->Opposite(corner_b) != kInvalidCornerIndex) {
+        // One of the corners is already opposite to an existing face, which
+        // should not happen unless the input was tampered with.
+        return -1;
+      }
+
       // New tip corner.
       const CornerIndex corner(3 * face.value());
       // Update opposite corner mappings.
@@ -616,6 +630,11 @@ int MeshEdgebreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
         return -1;
       }
       const CornerIndex corner_a = active_corner_stack.back();
+      if (corner_table_->Opposite(corner_a) != kInvalidCornerIndex) {
+        // Active corner is already opposite to an existing face, which should
+        // not happen unless the input was tampered with.
+        return -1;
+      }
 
       // First corner on the new face is either corner "l" or "r".
       const CornerIndex corner(3 * face.value());
@@ -681,10 +700,14 @@ int MeshEdgebreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
       }
       const CornerIndex corner_a = active_corner_stack.back();
 
+      if (corner_a == corner_b) {
+        // All matched corners must be different.
+        return -1;
+      }
       if (corner_table_->Opposite(corner_a) != kInvalidCornerIndex ||
           corner_table_->Opposite(corner_b) != kInvalidCornerIndex) {
         // One of the corners is already opposite to an existing face, which
-        // should not happen unless the input was tempered with.
+        // should not happen unless the input was tampered with.
         return -1;
       }
 
@@ -713,9 +736,15 @@ int MeshEdgebreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
 
       // Also update the vertex id at corner "n" and all corners that are
       // connected to it in the CCW direction.
+      const CornerIndex first_corner = corner_n;
       while (corner_n != kInvalidCornerIndex) {
         corner_table_->MapCornerToVertex(corner_n, vertex_p);
         corner_n = corner_table_->SwingLeft(corner_n);
+        if (corner_n == first_corner) {
+          // We reached the start again which should not happen for split
+          // symbols.
+          return -1;
+        }
       }
       // Make sure the old vertex n is now mapped to an invalid corner (make it
       // isolated).
@@ -841,6 +870,18 @@ int MeshEdgebreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity(
           corner_table_->Vertex(corner_table_->Next(corner_b));
       const CornerIndex corner_c =
           corner_table_->Next(corner_table_->LeftMostCorner(vert_x));
+
+      if (corner == corner_b || corner == corner_c || corner_b == corner_c) {
+        // All matched corners must be different.
+        return -1;
+      }
+      if (corner_table_->Opposite(corner) != kInvalidCornerIndex ||
+          corner_table_->Opposite(corner_b) != kInvalidCornerIndex ||
+          corner_table_->Opposite(corner_c) != kInvalidCornerIndex) {
+        // One of the corners is already opposite to an existing face, which
+        // should not happen unless the input was tampered with.
+        return -1;
+      }
 
       const VertexIndex vert_p =
           corner_table_->Vertex(corner_table_->Next(corner_c));

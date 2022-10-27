@@ -18,6 +18,9 @@
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <memory>
+#include <vector>
+
 #include "draco/io/image_compression_options.h"
 #include "draco/texture/source_image.h"
 

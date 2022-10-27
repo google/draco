@@ -78,10 +78,13 @@ class PointAttributeVectorOutputIterator {
     DRACO_DCHECK_EQ(attributes_.size(), 1);  // Expect only ONE attribute.
     AttributeTuple &att = attributes_[0];
     PointAttribute *attribute = std::get<0>(att);
+    const AttributeValueIndex avi = attribute->mapped_index(point_id_);
+    if (avi >= static_cast<uint32_t>(attribute->size())) {
+      return *this;
+    }
     const uint32_t &offset = std::get<1>(att);
     DRACO_DCHECK_EQ(offset, 0);  // expected to be zero
-    attribute->SetAttributeValue(attribute->mapped_index(point_id_),
-                                 &val[0] + offset);
+    attribute->SetAttributeValue(avi, &val[0] + offset);
     return *this;
   }
   // Additional operator taking std::vector as argument.
@@ -89,6 +92,10 @@ class PointAttributeVectorOutputIterator {
     for (auto index = 0; index < attributes_.size(); index++) {
       AttributeTuple &att = attributes_[index];
       PointAttribute *attribute = std::get<0>(att);
+      const AttributeValueIndex avi = attribute->mapped_index(point_id_);
+      if (avi >= static_cast<uint32_t>(attribute->size())) {
+        return *this;
+      }
       const uint32_t &offset = std::get<1>(att);
       const uint32_t &data_size = std::get<3>(att);
       const uint32_t &num_components = std::get<4>(att);
@@ -102,10 +109,6 @@ class PointAttributeVectorOutputIterator {
         }
         // redirect to copied data
         data_source = reinterpret_cast<uint32_t *>(data_);
-      }
-      const AttributeValueIndex avi = attribute->mapped_index(point_id_);
-      if (avi >= static_cast<uint32_t>(attribute->size())) {
-        return *this;
       }
       attribute->SetAttributeValue(avi, data_source);
     }
@@ -195,60 +198,74 @@ bool KdTreeAttributesDecoder::DecodePortableAttributes(
                               data_size, num_components);
     total_dimensionality += num_components;
   }
-  PointAttributeVectorOutputIterator<uint32_t> out_it(atts);
+  typedef PointAttributeVectorOutputIterator<uint32_t> OutIt;
+  OutIt out_it(atts);
 
   switch (compression_level) {
     case 0: {
-      DynamicIntegerPointsKdTreeDecoder<0> decoder(total_dimensionality);
-      if (!decoder.DecodePoints(in_buffer, out_it)) {
+      if (!DecodePoints<0, OutIt>(total_dimensionality, num_points, in_buffer,
+                                  &out_it)) {
         return false;
       }
       break;
     }
     case 1: {
-      DynamicIntegerPointsKdTreeDecoder<1> decoder(total_dimensionality);
-      if (!decoder.DecodePoints(in_buffer, out_it)) {
+      if (!DecodePoints<1, OutIt>(total_dimensionality, num_points, in_buffer,
+                                  &out_it)) {
         return false;
       }
       break;
     }
     case 2: {
-      DynamicIntegerPointsKdTreeDecoder<2> decoder(total_dimensionality);
-      if (!decoder.DecodePoints(in_buffer, out_it)) {
+      if (!DecodePoints<2, OutIt>(total_dimensionality, num_points, in_buffer,
+                                  &out_it)) {
         return false;
       }
       break;
     }
     case 3: {
-      DynamicIntegerPointsKdTreeDecoder<3> decoder(total_dimensionality);
-      if (!decoder.DecodePoints(in_buffer, out_it)) {
+      if (!DecodePoints<3, OutIt>(total_dimensionality, num_points, in_buffer,
+                                  &out_it)) {
         return false;
       }
       break;
     }
     case 4: {
-      DynamicIntegerPointsKdTreeDecoder<4> decoder(total_dimensionality);
-      if (!decoder.DecodePoints(in_buffer, out_it)) {
+      if (!DecodePoints<4, OutIt>(total_dimensionality, num_points, in_buffer,
+                                  &out_it)) {
         return false;
       }
       break;
     }
     case 5: {
-      DynamicIntegerPointsKdTreeDecoder<5> decoder(total_dimensionality);
-      if (!decoder.DecodePoints(in_buffer, out_it)) {
+      if (!DecodePoints<5, OutIt>(total_dimensionality, num_points, in_buffer,
+                                  &out_it)) {
         return false;
       }
       break;
     }
     case 6: {
-      DynamicIntegerPointsKdTreeDecoder<6> decoder(total_dimensionality);
-      if (!decoder.DecodePoints(in_buffer, out_it)) {
+      if (!DecodePoints<6, OutIt>(total_dimensionality, num_points, in_buffer,
+                                  &out_it)) {
         return false;
       }
       break;
     }
     default:
       return false;
+  }
+  return true;
+}
+
+template <int level_t, typename OutIteratorT>
+bool KdTreeAttributesDecoder::DecodePoints(int total_dimensionality,
+                                           int num_expected_points,
+                                           DecoderBuffer *in_buffer,
+                                           OutIteratorT *out_iterator) {
+  DynamicIntegerPointsKdTreeDecoder<level_t> decoder(total_dimensionality);
+  if (!decoder.DecodePoints(in_buffer, *out_iterator) ||
+      decoder.num_decoded_points() != num_expected_points) {
+    return false;
   }
   return true;
 }

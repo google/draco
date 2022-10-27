@@ -287,6 +287,11 @@ bool PointCloud::DeduplicateAttributeValues() {
 BoundingBox PointCloud::ComputeBoundingBox() const {
   BoundingBox bounding_box;
   auto pc_att = GetNamedAttribute(GeometryAttribute::POSITION);
+  if (pc_att == nullptr) {
+    // Return default invalid bounding box.
+    return bounding_box;
+  }
+
   // TODO(b/199760503): Make the BoundingBox a template type, it may not be easy
   // because PointCloud is not a template.
   // Or simply add some preconditioning here to make sure the position attribute

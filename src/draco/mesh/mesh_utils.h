@@ -38,6 +38,11 @@ class MeshUtils {
   // names are left unchanged.
   static void MergeMetadata(const Mesh &src_mesh, Mesh *dst_mesh);
 
+  // Removes unused MeshFeatures from |mesh|. If the |mesh| contains any mesh
+  // feature textures, the textures must be owned by the |mesh| otherwise an
+  // error is returned.
+  static Status RemoveUnusedMeshFeatures(Mesh *mesh);
+
   // Flips the UV values of |att|.
   static bool FlipTextureUvValues(bool flip_u, bool flip_v,
                                   PointAttribute *att);

@@ -77,6 +77,15 @@ CMake Build Configuration
 Transcoder
 ----------
 
+Before attempting to build Draco with transcoding support you must run an
+additional Git command to obtain the submodules:
+
+~~~~~ bash
+# Run this command from within your Draco clone.
+$ git submodule update --init
+# See below if you prefer to use existing versions of Draco dependencies.
+~~~~~
+
 In order to build the `draco_transcoder` target, the transcoding support needs
 to be explicitly enabled when you run `cmake`, for example:
 
@@ -90,7 +99,7 @@ built with the transcoder support may result in increased binary sizes of the
 produced libraries and executables compared to the default CMake settings.
 
 The following CMake variables can be used to configure Draco to use local
-copies of third party dependencies.
+copies of third party dependencies instead of git submodules.
 
 - `DRACO_EIGEN_PATH`: this path must contain an Eigen directory that includes
   the Eigen sources.
@@ -99,7 +108,7 @@ copies of third party dependencies.
 - `DRACO_TINYGLTF_PATH`: this path must contain tiny_gltf.h and its
   dependencies.
 
-If not specified the Draco build requires the presence of the submodules that
+When not specified the Draco build requires the presence of the submodules that
 are stored within `draco/third_party`.
 
 Debugging and Optimization
