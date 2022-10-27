@@ -27,7 +27,8 @@ namespace draco {
 // data type.
 class Options {
  public:
-  Options();
+  Options() = default;
+  ~Options() = default;
 
   // Merges |other_options| on top of the existing options of this instance
   // replacing all entries that are present in both options instances.

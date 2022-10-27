@@ -68,6 +68,28 @@ void Scene::Copy(const Scene &s) {
   }
 
   material_library_.Copy(s.material_library_);
+
+#ifdef DRACO_TRANSCODER_SUPPORTED
+  // Copy non-material textures.
+  non_material_texture_library_.Copy(s.non_material_texture_library_);
+
+  // Update pointers to non-material textures in mesh feature ID sets of all
+  // scene meshes.
+  if (non_material_texture_library_.NumTextures() != 0) {
+    const auto texture_to_index_map =
+        s.non_material_texture_library_.ComputeTextureToIndexMap();
+    for (MeshIndex i(0); i < NumMeshes(); ++i) {
+      for (MeshFeaturesIndex j(0); j < GetMesh(i).NumMeshFeatures(); ++j) {
+        Mesh::UpdateMeshFeaturesTexturePointer(texture_to_index_map,
+                                               &non_material_texture_library_,
+                                               &GetMesh(i).GetMeshFeatures(j));
+      }
+    }
+  }
+#endif  // DRACO_TRANSCODER_SUPPORTED
+
+  // Copy structural metadata.
+  structural_metadata_.Copy(s.structural_metadata_);
 }
 
 Status Scene::RemoveMesh(MeshIndex index) {

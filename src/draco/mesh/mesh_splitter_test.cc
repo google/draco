@@ -15,6 +15,9 @@
 #include "draco/mesh/mesh_splitter.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <memory>
+#include <utility>
+
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 #include "draco/core/vector_d.h"

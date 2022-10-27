@@ -23,6 +23,7 @@
 #include "draco/animation/animation.h"
 #include "draco/animation/skin.h"
 #include "draco/mesh/mesh.h"
+#include "draco/metadata/structural_metadata.h"
 #include "draco/scene/instance_array.h"
 #include "draco/scene/light.h"
 #include "draco/scene/mesh_group.h"
@@ -140,6 +141,20 @@ class Scene {
   }
   MaterialLibrary &GetMaterialLibrary() { return material_library_; }
 
+  // Library that contains non-material textures.
+  const TextureLibrary &GetNonMaterialTextureLibrary() const {
+    return non_material_texture_library_;
+  }
+  TextureLibrary &GetNonMaterialTextureLibrary() {
+    return non_material_texture_library_;
+  }
+
+  // Structural metadata.
+  const StructuralMetadata &GetStructuralMetadata() const {
+    return structural_metadata_;
+  }
+  StructuralMetadata &GetStructuralMetadata() { return structural_metadata_; }
+
   // Creates an animation and returns the index to the animation.
   AnimationIndex AddAnimation() {
     std::unique_ptr<Animation> animation(new Animation());
@@ -225,6 +240,16 @@ class Scene {
 
   // Materials used by this scene.
   MaterialLibrary material_library_;
+
+  // Texture library for storing non-material textures used by this scene, e.g.,
+  // textures containing mesh feature IDs of EXT_mesh_features glTF extension.
+  // Note that scene meshes contain pointers to non-material textures. It is
+  // responsibility of class user to update these pointers when updating the
+  // textures. See Scene::Copy() for example.
+  TextureLibrary non_material_texture_library_;
+
+  // Structural metadata defined by the EXT_structural_metadata glTF extension.
+  StructuralMetadata structural_metadata_;
 };
 
 }  // namespace draco

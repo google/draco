@@ -92,8 +92,8 @@ int main(int argc, char **argv) {
     } else if (!strcmp("-o", argv[i]) && i < argc_check) {
       file_options.output_filename = argv[++i];
     } else if (!strcmp("-qp", argv[i]) && i < argc_check) {
-      transcode_options.geometry.quantization_bits_position =
-          StringToInt(argv[++i]);
+      transcode_options.geometry.quantization_position.SetQuantizationBits(
+          StringToInt(argv[++i]));
     } else if (!strcmp("-qt", argv[i]) && i < argc_check) {
       transcode_options.geometry.quantization_bits_tex_coord =
           StringToInt(argv[++i]);

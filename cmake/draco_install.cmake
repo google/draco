@@ -1,16 +1,16 @@
 # Copyright 2021 The Draco Authors
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
 
 if(DRACO_CMAKE_DRACO_INSTALL_CMAKE_)
   return()
@@ -47,9 +47,8 @@ macro(draco_setup_install_target)
             DESTINATION "${target_directory}")
   endforeach()
 
-  install(
-    FILES "${draco_build}/draco/draco_features.h"
-    DESTINATION "${includes_path}/draco/")
+  install(FILES "${draco_build}/draco/draco_features.h"
+          DESTINATION "${includes_path}/draco/")
 
   install(TARGETS draco_decoder DESTINATION "${bin_path}")
   install(TARGETS draco_encoder DESTINATION "${bin_path}")
@@ -67,9 +66,9 @@ macro(draco_setup_install_target)
       LIBRARY DESTINATION "${libs_path}")
   else()
     install(
-        TARGETS draco_static
-        EXPORT dracoExport
-        DESTINATION "${libs_path}")
+      TARGETS draco_static
+      EXPORT dracoExport
+      DESTINATION "${libs_path}")
 
     if(BUILD_SHARED_LIBS)
       install(
@@ -116,9 +115,7 @@ macro(draco_setup_install_target)
     FILE draco-targets.cmake
     DESTINATION "${data_path}/cmake/draco")
 
-  install(
-    FILES
-      "${draco_build}/draco-config.cmake"
-      "${draco_build}/draco-config-version.cmake"
-    DESTINATION "${data_path}/cmake/draco")
+  install(FILES "${draco_build}/draco-config.cmake"
+                "${draco_build}/draco-config-version.cmake"
+          DESTINATION "${data_path}/cmake/draco")
 endmacro()

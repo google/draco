@@ -15,6 +15,9 @@
 #ifndef DRACO_MESH_MESH_SPLITTER_H_
 #define DRACO_MESH_MESH_SPLITTER_H_
 
+#include <memory>
+#include <vector>
+
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
@@ -35,16 +38,38 @@ class MeshSplitter {
   // Sets a flag that tells the splitter to preserve all materials on the input
   // mesh during mesh splitting. When set, the materials used on sub-meshes are
   // going to be copied over. Any redundant materials on sub-meshes are going to
-  // be deleted.
+  // be deleted but material indices may still be preserved depending on the
+  // SetRemoveUnusedMaterialIndices() flag.
   // Default = false.
   void SetPreserveMaterials(bool flag) { preserve_materials_ = flag; }
 
+  // Sets a flag that tells the splitter to delete any unused material indices
+  // on the generated sub-meshes. This option is currently used only when
+  // SetPreserveMaterials() was set to true. If this option is set to false, the
+  // material indices of the MATERIAL attribute will be the same as in the
+  // source mesh. If the flag is true, then the unused material indices will be
+  // removed and they may no longer correspond to the source mesh. Note that
+  // when this flag is false, any unused materials would be replaced with empty
+  // (default) materials.
+  // Default = true.
+  void SetRemoveUnusedMaterialIndices(bool flag) {
+    remove_unused_material_indices_ = flag;
+  }
+
+  // Sets a flag that tells the splitter to preserve all mesh features on the
+  // input mesh during mesh splitting. When set, the mesh features used on
+  // sub-meshes are going to be copied over. Any redundant mesh features on
+  // sub-meshes are going to be deleted.
+  // Default = false.
+  void SetPreserveMeshFeatures(bool flag) { preserve_mesh_features_ = flag; }
+
   // Splits the input |mesh| according to attribute values stored in the
-  // specified attribute. The attribute values need to be defined per-face, that
-  // is, all points attached to a single face must share the same attribute
-  // value. Each attribute value (AttributeValueIndex) is mapped to a single
-  // output mesh. If an AttributeValueIndex is unused, no mesh is created for
-  // the given value.
+  // specified attribute. If the |mesh| contains faces, the attribute values
+  // need to be defined per-face, that is, all points attached to a single face
+  // must share the same attribute value. Meshes without faces are treated as
+  // point clouds and the attribute values can be defined per-point. Each
+  // attribute value (AttributeValueIndex) is mapped to a single output mesh. If
+  // an AttributeValueIndex is unused, no mesh is created for the given value.
   StatusOr<MeshVector> SplitMesh(const Mesh &mesh, uint32_t split_attribute_id);
 
   // Splits the input |mesh| into separate components defined in
@@ -58,20 +83,24 @@ class MeshSplitter {
   struct WorkData {
     // Map between attribute ids of the input and output meshes.
     std::vector<int> att_id_map;
-    std::vector<int> num_sub_mesh_faces;
-    std::vector<TriangleSoupMeshBuilder> mesh_builders;
+    std::vector<int> num_sub_mesh_elements;
+    bool split_by_materials = false;
   };
 
-  void InitializeMeshBuilder(int mb_index, int num_faces, const Mesh &mesh,
-                             int ignored_attribute_id,
-                             WorkData *work_data) const;
-  void AddFaceToMeshBuilder(int mb_index, FaceIndex source_fi,
-                            FaceIndex target_fi, const Mesh &mesh,
-                            WorkData *work_data) const;
+  template <typename BuilderT>
+  StatusOr<MeshVector> SplitMeshInternal(const Mesh &mesh,
+                                         int split_attribute_id);
+
   StatusOr<MeshVector> FinalizeMeshes(const Mesh &mesh,
-                                      WorkData *work_data) const;
+                                      const WorkData &work_data,
+                                      MeshVector out_meshes) const;
 
   bool preserve_materials_;
+  bool remove_unused_material_indices_;
+  bool preserve_mesh_features_;
+
+  template <typename BuilderT>
+  friend class MeshSplitterInternal;
 };
 
 }  // namespace draco

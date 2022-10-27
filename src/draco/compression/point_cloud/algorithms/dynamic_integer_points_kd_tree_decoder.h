@@ -20,6 +20,7 @@
 #include <array>
 #include <memory>
 #include <stack>
+#include <vector>
 
 #include "draco/compression/bit_coders/adaptive_rans_bit_decoder.h"
 #include "draco/compression/bit_coders/direct_bit_decoder.h"
@@ -102,6 +103,9 @@ class DynamicIntegerPointsKdTreeDecoder {
 #endif  // DRACO_OLD_GCC
 
   const uint32_t dimension() const { return dimension_; }
+
+  // Returns the number of decoded points. Must be called after DecodePoints().
+  uint32_t num_decoded_points() const { return num_decoded_points_; }
 
  private:
   uint32_t GetAxis(uint32_t num_remaining_points, const VectorUint32 &levels,
@@ -274,8 +278,10 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
           p_[axes_[j]] = 0;
           const uint32_t num_remaining_bits = bit_length_ - levels[axes_[j]];
           if (num_remaining_bits) {
-            remaining_bits_decoder_.DecodeLeastSignificantBits32(
-                num_remaining_bits, &p_[axes_[j]]);
+            if (!remaining_bits_decoder_.DecodeLeastSignificantBits32(
+                    num_remaining_bits, &p_[axes_[j]])) {
+              return false;
+            }
           }
           p_[axes_[j]] = old_base[axes_[j]] | p_[axes_[j]];
         }

@@ -1,16 +1,16 @@
 # Copyright 2021 The Draco Authors
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
 
 if(DRACO_CMAKE_DRACO_EMSCRIPTEN_CMAKE_)
   return()
@@ -58,7 +58,7 @@ macro(draco_get_required_emscripten_flags)
     # what are supposedly link-only flags sent with compile commands, but then
     # proceeds to produce broken code if the warnings are heeded.
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER}
-                "-Wno-unused-command-line-argument")
+         "-Wno-unused-command-line-argument")
 
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-Wno-almost-asm")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "--memory-init-file" "0")
@@ -71,7 +71,7 @@ macro(draco_get_required_emscripten_flags)
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sMODULARIZE=1")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sFILESYSTEM=0")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER}
-                "-sEXPORTED_FUNCTIONS=[\"_free\",\"_malloc\"]")
+         "-sEXPORTED_FUNCTIONS=[\"_free\",\"_malloc\"]")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sPRECISE_F32=1")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sNODEJS_CATCH_EXIT=0")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sNODEJS_CATCH_REJECTION=0")
@@ -105,10 +105,11 @@ macro(draco_generate_emscripten_glue)
                         "${glue_multi_arg_opts}" ${ARGN})
 
   if(DRACO_VERBOSE GREATER 1)
-    message("--------- draco_generate_emscripten_glue -----------\n"
-            "glue_INPUT_IDL=${glue_INPUT_IDL}\n"
-            "glue_OUTPUT_PATH=${glue_OUTPUT_PATH}\n" ]
-            "----------------------------------------------------\n")
+    message(
+      "--------- draco_generate_emscripten_glue -----------\n"
+      "glue_INPUT_IDL=${glue_INPUT_IDL}\n"
+      "glue_OUTPUT_PATH=${glue_OUTPUT_PATH}\n"
+      "----------------------------------------------------\n")
   endif()
 
   if(NOT glue_INPUT_IDL OR NOT glue_OUTPUT_PATH)
@@ -118,22 +119,22 @@ macro(draco_generate_emscripten_glue)
   endif()
 
   # Generate the glue source.
-  execute_process(COMMAND ${PYTHON_EXECUTABLE}
-                          $ENV{EMSCRIPTEN}/tools/webidl_binder.py
-                          ${glue_INPUT_IDL} ${glue_OUTPUT_PATH})
+  execute_process(
+    COMMAND ${PYTHON_EXECUTABLE} $ENV{EMSCRIPTEN}/tools/webidl_binder.py
+            ${glue_INPUT_IDL} ${glue_OUTPUT_PATH})
   if(NOT EXISTS "${glue_OUTPUT_PATH}.cpp")
     message(FATAL_ERROR "JS glue generation failed for ${glue_INPUT_IDL}.")
   endif()
 
   # Create a dependency so that it regenerated on edits.
-  add_custom_command(OUTPUT "${glue_OUTPUT_PATH}.cpp"
-                     COMMAND ${PYTHON_EXECUTABLE}
-                             $ENV{EMSCRIPTEN}/tools/webidl_binder.py
-                             ${glue_INPUT_IDL} ${glue_OUTPUT_PATH}
-                     DEPENDS ${draco_js_dec_idl}
-                     COMMENT "Generating ${glue_OUTPUT_PATH}.cpp."
-                     WORKING_DIRECTORY ${draco_build}
-                     VERBATIM)
+  add_custom_command(
+    OUTPUT "${glue_OUTPUT_PATH}.cpp"
+    COMMAND ${PYTHON_EXECUTABLE} $ENV{EMSCRIPTEN}/tools/webidl_binder.py
+            ${glue_INPUT_IDL} ${glue_OUTPUT_PATH}
+    DEPENDS ${draco_js_dec_idl}
+    COMMENT "Generating ${glue_OUTPUT_PATH}.cpp."
+    WORKING_DIRECTORY ${draco_build}
+    VERBATIM)
 endmacro()
 
 # Wrapper for draco_add_executable() that handles the extra work necessary for
@@ -159,8 +160,14 @@ macro(draco_add_emscripten_executable)
   unset(emexe_LINK_FLAGS)
   set(optional_args)
   set(single_value_args NAME GLUE_PATH)
-  set(multi_value_args SOURCES DEFINES FEATURES INCLUDES LINK_FLAGS
-                       PRE_LINK_JS_SOURCES POST_LINK_JS_SOURCES)
+  set(multi_value_args
+      SOURCES
+      DEFINES
+      FEATURES
+      INCLUDES
+      LINK_FLAGS
+      PRE_LINK_JS_SOURCES
+      POST_LINK_JS_SOURCES)
 
   cmake_parse_arguments(emexe "${optional_args}" "${single_value_args}"
                         "${multi_value_args}" ${ARGN})
@@ -175,17 +182,18 @@ macro(draco_add_emscripten_executable)
   endif()
 
   if(DRACO_VERBOSE GREATER 1)
-    message("--------- draco_add_emscripten_executable ---------\n"
-            "emexe_NAME=${emexe_NAME}\n"
-            "emexe_SOURCES=${emexe_SOURCES}\n"
-            "emexe_DEFINES=${emexe_DEFINES}\n"
-            "emexe_INCLUDES=${emexe_INCLUDES}\n"
-            "emexe_LINK_FLAGS=${emexe_LINK_FLAGS}\n"
-            "emexe_GLUE_PATH=${emexe_GLUE_PATH}\n"
-            "emexe_FEATURES=${emexe_FEATURES}\n"
-            "emexe_PRE_LINK_JS_SOURCES=${emexe_PRE_LINK_JS_SOURCES}\n"
-            "emexe_POST_LINK_JS_SOURCES=${emexe_POST_LINK_JS_SOURCES}\n"
-            "----------------------------------------------------\n")
+    message(
+      "--------- draco_add_emscripten_executable ---------\n"
+      "emexe_NAME=${emexe_NAME}\n"
+      "emexe_SOURCES=${emexe_SOURCES}\n"
+      "emexe_DEFINES=${emexe_DEFINES}\n"
+      "emexe_INCLUDES=${emexe_INCLUDES}\n"
+      "emexe_LINK_FLAGS=${emexe_LINK_FLAGS}\n"
+      "emexe_GLUE_PATH=${emexe_GLUE_PATH}\n"
+      "emexe_FEATURES=${emexe_FEATURES}\n"
+      "emexe_PRE_LINK_JS_SOURCES=${emexe_PRE_LINK_JS_SOURCES}\n"
+      "emexe_POST_LINK_JS_SOURCES=${emexe_POST_LINK_JS_SOURCES}\n"
+      "----------------------------------------------------\n")
   endif()
 
   # The Emscripten linker needs the C++ flags in addition to whatever has been
@@ -194,31 +202,30 @@ macro(draco_add_emscripten_executable)
 
   if(DRACO_GLTF_BITSTREAM)
     # Add "_gltf" suffix to target output name.
-    draco_add_executable(NAME
-                         ${emexe_NAME}
-                         OUTPUT_NAME
-                         ${emexe_NAME}_gltf
-                         SOURCES
-                         ${emexe_SOURCES}
-                         DEFINES
-                         ${emexe_DEFINES}
-                         INCLUDES
-                         ${emexe_INCLUDES}
-                         LINK_FLAGS
-                         ${emexe_LINK_FLAGS})
+    draco_add_executable(
+      NAME ${emexe_NAME}
+      OUTPUT_NAME ${emexe_NAME}_gltf
+      SOURCES ${emexe_SOURCES}
+      DEFINES ${emexe_DEFINES}
+      INCLUDES ${emexe_INCLUDES}
+      LINK_FLAGS ${emexe_LINK_FLAGS})
   else()
-    draco_add_executable(NAME ${emexe_NAME} SOURCES ${emexe_SOURCES} DEFINES
-                         ${emexe_DEFINES} INCLUDES ${emexe_INCLUDES} LINK_FLAGS
-                         ${emexe_LINK_FLAGS})
+    draco_add_executable(
+      NAME ${emexe_NAME}
+      SOURCES ${emexe_SOURCES}
+      DEFINES ${emexe_DEFINES}
+      INCLUDES ${emexe_INCLUDES}
+      LINK_FLAGS ${emexe_LINK_FLAGS})
   endif()
 
   foreach(feature ${emexe_FEATURES})
     draco_enable_feature(FEATURE ${feature} TARGETS ${emexe_NAME})
   endforeach()
 
-  set_property(SOURCE ${emexe_SOURCES}
-               APPEND
-               PROPERTY OBJECT_DEPENDS "${emexe_GLUE_PATH}.cpp")
+  set_property(
+    SOURCE ${emexe_SOURCES}
+    APPEND
+    PROPERTY OBJECT_DEPENDS "${emexe_GLUE_PATH}.cpp")
   em_link_pre_js(${emexe_NAME} ${emexe_PRE_LINK_JS_SOURCES})
   em_link_post_js(${emexe_NAME} "${emexe_GLUE_PATH}.js"
                   ${emexe_POST_LINK_JS_SOURCES})

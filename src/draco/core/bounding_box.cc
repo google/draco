@@ -27,4 +27,13 @@ BoundingBox::BoundingBox()
 BoundingBox::BoundingBox(const Vector3f &min_point, const Vector3f &max_point)
     : min_point_(min_point), max_point_(max_point) {}
 
+const bool BoundingBox::IsValid() const {
+  return GetMinPoint()[0] != std::numeric_limits<float>::max() &&
+         GetMinPoint()[1] != std::numeric_limits<float>::max() &&
+         GetMinPoint()[2] != std::numeric_limits<float>::max() &&
+         GetMaxPoint()[0] != std::numeric_limits<float>::lowest() &&
+         GetMaxPoint()[1] != std::numeric_limits<float>::lowest() &&
+         GetMaxPoint()[2] != std::numeric_limits<float>::lowest();
+}
+
 }  // namespace draco

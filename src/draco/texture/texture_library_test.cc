@@ -14,6 +14,8 @@
 //
 #include "draco/texture/texture_library.h"
 
+#include <unordered_map>
+
 #include "draco/core/draco_test_utils.h"
 #include "draco/io/texture_io.h"
 

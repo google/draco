@@ -16,11 +16,14 @@
 #include "draco/scene/scene_utils.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <memory>
 #include <numeric>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
+#include "draco/core/draco_index_type_vector.h"
 #include "draco/core/hash_utils.h"
 #include "draco/core/vector_d.h"
 #include "draco/mesh/mesh_splitter.h"
@@ -200,6 +203,22 @@ BoundingBox SceneUtils::ComputeMeshInstanceBoundingBox(
   return mesh_bbox;
 }
 
+namespace {
+
+// Updates texture pointers in mesh features of |mesh| to texture pointers
+// stored in |new_texture_library|. |texture_to_index_map| stores texture
+// indices of the old texture pointers within |mesh|.
+void UpdateMeshFeaturesTexturesOnMesh(
+    const std::unordered_map<const Texture *, int> &texture_to_index_map,
+    TextureLibrary *new_texture_library, Mesh *mesh) {
+  for (MeshFeaturesIndex mfi(0); mfi < mesh->NumMeshFeatures(); ++mfi) {
+    mesh->UpdateMeshFeaturesTexturePointer(
+        texture_to_index_map, new_texture_library, &mesh->GetMeshFeatures(mfi));
+  }
+}
+
+}  // namespace
+
 StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
     std::unique_ptr<Mesh> mesh) {
   const size_t num_mesh_materials = mesh->GetMaterialLibrary().NumMaterials();
@@ -211,6 +230,13 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
     // Create a default material for the scene.
     scene->GetMaterialLibrary().MutableMaterial(0);
   }
+
+  // Copy mesh feature textures.
+  scene->GetNonMaterialTextureLibrary().Copy(
+      mesh->GetNonMaterialTextureLibrary());
+
+  const auto old_texture_to_index_map =
+      mesh->GetNonMaterialTextureLibrary().ComputeTextureToIndexMap();
 
   const SceneNodeIndex scene_node_index = scene->AddNode();
   SceneNode *const scene_node = scene->GetNode(scene_node_index);
@@ -224,6 +250,11 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
       return Status(Status::DRACO_ERROR, "Could not add Draco mesh to scene.");
     }
     mesh_group->AddMeshInstance({mesh_index, 0, {}});
+
+    UpdateMeshFeaturesTexturesOnMesh(old_texture_to_index_map,
+                                     &scene->GetNonMaterialTextureLibrary(),
+                                     &scene->GetMesh(mesh_index));
+
   } else {
     const int32_t mat_att_id =
         mesh->GetNamedAttributeId(GeometryAttribute::MATERIAL);
@@ -261,6 +292,13 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
       int material_index = 0;
       mat_att->GetValue(AttributeValueIndex(i), &material_index);
       mesh_group->AddMeshInstance({mesh_index, material_index, {}});
+
+      // Copy over mesh features that were associated with the |material_index|.
+      Mesh &scene_mesh = scene->GetMesh(mesh_index);
+      Mesh::CopyMeshFeaturesForMaterial(*mesh, &scene_mesh, material_index);
+      UpdateMeshFeaturesTexturesOnMesh(old_texture_to_index_map,
+                                       &scene->GetNonMaterialTextureLibrary(),
+                                       &scene_mesh);
     }
   }
 
@@ -640,7 +678,7 @@ void SceneUtils::Cleanup(Scene *scene, const CleanupOptions &options) {
   }
 
   // Find materials that reference a texture.
-  const MaterialLibrary &material_library = scene->GetMaterialLibrary();
+  MaterialLibrary &material_library = scene->GetMaterialLibrary();
   std::vector<bool> materials_with_textures(material_library.NumMaterials(),
                                             false);
   for (int i = 0; i < material_library.NumMaterials(); ++i) {
@@ -649,31 +687,84 @@ void SceneUtils::Cleanup(Scene *scene, const CleanupOptions &options) {
     }
   }
 
-  // Find which materials have a refernece to them.
-  std::vector<bool> is_material_referenced(material_library.NumMaterials(),
-                                           false);
-  // Remove TEX_COORD attributes for meshes that reference a material that does
-  // not contain any texture maps.
-  // TODO(fgalligan): Remove TEX_COORD attributes for meshes that references a
-  // material that does not reference the specific texture. E.g. A mesh has two
-  // TEX_COORD attributes but the material only uses one of the TEX_COORD
-  // attributes.
+  // Maps material index to a set of meshes that use that material.
+  std::vector<std::unordered_set<MeshIndex>> material_meshes(
+      material_library.NumMaterials());
+
+  // Maps mesh index to a set of materials used by that mesh.
+  IndexTypeVector<MeshIndex, std::unordered_set<int>> mesh_materials(
+      scene->NumMeshes());
+
+  // Maps mesh index to a set of tex coord indices referenced by materials.
+  IndexTypeVector<MeshIndex, std::unordered_set<int>> tex_coord_referenced(
+      scene->NumMeshes());
+
+  // Populate the maps that will be used to remove unused texture coordinates.
   for (int mgi = 0; mgi < scene->NumMeshGroups(); ++mgi) {
     const MeshGroup *const mesh_group =
         scene->GetMeshGroup(MeshGroupIndex(mgi));
     for (int mi = 0; mi < mesh_group->NumMeshInstances(); ++mi) {
       const MeshIndex mesh_index = mesh_group->GetMeshInstance(mi).mesh_index;
       const int material_index = mesh_group->GetMeshInstance(mi).material_index;
-      if (material_index > -1) {
-        is_material_referenced[material_index] = true;
+      if (material_index == -1) {
+        continue;
+      }
 
-        if (!materials_with_textures[material_index]) {
-          if (options.remove_unused_tex_coords) {
-            Mesh &mesh = scene->GetMesh(mesh_index);
-            // |mesh| references a material that does not have a texture.
-            while (mesh.NumNamedAttributes(GeometryAttribute::TEX_COORD) > 0) {
-              mesh.DeleteAttribute(
-                  mesh.GetNamedAttributeId(GeometryAttribute::TEX_COORD, 0));
+      // Populate mesh-material mapping.
+      material_meshes[material_index].insert(mesh_index);
+      mesh_materials[mesh_index].insert(material_index);
+
+      // Populate texture coordinate indices referenced by material textures.
+      const auto material = material_library.GetMaterial(material_index);
+      for (int i = 0; i < material->NumTextureMaps(); i++) {
+        const TextureMap *const texture_map = material->GetTextureMapByIndex(i);
+        const int tex_coord_index = texture_map->tex_coord_index();
+        tex_coord_referenced[mesh_index].insert(tex_coord_index);
+      }
+    }
+  }
+
+  // From each mesh, remove texture coordinate attributes that are not
+  // referenced by any materials and decrement texture coordinate indices in
+  // texture maps of the mesh materials accordingly.
+  if (options.remove_unused_tex_coords) {
+    for (MeshIndex mi(0); mi < scene->NumMeshes(); ++mi) {
+      // Do not remove unreferenced texture coordinates when the mesh materials
+      // are used by any other meshes to avoid corrupting those other meshes.
+      // TODO(vytyaz): Consider removing this limitation.
+      bool remove_tex_coord = true;
+      for (const int material_index : mesh_materials[mi]) {
+        if (material_meshes[material_index].size() != 1) {
+          // Materials of this mesh are used by other meshes.
+          remove_tex_coord = false;
+          break;
+        }
+      }
+      if (!remove_tex_coord) {
+        continue;
+      }
+
+      // Remove unreferenced texture coordinate sets from this mesh.
+      Mesh &mesh = scene->GetMesh(mi);
+      const int tex_coord_count =
+          mesh.NumNamedAttributes(GeometryAttribute::TEX_COORD);
+      for (int tci = tex_coord_count - 1; tci >= 0; tci--) {
+        if (tex_coord_referenced[mi].count(tci) != 0) {
+          // Texture coordinate set is referenced.
+          continue;
+        }
+        mesh.DeleteAttribute(
+            mesh.GetNamedAttributeId(GeometryAttribute::TEX_COORD, tci));
+
+        // Decrement texture coordinate indices in all materials of this mesh.
+        for (const int material_index : mesh_materials[mi]) {
+          auto material = material_library.MutableMaterial(material_index);
+          for (int i = 0; i < material->NumTextureMaps(); i++) {
+            auto texture_map = material->GetTextureMapByIndex(i);
+            // Decrement the indices that are greater than the removed index.
+            if (texture_map->tex_coord_index() > tci) {
+              texture_map->SetProperties(texture_map->type(),
+                                         texture_map->tex_coord_index() - 1);
             }
           }
         }
@@ -682,10 +773,10 @@ void SceneUtils::Cleanup(Scene *scene, const CleanupOptions &options) {
   }
 
   if (options.remove_unused_materials) {
-    // Remove materials with no reference to them.
+    // Remove materials that are not used by any mesh.
     for (int i = material_library.NumMaterials() - 1; i >= 0; --i) {
-      if (!is_material_referenced[i]) {
-        // Material |i| is not referenced.
+      if (material_meshes[i].empty()) {
+        // Material |i| is not used.
         scene->RemoveMaterial(i);
       }
     }

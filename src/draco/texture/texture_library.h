@@ -19,6 +19,7 @@
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "draco/texture/texture.h"
@@ -47,6 +48,9 @@ class TextureLibrary {
 
   Texture *GetTexture(int index) { return textures_[index].get(); }
   const Texture *GetTexture(int index) const { return textures_[index].get(); }
+
+  // Returns a map from texture pointer to texture index for all textures.
+  std::unordered_map<const Texture *, int> ComputeTextureToIndexMap() const;
 
   // Removes and returns a texture from the library. The returned texture can be
   // either used by the caller or ignored in which case it would be

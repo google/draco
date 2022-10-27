@@ -14,6 +14,15 @@ delays can result in transient errors that can be difficult to diagnose when
 new Draco releases are launched. To avoid the issue pin your sites to a
 versioned release.
 
+### Version 1.5.4 release:
+* Using the versioned www.gstatic.com WASM and Javascript decoders continues
+  to be recommended. To use v1.5.4, use this URL:
+  * https://www.gstatic.com/draco/versioned/decoders/1.5.4/*
+* Added partial support for glTF extensions EXT_mesh_features and
+  EXT_structural_metadata.
+* Bug fixes.
+* Security fixes.
+
 ### Version 1.5.3 release:
 * Using the versioned www.gstatic.com WASM and Javascript decoders continues
   to be recommended. To use v1.5.3, use this URL:

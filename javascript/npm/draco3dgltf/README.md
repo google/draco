@@ -24,7 +24,7 @@ Draco github glTF branch URL: https://github.com/google/draco/tree/gltf_2.0_drac
 News
 =======
 
-Check out the [README](https://github.com/google/draco/blob/1.5.3/README.md)
+Check out the [README](https://github.com/google/draco/blob/1.5.4/README.md)
 file for news about this release.
 
 NPM Package

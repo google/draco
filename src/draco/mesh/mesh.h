@@ -16,6 +16,7 @@
 #define DRACO_MESH_MESH_H_
 
 #include <memory>
+#include <unordered_map>
 
 #include "draco/attributes/geometry_indices.h"
 #include "draco/core/hash_utils.h"
@@ -25,6 +26,9 @@
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/compression/draco_compression_options.h"
 #include "draco/material/material_library.h"
+#include "draco/mesh/mesh_features.h"
+#include "draco/mesh/mesh_indices.h"
+#include "draco/metadata/structural_metadata.h"
 #endif
 #include "draco/point_cloud/point_cloud.h"
 
@@ -119,6 +123,11 @@ class Mesh : public PointCloud {
   void RemoveIsolatedPoints();
 #endif
 
+  // Adds a point attribute |att| to the mesh and returns the index of the
+  // newly inserted attribute. Attribute values are mapped 1:1 to face indices.
+  // Returns -1 in case of error.
+  int32_t AddPerFaceAttribute(std::unique_ptr<PointAttribute> att);
+
   MeshAttributeElementType GetAttributeElementType(int att_id) const {
     return attribute_data_[att_id].element_type;
   }
@@ -154,7 +163,12 @@ class Mesh : public PointCloud {
   MaterialLibrary &GetMaterialLibrary() { return material_library_; }
 
   // Removes all materials that are not referenced by any face of the mesh.
+  // Optional argument |remove_unused_material_indices| can be used to control
+  // whether unusued material indices are removed as well (default = true).
+  // If material indices are not removed, the unused material indices will
+  // point to empty (default) materials.
   void RemoveUnusedMaterials();
+  void RemoveUnusedMaterials(bool remove_unused_material_indices);
 
   // Enables or disables Draco geometry compression for this mesh.
   void SetCompressionEnabled(bool enabled) { compression_enabled_ = enabled; }
@@ -171,7 +185,71 @@ class Mesh : public PointCloud {
   DracoCompressionOptions &GetCompressionOptions() {
     return compression_options_;
   }
-#endif
+
+  // Library that contains non-material textures.
+  const TextureLibrary &GetNonMaterialTextureLibrary() const {
+    return non_material_texture_library_;
+  }
+  TextureLibrary &GetNonMaterialTextureLibrary() {
+    return non_material_texture_library_;
+  }
+
+  // Mesh feature ID sets as defined by EXT_mesh_features glTF extension.
+  MeshFeaturesIndex AddMeshFeatures(
+      std::unique_ptr<MeshFeatures> mesh_features) {
+    mesh_features_.push_back(std::move(mesh_features));
+    mesh_features_material_mask_.push_back({});
+    return MeshFeaturesIndex(mesh_features_.size() - 1);
+  }
+  int NumMeshFeatures() const { return mesh_features_.size(); }
+  const MeshFeatures &GetMeshFeatures(MeshFeaturesIndex index) const {
+    return *mesh_features_[index];
+  }
+  MeshFeatures &GetMeshFeatures(MeshFeaturesIndex index) {
+    return *mesh_features_[index];
+  }
+  void RemoveMeshFeatures(MeshFeaturesIndex index) {
+    mesh_features_.erase(mesh_features_.begin() + index.value());
+    mesh_features_material_mask_.erase(mesh_features_material_mask_.begin() +
+                                       index.value());
+  }
+
+  // Restricts given mesh features to faces mapped to a material with
+  // |material_index|. Note that single mesh features can be restricted to
+  // multiple materials.
+  void AddMeshFeaturesMaterialMask(MeshFeaturesIndex index,
+                                   int material_index) {
+    mesh_features_material_mask_[index].push_back(material_index);
+  }
+
+  size_t NumMeshFeaturesMaterialMasks(MeshFeaturesIndex index) const {
+    return mesh_features_material_mask_[index].size();
+  }
+  int GetMeshFeaturesMaterialMask(MeshFeaturesIndex index,
+                                  int mask_index) const {
+    return mesh_features_material_mask_[index][mask_index];
+  }
+
+  // Updates mesh features texture pointer to point to a new |texture_library|.
+  // The current texture pointer is used to determine the texture index in the
+  // new texture library via a given |texture_to_index_map|.
+  static void UpdateMeshFeaturesTexturePointer(
+      const std::unordered_map<const Texture *, int> &texture_to_index_map,
+      TextureLibrary *texture_library, MeshFeatures *mesh_features);
+
+  // Copies over mesh features from |source_mesh| and stores them in
+  // |target_mesh| as long as the mesh features material mask is valid for
+  // given |material_index|.
+  static void CopyMeshFeaturesForMaterial(const Mesh &source_mesh,
+                                          Mesh *target_mesh,
+                                          int material_index);
+
+  // Structural metadata.
+  const StructuralMetadata &GetStructuralMetadata() const {
+    return structural_metadata_;
+  }
+  StructuralMetadata &GetStructuralMetadata() { return structural_metadata_; }
+#endif  // DRACO_TRANSCODER_SUPPORTED
 
  protected:
 #ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
@@ -206,7 +284,29 @@ class Mesh : public PointCloud {
   // TODO(vytyaz): Store encoded bitstream that this mesh compresses into.
   bool compression_enabled_;
   DracoCompressionOptions compression_options_;
-#endif
+
+  // Sets of feature IDs as defined by EXT_mesh_features glTF extension.
+  IndexTypeVector<MeshFeaturesIndex, std::unique_ptr<MeshFeatures>>
+      mesh_features_;
+
+  // When the Mesh contains multiple materials, |mesh_features_material_mask_|
+  // can be used to limit specific MeshFeaturesIndex to a vector of material
+  // indices. If for a given mesh feature index, the material indices are empty,
+  // the corresponding mesh features are applied to the entire mesh.
+  IndexTypeVector<MeshFeaturesIndex, std::vector<int>>
+      mesh_features_material_mask_;
+
+  // Texture library for storing non-material textures used by this mesh, e.g.,
+  // textures containing mesh feature IDs of EXT_mesh_features glTF extension.
+  // If the mesh is part of the scene then the textures are stored in the scene.
+  // Note that mesh features contain pointers to non-material textures. It is
+  // responsibility of class user to update these pointers when updating the
+  // textures. See Mesh::Copy() for example.
+  TextureLibrary non_material_texture_library_;
+
+  // Structural metadata defined by the EXT_structural_metadata glTF extension.
+  StructuralMetadata structural_metadata_;
+#endif  // DRACO_TRANSCODER_SUPPORTED
   friend struct MeshHasher;
 };
 

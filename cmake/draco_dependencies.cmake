@@ -1,16 +1,16 @@
 # Copyright 2022 The Draco Authors
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
 
 if(DRACO_CMAKE_DRACO_DEPENDENCIES_CMAKE)
   return()
@@ -106,14 +106,16 @@ macro(draco_setup_googletest)
     set(gtest_path "${draco_root}/third_party/googletest")
   endif()
 
-  list(APPEND draco_test_include_paths
-              ${draco_include_paths}
-              "${gtest_path}/include"
-              "${gtest_path}/googlemock"
-              "${gtest_path}/googletest/include"
-              "${gtest_path}/googletest")
+  list(
+    APPEND
+    draco_test_include_paths
+    ${draco_include_paths}
+    "${gtest_path}/include"
+    "${gtest_path}/googlemock"
+    "${gtest_path}/googletest/include"
+    "${gtest_path}/googletest")
 
-  list(APPEND draco_gtest_all  "${gtest_path}/googletest/src/gtest-all.cc")
+  list(APPEND draco_gtest_all "${gtest_path}/googletest/src/gtest-all.cc")
   list(APPEND draco_gtest_main "${gtest_path}/googletest/src/gtest_main.cc")
 endmacro()
 

@@ -19,7 +19,7 @@
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/core/draco_test_utils.h"
 #include "draco/io/texture_io.h"
-#include "draco/texture/color.h"
+#include "draco/texture/color_utils.h"
 
 namespace {
 

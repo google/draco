@@ -159,7 +159,7 @@ TEST(DracoTranscoderTest, TestPositionQuantization) {
   const size_t first_glb_size =
       draco::GetFileSize(draco::GetTestTempFileFullPath("first.glb"));
 
-  options.geometry.quantization_bits_position = 10;
+  options.geometry.quantization_position.SetQuantizationBits(10);
   DRACO_ASSIGN_OR_ASSERT(std::unique_ptr<draco::DracoTranscoder> dt2,
                          draco::DracoTranscoder::Create(options));
   file_options.output_filename = draco::GetTestTempFileFullPath("second.glb");

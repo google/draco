@@ -15,6 +15,12 @@
 #include "draco/io/texture_io.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
 #include "draco/core/draco_test_utils.h"
 #include "draco/io/file_utils.h"
 

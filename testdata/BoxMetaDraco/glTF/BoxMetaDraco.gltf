@@ -1,0 +1,226 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "draco_decoder"
+  },
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "scene": 0,
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "translation": [
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Mesh",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 2,
+            "POSITION": 1,
+            "TEXCOORD_0": 3,
+            "TEXCOORD_1": 4,
+            "_FEATURE_ID_0": 5,
+            "_FEATURE_ID_1": 6,
+            "_FEATURE_ID_2": 7
+          },
+          "indices": 0,
+          "mode": 4,
+          "material": 0,
+          "extensions": {
+            "KHR_draco_mesh_compression": {
+              "bufferView": 0,
+              "attributes": {
+                "NORMAL": 0,
+                "POSITION": 1,
+                "TEXCOORD_0": 5,
+                "TEXCOORD_1": 6,
+                "_FEATURE_ID_0": 2,
+                "_FEATURE_ID_1": 3,
+                "_FEATURE_ID_2": 4
+              }
+            },
+            "EXT_mesh_features": {
+              "featureIds": [
+                {
+                  "label": "faces",
+                  "featureCount": 12,
+                  "attribute": 0,
+                  "propertyTable": 0,
+                  "nullFeatureId": 100
+                },
+                {
+                  "label": "vertices",
+                  "featureCount": 8,
+                  "attribute": 1,
+                  "propertyTable": 1,
+                  "nullFeatureId": 101
+                },
+                {
+                  "featureCount": 36,
+                  "attribute": 2
+                },
+                {
+                  "featureCount": 6,
+                  "texture": {
+                    "index": 0,
+                    "texCoord": 0,
+                    "channels": [
+                      0
+                    ]
+                  }
+                },
+                {
+                  "label": "water",
+                  "featureCount": 2,
+                  "texture": {
+                    "index": 1,
+                    "texCoord": 1,
+                    "channels": [
+                      1,
+                      2,
+                      3
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.80000001192092896,
+          0,
+          0,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 1
+      },
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "alphaMode": "OPAQUE",
+      "name": "Red"
+    }
+  ],
+  "textures": [
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 1,
+      "sampler": 0
+    }
+  ],
+  "samplers": [
+    {
+      "wrapS": 33071,
+      "wrapT": 33071
+    }
+  ],
+  "images": [
+    {
+      "uri": "Texture0_MeshFeatures.png"
+    },
+    {
+      "uri": "Texture1_MeshFeatures.png"
+    }
+  ],
+  "accessors": [
+    {
+      "componentType": 5121,
+      "count": 36,
+      "type": "SCALAR"
+    },
+    {
+      "componentType": 5126,
+      "count": 36,
+      "max": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "min": [
+        -0.5,
+        -0.5,
+        -0.5
+      ],
+      "type": "VEC3"
+    },
+    {
+      "componentType": 5126,
+      "count": 36,
+      "type": "VEC3"
+    },
+    {
+      "componentType": 5126,
+      "count": 36,
+      "type": "VEC2"
+    },
+    {
+      "componentType": 5126,
+      "count": 36,
+      "type": "VEC2"
+    },
+    {
+      "componentType": 5121,
+      "count": 36,
+      "type": "SCALAR"
+    },
+    {
+      "componentType": 5123,
+      "count": 36,
+      "type": "SCALAR"
+    },
+    {
+      "componentType": 5126,
+      "count": 36,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 620
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 620,
+      "uri": "buffer0.bin"
+    }
+  ],
+  "extensionsRequired": [
+    "KHR_draco_mesh_compression"
+  ],
+  "extensionsUsed": [
+    "EXT_mesh_features",
+    "KHR_draco_mesh_compression"
+  ]
+}
