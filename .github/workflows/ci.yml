@@ -105,8 +105,8 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc-10 \
-                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
@@ -116,8 +116,8 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc-10 \
-                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
@@ -147,25 +147,25 @@ jobs:
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
 
-          - test_name: ubuntu-make-gcc10-release-static
+          - test_name: ubuntu-make-release-static
             os: ubuntu-latest
             cmake_configure_command: |-
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc-10 \
-                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
-          - test_name: ubuntu-make-gcc10-release-static-with-transcoder
+          - test_name: ubuntu-make-release-static-with-transcoder
             os: ubuntu-latest
             cmake_configure_command: |-
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc-10 \
-                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
