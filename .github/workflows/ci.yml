@@ -123,25 +123,25 @@ jobs:
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
 
-          - test_name: ubuntu-make-clang-release-static
-            os: ubuntu-latest
+          - test_name: ubuntu22-make-clang14-release-static
+            os: ubuntu-22.04
             cmake_configure_command: |-
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=clang \
-                -DCMAKE_CXX_COMPILER=clang++ \
+                -DCMAKE_C_COMPILER=clang-14 \
+                -DCMAKE_CXX_COMPILER=clang++-14 \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
-          - test_name: ubuntu-make-clang-release-static-with-transcoder
-            os: ubuntu-latest
+          - test_name: ubuntu22-make-clang14-release-static-with-transcoder
+            os: ubuntu-22.04
             cmake_configure_command: |-
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=clang \
-                -DCMAKE_CXX_COMPILER=clang++ \
+                -DCMAKE_C_COMPILER=clang-14 \
+                -DCMAKE_CXX_COMPILER=clang++-14 \
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
