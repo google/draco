@@ -14,6 +14,12 @@ delays can result in transient errors that can be difficult to diagnose when
 new Draco releases are launched. To avoid the issue pin your sites to a
 versioned release.
 
+### Version 1.5.5 release:
+* Using the versioned www.gstatic.com WASM and Javascript decoders continues
+  to be recommended. To use v1.5.5, use this URL:
+  * https://www.gstatic.com/draco/versioned/decoders/1.5.5/*
+* Bug fix: https://github.com/google/draco/issues/935
+
 ### Version 1.5.4 release:
 * Using the versioned www.gstatic.com WASM and Javascript decoders continues
   to be recommended. To use v1.5.4, use this URL:

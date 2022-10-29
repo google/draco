@@ -925,6 +925,38 @@ bool SceneUtils::IsDracoCompressionEnabled(const Scene &scene) {
   return false;
 }
 
+IndexTypeVector<MeshIndex, Eigen::Matrix4d>
+SceneUtils::FindLargestBaseMeshTransforms(const Scene &scene) {
+  IndexTypeVector<MeshIndex, Eigen::Matrix4d> transforms(
+      scene.NumMeshes(), Eigen::Matrix4d::Identity());
+
+  // In case a mesh has multiple instances we want to use the instance with
+  // the largest scale.
+  IndexTypeVector<MeshIndex, float> transform_scale(scene.NumMeshes(), 0.f);
+
+  const auto instances = SceneUtils::ComputeAllInstances(scene);
+  for (MeshInstanceIndex i(0); i < instances.size(); ++i) {
+    const auto &instance = instances[i];
+
+    // Compute the scale of the transform.
+    const Vector3f scale_vec(instance.transform.col(0).norm(),
+                             instance.transform.col(1).norm(),
+                             instance.transform.col(2).norm());
+
+    // In our framework we support uniform scale only. For now, just take the
+    // maximum scale across all axes.
+    // TODO(ostava): Investigate how to properly support non-uniform scaling.
+    const float max_scale = scale_vec.MaxCoeff();
+
+    if (transform_scale[instance.mesh_index] < max_scale) {
+      transform_scale[instance.mesh_index] = max_scale;
+      transforms[instance.mesh_index] = instance.transform;
+    }
+  }
+
+  return transforms;
+}
+
 }  // namespace draco
 
 #endif  // DRACO_TRANSCODER_SUPPORTED

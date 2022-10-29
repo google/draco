@@ -121,12 +121,12 @@ class Mesh : public PointCloud {
   // Removes points that are not mapped to any face of the mesh. All attribute
   // values are going to be removed as well.
   void RemoveIsolatedPoints();
-#endif
 
   // Adds a point attribute |att| to the mesh and returns the index of the
   // newly inserted attribute. Attribute values are mapped 1:1 to face indices.
   // Returns -1 in case of error.
   int32_t AddPerFaceAttribute(std::unique_ptr<PointAttribute> att);
+#endif  // DRACO_TRANSCODER_SUPPORTED
 
   MeshAttributeElementType GetAttributeElementType(int att_id) const {
     return attribute_data_[att_id].element_type;
