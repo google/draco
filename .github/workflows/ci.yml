@@ -233,7 +233,8 @@ jobs:
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
-            draco_test_command: ./draco_tests
+            # TODO(https://github.com/google/draco/issues/938): Flaking on this target.
+            draco_test_command: ./draco_tests --gtest_filter=-GltfDecoderTest.TestLoadUnsupportedTexCoordAttributes
 
           - test_name: windows-make-release-static
             os: windows-2019
