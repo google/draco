@@ -738,6 +738,26 @@ TEST(SceneUtilsTest, TestSetDracoCompressionOptions) {
   ASSERT_FALSE(scene->GetMesh(MeshIndex(3)).IsCompressionEnabled());
 }
 
+TEST(SceneUtilsTest, TestFindLargestBaseMeshTransforms) {
+  // Tests that FindLargestBaseMeshTransforms() works as expected.
+  auto scene =
+      draco::ReadSceneFromTestFile("CubeScaledInstances/glTF/cube_att.gltf");
+  ASSERT_NE(scene, nullptr);
+
+  // There should be one base mesh with four instances.
+  ASSERT_EQ(scene->NumMeshes(), 1);
+  ASSERT_EQ(draco::SceneUtils::ComputeAllInstances(*scene).size(), 4);
+
+  const auto transforms =
+      draco::SceneUtils::FindLargestBaseMeshTransforms(*scene);
+
+  ASSERT_EQ(transforms.size(), 1);  // One transform for the single base mesh.
+
+  // The largest instance should have a uniform scale 4.
+  const draco::MeshIndex mi(0);
+  ASSERT_EQ(transforms[mi].diagonal(), Eigen::Vector4d(4, 4, 4, 1));
+}
+
 }  // namespace
 
 #endif  // DRACO_TRANSCODER_SUPPORTED
