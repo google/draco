@@ -162,7 +162,7 @@ class DecoderBuffer {
         return false;
       }
       uint32_t value = 0;
-      for (int32_t bit = 0; bit < nbits; ++bit) {
+      for (int32_t bit = 0; bit < static_cast<int32_t>(nbits); ++bit) {
         value |= GetBit() << bit;
       }
       *x = value;
