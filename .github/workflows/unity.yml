@@ -13,21 +13,24 @@ on:
   workflow_dispatch:
 
 env:
-  # Emscripten version that comes with Unity 2021.2
-  EM_VERSION: 2.0.19
-  EM_CACHE_FOLDER: 'emsdk-cache'
+  # Emscripten version for Unity 2022.2 or newer
+  EM_3_VERSION: 3.1.8
+  EM_3_CACHE_FOLDER: 'emsdk-cache'
+  # Emscripten version for Unity 2021.2 and 2021.3
+  EM_2_VERSION: 2.0.19
+  EM_2_CACHE_FOLDER: 'emsdk-cache'
   # Emscripten version that comes with older Unity versions
-  EM_LEGACY_VERSION: 1.38.48-fastcomp
-  EM_LEGACY_CACHE_FOLDER: 'emsdk-legacy-cache'
+  EM_1_VERSION: 1.38.48-fastcomp
+  EM_1_CACHE_FOLDER: 'emsdk-legacy-cache'
 
 jobs:
 
   mac:
 
-    runs-on: macOS-latest
+    runs-on: macOS-11
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - uses: maxim-lobanov/setup-xcode@v1
       with:
@@ -71,7 +74,7 @@ jobs:
         mkdir draco_apple/iOS
         mv build_ios/MinSizeRel-iphoneos/libdracodec_unity.a draco_apple/iOS
     - name: upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: draco_apple
         path: draco_apple
@@ -79,10 +82,10 @@ jobs:
 
   windows:
 
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: configure_win64
       run: >
@@ -183,7 +186,7 @@ jobs:
         mv build_uwp_x86\MinSizeRel\dracodec_unity.dll draco_win/WSA/x86
         mv build_uwp_x64\MinSizeRel\dracodec_unity.dll draco_win/WSA/x64
     - name: upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: draco_win
         path: draco_win
@@ -194,13 +197,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Setup cache
       id: cache-system-libraries
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
-        path: ${{env.EM_CACHE_FOLDER}}
-        key: ${{env.EM_VERSION}}-${{ runner.os }}
+        path: ${{env.EM_2_CACHE_FOLDER}}
+        key: ${{env.EM_2_VERSION}}-${{ runner.os }}
     - uses: seanmiddleditch/gha-setup-ninja@v3
 
     # Android
@@ -250,10 +253,10 @@ jobs:
 
     # Emscripten
     - name: setup Emscripten
-      uses: mymindstorm/setup-emsdk@v10
+      uses: mymindstorm/setup-emsdk@v12
       with:
-        version: ${{env.EM_VERSION}}
-        actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
+        version: ${{env.EM_2_VERSION}}
+        actions-cache-folder: ${{env.EM_2_CACHE_FOLDER}}
     - name: configure WebAssembly
       run: >
         emcmake cmake -B build_web
@@ -280,23 +283,66 @@ jobs:
         mv build_android_x86/libdracodec_unity.so \
           draco_linux/Android/libs/x86
     - name: upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: draco_linux
         path: draco_linux
+
+
+  linux_emscripten_3:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup cache
+      id: cache-system-libraries
+      uses: actions/cache@v3
+      with:
+        path: ${{env.EM_3_CACHE_FOLDER}}
+        key: ${{env.EM_3_VERSION}}-${{ runner.os }}
+
+    # Emscripten 3
+    - name: setup Emscripten
+      uses: mymindstorm/setup-emsdk@v12
+      with:
+        version: ${{env.EM_3_VERSION}}
+        actions-cache-folder: ${{env.EM_3_CACHE_FOLDER}}
+    - name: configure WebAssembly
+      run: >
+        EMSCRIPTEN="$EMSDK/upstream/emscripten" emcmake cmake -B build_web
+        -DCMAKE_BUILD_TYPE=MinSizeRel
+        -DDRACO_JS_GLUE=OFF
+        -DDRACO_UNITY_PLUGIN=ON
+        -DDRACO_GLTF=ON
+        -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+    - name: build WebAssembly
+      run: cmake --build build_web --target dracodec_unity -j
+
+    # Artifacts
+    - name: package
+      run: |
+        mkdir -p draco_emscripten_3/WebGL
+        mv build_web/libdracodec_unity.a draco_emscripten_3/WebGL/libdracodec_unity_3.a
+    - name: upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: draco_emscripten_3
+        path: draco_emscripten_3
+
 
   linux_legacy:
 
     runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Setup cache
       id: cache-system-libraries
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
-        path: ${{env.EM_LEGACY_CACHE_FOLDER}}
-        key: ${{env.EM_LEGACY_VERSION}}-${{ runner.os }}
+        path: ${{env.EM_1_CACHE_FOLDER}}
+        key: ${{env.EM_1_VERSION}}-${{ runner.os }}
 
     # CMake that comes with Ubuntu 18.04 is too old, so install a recent version here
     - name: Get latest CMake and ninja
@@ -315,23 +361,22 @@ jobs:
     - name: build_linux64_dracoenc_unity
       run: cmake --build build_linux_64 --target dracoenc_unity -j
 
-    # Emscripten legacy
-    - name: setup Emscripten legacy
-      uses: mymindstorm/setup-emsdk@v10
+    # Emscripten 1
+    - name: setup Emscripten 1
+      uses: numworks/setup-emscripten@latest
       with:
-        version: ${{env.EM_LEGACY_VERSION}}
-        actions-cache-folder: ${{env.EM_LEGACY_CACHE_FOLDER}}
-    - name: configure WebAssembly legacy
+        sdk: ${{env.EM_1_VERSION}}
+    - name: configure WebAssembly 1
       run: >
-        emcmake cmake -B build_web_legacy
+        emcmake cmake -B build_web_1
         -DCMAKE_BUILD_TYPE=MinSizeRel
         -DEMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=1
         -DDRACO_JS_GLUE=OFF
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
-    - name: build WebAssembly legacy
-      run: cmake --build build_web_legacy --target dracodec_unity -j
+    - name: build WebAssembly 1
+      run: cmake --build build_web_1 --target dracodec_unity -j
 
     # Linux legacy artifacts
     - name: package Linux legacy
@@ -340,9 +385,9 @@ jobs:
         mv build_linux_64/libdracodec_unity.so draco_linux_legacy/x86_64
         mv build_linux_64/libdracoenc_unity.so draco_linux_legacy/x86_64
         mkdir -p draco_linux_legacy/WebGL
-        mv build_web_legacy/libdracodec_unity.bc draco_linux_legacy/WebGL
+        mv build_web_1/libdracodec_unity.bc draco_linux_legacy/WebGL
     - name: upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: draco_linux_legacy
         path: draco_linux_legacy
@@ -352,7 +397,7 @@ jobs:
   combine:
     name: combine artifacts
     runs-on: ubuntu-latest
-    needs: [mac, windows, linux, linux_legacy]
+    needs: [mac, windows, linux, linux_legacy, linux_emscripten_3]
     steps:
       - name: download artifacts
         uses: actions/download-artifact@v2
@@ -368,6 +413,7 @@ jobs:
           cp -r artifacts/draco_win/* draco
           cp -r artifacts/draco_linux/* draco
           cp -r artifacts/draco_linux_legacy/* draco
+          cp -r artifacts/draco_emscripten_3/* draco
       - name: zip
         run: zip -r draco.zip draco
       - name: upload release assets
@@ -377,7 +423,7 @@ jobs:
           files: draco.zip
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: draco
           path: draco
@@ -389,3 +435,4 @@ jobs:
             draco_win
             draco_linux
             draco_linux_legacy
+            draco_emscripten_3
