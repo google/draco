@@ -42,7 +42,7 @@ jobs:
         -DCMAKE_BUILD_TYPE=MinSizeRel
         -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_mac_dracodec_unity
       run: cmake --build build_mac --config MinSizeRel --target dracodec_unity
@@ -57,7 +57,7 @@ jobs:
         -DCMAKE_OSX_ARCHITECTURES=armv7\;armv7s\;arm64
         -DCMAKE_OSX_DEPLOYMENT_TARGET=10.0
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_ios
       run: cmake --build build_ios --config MinSizeRel --target dracodec_unity
@@ -88,7 +88,7 @@ jobs:
       run: >
         cmake . -G "Visual Studio 16 2019" -A x64 -B build_win_64
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_win64_dracodec_unity
       run: >
@@ -105,7 +105,7 @@ jobs:
       run: >
         cmake . -G "Visual Studio 16 2019" -A Win32 -B build_win_32
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_win32
       run: cmake --build build_win_32 --config MinSizeRel --target dracodec_unity
@@ -115,7 +115,7 @@ jobs:
       run: >
         cmake . -G "Visual Studio 16 2019" -A ARM -B build_uwp_arm
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
         -DCMAKE_SYSTEM_NAME:String=WindowsStore
         -DCMAKE_SYSTEM_VERSION:String="10.0"
@@ -129,7 +129,7 @@ jobs:
       run: >
         cmake . -G "Visual Studio 16 2019" -A ARM64 -B build_uwp_arm64
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
         -DCMAKE_SYSTEM_NAME:String=WindowsStore
         -DCMAKE_SYSTEM_VERSION:String="10.0"
@@ -143,7 +143,7 @@ jobs:
       run: >
         cmake . -G "Visual Studio 16 2019" -A Win32 -B build_uwp_x86
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
         -DCMAKE_SYSTEM_NAME:String=WindowsStore
         -DCMAKE_SYSTEM_VERSION:String="10.0"
@@ -157,7 +157,7 @@ jobs:
       run: >
         cmake . -G "Visual Studio 16 2019" -A x64 -B build_uwp_x64
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
         -DCMAKE_SYSTEM_NAME:String=WindowsStore
         -DCMAKE_SYSTEM_VERSION:String="10.0"
@@ -218,7 +218,7 @@ jobs:
         -DANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }}
         -DCMAKE_TOOLCHAIN_FILE="${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake"
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_android_arm64-v8a
       run: cmake --build build_android_arm64-v8a --target dracodec_unity -j
@@ -230,7 +230,7 @@ jobs:
         -DANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }}
         -DCMAKE_TOOLCHAIN_FILE="${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake"
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_android_armeabi-v7a
       run: cmake --build build_android_armeabi-v7a --target dracodec_unity -j
@@ -243,7 +243,7 @@ jobs:
         -DANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }}
         -DCMAKE_TOOLCHAIN_FILE="${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake"
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_android_x86
       run: cmake --build build_android_x86 --target dracodec_unity -j
@@ -260,7 +260,7 @@ jobs:
         -DCMAKE_BUILD_TYPE=MinSizeRel
         -DDRACO_JS_GLUE=OFF
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build WebAssembly
       run: cmake --build build_web --target dracodec_unity -j
@@ -308,7 +308,7 @@ jobs:
         cmake . -G Ninja -B build_linux_64
         -DCMAKE_BUILD_TYPE=MinSizeRel
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_linux64_dracodec_unity
       run: cmake --build build_linux_64 --target dracodec_unity -j
@@ -328,7 +328,7 @@ jobs:
         -DEMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=1
         -DDRACO_JS_GLUE=OFF
         -DDRACO_UNITY_PLUGIN=ON
-        -DDRACO_GLTF=ON
+        -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build WebAssembly legacy
       run: cmake --build build_web_legacy --target dracodec_unity -j
