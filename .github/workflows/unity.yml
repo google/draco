@@ -361,14 +361,17 @@ jobs:
         -DDRACO_UNITY_PLUGIN=ON
         -DDRACO_GLTF=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
-    - name: build WebAssembly
+    - name: build_webassembly_dracodec_unity
       run: cmake --build build_web --target dracodec_unity -j
+    - name: build_webassembly_dracoenc_unity
+      run: cmake --build build_web --target dracoenc_unity -j
 
     # Artifacts
     - name: package
       run: |
         mkdir -p draco_emscripten_3/WebGL
         mv build_web/libdracodec_unity.a draco_emscripten_3/WebGL/libdracodec_unity_3.a
+        mv build_web/libdracoenc_unity.a draco_emscripten_3/WebGL/libdracoenc_unity_3.a
     - name: upload artifact
       uses: actions/upload-artifact@v3
       with:
@@ -413,7 +416,7 @@ jobs:
         sdk: ${{env.EM_1_VERSION}}
     - name: configure WebAssembly 1
       run: >
-        emcmake cmake -B build_web_1
+        emcmake cmake -B build_web
         -DCMAKE_BUILD_TYPE=MinSizeRel
         -DEMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=1
         -DDRACO_JS_GLUE=OFF
@@ -421,9 +424,9 @@ jobs:
         -DDRACO_GLTF_BITSTREAM=ON
         -DDRACO_BACKWARDS_COMPATIBILITY=OFF
     - name: build_webassembly_1_dracodec_unity
-      run: cmake --build build_web_1 --target dracodec_unity -j
+      run: cmake --build build_web --target dracodec_unity -j
     - name: build_webassembly_1_dracoenc_unity
-      run: cmake --build build_web_1 --target dracoenc_unity -j
+      run: cmake --build build_web --target dracoenc_unity -j
     # Linux legacy artifacts
     - name: package Linux legacy
       run: |
@@ -431,8 +434,8 @@ jobs:
         mv build_linux_64/libdracodec_unity.so draco_linux_legacy/x86_64
         mv build_linux_64/libdracoenc_unity.so draco_linux_legacy/x86_64
         mkdir -p draco_linux_legacy/WebGL
-        mv build_web_1/libdracodec_unity.bc draco_linux_1/WebGL
-        mv build_web_1/libdracoenc_unity.bc draco_linux_1/WebGL
+        mv build_web/libdracodec_unity.bc draco_linux_legacy/WebGL
+        mv build_web/libdracoenc_unity.bc draco_linux_legacy/WebGL
     - name: upload artifact
       uses: actions/upload-artifact@v3
       with:
