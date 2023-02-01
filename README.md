@@ -254,7 +254,7 @@ will output usage and options.
 Encoding Tool
 -------------
 
-`draco_encoder` will read OBJ or PLY files as input, and output Draco-encoded
+`draco_encoder` will read OBJ, STL or PLY files as input, and output Draco-encoded
 files. We have included Stanford's [Bunny] mesh for testing. The basic command
 line looks like this:
 
@@ -309,7 +309,7 @@ and denser point clouds.
 Decoding Tool
 -------------
 
-`draco_decoder` will read Draco files as input, and output OBJ or PLY files.
+`draco_decoder` will read Draco files as input, and output OBJ, STL or PLY files.
 The basic command line looks like this:
 
 ~~~~~ bash
