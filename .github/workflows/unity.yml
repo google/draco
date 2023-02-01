@@ -10,6 +10,10 @@ on:
   release:
     types:
       - created
+    branches:
+      - unity
+    tags:
+      - unity*
   workflow_dispatch:
 
 env:
