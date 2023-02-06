@@ -853,6 +853,66 @@ TEST_F(GltfEncoderTest, TestQuantizationPerAttribute) {
   ASSERT_LT(tangent_quantization_bin_size, tex_coord_quantization_bin_size);
 }
 
+// Tests encoding a glTF with multiple scaled instances with Draco compression
+// using grid options for position quantization.
+TEST_F(GltfEncoderTest, TestDracoCompressionWithGridOptions) {
+  const std::string file_name =
+      "SpheresScaledInstances/glTF/spheres_scaled_instances.gltf";
+  std::unique_ptr<Scene> scene(DecodeTestGltfFileToScene(file_name));
+  ASSERT_NE(scene, nullptr);
+
+  const auto bbox = scene->GetMesh(MeshIndex(0)).ComputeBoundingBox();
+  const float mesh_size = bbox.Size().MaxCoeff();
+
+  // All dimensions of the original mesh are between [-1, 1]. Let's move the
+  // mesh to [0, 2] which will allow us to match grid quantization with the
+  // regular quantization (grid quantization is always aligned with 0).
+  Mesh &mesh = scene->GetMesh(MeshIndex(0));
+  PointAttribute *pos_att =
+      mesh.attribute(mesh.GetNamedAttributeId(GeometryAttribute::POSITION));
+  for (AttributeValueIndex avi(0); avi < pos_att->size(); ++avi) {
+    Vector3f pos;
+    pos_att->GetValue(avi, &pos[0]);
+    pos += Vector3f(1.f, 1.f, 1.f);
+    pos_att->SetAttributeValue(avi, &pos[0]);
+  }
+
+  DracoCompressionOptions options;
+
+  // First quantize the scene with 8 bits and save the result.
+  options.quantization_position.SetQuantizationBits(8);
+  SceneUtils::SetDracoCompressionOptions(&options, scene.get());
+
+  const std::string gltf_filename = draco::GetTestTempFileFullPath("temp.glb");
+  GltfEncoder encoder;
+  DRACO_ASSERT_OK(encoder.EncodeFile(*scene, gltf_filename));
+  // Get the size of the generated file.
+  const size_t qb_file_size = draco::GetFileSize(gltf_filename);
+
+  // Now set grid quantization and ensure the encoded file size is about the
+  // same. The max instance scale is 3 and model size is |mesh_size| so the grid
+  // scale must account for that.
+  options.quantization_position.SetGrid(mesh_size * 3. / 255.);
+  SceneUtils::SetDracoCompressionOptions(&options, scene.get());
+
+  DRACO_ASSERT_OK(encoder.EncodeFile(*scene, gltf_filename));
+  // Get the size of the generated file.
+  const size_t grid_file_size = draco::GetFileSize(gltf_filename);
+
+  ASSERT_EQ(grid_file_size, qb_file_size);
+
+  // Now set grid quantization to different settings and ensure the encoded size
+  // changed. We reduce spacing which should increase the size.
+  options.quantization_position.SetGrid(mesh_size * 3. / 511.);
+  SceneUtils::SetDracoCompressionOptions(&options, scene.get());
+
+  DRACO_ASSERT_OK(encoder.EncodeFile(*scene, gltf_filename));
+
+  // Get the size of the generated file.
+  const size_t grid_file_size_2 = draco::GetFileSize(gltf_filename);
+  ASSERT_GT(grid_file_size_2, grid_file_size);
+}
+
 TEST_F(GltfEncoderTest, TestOutputType) {
   const std::string file_name = "sphere.gltf";
   const std::unique_ptr<Scene> scene(DecodeTestGltfFileToScene(file_name));

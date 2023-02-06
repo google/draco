@@ -15,6 +15,7 @@
 #include "draco/core/options.h"
 
 #include <cstdlib>
+#include <set>
 #include <string>
 #include <utility>
 

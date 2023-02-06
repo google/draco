@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#include "draco/attributes/point_attribute.h"
 #include "draco/compression/point_cloud/point_cloud_sequential_decoder.h"
 #include "draco/compression/point_cloud/point_cloud_sequential_encoder.h"
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
+#include "draco/core/draco_types.h"
 #include "draco/io/obj_decoder.h"
 
 namespace draco {
@@ -84,6 +86,46 @@ TEST_F(PointCloudSequentialEncodingTest, EncodingPointCloudWithMetadata) {
   ASSERT_NE(requested_att_metadata, nullptr);
   ASSERT_EQ(requested_att_metadata->att_unique_id(),
             pc->attribute(pos_att_id)->unique_id());
+
+  std::unique_ptr<PointCloud> polyline(new PointCloud());
+  polyline->set_num_points(total_num_vertices);
+  std::unique_ptr<PointAttribute> pos(new PointAttribute());
+  pos->Init(GeometryAttribute::POSITION, 3, DT_FLOAT32, false,
+            total_num_vertices);
+  pos->SetIdentityMapping();  // Each point has a separate value.
+
+  std::unique_ptr<PointAttribute> polyline_indices(new PointAttribute());
+  polyline_indices->Init(GeometryAttribute::GENERIC, 1, DT_INT32, false,
+                         num_polylines);
+  // Multiple points can share the same value.
+  polyline_indices->SetExplicitMapping(total_num_vertices);
+
+  AttributeValueIndex pos_avi(0);
+  for (int poly_i = 0; poly_i < num_polylines; ++poly_i) {
+    polyline_indices->SetAttributeValue(AttributeValueIndex(poly_i), &poly_i);
+    for (int poly_vi = 0; poly_vi < num_poly_vertices(poly_i); ++poly_vi) {
+      Vector3f vert_pos = GetPolyVertex(poly_i, poly_vi);
+      pos->SetAttributeValue(pos_avi, &vert_pos[0]);
+
+      // Maps the added point to the polyline index. Note that in this case
+      // PointIndex corresponds to the position attribute index.
+      polyline_indices->SetPointMapEntry(PointIndex(pos_avi.value()),
+                                         AttributeValueIndex(poly_i));
+
+      pos_avi++;
+    }
+  }
+  const int pos_att_id = polyline->AddAttribute(std::move(pos));
+  polyline->AddAttribute(std::move(polyline_indices));
+
+  // Encode the point cloud.
+  ExpertEncoder encoder(*pc);
+  // Or POINT
+  encoder.SetEncodingMethod(POINT_CLOUD_SEQUENTIAL_ENCODING);
+  encoder.SetSpeedOptions(3, 3);
+  encoder.SetAttributeQuantization(pos_att_id, quantization_bits);
+  EncoderBuffer buffer;
+  encoder.EncodeToBuffer(&buffer);
 }
 
 // TODO(ostava): Test the reusability of a single instance of the encoder and

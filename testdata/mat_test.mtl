@@ -111,7 +111,7 @@ newmtl mat26
   Kd 0.92 0.95 0.94
   Ks 1 1 1
   illum 4
-  Ns 300
+  Ns 0
   d 0.4
   Ni 1.5
 
@@ -120,6 +120,6 @@ newmtl mat27
   Kd 0.92 0.95 0.94
   Ks 1 1 1
   illum 4
-  Ns 300
+  Ns 250
   d 0.4
   Ni 1.5

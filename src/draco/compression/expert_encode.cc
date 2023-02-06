@@ -14,16 +14,22 @@
 //
 #include "draco/compression/expert_encode.h"
 
+#include <iostream>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <utility>
+
 #include "draco/compression/mesh/mesh_edgebreaker_encoder.h"
 #include "draco/compression/mesh/mesh_sequential_encoder.h"
 #ifdef DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED
 #include "draco/compression/point_cloud/point_cloud_kd_tree_encoder.h"
 #include "draco/compression/point_cloud/point_cloud_sequential_encoder.h"
 #endif
+
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/core/bit_utils.h"
 #endif
-
 namespace draco {
 
 ExpertEncoder::ExpertEncoder(const PointCloud &point_cloud)
@@ -107,7 +113,7 @@ Status ExpertEncoder::EncodeMeshToBuffer(const Mesh &m,
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Apply DracoCompressionOptions associated with the mesh.
   DRACO_RETURN_IF_ERROR(ApplyCompressionOptions(m));
-#endif
+#endif  // DRACO_TRANSCODER_SUPPORTED
 
   std::unique_ptr<MeshEncoder> encoder;
   // Select the encoding method only based on the provided options.
@@ -126,6 +132,7 @@ Status ExpertEncoder::EncodeMeshToBuffer(const Mesh &m,
     encoder = std::unique_ptr<MeshEncoder>(new MeshSequentialEncoder());
   }
   encoder->SetMesh(m);
+
   DRACO_RETURN_IF_ERROR(encoder->Encode(options(), out_buffer));
 
   set_num_encoded_points(encoder->num_encoded_points());
@@ -282,7 +289,8 @@ Status ExpertEncoder::ApplyGridQuantization(const Mesh &mesh,
     bits++;
   }
   // Compute the range in mesh coordinates that matches the quantization bits.
-  const float range = (1 << bits) * spacing;
+  // Note there are n-1 intervals between the |n| quantization values.
+  const float range = ((1 << bits) - 1) * spacing;
   SetAttributeExplicitQuantization(attribute_index, bits, 3, min_pos.data(),
                                    range);
   return OkStatus();

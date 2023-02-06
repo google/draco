@@ -18,12 +18,13 @@
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
-#include <Eigen/Geometry>
-
+#include "Eigen/Geometry"
 #include "draco/animation/animation.h"
 #include "draco/core/status.h"
 #include "draco/core/status_or.h"
 #include "draco/material/material.h"
+
+#define TINYGLTF_ENCLOSING_NAMESPACE draco
 #include "tiny_gltf.h"
 
 namespace draco {

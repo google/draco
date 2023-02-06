@@ -6,7 +6,7 @@
 News
 =======
 
-Check out the [README](https://github.com/google/draco/blob/1.5.5/README.md)
+Check out the [README](https://github.com/google/draco/blob/1.5.6/README.md)
 file for news about this release.
 
 Description

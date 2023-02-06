@@ -250,7 +250,7 @@ def run_install_check(install_path):
   result = run_process_and_capture_output(
       cmd,
       # On Windows, add location of draco.dll into PATH env var
-      {"PATH": DRACO_SHARED_INSTALL_BIN_PATH + os.pathsep + os.environ["PATH"]},
+      {'PATH': DRACO_SHARED_INSTALL_BIN_PATH + os.pathsep + os.environ['PATH']},
     )
   if result[0] != 0:
     raise Exception(

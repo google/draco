@@ -15,7 +15,8 @@
 #ifndef DRACO_CORE_MACROS_H_
 #define DRACO_CORE_MACROS_H_
 
-#include "assert.h"
+#include <cassert>
+
 #include "draco/draco_features.h"
 
 #ifdef ANDROID_LOGGING
@@ -37,7 +38,7 @@ namespace draco {
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName &) = delete;     \
   void operator=(const TypeName &) = delete;
-#endif
+#endif  // DISALLOW_COPY_AND_ASSIGN
 
 #ifndef FALLTHROUGH_INTENDED
 #if defined(__clang__) && defined(__has_warning)
@@ -46,7 +47,7 @@ namespace draco {
 #endif
 #elif defined(__GNUC__) && __GNUC__ >= 7
 #define FALLTHROUGH_INTENDED [[gnu::fallthrough]]
-#endif
+#endif  // FALLTHROUGH_INTENDED
 
 // If FALLTHROUGH_INTENDED is still not defined, define it.
 #ifndef FALLTHROUGH_INTENDED
@@ -54,7 +55,7 @@ namespace draco {
   do {                       \
   } while (0)
 #endif
-#endif
+#endif  // FALLTHROUGH_INTENDED
 
 #ifndef LOG
 #define LOG(...) std::cout
@@ -84,7 +85,7 @@ namespace draco {
 #define DRACO_DCHECK_LE(a, b)
 #define DRACO_DCHECK_LT(a, b)
 #define DRACO_DCHECK_NOTNULL(x)
-#endif
+#endif  // DRACO_DEBUG
 
 // Helper macros for concatenating macro values.
 #define DRACO_MACROS_IMPL_CONCAT_INNER_(x, y) x##y

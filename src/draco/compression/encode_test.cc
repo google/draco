@@ -26,6 +26,7 @@
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 #include "draco/core/vector_d.h"
+#include "draco/io/file_utils.h"
 #include "draco/io/obj_decoder.h"
 #include "draco/mesh/triangle_soup_mesh_builder.h"
 #include "draco/point_cloud/point_cloud_builder.h"
@@ -508,10 +509,10 @@ TEST_F(EncodeTest, TestDracoCompressionOptionsGridQuantization) {
       encoder.options().GetAttributeInt(pos_att_id, "quantization_bits", -1),
       4);
 
-  // The quantization range should be (1 << quantization_bits) * spacing.
+  // The quantization range should be ((1 << quantization_bits) - 1) * spacing.
   ASSERT_NEAR(encoder.options().GetAttributeFloat(pos_att_id,
                                                   "quantization_range", 0.f),
-              16.f * 0.1f, 1e-6f);
+              15.f * 0.1f, 1e-6f);
 }
 
 TEST_F(EncodeTest, TestDracoCompressionOptionsGridQuantizationWithOffset) {
@@ -561,10 +562,10 @@ TEST_F(EncodeTest, TestDracoCompressionOptionsGridQuantizationWithOffset) {
       encoder.options().GetAttributeInt(pos_att_id, "quantization_bits", -1),
       5);
 
-  // The quantization range should be (1 << quantization_bits) * spacing.
+  // The quantization range should be ((1 << quantization_bits) - 1) * spacing.
   ASSERT_NEAR(encoder.options().GetAttributeFloat(pos_att_id,
                                                   "quantization_range", 0.f),
-              32.f * 0.0625f, 1e-6f);
+              31.f * 0.0625f, 1e-6f);
 }
 #endif  // DRACO_TRANSCODER_SUPPORTED
 

@@ -46,7 +46,7 @@ Create DracoLoader by setting the decoder type:
 
 ```js
 // (Optional) Change decoder source directory (defaults to
-// 'https://www.gstatic.com/draco/versioned/decoders/1.4.1/'). It is recommended
+// 'https://www.gstatic.com/draco/versioned/decoders/1.5.6/'). It is recommended
 // to always pull your Draco JavaScript and WASM decoders from this URL. Users
 // will benefit from having the Draco decoder in cache as more sites start using
 // the static URL.

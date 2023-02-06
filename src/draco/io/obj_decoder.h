@@ -94,6 +94,7 @@ class ObjDecoder {
   bool ParseMaterialFile(const std::string &file_name, Status *status);
   bool ParseMaterialFileDefinition(Status *status);
 
+  // Methods related to polygon triangulation and preservation.
   static int Triangulate(int tri_index, int tri_corner);
   static bool IsNewEdge(int tri_count, int tri_index, int tri_corner);
 
@@ -126,6 +127,8 @@ class ObjDecoder {
   std::unordered_map<std::string, int> obj_name_to_id_;
 
   bool use_metadata_;
+
+  // Polygon preservation flags.
   bool preserve_polygons_;
   bool has_polygons_;
 

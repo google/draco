@@ -29,6 +29,8 @@ namespace draco {
 class ObjEncoderTest : public ::testing::Test {
  protected:
   void CompareMeshes(const Mesh *mesh0, const Mesh *mesh1) {
+    ASSERT_NE(mesh0, nullptr);
+    ASSERT_NE(mesh1, nullptr);
     ASSERT_EQ(mesh0->num_faces(), mesh1->num_faces());
     ASSERT_EQ(mesh0->num_attributes(), mesh1->num_attributes());
     for (size_t att_id = 0; att_id < mesh0->num_attributes(); ++att_id) {
@@ -117,6 +119,9 @@ TEST_F(ObjEncoderTest, TestObjOctagonPreserved) {
   ASSERT_NE(mesh, nullptr);
   ASSERT_EQ(mesh->num_faces(), 6);
   ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::GENERIC), 1);
+  ASSERT_NE(mesh->GetMetadata()->GetAttributeMetadataByStringEntry(
+                "name", "added_edges"),
+            nullptr);
 
   // Reconstruct octagon and encode it into an OBJ file.
   draco::ObjEncoder obj_encoder;

@@ -101,10 +101,11 @@ CreatePredictionSchemeForEncoder(PredictionSchemeMethod method, int att_id,
     // template nature of the prediction schemes).
     const MeshEncoder *const mesh_encoder =
         static_cast<const MeshEncoder *>(encoder);
+    const uint16_t bitstream_version = kDracoMeshBitstreamVersion;
     auto ret = CreateMeshPredictionScheme<
         MeshEncoder, PredictionSchemeEncoder<DataTypeT, TransformT>,
         MeshPredictionSchemeEncoderFactory<DataTypeT>>(
-        mesh_encoder, method, att_id, transform, kDracoMeshBitstreamVersion);
+        mesh_encoder, method, att_id, transform, bitstream_version);
     if (ret) {
       return ret;
     }

@@ -56,7 +56,8 @@ class ObjDecoderTest : public ::testing::Test {
 
   template <class Geometry>
   std::unique_ptr<Geometry> DecodeObjWithPolygons(
-      const std::string &file_name) const {
+      const std::string &file_name, bool regularize_quads,
+      bool store_added_edges_per_vertex) const {
     const std::string path = GetTestFileFullPath(file_name);
     ObjDecoder decoder;
     decoder.set_preserve_polygons(true);
@@ -140,7 +141,10 @@ TEST_F(ObjDecoderTest, QuadTriangulateOBJ) {
 TEST_F(ObjDecoderTest, QuadPreserveOBJ) {
   // Tests loading an Obj with quad faces preserved as an attribute.
   const std::string file_name = "cube_quads.obj";
-  const std::unique_ptr<Mesh> mesh(DecodeObjWithPolygons<Mesh>(file_name));
+  constexpr bool kRegularizeQuads = false;
+  constexpr bool kStoreAddedEdgesPerVertex = false;
+  const std::unique_ptr<Mesh> mesh(DecodeObjWithPolygons<Mesh>(
+      file_name, kRegularizeQuads, kStoreAddedEdgesPerVertex));
   ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
   ASSERT_EQ(mesh->num_faces(), 12);
 
@@ -194,7 +198,10 @@ TEST_F(ObjDecoderTest, OctagonTriangulatedOBJ) {
 TEST_F(ObjDecoderTest, OctagonPreservedOBJ) {
   // Tests that we can load an obj with an octagon preserved as an attribute.
   const std::string file_name = "octagon.obj";
-  const std::unique_ptr<Mesh> mesh(DecodeObjWithPolygons<Mesh>(file_name));
+  constexpr bool kRegularizeQuads = false;
+  constexpr bool kStoreAddedEdgesPerVertex = false;
+  const std::unique_ptr<Mesh> mesh(DecodeObjWithPolygons<Mesh>(
+      file_name, kRegularizeQuads, kStoreAddedEdgesPerVertex));
   ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
 
   ASSERT_EQ(mesh->num_attributes(), 2);

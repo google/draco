@@ -18,23 +18,21 @@
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
-
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 #include "draco/core/decoder_buffer.h"
 #include "draco/core/status.h"
 #include "draco/core/status_or.h"
-#include "draco/io/file_utils.h"
-#include "draco/io/texture_io.h"
+#include "draco/io/tiny_gltf_utils.h"
 #include "draco/mesh/mesh.h"
 #include "draco/mesh/triangle_soup_mesh_builder.h"
 #include "draco/point_cloud/point_cloud_builder.h"
 #include "draco/scene/scene.h"
-#include "tiny_gltf.h"
 
 namespace draco {
 
