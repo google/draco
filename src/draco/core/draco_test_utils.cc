@@ -16,9 +16,9 @@
 
 #include <fstream>
 
+#include "draco/core/draco_test_base.h"
 #include "draco/core/macros.h"
 #include "draco/io/file_utils.h"
-#include "draco_test_base.h"
 
 namespace draco {
 

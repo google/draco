@@ -34,6 +34,7 @@ std::string Status::code_string() const {
     case Code::UNSUPPORTED_FEATURE:
       return "UNSUPPORTED_FEATURE";
   }
+  return "UNKNOWN_STATUS_VALUE";
 }
 
 std::string Status::code_and_error_string() const {

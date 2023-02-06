@@ -18,6 +18,7 @@
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <functional>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -83,10 +84,23 @@ class GltfEncoder {
   void set_output_type(OutputType type) { output_type_ = type; }
   OutputType output_type() const { return output_type_; }
 
-  // The name of the attribute metadata that contains the glTF attribute name.
-  // For application-specific generic attributes, if the metadata for an
-  // attribute contains this key, then the value will be used as the encoded
-  // attribute name in the output GLTF.
+#ifdef DRACO_SIMPLIFIER_SUPPORTED
+  typedef std::function<Status(const Texture &texture, int num_channels,
+                               std::vector<uint8_t> *out_buffer)>
+      TextureWriterFunction;
+
+  // Sets a custom texture writer function that can be used to encode texture
+  // data into a buffer. The main purpose is to allow encoding of formats that
+  // are not directly supported by Draco.
+  void SetTextureWriter(TextureWriterFunction texture_writer) {
+    custom_texture_writer_ = texture_writer;
+  }
+#endif  // DRACO_SIMPLIFIER_SUPPORTED
+
+  // The name of the attribute metadata that contains the glTF attribute
+  // name. For application-specific generic attributes, if the metadata for
+  // an attribute contains this key, then the value will be used as the
+  // encoded attribute name in the output GLTF.
   static const char kDracoMetadataGltfAttributeName[];
 
  private:
@@ -125,6 +139,10 @@ class GltfEncoder {
 
   EncoderBuffer *out_buffer_;
   OutputType output_type_;
+
+#ifdef DRACO_SIMPLIFIER_SUPPORTED
+  TextureWriterFunction custom_texture_writer_ = nullptr;
+#endif
 };
 
 }  // namespace draco

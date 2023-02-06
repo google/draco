@@ -18,6 +18,7 @@
 #define DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_DYNAMIC_INTEGER_POINTS_KD_TREE_DECODER_H_
 
 #include <array>
+#include <limits>
 #include <memory>
 #include <stack>
 #include <vector>
@@ -93,13 +94,22 @@ class DynamicIntegerPointsKdTreeDecoder {
         base_stack_(32 * dimension + 1, VectorUint32(dimension, 0)),
         levels_stack_(32 * dimension + 1, VectorUint32(dimension, 0)) {}
 
-  // Decodes a integer point cloud from |buffer|.
+  // Decodes an integer point cloud from |buffer|. Optional |oit_max_points| can
+  // be used to tell the decoder the maximum number of points accepted by the
+  // iterator.
   template <class OutputIteratorT>
   bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT &oit);
+
+  template <class OutputIteratorT>
+  bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT &oit,
+                    uint32_t oit_max_points);
 
 #ifndef DRACO_OLD_GCC
   template <class OutputIteratorT>
   bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT &&oit);
+  template <class OutputIteratorT>
+  bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT &&oit,
+                    uint32_t oit_max_points);
 #endif  // DRACO_OLD_GCC
 
   const uint32_t dimension() const { return dimension_; }
@@ -150,8 +160,15 @@ template <int compression_level_t>
 template <class OutputIteratorT>
 bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
     DecoderBuffer *buffer, OutputIteratorT &&oit) {
+  return DecodePoints(buffer, oit, std::numeric_limits<uint32_t>::max());
+}
+
+template <int compression_level_t>
+template <class OutputIteratorT>
+bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
+    DecoderBuffer *buffer, OutputIteratorT &&oit, uint32_t oit_max_points) {
   OutputIteratorT local = std::forward<OutputIteratorT>(oit);
-  return DecodePoints(buffer, local);
+  return DecodePoints(buffer, local, oit_max_points);
 }
 #endif  // DRACO_OLD_GCC
 
@@ -159,6 +176,13 @@ template <int compression_level_t>
 template <class OutputIteratorT>
 bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
     DecoderBuffer *buffer, OutputIteratorT &oit) {
+  return DecodePoints(buffer, oit, std::numeric_limits<uint32_t>::max());
+}
+
+template <int compression_level_t>
+template <class OutputIteratorT>
+bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
+    DecoderBuffer *buffer, OutputIteratorT &oit, uint32_t oit_max_points) {
   if (!buffer->Decode(&bit_length_)) {
     return false;
   }
@@ -170,6 +194,9 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
   }
   if (num_points_ == 0) {
     return true;
+  }
+  if (num_points_ > oit_max_points) {
+    return false;
   }
   num_decoded_points_ = 0;
 

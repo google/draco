@@ -15,6 +15,10 @@
 #ifndef DRACO_CORE_DRACO_TEST_UTILS_H_
 #define DRACO_CORE_DRACO_TEST_UTILS_H_
 
+#include <ostream>
+#include <sstream>
+#include <streambuf>
+
 #include "draco/core/draco_test_base.h"
 #include "draco/draco_features.h"
 #include "draco/io/mesh_io.h"
@@ -87,6 +91,32 @@ template <typename T>
 std::unique_ptr<T> ReadGeometryFromTestFile(const std::string &file_name);
 
 #endif  // DRACO_TRANSCODER_SUPPORTED
+
+// Utility class for redirection and capture of stderr/stdout.
+class CaptureStream {
+ public:
+  explicit CaptureStream(std::ostream &stream)
+      : old_buffer_(stream.rdbuf(buffer_.rdbuf())), stream_(stream) {}
+
+  ~CaptureStream() { Reset(); }
+
+  std::string GetStringAndRelease() {
+    Reset();
+    return buffer_.str();
+  }
+
+  void Reset() {
+    if (old_buffer_) {
+      stream_.rdbuf(old_buffer_);
+      old_buffer_ = nullptr;
+    }
+  }
+
+ private:
+  std::ostringstream buffer_;
+  std::streambuf *old_buffer_ = nullptr;
+  std::ostream &stream_;
+};
 
 // Evaluates an expression that returns draco::Status. If the status is not OK,
 // the macro asserts and logs the error message.

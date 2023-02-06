@@ -18,8 +18,7 @@
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
-#include <Eigen/Geometry>
-
+#include "Eigen/Geometry"
 #include "draco/core/status_or.h"
 
 namespace draco {

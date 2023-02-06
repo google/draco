@@ -32,7 +32,11 @@ namespace draco {
 // |encoded_data_| must contain valid image data.
 class SourceImage {
  public:
+#ifdef DRACO_SIMPLIFIER_SUPPORTED
+  SourceImage() : width_(0), height_(0), bit_depth_(0), decoded_data_hash_(0) {}
+#else
   SourceImage() {}
+#endif
 
   // No copy constructors.
   SourceImage(const SourceImage &) = delete;
@@ -42,6 +46,15 @@ class SourceImage {
   SourceImage &operator=(SourceImage &&) = delete;
 
   void Copy(const SourceImage &src);
+
+#ifdef DRACO_SIMPLIFIER_SUPPORTED
+  int width() const { return width_; }
+  void set_width(int width) { width_ = width; }
+  int height() const { return height_; }
+  void set_height(int height) { height_ = height; }
+  int bit_depth() const { return bit_depth_; }
+  void set_bit_depth(int bit_depth) { bit_depth_ = bit_depth; }
+#endif
 
   // Sets the name of the source image file.
   void set_filename(const std::string &filename) { filename_ = filename; }
@@ -53,7 +66,18 @@ class SourceImage {
   std::vector<uint8_t> &MutableEncodedData() { return encoded_data_; }
   const std::vector<uint8_t> &encoded_data() const { return encoded_data_; }
 
+#ifdef DRACO_SIMPLIFIER_SUPPORTED
+  uint64_t decoded_data_hash() const { return decoded_data_hash_; }
+  void set_decoded_data_hash(uint64_t hash) { decoded_data_hash_ = hash; }
+#endif
+
  private:
+#ifdef DRACO_SIMPLIFIER_SUPPORTED
+  int width_;
+  int height_;
+  int bit_depth_;
+#endif
+
   // The filename of the image. This field can be empty as long as |mime_type_|
   // and |encoded_data_| is not empty.
   std::string filename_;
@@ -64,6 +88,13 @@ class SourceImage {
   // The encoded data of the image. This field can be empty as long as
   // |filename_| is not empty.
   std::vector<uint8_t> encoded_data_;
+
+#ifdef DRACO_SIMPLIFIER_SUPPORTED
+  // The hash of the decoded image data. The hash must be generated with
+  // TextureUtils::HashTexture(), which is guaranteed to never return 0. A value
+  // of 0 signifies that a hash has not been set.
+  uint64_t decoded_data_hash_;
+#endif
 };
 
 }  // namespace draco

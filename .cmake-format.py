@@ -17,7 +17,7 @@ with section('parse'):
               'POST_LINK_JS_SOURCES': '*',
               'FEATURES': '*',
           },
-          'pargs': 0
+          'pargs': 0,
       },
       'draco_add_executable': {
           'kwargs': {
@@ -32,7 +32,7 @@ with section('parse'):
               'OBJLIB_DEPS': '*',
               'LIB_DEPS': '*',
           },
-          'pargs': 0
+          'pargs': 0,
       },
       'draco_add_library': {
           'kwargs': {
@@ -49,21 +49,21 @@ with section('parse'):
               'LIB_DEPS': '*',
               'PUBLIC_INCLUDES': '*',
           },
-          'pargs': 0
+          'pargs': 0,
       },
       'draco_generate_emscripten_glue': {
           'kwargs': {
               'INPUT_IDL': '*',
               'OUTPUT_PATH': '*',
           },
-          'pargs': 0
+          'pargs': 0,
       },
       'draco_get_required_emscripten_flags': {
           'kwargs': {
               'FLAG_LIST_VAR_COMPILER': '*',
               'FLAG_LIST_VAR_LINKER': '*',
           },
-          'pargs': 0
+          'pargs': 0,
       },
       'draco_option': {
           'kwargs': {
@@ -71,7 +71,37 @@ with section('parse'):
               'HELPSTRING': '*',
               'VALUE': '*',
           },
-          'pargs': 0
+          'pargs': 0,
+      },
+      # Rules for built in CMake commands and those from dependencies.
+      'list': {
+          'kwargs': {
+              'APPEND': '*',
+              'FILTER': '*',
+              'FIND': '*',
+              'GET': '*',
+              'INSERT': '*',
+              'JOIN': '*',
+              'LENGTH': '*',
+              'POP_BACK': '*',
+              'POP_FRONT': '*',
+              'PREPEND': '*',
+              'REMOVE_DUPLICATES': '*',
+              'REMOVE_ITEM': '*',
+              'REVERSE': '*',
+              'SORT': '*',
+              'SUBLIST': '*',
+              'TRANSFORM': '*',
+          },
+      },
+      'protobuf_generate': {
+        'kwargs': {
+            'IMPORT_DIRS': '*',
+            'LANGUAGE': '*',
+            'OUT_VAR': '*',
+            'PROTOC_OUT_DIR': '*',
+            'PROTOS': '*',
+        },
       },
   }
 

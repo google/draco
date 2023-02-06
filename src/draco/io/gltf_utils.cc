@@ -112,6 +112,43 @@ std::string JsonWriter::MoveData() {
   return str;
 }
 
+std::string JsonWriter::EscapeCharacter(const std::string &str,
+                                        const char character) {
+  size_t start = 0;
+  if ((start = str.find(character, start)) != std::string::npos) {
+    std::string s = str;
+    std::string escaped_character = "\\";
+    escaped_character += character;
+    do {
+      s.replace(start, 1, escaped_character);
+      start += escaped_character.length();
+    } while ((start = s.find(character, start)) != std::string::npos);
+    return s;
+  }
+  return str;
+}
+
+std::string JsonWriter::EscapeJsonSpecialCharacters(const std::string &str) {
+  std::string s = str;
+  const char backspace = '\b';
+  const char form_feed = '\f';
+  const char newline = '\n';
+  const char carriage_return = '\r';
+  const char tab = '\t';
+  const char double_quote = '\"';
+  const char backslash = '\\';
+
+  // Backslash must come first.
+  s = EscapeCharacter(s, backslash);
+  s = EscapeCharacter(s, backspace);
+  s = EscapeCharacter(s, form_feed);
+  s = EscapeCharacter(s, newline);
+  s = EscapeCharacter(s, carriage_return);
+  s = EscapeCharacter(s, tab);
+  s = EscapeCharacter(s, double_quote);
+  return s;
+}
+
 }  // namespace draco
 
 #endif  // DRACO_TRANSCODER_SUPPORTED

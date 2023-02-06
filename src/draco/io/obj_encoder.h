@@ -64,6 +64,7 @@ class ObjEncoder {
   void EncodeFloat(float val);
   void EncodeFloatList(float *vals, int num_vals);
   void EncodeInt(int32_t val);
+  bool IsNewEdge(const CornerTable &ct, CornerIndex ci) const;
   void FindOriginalFaceEdges(FaceIndex face_index,
                              const CornerTable &corner_table,
                              std::vector<bool> *triangle_visited,
@@ -76,7 +77,8 @@ class ObjEncoder {
   const PointAttribute *normal_att_;
   const PointAttribute *material_att_;
   const PointAttribute *sub_obj_att_;
-  // Stores triangulation information used for polygon reconstruction.
+
+  // Stores per-corner triangulation information for polygon reconstruction.
   const PointAttribute *added_edges_att_;
 
   // Buffer used for encoding float/int numbers.

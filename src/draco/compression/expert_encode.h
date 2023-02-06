@@ -80,6 +80,18 @@ class ExpertEncoder : public EncoderBase<EncoderOptions> {
   // compression is used on top of the Draco compression. Default: [true].
   void SetUseBuiltInAttributeCompression(bool enabled);
 
+#ifdef DRACO_SIMPLIFIER_SUPPORTED
+  // Enables/disables finding the texture quantization that does not cause any
+  // new texture coordinate degenerate faces. The range for the quantization
+  // uses the quantization bits for the texture coordinates as the lower bound
+  // up to 29 for the upper bound. The quantization bits for the texture
+  // coordinates must be set for the encoder to search for a texture coordinate
+  // quantization that does not create any new degenerate faces. Default:
+  // [false].
+  void SetFindNonDegenerateTextureQuantization(bool enabled);
+  bool IsFindNonDegenerateTextureQuantizationSet() const;
+#endif  // DRACO_SIMPLIFIER_SUPPORTED
+
   // Sets the desired encoding method for a given geometry. By default, encoding
   // method is selected based on the properties of the input geometry and based
   // on the other options selected in the used EncoderOptions (such as desired
@@ -137,6 +149,12 @@ class ExpertEncoder : public EncoderBase<EncoderOptions> {
                                   EncoderBuffer *out_buffer);
 
   Status EncodeMeshToBuffer(const Mesh &m, EncoderBuffer *out_buffer);
+
+#ifdef DRACO_SIMPLIFIER_SUPPORTED
+  // Updates texture coordinate quantization bits if
+  // "find_non_degenerate_texture_quantization" is set.
+  Status UpdateTextureQuantizationBits(const Mesh &mesh);
+#endif  // DRACO_SIMPLIFIER_SUPPORTED
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Applies compression options stored in |mesh|.

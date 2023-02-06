@@ -26,7 +26,7 @@ macro(draco_configure_sanitizer)
       if(DRACO_SANITIZE MATCHES "cfi")
         list(APPEND SAN_CXX_FLAGS "-flto" "-fno-sanitize-trap=cfi")
         list(APPEND SAN_LINKER_FLAGS "-flto" "-fno-sanitize-trap=cfi"
-             "-fuse-ld=gold")
+                    "-fuse-ld=gold")
       endif()
 
       if(${CMAKE_SIZEOF_VOID_P} EQUAL 4 AND DRACO_SANITIZE MATCHES

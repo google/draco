@@ -362,16 +362,21 @@ void Mesh::RemoveUnusedMaterials(bool remove_unused_material_indices) {
   }
 
   // Compute map between old and new material indices.
-  int new_material_index = 0;
+  std::vector<int> old_to_new_material_index_map(num_materials, -1);
+  for (int mi = 0, new_material_index = 0; mi < num_materials; ++mi) {
+    if (is_material_used[mi]) {
+      old_to_new_material_index_map[mi] = new_material_index;
+      ++new_material_index;
+    }
+  }
   IndexTypeVector<AttributeValueIndex, int>
       old_to_new_material_attribute_value_index_map(mat_att->size(), -1);
-  std::vector<int> old_to_new_material_value_map(num_materials, -1);
   for (AttributeValueIndex avi(0); avi < mat_att->size(); ++avi) {
     uint32_t mat_index = 0;
     mat_att->GetValue(avi, &mat_index);
     if (mat_index < num_materials && is_material_used[mat_index]) {
-      old_to_new_material_value_map[mat_index] = new_material_index;
-      old_to_new_material_attribute_value_index_map[avi] = new_material_index++;
+      old_to_new_material_attribute_value_index_map[avi] =
+          old_to_new_material_index_map[mat_index];
     }
   }
 
@@ -399,7 +404,7 @@ void Mesh::RemoveUnusedMaterials(bool remove_unused_material_indices) {
       const int old_mat_index = GetMeshFeaturesMaterialMask(mfi, mask_index);
       if (old_mat_index < num_materials && is_material_used[old_mat_index]) {
         mesh_features_material_mask_[mfi][mask_index] =
-            old_to_new_material_value_map[old_mat_index];
+            old_to_new_material_index_map[old_mat_index];
       }
     }
   }
