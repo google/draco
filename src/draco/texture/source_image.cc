@@ -19,19 +19,9 @@
 namespace draco {
 
 void SourceImage::Copy(const SourceImage &src) {
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  width_ = src.width_;
-  height_ = src.height_;
-  bit_depth_ = src.bit_depth_;
-#endif
-
   mime_type_ = src.mime_type_;
   filename_ = src.filename_;
   encoded_data_ = src.encoded_data_;
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  decoded_data_hash_ = src.decoded_data_hash_;
-#endif
 }
 
 }  // namespace draco

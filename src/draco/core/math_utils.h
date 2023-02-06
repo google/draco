@@ -59,17 +59,17 @@ inline uint64_t IntSqrt(uint64_t number) {
 template <
     typename DataTypeT,
     typename std::enable_if<std::is_integral<DataTypeT>::value &&
-                            std::is_signed<DataTypeT>::value>::type * = nullptr>
+                            std::is_signed<DataTypeT>::value>::type* = nullptr>
 inline DataTypeT AddAsUnsigned(DataTypeT a, DataTypeT b) {
   typedef typename std::make_unsigned<DataTypeT>::type DataTypeUT;
   return static_cast<DataTypeT>(static_cast<DataTypeUT>(a) +
                                 static_cast<DataTypeUT>(b));
 }
 
-template <typename DataTypeT,
-          typename std::enable_if<!std::is_integral<DataTypeT>::value ||
-                                  !std::is_signed<DataTypeT>::value>::type * =
-              nullptr>
+template <
+    typename DataTypeT,
+    typename std::enable_if<!std::is_integral<DataTypeT>::value ||
+                            !std::is_signed<DataTypeT>::value>::type* = nullptr>
 inline DataTypeT AddAsUnsigned(DataTypeT a, DataTypeT b) {
   return a + b;
 }

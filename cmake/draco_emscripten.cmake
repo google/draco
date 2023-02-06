@@ -58,7 +58,7 @@ macro(draco_get_required_emscripten_flags)
     # what are supposedly link-only flags sent with compile commands, but then
     # proceeds to produce broken code if the warnings are heeded.
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER}
-                "-Wno-unused-command-line-argument")
+         "-Wno-unused-command-line-argument")
 
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-Wno-almost-asm")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "--memory-init-file" "0")
@@ -71,7 +71,7 @@ macro(draco_get_required_emscripten_flags)
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sMODULARIZE=1")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sFILESYSTEM=0")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER}
-                "-sEXPORTED_FUNCTIONS=[\"_free\",\"_malloc\"]")
+         "-sEXPORTED_FUNCTIONS=[\"_free\",\"_malloc\"]")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sPRECISE_F32=1")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sNODEJS_CATCH_EXIT=0")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sNODEJS_CATCH_REJECTION=0")

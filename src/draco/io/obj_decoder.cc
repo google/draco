@@ -14,7 +14,6 @@
 //
 #include "draco/io/obj_decoder.h"
 
-#include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <utility>

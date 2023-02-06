@@ -17,11 +17,6 @@
 
 #include <cstdlib>
 #include <map>
-
-#include "draco/draco_features.h"
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-#include <set>
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 #include <string>
 
 namespace draco {
@@ -38,12 +33,6 @@ class Options {
   // Merges |other_options| on top of the existing options of this instance
   // replacing all entries that are present in both options instances.
   void MergeAndReplace(const Options &other_options);
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  // Computes and returns a set of all option names. This method makes it
-  // possible to access options without knowing their names beforehand.
-  std::set<std::string> ComputeNames() const;
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 
   void SetInt(const std::string &name, int val);
   void SetFloat(const std::string &name, float val);
@@ -79,27 +68,6 @@ class Options {
   bool IsOptionSet(const std::string &name) const {
     return options_.count(name) > 0;
   }
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  // Templated version of the getters above that returns an option of a given
-  // type. Supported types are int, bool, float, and std::string.
-  template <typename T>
-  auto Get(const std::string &name) const {
-    if constexpr (std::is_same<T, int>::value) {
-      return Options::GetInt(name);
-    }
-    if constexpr (std::is_same<T, bool>::value) {
-      return Options::GetBool(name);
-    }
-    if constexpr (std::is_same<T, float>::value) {
-      return Options::GetFloat(name);
-    }
-    if constexpr (std::is_same<T, std::string>::value ||
-                  std::is_same<T, const char *>::value) {
-      return Options::GetString(name);
-    }
-  }
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 
  private:
   // All entries are internally stored as strings and converted to the desired

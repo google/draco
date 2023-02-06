@@ -21,7 +21,6 @@
 #include "draco/attributes/geometry_indices.h"
 #include "draco/core/draco_index_type_vector.h"
 #include "draco/core/macros.h"
-#include "draco/draco_features.h"
 #include "draco/mesh/valence_cache.h"
 
 namespace draco {
@@ -386,10 +385,6 @@ class CornerTable {
   IndexTypeVector<VertexIndex, VertexIndex> non_manifold_vertex_parents_;
 
   draco::ValenceCache<CornerTable> valence_cache_;
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  friend class CornerTableConstructor;
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 };
 
 // A special case to denote an invalid corner table triangle.

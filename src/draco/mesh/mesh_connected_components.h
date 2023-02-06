@@ -15,8 +15,6 @@
 #ifndef DRACO_MESH_MESH_CONNECTED_COMPONENTS_H_
 #define DRACO_MESH_MESH_CONNECTED_COMPONENTS_H_
 
-#include <vector>
-
 #include "draco/mesh/corner_table.h"
 
 namespace draco {
@@ -26,7 +24,7 @@ namespace draco {
 // component.
 class MeshConnectedComponents {
  public:
-  MeshConnectedComponents() = default;
+  MeshConnectedComponents();
 
   // Initializes the class with the component data of the input mesh. No other
   // method should be called before this one.

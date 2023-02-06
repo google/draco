@@ -18,19 +18,13 @@
 #include <sys/types.h>
 
 #include <algorithm>
-#include <array>
 #include <cstdint>
-#include <functional>
-#include <iterator>
-#include <map>
 #include <memory>
 #include <set>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <utility>
-#include <vector>
 
 #include "draco/attributes/geometry_attribute.h"
 #include "draco/attributes/point_attribute.h"
@@ -39,7 +33,6 @@
 #include "draco/core/draco_types.h"
 #include "draco/core/vector_d.h"
 #include "draco/io/file_utils.h"
-#include "draco/io/file_writer_utils.h"
 #include "draco/io/gltf_utils.h"
 #include "draco/io/texture_io.h"
 #include "draco/mesh/mesh_features.h"
@@ -47,7 +40,6 @@
 #include "draco/mesh/mesh_utils.h"
 #include "draco/scene/instance_array.h"
 #include "draco/scene/scene_indices.h"
-#include "draco/scene/scene_utils.h"
 #include "draco/texture/texture_utils.h"
 
 namespace draco {
@@ -278,12 +270,6 @@ class GltfAsset {
   GltfEncoder::OutputType output_type() const { return output_type_; }
   void set_json_output_mode(JsonWriter::Mode mode) { gltf_json_.SetMode(mode); }
 
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  void SetTextureWriter(GltfEncoder::TextureWriterFunction texture_writer) {
-    custom_texture_writer_ = texture_writer;
-  }
-#endif
-
  private:
   // Pad |buffer_| to 4 byte boundary.
   bool PadBuffer();
@@ -298,17 +284,14 @@ class GltfAsset {
 
   // Compresses |mesh| using Draco. On success returns the buffer_view in
   // |primitive| and number of encoded points and faces.
-  Status CompressMeshWithDraco(const Mesh &mesh,
-                               const Eigen::Matrix4d &transform,
-                               GltfPrimitive *primitive,
+  Status CompressMeshWithDraco(const Mesh &mesh, GltfPrimitive *primitive,
                                int64_t *num_encoded_points,
                                int64_t *num_encoded_faces);
 
   // Adds a Draco mesh associated with a material id and material variants.
   bool AddDracoMesh(const Mesh &mesh, int material_id,
                     const std::vector<MeshGroup::MaterialsVariantsMapping>
-                        &material_variants_mappings,
-                    const Eigen::Matrix4d &transform);
+                        &material_variants_mappings);
 
   // Add the Draco mesh indices to the glTF data. |num_encoded_faces| is the
   // number of faces encoded in |mesh|, which can be different than
@@ -371,16 +354,6 @@ class GltfAsset {
   static bool CheckDracoAttribute(const PointAttribute *attribute,
                                   const std::set<DataType> &data_types,
                                   const std::set<int> &num_components);
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  // Combines an occlusion texture with a metallic-roughness texture into a
-  // single shared texture.
-  // TODO(ostava): Consider generalizing the API and moving this to
-  // TextureUtils.
-  static std::unique_ptr<Texture> CreateOcclusionMetallicRoughnessTexture(
-      const Texture &occlusion_texture,
-      const Texture &metallic_roughness_texture);
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 
   // Returns the name of |texture|. If |texture|'s name is empty then it will
   // generate a name using |texture_index| and |suffix|. If it cannot generate a
@@ -597,7 +570,6 @@ class GltfAsset {
   // Keeps track if the glTF mesh has been added.
   std::map<MeshGroupIndex, int> mesh_group_index_to_gltf_mesh_;
   std::map<MeshIndex, std::pair<int, int>> mesh_index_to_gltf_mesh_primitive_;
-  IndexTypeVector<MeshIndex, Eigen::Matrix4d> base_mesh_transforms_;
 
   struct EncoderAnimation {
     std::string name;
@@ -653,10 +625,6 @@ class GltfAsset {
   // We need to store them here to ensure their content doesn't get deleted
   // before it is used by the encoder.
   std::vector<std::unique_ptr<Mesh>> local_meshes_;
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  GltfEncoder::TextureWriterFunction custom_texture_writer_;
-#endif
 };
 
 int GltfAsset::UnsignedIntComponentSize(unsigned int max_value) {
@@ -710,7 +678,7 @@ bool GltfAsset::AddDracoMesh(const Mesh &mesh) {
   const int32_t material_att_id =
       mesh.GetNamedAttributeId(GeometryAttribute::MATERIAL);
   if (material_att_id == -1) {
-    if (!AddDracoMesh(mesh, 0, {}, Eigen::Matrix4d::Identity())) {
+    if (!AddDracoMesh(mesh, 0, {})) {
       return false;
     }
   } else {
@@ -741,8 +709,7 @@ bool GltfAsset::AddDracoMesh(const Mesh &mesh) {
 
       // The material index in the glTF file corresponds to the index of the
       // split mesh.
-      if (!AddDracoMesh(*(local_meshes_.back().get()), mat_index, {},
-                        Eigen::Matrix4d::Identity())) {
+      if (!AddDracoMesh(*(local_meshes_.back().get()), mat_index, {})) {
         return false;
       }
     }
@@ -839,12 +806,12 @@ void GltfAsset::AddAttributeToDracoExtension(
 }
 
 Status GltfAsset::CompressMeshWithDraco(const Mesh &mesh,
-                                        const Eigen::Matrix4d &transform,
                                         GltfPrimitive *primitive,
                                         int64_t *num_encoded_points,
                                         int64_t *num_encoded_faces) {
   // Check that geometry comression options are valid.
-  DracoCompressionOptions compression_options = mesh.GetCompressionOptions();
+  const DracoCompressionOptions &compression_options =
+      mesh.GetCompressionOptions();
   DRACO_RETURN_IF_ERROR(compression_options.Check());
 
   // Make a copy of the mesh. It will be modified and compressed.
@@ -880,29 +847,9 @@ Status GltfAsset::CompressMeshWithDraco(const Mesh &mesh,
     if (att->attribute_type() == GeometryAttribute::POSITION &&
         !compression_options.quantization_position
              .AreQuantizationBitsDefined()) {
-      // Desired spacing in the "global" coordinate system.
-      const float global_spacing =
-          compression_options.quantization_position.spacing();
-
-      // Note: Ideally we would transform the whole mesh before encoding and
-      // apply the original global spacing on the transformed mesh. But neither
-      // KHR_draco_mesh_compression, nor Draco bitstream support post-decoding
-      // transformations so we have to modify the grid settings here.
-
-      // Transform this spacing to the local coordinate system of the base mesh.
-      // We will get the largest scale factor from the transformation matrix and
-      // use it to adjust the grid spacing.
-      const Vector3f scale_vec(transform.col(0).norm(), transform.col(1).norm(),
-                               transform.col(2).norm());
-
-      const float max_scale = scale_vec.MaxCoeff();
-
-      // Spacing is inverse to the scale. The larger the scale, the smaller the
-      // spacing must be.
-      const float local_spacing = global_spacing / max_scale;
-
-      // Update the compression options of the processed mesh.
-      compression_options.quantization_position.SetGrid(local_spacing);
+      // TODO(ostava): Handle grid option. This will be implemented in a
+      // separate CL.
+      return ErrorStatus("Grid quantization not implemented yet.");
     } else {
       int num_quantization_bits = -1;
       switch (att->attribute_type()) {
@@ -964,14 +911,6 @@ Status GltfAsset::CompressMeshWithDraco(const Mesh &mesh,
     }
   }
 
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  encoder.SetFindNonDegenerateTextureQuantization(
-      compression_options.find_non_degenerate_texture_quantization);
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
-
-  // |compression_options| may have been modified and we need to update them
-  // before we start the encoding.
-  mesh_copy->SetCompressionOptions(compression_options);
   DRACO_RETURN_IF_ERROR(encoder.EncodeToBuffer(&buffer));
   *num_encoded_points = encoder.num_encoded_points();
   *num_encoded_faces = encoder.num_encoded_faces();
@@ -1042,14 +981,13 @@ bool CheckAndGetTexCoordAttributeOrder(const Mesh &mesh,
 bool GltfAsset::AddDracoMesh(
     const Mesh &mesh, int material_id,
     const std::vector<MeshGroup::MaterialsVariantsMapping>
-        &material_variants_mappings,
-    const Eigen::Matrix4d &transform) {
+        &material_variants_mappings) {
   GltfPrimitive primitive;
   int64_t num_encoded_points = mesh.num_points();
   int64_t num_encoded_faces = mesh.num_faces();
   if (num_encoded_faces > 0 && mesh.IsCompressionEnabled()) {
     const Status status = CompressMeshWithDraco(
-        mesh, transform, &primitive, &num_encoded_points, &num_encoded_faces);
+        mesh, &primitive, &num_encoded_points, &num_encoded_faces);
     if (!status.ok()) {
       return false;
     }
@@ -1428,32 +1366,6 @@ bool GltfAsset::CheckDracoAttribute(const PointAttribute *attribute,
   return true;
 }
 
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-std::unique_ptr<Texture> GltfAsset::CreateOcclusionMetallicRoughnessTexture(
-    const Texture &occlusion_texture,
-    const Texture &metallic_roughness_texture) {
-  if (occlusion_texture.width() != metallic_roughness_texture.width() ||
-      occlusion_texture.height() != metallic_roughness_texture.height()) {
-    return nullptr;
-  }
-  // Combine occlusion texture (R channel) and the metallic-roughness texture
-  // (G an B channels).
-  std::unique_ptr<Texture> combined_texture(new Texture());
-  combined_texture->Copy(metallic_roughness_texture);
-  // TODO(vytyaz): Combine OMR textures earlier in the pipeline in order to
-  // avoid modifying the textures here and invalidating precompressed images.
-  combined_texture->GetMutableEncodedImages().clear();
-  for (int y = 0; y < combined_texture->height(); ++y) {
-    for (int x = 0; x < combined_texture->width(); ++x) {
-      RGBA pixel = combined_texture->GetPixelUnsafe(x, y);
-      pixel.r = occlusion_texture.GetPixelUnsafe(x, y).r;
-      combined_texture->SetPixelUnsafe(x, y, pixel);
-    }
-  }
-  return combined_texture;
-}
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
-
 StatusOr<int> GltfAsset::AddImage(const std::string &image_stem,
                                   const Texture *texture, int num_components) {
   return AddImage(image_stem, texture, nullptr, num_components);
@@ -1473,11 +1385,7 @@ StatusOr<int> GltfAsset::AddImage(const std::string &image_stem,
     }
     return it->second;
   }
-  std::string extension = TextureUtils::GetTargetExtension(*texture);
-  if (extension.empty()) {
-    // Try to get extension from the source file name.
-    extension = LowercaseFileExtension(texture->source_image().filename());
-  }
+  const std::string extension = TextureUtils::GetTargetExtension(*texture);
   GltfImage image;
   image.image_name = image_stem + "." + extension;
   image.texture = texture;
@@ -1513,17 +1421,7 @@ Status GltfAsset::SaveImageToBuffer(int image_index) {
   const Texture *const texture = image.texture;
   const int num_components = image.num_components;
   std::vector<uint8_t> buffer;
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  if (custom_texture_writer_) {
-    DRACO_RETURN_IF_ERROR(
-        custom_texture_writer_(*texture, num_components, &buffer));
-  } else {
-    DRACO_RETURN_IF_ERROR(
-        WriteTextureToBuffer(*texture, num_components, &buffer));
-  }
-#else
   DRACO_RETURN_IF_ERROR(WriteTextureToBuffer(*texture, &buffer));
-#endif
 
   // Add the image data to the buffer.
   const size_t buffer_start_offset = buffer_.size();
@@ -1572,9 +1470,6 @@ Status GltfAsset::AddScene(const Scene &scene) {
   if (!AddMaterials(scene)) {
     return Status(Status::DRACO_ERROR, "Error adding materials to the scene.");
   }
-  // Initialize base mesh transforms that may be needed when the base meshes are
-  // compressed with Draco.
-  base_mesh_transforms_ = SceneUtils::FindLargestBaseMeshTransforms(scene);
   for (SceneNodeIndex i(0); i < scene.NumNodes(); ++i) {
     DRACO_RETURN_IF_ERROR(AddSceneNode(scene, i));
   }
@@ -1626,8 +1521,7 @@ Status GltfAsset::AddSceneNode(const Scene &scene,
           // We have not added the mesh to the scene yet.
           const Mesh &mesh = scene.GetMesh(instance.mesh_index);
           if (!AddDracoMesh(mesh, instance.material_index,
-                            instance.materials_variants_mappings,
-                            base_mesh_transforms_[instance.mesh_index])) {
+                            instance.materials_variants_mappings)) {
             return Status(Status::DRACO_ERROR, "Adding a Draco mesh failed.");
           }
           const int gltf_mesh_index = meshes_.size() - 1;
@@ -2485,11 +2379,7 @@ Status GltfAsset::EncodeMaterialsProperty(EncoderBuffer *buf_out) {
 
     gltf_json_.BeginObject("pbrMetallicRoughness");
     if (color) {
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-      const bool rgba = !TextureUtils::IsTextureOpaque(*color->texture());
-#else
       const bool rgba = true;  // Unused for now.
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
       const std::string texture_stem = TextureUtils::GetOrGenerateTargetStem(
           *color->texture(), i, "_BaseColor");
       DRACO_ASSIGN_OR_RETURN(
@@ -2511,39 +2401,6 @@ Status GltfAsset::EncodeMaterialsProperty(EncoderBuffer *buf_out) {
         DRACO_ASSIGN_OR_RETURN(occlusion_metallic_roughness_image_index,
                                AddImage(texture_stem, metallic->texture(), 3));
       }
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-      else {
-        // Metallic and occlusion texture use a different resource. Try to
-        // combine them if possible.
-        std::unique_ptr<Texture> occlusion_metallic_roughness_texture =
-            CreateOcclusionMetallicRoughnessTexture(*occlusion->texture(),
-                                                    *metallic->texture());
-        if (occlusion_metallic_roughness_texture) {
-          std::string metallic_stem =
-              TextureUtils::GetTargetStem(*metallic->texture());
-          const std::string occlusion_stem =
-              TextureUtils::GetTargetStem(*occlusion->texture());
-          // Get the texture name if the two names are not equal or both names
-          // are empty.
-          if (metallic_stem != occlusion_stem || metallic_stem.empty()) {
-            metallic_stem = TextureUtils::GetOrGenerateTargetStem(
-                *metallic->texture(), i, "_OcclusionMetallicRoughness");
-          }
-          const Texture *const occlusion_metallic_rougness_texture_raw_ptr =
-              occlusion_metallic_roughness_texture.get();
-          // TODO(vytyaz): If occlusion and metallic-roughness textures are
-          // shared between multiple materials, then combining them for each
-          // material will result in writing duplicate images, i.e., one
-          // combined image per such material will be written. Either share the
-          // combined image between materials or do not combine.
-          DRACO_ASSIGN_OR_RETURN(
-              occlusion_metallic_roughness_image_index,
-              AddImage(metallic_stem,
-                       occlusion_metallic_rougness_texture_raw_ptr,
-                       std::move(occlusion_metallic_roughness_texture), 3));
-        }
-      }
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
       if (occlusion_metallic_roughness_image_index != -1)
         DRACO_RETURN_IF_ERROR(EncodeTextureMap(
             "metallicRoughnessTexture",
@@ -2953,11 +2810,7 @@ Status GltfAsset::EncodeTexture(const std::string &name,
   const TextureMap *const texture_map = material.GetTextureMapByType(type);
   if (texture_map) {
     if (num_components == -1) {
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-      const bool rgba = !TextureUtils::IsTextureOpaque(*texture_map->texture());
-#else
       const bool rgba = true;  // Unused for now.
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
       num_components = rgba ? 4 : 3;
     }
     const std::string texture_stem = TextureUtils::GetOrGenerateTargetStem(
@@ -3558,6 +3411,7 @@ Status GltfEncoder::EncodeFile(const T &geometry, const std::string &filename,
   }
   return WriteGltfFiles(gltf_asset, buffer, filename, bin_filename,
                         resource_dir);
+  return OkStatus();
 }
 
 template <typename T>
@@ -3676,27 +3530,7 @@ Status GltfEncoder::WriteGltfFiles(const GltfAsset &gltf_asset,
     if (!image) {
       return Status(Status::DRACO_ERROR, "Error getting glTF image.");
     }
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-    if (custom_texture_writer_) {
-      std::vector<uint8_t> buffer;
-      DRACO_RETURN_IF_ERROR(custom_texture_writer_(
-          *image->texture, image->num_components, &buffer));
-
-      // Create directories if needed.
-      if (!CheckAndCreatePathForFile(name)) {
-        return Status(Status::DRACO_ERROR,
-                      "Failed to create output directories.");
-      }
-      if (!WriteBufferToFile(buffer.data(), buffer.size(), name)) {
-        return Status(Status::DRACO_ERROR, "Failed to write image.");
-      }
-    } else {
-      DRACO_RETURN_IF_ERROR(
-          WriteTextureToFile(name, *image->texture, image->num_components));
-    }
-#else
     DRACO_RETURN_IF_ERROR(WriteTextureToFile(name, *image->texture));
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
   }
   return OkStatus();
 }

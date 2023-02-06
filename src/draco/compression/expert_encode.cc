@@ -14,27 +14,16 @@
 //
 #include "draco/compression/expert_encode.h"
 
-#include <iostream>
-#include <memory>
-#include <ostream>
-#include <string>
-#include <utility>
-
 #include "draco/compression/mesh/mesh_edgebreaker_encoder.h"
 #include "draco/compression/mesh/mesh_sequential_encoder.h"
 #ifdef DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED
 #include "draco/compression/point_cloud/point_cloud_kd_tree_encoder.h"
 #include "draco/compression/point_cloud/point_cloud_sequential_encoder.h"
 #endif
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-#include "draco/core/status_or.h"
-#include "draco/mesh/mesh_utils.h"
-#endif
-
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/core/bit_utils.h"
 #endif
+
 namespace draco {
 
 ExpertEncoder::ExpertEncoder(const PointCloud &point_cloud)
@@ -118,7 +107,7 @@ Status ExpertEncoder::EncodeMeshToBuffer(const Mesh &m,
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Apply DracoCompressionOptions associated with the mesh.
   DRACO_RETURN_IF_ERROR(ApplyCompressionOptions(m));
-#endif  // DRACO_TRANSCODER_SUPPORTED
+#endif
 
   std::unique_ptr<MeshEncoder> encoder;
   // Select the encoding method only based on the provided options.
@@ -137,68 +126,12 @@ Status ExpertEncoder::EncodeMeshToBuffer(const Mesh &m,
     encoder = std::unique_ptr<MeshEncoder>(new MeshSequentialEncoder());
   }
   encoder->SetMesh(m);
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  DRACO_RETURN_IF_ERROR(UpdateTextureQuantizationBits(m));
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
-
   DRACO_RETURN_IF_ERROR(encoder->Encode(options(), out_buffer));
 
   set_num_encoded_points(encoder->num_encoded_points());
   set_num_encoded_faces(encoder->num_encoded_faces());
   return OkStatus();
 }
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-Status ExpertEncoder::UpdateTextureQuantizationBits(const Mesh &mesh) {
-  if (options().GetGlobalBool("find_non_degenerate_texture_quantization",
-                              false)) {
-    // Get the first position quantization bits.
-    const int pos_att_id =
-        mesh.GetNamedAttributeId(draco::GeometryAttribute::Type::POSITION, 0);
-    if (pos_att_id < 0) {
-      return Status(Status::DRACO_ERROR,
-                    "Mesh does not have position attribute.");
-    }
-    const int pos_quantization_bits =
-        options().GetAttributeInt(pos_att_id, "quantization_bits", -1);
-    const PointAttribute *const pos_att = mesh.attribute(pos_att_id);
-
-    for (int i = 0; i < mesh.num_attributes(); ++i) {
-      const PointAttribute *const att = mesh.attribute(i);
-      if (att->attribute_type() == GeometryAttribute::TEX_COORD) {
-        const int original_texture_quantization_bits =
-            options().GetAttributeInt(i, "quantization_bits", -1);
-
-        // Find the lowest quantization only if the quantization bits is
-        // explicitly set and valid.
-        if (original_texture_quantization_bits >= 1 &&
-            original_texture_quantization_bits < 30) {
-          DRACO_ASSIGN_OR_RETURN(const int new_texture_quantization_bits,
-                                 MeshUtils::FindLowestTextureQuantization(
-                                     mesh, *pos_att, pos_quantization_bits,
-                                     *att, original_texture_quantization_bits));
-          if (new_texture_quantization_bits !=
-              original_texture_quantization_bits) {
-            // TODO(fgalligan): Remove this output when draco compression is
-            // done inside its own module.
-            if (options().GetGlobalBool("verbose", false)) {
-              std::cout << "find_non_degenerate_texture_quantization att-id: "
-                        << i
-                        << " qt-orig: " << original_texture_quantization_bits
-                        << " qt-new: " << new_texture_quantization_bits
-                        << std::endl;
-            }
-            options().SetAttributeInt(i, "quantization_bits",
-                                      new_texture_quantization_bits);
-          }
-        }
-      }
-    }
-  }
-  return OkStatus();
-}
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 
 void ExpertEncoder::Reset(const EncoderOptions &options) {
   Base::Reset(options);
@@ -231,17 +164,6 @@ void ExpertEncoder::SetAttributeExplicitQuantization(int32_t attribute_id,
 void ExpertEncoder::SetUseBuiltInAttributeCompression(bool enabled) {
   options().SetGlobalBool("use_built_in_attribute_compression", enabled);
 }
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-void ExpertEncoder::SetFindNonDegenerateTextureQuantization(bool enabled) {
-  options().SetGlobalBool("find_non_degenerate_texture_quantization", enabled);
-}
-
-bool ExpertEncoder::IsFindNonDegenerateTextureQuantizationSet() const {
-  return options().IsGlobalOptionSet(
-      "find_non_degenerate_texture_quantization");
-}
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 
 void ExpertEncoder::SetEncodingMethod(int encoding_method) {
   Base::SetEncodingMethod(encoding_method);
@@ -278,13 +200,6 @@ Status ExpertEncoder::ApplyCompressionOptions(const Mesh &mesh) {
     options().SetSpeed(10 - compression_options.compression_level,
                        10 - compression_options.compression_level);
   }
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  if (!IsFindNonDegenerateTextureQuantizationSet()) {
-    SetFindNonDegenerateTextureQuantization(
-        compression_options.find_non_degenerate_texture_quantization);
-  }
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 
   for (int ai = 0; ai < mesh.num_attributes(); ++ai) {
     if (options().IsAttributeOptionSet(ai, "quantization_bits")) {
@@ -367,8 +282,7 @@ Status ExpertEncoder::ApplyGridQuantization(const Mesh &mesh,
     bits++;
   }
   // Compute the range in mesh coordinates that matches the quantization bits.
-  // Note there are n-1 intervals between the |n| quantization values.
-  const float range = ((1 << bits) - 1) * spacing;
+  const float range = (1 << bits) * spacing;
   SetAttributeExplicitQuantization(attribute_index, bits, 3, min_pos.data(),
                                    range);
   return OkStatus();

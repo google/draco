@@ -106,14 +106,18 @@ macro(draco_setup_googletest)
     set(gtest_path "${draco_root}/third_party/googletest")
   endif()
 
-  list(APPEND draco_test_include_paths ${draco_include_paths}
-              "${gtest_path}/include" "${gtest_path}/googlemock"
-              "${gtest_path}/googletest/include" "${gtest_path}/googletest")
+  list(
+    APPEND
+    draco_test_include_paths
+    ${draco_include_paths}
+    "${gtest_path}/include"
+    "${gtest_path}/googlemock"
+    "${gtest_path}/googletest/include"
+    "${gtest_path}/googletest")
 
   list(APPEND draco_gtest_all "${gtest_path}/googletest/src/gtest-all.cc")
   list(APPEND draco_gtest_main "${gtest_path}/googletest/src/gtest_main.cc")
 endmacro()
-
 
 # Determines the location of TinyGLTF and updates the build configuration
 # accordingly.

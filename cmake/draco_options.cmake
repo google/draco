@@ -127,10 +127,6 @@ macro(draco_set_default_options)
     NAME DRACO_TRANSCODER_SUPPORTED
     HELPSTRING "Enable the Draco transcoder."
     VALUE OFF)
-  draco_option(
-    NAME DRACO_DEBUG_COMPILER_WARNINGS
-    HELPSTRING "Turn on more warnings."
-    VALUE OFF)
   draco_check_deprecated_options()
 endmacro()
 
@@ -235,8 +231,6 @@ macro(draco_set_optional_features)
   if(DRACO_TRANSCODER_SUPPORTED)
     draco_enable_feature(FEATURE "DRACO_TRANSCODER_SUPPORTED")
   endif()
-
-
 endmacro()
 
 # Macro that handles tracking of Draco preprocessor symbols for the purpose of
@@ -288,56 +282,8 @@ function(draco_generate_features_h)
     file(APPEND "${draco_features_file_name}.new" "#define ${feature}\n")
   endforeach()
 
-  if(MSVC)
-    if(NOT DRACO_DEBUG_COMPILER_WARNINGS)
-      file(APPEND "${draco_features_file_name}.new"
-           "// Enable DRACO_DEBUG_COMPILER_WARNINGS at CMake generation \n"
-           "// time to remove these pragmas.\n")
-
-      # warning C4018: '<operator>': signed/unsigned mismatch.
-      file(APPEND "${draco_features_file_name}.new"
-           "#pragma warning(disable:4018)\n")
-
-      # warning C4146: unary minus operator applied to unsigned type, result
-      # still unsigned
-      file(APPEND "${draco_features_file_name}.new"
-           "#pragma warning(disable:4146)\n")
-
-      # warning C4244: 'return': conversion from '<type>' to '<type>', possible
-      # loss of data.
-      file(APPEND "${draco_features_file_name}.new"
-           "#pragma warning(disable:4244)\n")
-
-      # warning C4267: 'initializing' conversion from '<type>' to '<type>',
-      # possible loss of data.
-      file(APPEND "${draco_features_file_name}.new"
-           "#pragma warning(disable:4267)\n")
-
-      # warning C4305: 'context' : truncation from 'type1' to 'type2'.
-      file(APPEND "${draco_features_file_name}.new"
-           "#pragma warning(disable:4305)\n")
-
-      # warning C4661: 'identifier' : no suitable definition provided for
-      # explicit template instantiation request.
-      file(APPEND "${draco_features_file_name}.new"
-           "#pragma warning(disable:4661)\n")
-
-      # warning C4800: Implicit conversion from 'type' to bool. Possible
-      # information loss.
-      # Also, in older MSVC releases:
-      # warning C4800: 'type' : forcing value to bool 'true' or 'false'
-      # (performance warning).
-      file(APPEND "${draco_features_file_name}.new"
-           "#pragma warning(disable:4800)\n")
-
-      # warning C4804: '<operator>': unsafe use of type '<type>' in operation.
-      file(APPEND "${draco_features_file_name}.new"
-           "#pragma warning(disable:4804)\n")
-    endif()
-  endif()
-
   file(APPEND "${draco_features_file_name}.new"
-       "\n#endif  // DRACO_FEATURES_H_\n")
+       "\n#endif  // DRACO_FEATURES_H_")
 
   # Will replace ${draco_features_file_name} only if the file content has
   # changed. This prevents forced Draco rebuilds after CMake runs.

@@ -16,7 +16,6 @@
 #define DRACO_MESH_MESH_CLEANUP_H_
 
 #include "draco/core/status.h"
-#include "draco/draco_features.h"
 #include "draco/mesh/mesh.h"
 
 namespace draco {
@@ -42,13 +41,6 @@ struct MeshCleanupOptions {
   // is manifold.
   bool make_geometry_manifold = false;
 };
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-// Cleanup options that remove degenerated faces and leave the rest of the
-// model unchanged.
-constexpr MeshCleanupOptions kCleanupDegeneratedFacesOptions = {true, false,
-                                                                false, false};
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 
 // Tool that can be used for removing bad or unused data from draco::Meshes.
 class MeshCleanup {

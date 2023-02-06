@@ -263,7 +263,7 @@ bool KdTreeAttributesDecoder::DecodePoints(int total_dimensionality,
                                            DecoderBuffer *in_buffer,
                                            OutIteratorT *out_iterator) {
   DynamicIntegerPointsKdTreeDecoder<level_t> decoder(total_dimensionality);
-  if (!decoder.DecodePoints(in_buffer, *out_iterator, num_expected_points) ||
+  if (!decoder.DecodePoints(in_buffer, *out_iterator) ||
       decoder.num_decoded_points() != num_expected_points) {
     return false;
   }

@@ -108,8 +108,7 @@ macro(draco_add_executable)
   endif()
 
   add_executable(${exe_NAME} ${exe_SOURCES})
-
-    target_compile_features(${exe_NAME} PUBLIC cxx_std_11)
+  target_compile_features(${exe_NAME} PRIVATE cxx_std_11)
 
   if(NOT EMSCRIPTEN)
     set_target_properties(${exe_NAME} PROPERTIES VERSION ${DRACO_VERSION})
@@ -162,7 +161,12 @@ macro(draco_add_executable)
   endif()
 
   if(exe_LIB_DEPS)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "^Clang|^GNU")
+    unset(exe_static)
+    if("${CMAKE_EXE_LINKER_FLAGS} ${DRACO_EXE_LINKER_FLAGS}" MATCHES "static")
+      set(exe_static ON)
+    endif()
+
+    if(exe_static AND CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
       # Third party dependencies can introduce dependencies on system and test
       # libraries. Since the target created here is an executable, and CMake
       # does not provide a method of controlling order of link dependencies,
@@ -170,10 +174,6 @@ macro(draco_add_executable)
       # ensure that dependencies of third party targets can be resolved when
       # those dependencies happen to be resolved by dependencies of the current
       # target.
-      # TODO(tomfinegan): For portability use LINK_GROUP with RESCAN instead of
-      # directly (ab)using compiler/linker specific flags once CMake v3.24 is in
-      # wider use. See:
-      # https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html#genex:LINK_GROUP
       list(INSERT exe_LIB_DEPS 0 -Wl,--start-group)
       list(APPEND exe_LIB_DEPS -Wl,--end-group)
     endif()
@@ -290,16 +290,8 @@ macro(draco_add_library)
   endif()
 
   add_library(${lib_NAME} ${lib_TYPE} ${lib_SOURCES})
-
-    target_compile_features(${lib_NAME} PUBLIC cxx_std_11)
-
+  target_compile_features(${lib_NAME} PUBLIC cxx_std_11)
   target_include_directories(${lib_NAME} PUBLIC $<INSTALL_INTERFACE:include>)
-
-  if(BUILD_SHARED_LIBS)
-    # Enable PIC for all targets in shared configurations.
-    set_target_properties(${lib_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-  endif()
-
   if(lib_SOURCES)
     draco_process_intrinsics_sources(TARGET ${lib_NAME} SOURCES ${lib_SOURCES})
   endif()

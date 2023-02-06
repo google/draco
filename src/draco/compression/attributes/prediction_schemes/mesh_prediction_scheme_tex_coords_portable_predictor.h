@@ -167,13 +167,6 @@ bool MeshPredictionSchemeTexCoordsPortablePredictor<
         // Return false if the below multiplication would overflow.
         return false;
       }
-      const int64_t pn_uv_absmax_element =
-          std::max(std::abs(pn_uv[0]), std::abs(pn_uv[1]));
-      if (cn_dot_pn >
-          std::numeric_limits<int64_t>::max() / pn_uv_absmax_element) {
-        // Return false if squared length calculation would overflow.
-        return false;
-      }
       const Vec2 x_uv = n_uv * pn_norm2_squared + (cn_dot_pn * pn_uv);
       const int64_t pn_absmax_element =
           std::max(std::max(std::abs(pn[0]), std::abs(pn[1])), std::abs(pn[2]));

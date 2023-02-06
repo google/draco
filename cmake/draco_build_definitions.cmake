@@ -31,6 +31,10 @@ macro(set_draco_target)
     endif()
     set(draco_plugin_dependency draco_static)
   endif()
+
+  if(BUILD_SHARED_LIBS)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  endif()
 endmacro()
 
 # Configures flags and sets build system globals.
@@ -56,7 +60,7 @@ macro(draco_set_build_definitions)
   # passed to libtool.
   #
   # We set DRACO_SOVERSION = [c-a].a.r
-  set(LT_CURRENT 8)
+  set(LT_CURRENT 7)
   set(LT_REVISION 0)
   set(LT_AGE 0)
   math(EXPR DRACO_SOVERSION_MAJOR "${LT_CURRENT} - ${LT_AGE}")
@@ -66,20 +70,21 @@ macro(draco_set_build_definitions)
   unset(LT_AGE)
 
   list(APPEND draco_include_paths "${draco_root}" "${draco_root}/src"
-              "${draco_build}")
+       "${draco_build}")
+
+  if(DRACO_ABSL)
+    list(APPEND draco_include_paths "${draco_root}/third_party/abseil-cpp")
+  endif()
 
   if(DRACO_TRANSCODER_SUPPORTED)
     draco_setup_eigen()
     draco_setup_filesystem()
     draco_setup_tinygltf()
-
-
   endif()
 
 
   list(APPEND draco_defines "DRACO_CMAKE=1"
-              "DRACO_FLAGS_SRCDIR=\"${draco_root}\""
-              "DRACO_FLAGS_TMPDIR=\"/tmp\"")
+       "DRACO_FLAGS_SRCDIR=\"${draco_root}\"" "DRACO_FLAGS_TMPDIR=\"/tmp\"")
 
   if(MSVC OR WIN32)
     list(APPEND draco_defines "_CRT_SECURE_NO_DEPRECATE=1" "NOMINMAX=1")
@@ -87,21 +92,36 @@ macro(draco_set_build_definitions)
     if(BUILD_SHARED_LIBS)
       set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
     endif()
-  endif()
 
-  if(NOT MSVC)
+    if(MSVC AND NOT DRACO_DEBUG_MSVC_WARNINGS)
+      # Silence some excessively noisy MSVC warnings when not actively seeking
+      # to address them. These are harmless and serve only to make the build
+      # output extremely verbose. To enable these warnings set the MSVC warning
+      # level to 4, or define DRACO_DEBUG_MSVC_WARNINGS on the CMake command
+      # line when configuring Draco.
+
+      # warning C4018: '<operator>': signed/unsigned mismatch.
+      list(APPEND draco_msvc_cxx_flags /w44018)
+
+      # warning C4146: unary minus operator applied to unsigned type, result
+      # still unsigned
+      list(APPEND draco_msvc_cxx_flags /w44146)
+
+      # warning C4244: 'return': conversion from '<type>' to '<type>', possible
+      # loss of data.
+      list(APPEND draco_msvc_cxx_flags /w44244)
+
+      # warning C4267: 'initializing' conversion from '<type>' to '<type>',
+      # possible loss of data.
+      list(APPEND draco_msvc_cxx_flags /w44267)
+
+      # warning C4804: '<operator>': unsafe use of type '<type>' in operation.
+      list(APPEND draco_msvc_cxx_flags /w44804)
+    endif()
+  else()
     if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
       # Ensure 64-bit platforms can support large files.
       list(APPEND draco_defines "_LARGEFILE_SOURCE" "_FILE_OFFSET_BITS=64")
-    endif()
-
-    if(NOT DRACO_DEBUG_COMPILER_WARNINGS)
-      if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        list(APPEND draco_clang_cxx_flags
-                    "-Wno-implicit-const-int-float-conversion")
-      else()
-        list(APPEND draco_base_cxx_flags "-Wno-deprecated-declarations")
-      endif()
     endif()
   endif()
 

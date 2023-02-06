@@ -15,23 +15,15 @@
 #ifndef DRACO_MESH_CORNER_TABLE_ITERATORS_H_
 #define DRACO_MESH_CORNER_TABLE_ITERATORS_H_
 
-#include <iterator>
-
 #include "draco/mesh/corner_table.h"
 
 namespace draco {
 
 // Class for iterating over vertices in a 1-ring around the specified vertex.
 template <class CornerTableT>
-class VertexRingIterator {
+class VertexRingIterator
+    : public std::iterator<std::forward_iterator_tag, VertexIndex> {
  public:
-  // Iterator traits expected by std libraries.
-  using iterator_category = std::forward_iterator_tag;
-  using value_type = VertexIndex;
-  using difference_type = std::ptrdiff_t;
-  using pointer = VertexIndex *;
-  using reference = VertexIndex &;
-
   // std::iterator interface requires a default constructor.
   VertexRingIterator()
       : corner_table_(nullptr),
@@ -119,15 +111,9 @@ class VertexRingIterator {
 
 // Class for iterating over faces adjacent to the specified input face.
 template <class CornerTableT>
-class FaceAdjacencyIterator {
+class FaceAdjacencyIterator
+    : public std::iterator<std::forward_iterator_tag, FaceIndex> {
  public:
-  // Iterator traits expected by std libraries.
-  using iterator_category = std::forward_iterator_tag;
-  using value_type = FaceIndex;
-  using difference_type = std::ptrdiff_t;
-  using pointer = FaceIndex *;
-  using reference = FaceIndex &;
-
   // std::iterator interface requires a default constructor.
   FaceAdjacencyIterator()
       : corner_table_(nullptr),
@@ -207,15 +193,9 @@ class FaceAdjacencyIterator {
 
 // Class for iterating over corners attached to a specified vertex.
 template <class CornerTableT = CornerTable>
-class VertexCornersIterator {
+class VertexCornersIterator
+    : public std::iterator<std::forward_iterator_tag, CornerIndex> {
  public:
-  // Iterator traits expected by std libraries.
-  using iterator_category = std::forward_iterator_tag;
-  using value_type = CornerIndex;
-  using difference_type = std::ptrdiff_t;
-  using pointer = CornerIndex *;
-  using reference = CornerIndex &;
-
   // std::iterator interface requires a default constructor.
   VertexCornersIterator()
       : corner_table_(nullptr),

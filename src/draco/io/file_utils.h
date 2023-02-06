@@ -54,17 +54,12 @@ std::string RemoveFileExtension(const std::string &filename);
 std::string GetFullPath(const std::string &input_file_relative_path,
                         const std::string &sibling_file_full_path);
 
-// Convenience methods. Uses draco::FileReaderFactory internally. Reads contents
+// Convenience method. Uses draco::FileReaderFactory internally. Reads contents
 // of file referenced by |file_name| into |buffer| and returns true upon
 // success.
 bool ReadFileToBuffer(const std::string &file_name, std::vector<char> *buffer);
 bool ReadFileToBuffer(const std::string &file_name,
                       std::vector<uint8_t> *buffer);
-
-// Convenience method for reading a file into a std::string. Reads contents
-// of file referenced by |file_name| into |contents| and returns true upon
-// success.
-bool ReadFileToString(const std::string &file_name, std::string *contents);
 
 // Convenience method. Uses draco::FileWriterFactory internally. Writes contents
 // of |buffer| to file referred to by |file_name|. File is overwritten if it

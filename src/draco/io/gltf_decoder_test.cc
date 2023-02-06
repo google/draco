@@ -30,7 +30,6 @@
 #include "draco/core/draco_test_utils.h"
 #include "draco/core/draco_types.h"
 #include "draco/io/gltf_test_helper.h"
-#include "draco/io/texture_io.h"
 #include "draco/mesh/mesh_are_equivalent.h"
 #include "draco/mesh/mesh_utils.h"
 #include "draco/scene/scene_indices.h"

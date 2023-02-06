@@ -105,39 +105,31 @@ class JsonWriter {
   }
 
   void OutputValue(const std::string &name) {
-    const std::string escaped_name = EscapeJsonSpecialCharacters(name);
     FinishPreviousLine(VALUE);
-    o_ << indent_ << "\"" << escaped_name << "\"";
+    o_ << indent_ << "\"" << name << "\"";
   }
 
   void OutputValue(const std::string &name, const std::string &value) {
-    const std::string escaped_name = EscapeJsonSpecialCharacters(name);
-    const std::string escaped_value = EscapeJsonSpecialCharacters(value);
     FinishPreviousLine(VALUE);
-    o_ << indent_ << "\"" << escaped_name << "\":" << separator_ << "\""
-       << escaped_value << "\"";
+    o_ << indent_ << "\"" << name << "\":" << separator_ << "\"" << value
+       << "\"";
   }
 
   void OutputValue(const std::string &name, const char *value) {
-    const std::string escaped_name = EscapeJsonSpecialCharacters(name);
-    const std::string escaped_value = EscapeJsonSpecialCharacters(value);
     FinishPreviousLine(VALUE);
-    o_ << indent_ << "\"" << escaped_name << "\":" << separator_ << "\""
-       << escaped_value << "\"";
+    o_ << indent_ << "\"" << name << "\":" << separator_ << "\"" << value
+       << "\"";
   }
 
   template <typename T>
   void OutputValue(const std::string &name, const T &value) {
-    const std::string escaped_name = EscapeJsonSpecialCharacters(name);
     FinishPreviousLine(VALUE);
-    o_ << indent_ << "\"" << escaped_name << "\":" << separator_ << value;
+    o_ << indent_ << "\"" << name << "\":" << separator_ << value;
   }
 
   void OutputValue(const std::string &name, const bool &value) {
-    const std::string escaped_name = EscapeJsonSpecialCharacters(name);
     FinishPreviousLine(VALUE);
-    o_ << indent_ << "\"" << escaped_name << "\":" << separator_
-       << ToString(value);
+    o_ << indent_ << "\"" << name << "\":" << separator_ << ToString(value);
   }
 
   // Return the current output and then clear the stringstream.
@@ -146,13 +138,6 @@ class JsonWriter {
  private:
   // Check if a comma needs to be added to the output and then add a new line.
   void FinishPreviousLine(OutputType curr_type);
-
-  // Returns a string escaping all instances of |character| in |str|.
-  std::string EscapeCharacter(const std::string &str, const char character);
-
-  // Returns a string escaping all of the Json special characters in |str|.
-  // Carriage return is not handled.
-  std::string EscapeJsonSpecialCharacters(const std::string &str);
 
   // Returns string representation of a Boolean |value|.
   static std::string ToString(bool value) { return value ? "true" : "false"; }

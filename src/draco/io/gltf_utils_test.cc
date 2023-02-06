@@ -100,47 +100,6 @@ TEST_F(GltfUtilsTest, TestValues) {
   CompareGolden(&json_writer, "\"test bool\": true");
 }
 
-TEST_F(GltfUtilsTest, TestSpecialCharacters) {
-  JsonWriter json_writer;
-  const std::string test_double_quote = "I am double quote\"";
-  json_writer.OutputValue("test double quote", test_double_quote);
-  CompareGolden(&json_writer,
-                "\"test double quote\": \"I am double quote\\\"\"");
-
-  json_writer.Reset();
-  const std::string test_backspace = "I am backspace\b";
-  json_writer.OutputValue("test backspace", test_backspace);
-  CompareGolden(&json_writer, "\"test backspace\": \"I am backspace\\\b\"");
-
-  json_writer.Reset();
-  const std::string test_form_feed = "I am form feed\f";
-  json_writer.OutputValue("test form feed", test_form_feed);
-  CompareGolden(&json_writer, "\"test form feed\": \"I am form feed\\\f\"");
-
-  json_writer.Reset();
-  const std::string test_newline = "I am newline\n";
-  json_writer.OutputValue("test newline", test_newline);
-  CompareGolden(&json_writer, "\"test newline\": \"I am newline\\\n\"");
-
-  json_writer.Reset();
-  const std::string test_tab = "I am tab\t";
-  json_writer.OutputValue("test tab", test_tab);
-  CompareGolden(&json_writer, "\"test tab\": \"I am tab\\\t\"");
-
-  json_writer.Reset();
-  const std::string test_backslash = "I am backslash\\";
-  json_writer.OutputValue("test backslash", test_backslash);
-  CompareGolden(&json_writer, "\"test backslash\": \"I am backslash\\\\\"");
-
-  json_writer.Reset();
-  const std::string test_multiple_special_characters = "\"break\"and\\more\"\\";
-  json_writer.OutputValue("test multiple_special_characters",
-                          test_multiple_special_characters);
-  CompareGolden(&json_writer,
-                "\"test multiple_special_characters\": "
-                "\"\\\"break\\\"and\\\\more\\\"\\\\\"");
-}
-
 TEST_F(GltfUtilsTest, TestObjects) {
   JsonWriter json_writer;
   json_writer.BeginObject();

@@ -14,17 +14,9 @@
 //
 #include "draco/mesh/mesh_cleanup.h"
 
-#include <array>
-#include <memory>
 #include <unordered_set>
-#include <utility>
-#include <vector>
 
 #include "draco/core/hash_utils.h"
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-#include "draco/mesh/corner_table_constructor.h"
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 
 namespace draco {
 
@@ -51,11 +43,6 @@ Status MeshCleanup::Cleanup(Mesh *mesh, const MeshCleanupOptions &options) {
     RemoveUnusedAttributes(mesh);
   }
 
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  if (options.make_geometry_manifold) {
-    DRACO_RETURN_IF_ERROR(MakeGeometryManifold(mesh));
-  }
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
   return OkStatus();
 }
 
@@ -258,59 +245,7 @@ void MeshCleanup::RemoveUnusedAttributes(Mesh *mesh) {
 }
 
 Status MeshCleanup::MakeGeometryManifold(Mesh *mesh) {
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  // Overview: To detect and cleanup non-manifold geometry, we use CornerTable
-  // that always describes a manifold surface. When the corner table is
-  // constructed, it splits any non-manifold edges and vertices by introducing
-  // new vertices on the non-manifold primitives. We can use this information to
-  // update the position attribute of the mesh to ensure that its position
-  // indices define a manifold connectivity.
-
-  DRACO_ASSIGN_OR_RETURN(
-      const auto ct,
-      CornerTableConstructor::ConstructFromPositionAttribute(*mesh));
-
-  const PointAttribute *const pos_att =
-      mesh->GetNamedAttribute(GeometryAttribute::POSITION);
-  if (pos_att->size() == ct->num_vertices()) {
-    // No new vertices were added which indicates manifold geometry. Nothing to
-    // do.
-    return OkStatus();
-  }
-
-  // Create a new position attribute with new vertices that break the
-  // non-manifold connectivity.
-  std::unique_ptr<PointAttribute> new_pos_att(new PointAttribute());
-  new_pos_att->Init(GeometryAttribute::POSITION, pos_att->num_components(),
-                    pos_att->data_type(), false, ct->num_vertices());
-
-  // Copy over position values from the old attribute to the new one.
-  for (VertexIndex vi(0); vi < ct->num_vertices(); ++vi) {
-    // Parent vertex index corresponds to the attribute value index on the old
-    // position attribute.
-    const VertexIndex parent_vi = ct->VertexParent(vi);
-    new_pos_att->SetAttributeValue(
-        AttributeValueIndex(vi.value()),
-        pos_att->GetAddress(AttributeValueIndex(parent_vi.value())));
-  }
-
-  // Create mapping between corners and attribute values indices of the new
-  // position attribute.
-  IndexTypeVector<CornerIndex, AttributeValueIndex> corner_to_val(
-      ct->num_corners());
-  for (CornerIndex ci(0); ci < ct->num_corners(); ++ci) {
-    corner_to_val[ci] = AttributeValueIndex(ct->Vertex(ci).value());
-  }
-
-  // Remove the existing position attribute from the mesh.
-  mesh->DeleteAttribute(mesh->GetNamedAttributeId(GeometryAttribute::POSITION));
-
-  // Insert the new attribute.
-  mesh->AddAttributeWithConnectivity(std::move(new_pos_att), corner_to_val);
-  return OkStatus();
-#else
   return Status(Status::DRACO_ERROR, "Unsupported function.");
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 }
 
 }  // namespace draco

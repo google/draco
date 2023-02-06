@@ -46,35 +46,9 @@ StatusOr<std::unique_ptr<Texture>> ReadTextureFromBuffer(
 // with "basis" extension. Returns an error status if the writing failed.
 Status WriteTextureToFile(const std::string &file_name, const Texture &texture);
 
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-// Writes a texture into a file in a specified format defined by the
-// |num_channels|. The function will try to convert the data in |texture| to the
-// desired output format before the texture is saved to the file. If the
-// conversion fails, an error status is returned. Currently, the only allowed
-// options are:
-//   - |num_channels| == 3 | 4
-//   - |num_channels| == 1 saves the R channel and ignores G and B channels.
-Status WriteTextureToFile(const std::string &file_name, const Texture &texture,
-                          int num_channels);
-
-// Writes a |texture| into |buffer| specified by the parameters (see above
-// comments). The image format is specified in |texture|. Supported image types
-// are PNG, JPEG, and KTX2 (with Basis compression). Note that images with
-// Basis compression can only be saved in KTX2 format.
-Status WriteTextureToBuffer(const Texture &texture, int num_channels,
-                            std::vector<uint8_t> *buffer);
-
-// Copies a texture into |buffer|. Only copies the source if output
-// characteristics match the source characteristics. The function will fail if
-// the source image format is different from the image type in |texture|
-// compression settings.
-Status CopyTextureToBuffer(const Texture &texture, int num_channels,
-                           std::vector<uint8_t> *buffer);
-#else
 // Writes a |texture| into |buffer|.
 Status WriteTextureToBuffer(const Texture &texture,
                             std::vector<uint8_t> *buffer);
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 
 }  // namespace draco
 

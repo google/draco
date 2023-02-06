@@ -15,6 +15,7 @@
 #include "draco/io/gltf_decoder.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+
 #include <memory>
 #include <set>
 #include <string>
@@ -37,13 +38,7 @@
 #include "draco/scene/scene_indices.h"
 #include "draco/texture/source_image.h"
 #include "draco/texture/texture_utils.h"
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-#include <cstring>
-
-#include "draco/io/basis_decoder.h"
-#include "draco/mesh/tangent_space_generator.h"
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
+#include "tiny_gltf.h"
 
 namespace draco {
 
@@ -326,14 +321,6 @@ StatusOr<std::unique_ptr<SourceImage>> GetSourceImage(
   source_image->set_filename(image.uri);
   source_image->set_mime_type(image.mimeType);
 
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  source_image->set_width(image.width);
-  source_image->set_height(image.height);
-  source_image->set_bit_depth(image.bits);
-  DRACO_ASSIGN_OR_RETURN(const uint64_t hash,
-                         TextureUtils::HashTexture(texture));
-  source_image->set_decoded_data_hash(hash);
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
   return source_image;
 }
 
@@ -442,50 +429,6 @@ bool WriteWholeFile(std::string * /*err*/, const std::string &filepath,
   return WriteBufferToFile(contents.data(), contents.size(), filepath);
 }
 
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-// Callback used to load images from TinyGltf library. Currently we use it only
-// when loading Basis (ktx2) images otherwise we fallback to the default loading
-// function.
-// TODO(ostava): Consider always using our texture loader. This will require
-// more testing.
-bool LoadImageDataFromTinyGltf(tinygltf::Image *image, const int image_idx,
-                               std::string *err, std::string *warn,
-                               int req_width, int req_height,
-                               const unsigned char *bytes, int size,
-                               void *user_data) {
-  if (image->mimeType != "image/ktx2") {
-    // Fallback to the default image loader.
-    return tinygltf::LoadImageData(image, image_idx, err, warn, req_width,
-                                   req_height, bytes, size, nullptr);
-  }
-  // Load Basis texture.
-  std::vector<uint8_t> buffer(bytes, bytes + size);
-  Texture texture;
-  Status status =
-      BasisDecoder::DecodeFromBuffer(buffer, texture.GetMutableRGBAImage());
-  if (!status.ok()) {
-    (*err) += "Failed to load Basis KTX texture.\n";
-    return false;
-  }
-  // Convert the texture back to TinyGltf format.
-  // TODO(ostava): We can move the texture directly to GltfLoader if we pass
-  // the GltfDecoder in |user_data|. But this will require some refactoring in
-  // the GltfDecoder code so leaving it for later for now.
-  image->width = texture.width();
-  image->height = texture.height();
-  // Force 4 channels for now (TinyGltf is doing the same).
-  image->component = 4;
-  image->bits = 8;
-  image->pixel_type = TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
-  image->image.resize(image->width * image->height * 4);
-  for (int row = 0; row < image->height; ++row) {
-    std::memcpy(image->image.data() + (image->width * 4 * row),
-                texture.GetRGBAImage().GetRow(row), image->width * 4);
-  }
-  return true;
-}
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
-
 }  // namespace
 
 GltfDecoder::GltfDecoder()
@@ -540,11 +483,6 @@ Status GltfDecoder::LoadFile(const std::string &file_name,
   std::string err;
   std::string warn;
 
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  // Set custom image loading function.
-  loader.SetImageLoader(LoadImageDataFromTinyGltf, this);
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
-
   const tinygltf::FsCallbacks fs_callbacks = {
       &FileExists,
       // TinyGLTF's ExpandFilePath does not do filesystem i/o, so it's safe to
@@ -576,12 +514,6 @@ Status GltfDecoder::LoadBuffer(const DecoderBuffer &buffer) {
   tinygltf::TinyGLTF loader;
   std::string err;
   std::string warn;
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  // Set custom image loading function.
-  loader.SetImageLoader(LoadImageDataFromTinyGltf, this);
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
-
   if (!loader.LoadBinaryFromMemory(
           &gltf_model_, &err, &warn,
           reinterpret_cast<const unsigned char *>(buffer.data_head()),
@@ -677,11 +609,7 @@ Status GltfDecoder::CheckUnsupportedFeatures() {
   for (const auto &extension : gltf_model_.extensionsRequired) {
     if (extension != "KHR_materials_unlit" &&
         extension != "KHR_texture_transform" &&
-        extension != "KHR_draco_mesh_compression"
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-        && extension != "KHR_texture_basisu"
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
-    ) {
+        extension != "KHR_draco_mesh_compression") {
       return Status(Status::UNSUPPORTED_FEATURE,
                     extension + " is unsupported.");
     }
@@ -902,9 +830,6 @@ Status GltfDecoder::AccumulatePrimitiveStats(
   }
 
   for (const auto &attribute : primitive.attributes) {
-    if (attribute.second >= gltf_model_.accessors.size()) {
-      return ErrorStatus("Invalid accessor.");
-    }
     const tinygltf::Accessor &accessor =
         gltf_model_.accessors[attribute.second];
 
@@ -1310,15 +1235,7 @@ Status GltfDecoder::CopyTextures(T *owner) {
       // add an image with negative values.
       return Status(Status::DRACO_ERROR, "Error loading image.");
     }
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-    DRACO_ASSIGN_OR_RETURN(
-        std::unique_ptr<Texture> draco_texture,
-        TextureUtils::CreateTexture(image.image.data(), image.width,
-                                    image.height, image.component, image.bits));
-#else
     std::unique_ptr<Texture> draco_texture(new Texture());
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 
     // Update mapping between glTF images and textures in the texture library.
     gltf_image_to_draco_texture_[i] = draco_texture.get();
@@ -1382,13 +1299,6 @@ Status GltfDecoder::AddMaterialsToDracoMesh(Mesh *mesh) {
     }
   }
 
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  if (is_normal_map_used &&
-      mesh->GetNamedAttribute(GeometryAttribute::TANGENT) == nullptr) {
-    DRACO_RETURN_IF_ERROR(GenerateTangentsForMesh(mesh));
-  }
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
-
   return OkStatus();
 }
 
@@ -1444,22 +1354,6 @@ Status GltfDecoder::CheckAndAddTextureToDracoMaterial(
 
   const tinygltf::Texture &input_texture = gltf_model_.textures[texture_index];
   int source_index = input_texture.source;
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  if (source_index < 0) {
-    // Check extensions. If the source image is ktx, the source is stored under
-    // "KHR_texture_basisu" extension.
-    const auto &e = input_texture.extensions.find("KHR_texture_basisu");
-    if (e != input_texture.extensions.end() && e->second.IsObject() &&
-        e->second.Has("source")) {
-      const auto &source_element = e->second.Get("source");
-      if (source_element.IsInt()) {
-        source_index = source_element.Get<int>();
-      }
-    }
-  }
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
-
   const auto texture_it = gltf_image_to_draco_texture_.find(source_index);
   if (texture_it != gltf_image_to_draco_texture_.end()) {
     Texture *const texture = texture_it->second;
@@ -1933,9 +1827,6 @@ Status GltfDecoder::DecodePrimitiveForScene(
 
   std::set<int32_t> normalized_attributes;
   for (const auto &attribute : primitive.attributes) {
-    if (attribute.second >= gltf_model_.accessors.size()) {
-      return ErrorStatus("Invalid accessor.");
-    }
     const tinygltf::Accessor &accessor =
         gltf_model_.accessors[attribute.second];
     const int component_type = accessor.componentType;
@@ -2861,12 +2752,6 @@ Status GltfDecoder::AddMaterialsToScene() {
     }
   }
 
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-  for (Mesh *mesh : meshes_that_need_tangents) {
-    GenerateTangentsForMesh(mesh);
-  }
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
-
   return OkStatus();
 }
 
@@ -2976,23 +2861,6 @@ size_t GltfDecoder::PrimitiveSignature::Hash::operator()(
   hash = HashCombine(signature.primitive.mode, hash);
   return hash;
 }
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-Status GltfDecoder::GenerateTangentsForMesh(Mesh *mesh) {
-  // Input mesh uses a normal map but it does not have a tangent attribute.
-  // Auto-generate the tangents using the Mikktspace algorithm (as defined by
-  // the GLTF 2.0 spec).
-  DRACO_RETURN_IF_ERROR(TangentSpaceGenerator::MikktspaceGenerate(mesh));
-
-  // Add metadata indicating the tangents were automatically generated.
-  std::unique_ptr<AttributeMetadata> metadata(new AttributeMetadata());
-  metadata->AddEntryInt("auto_generated", 1);
-  mesh->AddAttributeMetadata(
-      mesh->GetNamedAttributeId(GeometryAttribute::TANGENT),
-      std::move(metadata));
-  return OkStatus();
-}
-#endif
 
 StatusOr<std::unique_ptr<Mesh>> GltfDecoder::BuildMeshFromBuilder(
     bool use_mesh_builder, TriangleSoupMeshBuilder *mb, PointCloudBuilder *pb) {

@@ -120,10 +120,6 @@ class TextureMap {
                      FilterType min_filter, FilterType mag_filter);
 
   // Set texture and transfer its ownership to the TextureMap object.
-  //
-  // Note that this should not be used if this TextureMap is part of a
-  // MaterialLibrary. For such cases, the TextureMap's texture should refer to
-  // an entry in the MaterialLibrary's TextureLibrary.
   void SetTexture(std::unique_ptr<Texture> texture);
 
   // Set texture and without transferring the ownership. The caller needs to

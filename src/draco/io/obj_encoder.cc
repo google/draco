@@ -129,23 +129,18 @@ bool ObjEncoder::GetAddedEdges() {
   if (!mesh_metadata) {
     return true;
   }
-
-  // Try to get a per-corner attribute describing added edges.
-  {
-    const AttributeMetadata *att_metadata =
-        mesh_metadata->GetAttributeMetadataByStringEntry("name", "added_edges");
-    if (att_metadata) {
-      const auto att =
-          in_mesh_->GetAttributeByUniqueId(att_metadata->att_unique_id());
-      if (att->size() == 0 || att->num_components() != 1 ||
-          att->data_type() != DataType::DT_UINT8) {
-        return false;
-      }
-      added_edges_att_ = att;
-      return true;
-    }
+  const AttributeMetadata *att_metadata =
+      mesh_metadata->GetAttributeMetadataByStringEntry("name", "added_edges");
+  if (!att_metadata) {
+    return true;
   }
-
+  const auto att =
+      in_mesh_->GetAttributeByUniqueId(att_metadata->att_unique_id());
+  if (att->size() == 0 || att->num_components() != 1 ||
+      att->data_type() != DataType::DT_UINT8) {
+    return false;
+  }
+  added_edges_att_ = att;
   return true;
 }
 
@@ -425,16 +420,6 @@ void ObjEncoder::EncodeInt(int32_t val) {
   buffer()->Encode(num_buffer_, strlen(num_buffer_));
 }
 
-bool ObjEncoder::IsNewEdge(const CornerTable &ct, CornerIndex ci) const {
-  const PointIndex pi = in_mesh_->CornerToPointId(ci);
-  if (added_edges_att_ != nullptr) {
-    uint8_t value;
-    added_edges_att_->GetMappedValue(pi, &value);
-    return value == 1;
-  }
-  return false;
-}
-
 void ObjEncoder::FindOriginalFaceEdges(FaceIndex face_index,
                                        const CornerTable &corner_table,
                                        std::vector<bool> *triangle_visited,
@@ -447,13 +432,16 @@ void ObjEncoder::FindOriginalFaceEdges(FaceIndex face_index,
   const Mesh::Face &face = in_mesh_->face(face_index);
   for (size_t c = 0; c < 3; c++) {
     // Check for added edge using this corner.
+    const PointIndex pi = face[c];
+    uint8_t is_new_edge;
+    added_edges_att_->GetMappedValue(pi, &is_new_edge);
     const CornerIndex ci = corner_table.FirstCorner(face_index) + c;
     const CornerIndex co = corner_table.Opposite(ci);
-    bool is_new_edge = IsNewEdge(corner_table, ci);
 
     // Check for the new edge using the opposite corner.
     if (!is_new_edge && co != kInvalidCornerIndex) {
-      is_new_edge = IsNewEdge(corner_table, co);
+      const PointIndex pi = in_mesh_->CornerToPointId(co);
+      added_edges_att_->GetMappedValue(pi, &is_new_edge);
     }
     // The new edge may become a boundary edge when a degenerate triangle
     // created by polygon triangulation is removed by Draco encoder, hence |co|

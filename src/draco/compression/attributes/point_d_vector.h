@@ -16,9 +16,7 @@
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_POINT_D_VECTOR_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_POINT_D_VECTOR_H_
 
-#include <cstddef>
 #include <cstring>
-#include <iterator>
 #include <memory>
 #include <vector>
 
@@ -101,17 +99,11 @@ class PointDVector {
         data_(n_items * dimensionality),
         data0_(data_.data()) {}
   // random access iterator
-  class PointDVectorIterator {
+  class PointDVectorIterator
+      : public std::iterator<std::random_access_iterator_tag, size_t, size_t> {
     friend class PointDVector;
 
    public:
-    // Iterator traits expected by std libraries.
-    using iterator_category = std::random_access_iterator_tag;
-    using value_type = size_t;
-    using difference_type = size_t;
-    using pointer = PointDVector *;
-    using reference = PointDVector &;
-
     // std::iter_swap is called inside of std::partition and needs this
     // specialized support
     PseudoPointD<internal_t> operator*() const {

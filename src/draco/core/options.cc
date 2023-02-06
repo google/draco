@@ -15,7 +15,6 @@
 #include "draco/core/options.h"
 
 #include <cstdlib>
-#include <set>
 #include <string>
 #include <utility>
 
@@ -26,16 +25,6 @@ void Options::MergeAndReplace(const Options &other_options) {
     options_[item.first] = item.second;
   }
 }
-
-#ifdef DRACO_SIMPLIFIER_SUPPORTED
-std::set<std::string> Options::ComputeNames() const {
-  std::set<std::string> names;
-  for (auto it = options_.begin(); it != options_.end(); it++) {
-    names.insert(it->first);
-  }
-  return names;
-}
-#endif  // DRACO_SIMPLIFIER_SUPPORTED
 
 void Options::SetInt(const std::string &name, int val) {
   options_[name] = std::to_string(val);
