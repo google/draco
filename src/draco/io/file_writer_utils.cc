@@ -38,7 +38,7 @@ bool DirectoryExists(const std::string &path_arg) {
   struct stat path_stat;
   std::string path = path_arg;
 
-#if defined(_WIN32)
+#if defined(_WIN32) && not defined(__MINGW32__)
   // Avoid a silly windows issue: stat() will fail on a drive letter missing the
   // trailing slash.
   if (path.size() > 0 && path[path.size()] != '\\' &&
