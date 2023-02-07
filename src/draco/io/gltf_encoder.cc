@@ -18,13 +18,19 @@
 #include <sys/types.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
+#include <functional>
+#include <iterator>
+#include <map>
 #include <memory>
 #include <set>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "draco/attributes/geometry_attribute.h"
 #include "draco/attributes/point_attribute.h"
@@ -33,6 +39,7 @@
 #include "draco/core/draco_types.h"
 #include "draco/core/vector_d.h"
 #include "draco/io/file_utils.h"
+#include "draco/io/file_writer_utils.h"
 #include "draco/io/gltf_utils.h"
 #include "draco/io/texture_io.h"
 #include "draco/mesh/mesh_features.h"
@@ -40,6 +47,7 @@
 #include "draco/mesh/mesh_utils.h"
 #include "draco/scene/instance_array.h"
 #include "draco/scene/scene_indices.h"
+#include "draco/scene/scene_utils.h"
 #include "draco/texture/texture_utils.h"
 
 namespace draco {
@@ -284,14 +292,17 @@ class GltfAsset {
 
   // Compresses |mesh| using Draco. On success returns the buffer_view in
   // |primitive| and number of encoded points and faces.
-  Status CompressMeshWithDraco(const Mesh &mesh, GltfPrimitive *primitive,
+  Status CompressMeshWithDraco(const Mesh &mesh,
+                               const Eigen::Matrix4d &transform,
+                               GltfPrimitive *primitive,
                                int64_t *num_encoded_points,
                                int64_t *num_encoded_faces);
 
   // Adds a Draco mesh associated with a material id and material variants.
   bool AddDracoMesh(const Mesh &mesh, int material_id,
                     const std::vector<MeshGroup::MaterialsVariantsMapping>
-                        &material_variants_mappings);
+                        &material_variants_mappings,
+                    const Eigen::Matrix4d &transform);
 
   // Add the Draco mesh indices to the glTF data. |num_encoded_faces| is the
   // number of faces encoded in |mesh|, which can be different than
@@ -570,6 +581,7 @@ class GltfAsset {
   // Keeps track if the glTF mesh has been added.
   std::map<MeshGroupIndex, int> mesh_group_index_to_gltf_mesh_;
   std::map<MeshIndex, std::pair<int, int>> mesh_index_to_gltf_mesh_primitive_;
+  IndexTypeVector<MeshIndex, Eigen::Matrix4d> base_mesh_transforms_;
 
   struct EncoderAnimation {
     std::string name;
@@ -678,7 +690,7 @@ bool GltfAsset::AddDracoMesh(const Mesh &mesh) {
   const int32_t material_att_id =
       mesh.GetNamedAttributeId(GeometryAttribute::MATERIAL);
   if (material_att_id == -1) {
-    if (!AddDracoMesh(mesh, 0, {})) {
+    if (!AddDracoMesh(mesh, 0, {}, Eigen::Matrix4d::Identity())) {
       return false;
     }
   } else {
@@ -709,7 +721,8 @@ bool GltfAsset::AddDracoMesh(const Mesh &mesh) {
 
       // The material index in the glTF file corresponds to the index of the
       // split mesh.
-      if (!AddDracoMesh(*(local_meshes_.back().get()), mat_index, {})) {
+      if (!AddDracoMesh(*(local_meshes_.back().get()), mat_index, {},
+                        Eigen::Matrix4d::Identity())) {
         return false;
       }
     }
@@ -806,12 +819,12 @@ void GltfAsset::AddAttributeToDracoExtension(
 }
 
 Status GltfAsset::CompressMeshWithDraco(const Mesh &mesh,
+                                        const Eigen::Matrix4d &transform,
                                         GltfPrimitive *primitive,
                                         int64_t *num_encoded_points,
                                         int64_t *num_encoded_faces) {
   // Check that geometry comression options are valid.
-  const DracoCompressionOptions &compression_options =
-      mesh.GetCompressionOptions();
+  DracoCompressionOptions compression_options = mesh.GetCompressionOptions();
   DRACO_RETURN_IF_ERROR(compression_options.Check());
 
   // Make a copy of the mesh. It will be modified and compressed.
@@ -847,9 +860,29 @@ Status GltfAsset::CompressMeshWithDraco(const Mesh &mesh,
     if (att->attribute_type() == GeometryAttribute::POSITION &&
         !compression_options.quantization_position
              .AreQuantizationBitsDefined()) {
-      // TODO(ostava): Handle grid option. This will be implemented in a
-      // separate CL.
-      return ErrorStatus("Grid quantization not implemented yet.");
+      // Desired spacing in the "global" coordinate system.
+      const float global_spacing =
+          compression_options.quantization_position.spacing();
+
+      // Note: Ideally we would transform the whole mesh before encoding and
+      // apply the original global spacing on the transformed mesh. But neither
+      // KHR_draco_mesh_compression, nor Draco bitstream support post-decoding
+      // transformations so we have to modify the grid settings here.
+
+      // Transform this spacing to the local coordinate system of the base mesh.
+      // We will get the largest scale factor from the transformation matrix and
+      // use it to adjust the grid spacing.
+      const Vector3f scale_vec(transform.col(0).norm(), transform.col(1).norm(),
+                               transform.col(2).norm());
+
+      const float max_scale = scale_vec.MaxCoeff();
+
+      // Spacing is inverse to the scale. The larger the scale, the smaller the
+      // spacing must be.
+      const float local_spacing = global_spacing / max_scale;
+
+      // Update the compression options of the processed mesh.
+      compression_options.quantization_position.SetGrid(local_spacing);
     } else {
       int num_quantization_bits = -1;
       switch (att->attribute_type()) {
@@ -911,6 +944,9 @@ Status GltfAsset::CompressMeshWithDraco(const Mesh &mesh,
     }
   }
 
+  // |compression_options| may have been modified and we need to update them
+  // before we start the encoding.
+  mesh_copy->SetCompressionOptions(compression_options);
   DRACO_RETURN_IF_ERROR(encoder.EncodeToBuffer(&buffer));
   *num_encoded_points = encoder.num_encoded_points();
   *num_encoded_faces = encoder.num_encoded_faces();
@@ -981,13 +1017,14 @@ bool CheckAndGetTexCoordAttributeOrder(const Mesh &mesh,
 bool GltfAsset::AddDracoMesh(
     const Mesh &mesh, int material_id,
     const std::vector<MeshGroup::MaterialsVariantsMapping>
-        &material_variants_mappings) {
+        &material_variants_mappings,
+    const Eigen::Matrix4d &transform) {
   GltfPrimitive primitive;
   int64_t num_encoded_points = mesh.num_points();
   int64_t num_encoded_faces = mesh.num_faces();
   if (num_encoded_faces > 0 && mesh.IsCompressionEnabled()) {
     const Status status = CompressMeshWithDraco(
-        mesh, &primitive, &num_encoded_points, &num_encoded_faces);
+        mesh, transform, &primitive, &num_encoded_points, &num_encoded_faces);
     if (!status.ok()) {
       return false;
     }
@@ -1385,7 +1422,11 @@ StatusOr<int> GltfAsset::AddImage(const std::string &image_stem,
     }
     return it->second;
   }
-  const std::string extension = TextureUtils::GetTargetExtension(*texture);
+  std::string extension = TextureUtils::GetTargetExtension(*texture);
+  if (extension.empty()) {
+    // Try to get extension from the source file name.
+    extension = LowercaseFileExtension(texture->source_image().filename());
+  }
   GltfImage image;
   image.image_name = image_stem + "." + extension;
   image.texture = texture;
@@ -1470,6 +1511,9 @@ Status GltfAsset::AddScene(const Scene &scene) {
   if (!AddMaterials(scene)) {
     return Status(Status::DRACO_ERROR, "Error adding materials to the scene.");
   }
+  // Initialize base mesh transforms that may be needed when the base meshes are
+  // compressed with Draco.
+  base_mesh_transforms_ = SceneUtils::FindLargestBaseMeshTransforms(scene);
   for (SceneNodeIndex i(0); i < scene.NumNodes(); ++i) {
     DRACO_RETURN_IF_ERROR(AddSceneNode(scene, i));
   }
@@ -1521,7 +1565,8 @@ Status GltfAsset::AddSceneNode(const Scene &scene,
           // We have not added the mesh to the scene yet.
           const Mesh &mesh = scene.GetMesh(instance.mesh_index);
           if (!AddDracoMesh(mesh, instance.material_index,
-                            instance.materials_variants_mappings)) {
+                            instance.materials_variants_mappings,
+                            base_mesh_transforms_[instance.mesh_index])) {
             return Status(Status::DRACO_ERROR, "Adding a Draco mesh failed.");
           }
           const int gltf_mesh_index = meshes_.size() - 1;
@@ -3411,7 +3456,6 @@ Status GltfEncoder::EncodeFile(const T &geometry, const std::string &filename,
   }
   return WriteGltfFiles(gltf_asset, buffer, filename, bin_filename,
                         resource_dir);
-  return OkStatus();
 }
 
 template <typename T>

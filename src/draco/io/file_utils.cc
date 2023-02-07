@@ -94,6 +94,23 @@ bool ReadFileToBuffer(const std::string &file_name,
   return file_reader->ReadFileToBuffer(buffer);
 }
 
+bool ReadFileToString(const std::string &file_name, std::string *contents) {
+  if (!contents) {
+    return false;
+  }
+  std::unique_ptr<FileReaderInterface> file_reader =
+      FileReaderFactory::OpenReader(file_name);
+  if (file_reader == nullptr) {
+    return false;
+  }
+  std::vector<char> buffer;
+  if (!ReadFileToBuffer(file_name, &buffer)) {
+    return false;
+  }
+  contents->assign(buffer.begin(), buffer.end());
+  return true;
+}
+
 bool WriteBufferToFile(const char *buffer, size_t buffer_size,
                        const std::string &file_name) {
   std::unique_ptr<FileWriterInterface> file_writer =

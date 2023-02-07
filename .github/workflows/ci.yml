@@ -105,8 +105,8 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc \
-                -DCMAKE_CXX_COMPILER=g++ \
+                -DCMAKE_C_COMPILER=gcc-10 \
+                -DCMAKE_CXX_COMPILER=g++-10 \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
@@ -116,32 +116,8 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc \
-                -DCMAKE_CXX_COMPILER=g++ \
-                -DDRACO_TESTS=ON \
-                -DDRACO_TRANSCODER_SUPPORTED=ON
-            cmake_build_command: cmake --build . -- -j2
-            draco_test_command: ./draco_tests
-
-          - test_name: ubuntu22-make-clang14-release-static
-            os: ubuntu-22.04
-            cmake_configure_command: |-
-              cmake .. -G "Unix Makefiles" \
-                -DBUILD_SHARED_LIBS=OFF \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=clang-14 \
-                -DCMAKE_CXX_COMPILER=clang++-14 \
-                -DDRACO_TESTS=ON
-            cmake_build_command: cmake --build . -- -j2
-            draco_test_command: ./draco_tests
-          - test_name: ubuntu22-make-clang14-release-static-with-transcoder
-            os: ubuntu-22.04
-            cmake_configure_command: |-
-              cmake .. -G "Unix Makefiles" \
-                -DBUILD_SHARED_LIBS=OFF \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=clang-14 \
-                -DCMAKE_CXX_COMPILER=clang++-14 \
+                -DCMAKE_C_COMPILER=gcc-10 \
+                -DCMAKE_CXX_COMPILER=g++-10 \
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
@@ -153,8 +129,8 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc \
-                -DCMAKE_CXX_COMPILER=g++ \
+                -DCMAKE_C_COMPILER=gcc-10 \
+                -DCMAKE_CXX_COMPILER=g++-10 \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
@@ -164,8 +140,8 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc \
-                -DCMAKE_CXX_COMPILER=g++ \
+                -DCMAKE_C_COMPILER=gcc-10 \
+                -DCMAKE_CXX_COMPILER=g++-10 \
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
@@ -189,8 +165,7 @@ jobs:
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . --config Release -- -m:2
-            # TODO(https://github.com/google/draco/issues/938): Flaking on this target.
-            draco_test_command: Release/draco_tests --gtest_filter=-GltfDecoderTest.TestLoadUnsupportedTexCoordAttributes
+            draco_test_command: Release/draco_tests
 
           - test_name: windows-msvc-release-static
             os: windows-2019
@@ -210,8 +185,7 @@ jobs:
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . --config Release -- -m:2
-            # TODO(https://github.com/google/draco/issues/938): Flaking on this target.
-            draco_test_command: Release/draco_tests --gtest_filter=-GltfDecoderTest.TestLoadUnsupportedTexCoordAttributes
+            draco_test_command: Release/draco_tests
 
           - test_name: windows-make-release-shared
             os: windows-2019
@@ -235,8 +209,7 @@ jobs:
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
-            # TODO(https://github.com/google/draco/issues/938): Flaking on this target.
-            draco_test_command: ./draco_tests --gtest_filter=-GltfDecoderTest.TestLoadUnsupportedTexCoordAttributes
+            draco_test_command: ./draco_tests
 
           - test_name: windows-make-release-static
             os: windows-2019
@@ -260,8 +233,7 @@ jobs:
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
-            # TODO(https://github.com/google/draco/issues/938): Flaking on this target.
-            draco_test_command: ./draco_tests --gtest_filter=-GltfDecoderTest.TestLoadUnsupportedTexCoordAttributes
+            draco_test_command: ./draco_tests
 
     name: test-${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}

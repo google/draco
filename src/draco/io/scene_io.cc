@@ -17,6 +17,7 @@
 #include <string>
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include "draco/io/file_utils.h"
 #include "draco/io/gltf_decoder.h"
 #include "draco/io/gltf_encoder.h"
 #include "draco/io/obj_encoder.h"

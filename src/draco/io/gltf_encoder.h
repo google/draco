@@ -18,6 +18,7 @@
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <functional>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -83,10 +84,10 @@ class GltfEncoder {
   void set_output_type(OutputType type) { output_type_ = type; }
   OutputType output_type() const { return output_type_; }
 
-  // The name of the attribute metadata that contains the glTF attribute name.
-  // For application-specific generic attributes, if the metadata for an
-  // attribute contains this key, then the value will be used as the encoded
-  // attribute name in the output GLTF.
+  // The name of the attribute metadata that contains the glTF attribute
+  // name. For application-specific generic attributes, if the metadata for
+  // an attribute contains this key, then the value will be used as the
+  // encoded attribute name in the output GLTF.
   static const char kDracoMetadataGltfAttributeName[];
 
  private:

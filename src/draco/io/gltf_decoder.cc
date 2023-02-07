@@ -15,7 +15,6 @@
 #include "draco/io/gltf_decoder.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
-
 #include <memory>
 #include <set>
 #include <string>
@@ -38,7 +37,6 @@
 #include "draco/scene/scene_indices.h"
 #include "draco/texture/source_image.h"
 #include "draco/texture/texture_utils.h"
-#include "tiny_gltf.h"
 
 namespace draco {
 
@@ -514,6 +512,7 @@ Status GltfDecoder::LoadBuffer(const DecoderBuffer &buffer) {
   tinygltf::TinyGLTF loader;
   std::string err;
   std::string warn;
+
   if (!loader.LoadBinaryFromMemory(
           &gltf_model_, &err, &warn,
           reinterpret_cast<const unsigned char *>(buffer.data_head()),
@@ -830,6 +829,9 @@ Status GltfDecoder::AccumulatePrimitiveStats(
   }
 
   for (const auto &attribute : primitive.attributes) {
+    if (attribute.second >= gltf_model_.accessors.size()) {
+      return ErrorStatus("Invalid accessor.");
+    }
     const tinygltf::Accessor &accessor =
         gltf_model_.accessors[attribute.second];
 
@@ -1235,6 +1237,7 @@ Status GltfDecoder::CopyTextures(T *owner) {
       // add an image with negative values.
       return Status(Status::DRACO_ERROR, "Error loading image.");
     }
+
     std::unique_ptr<Texture> draco_texture(new Texture());
 
     // Update mapping between glTF images and textures in the texture library.
@@ -1354,6 +1357,7 @@ Status GltfDecoder::CheckAndAddTextureToDracoMaterial(
 
   const tinygltf::Texture &input_texture = gltf_model_.textures[texture_index];
   int source_index = input_texture.source;
+
   const auto texture_it = gltf_image_to_draco_texture_.find(source_index);
   if (texture_it != gltf_image_to_draco_texture_.end()) {
     Texture *const texture = texture_it->second;
@@ -1827,6 +1831,9 @@ Status GltfDecoder::DecodePrimitiveForScene(
 
   std::set<int32_t> normalized_attributes;
   for (const auto &attribute : primitive.attributes) {
+    if (attribute.second >= gltf_model_.accessors.size()) {
+      return ErrorStatus("Invalid accessor.");
+    }
     const tinygltf::Accessor &accessor =
         gltf_model_.accessors[attribute.second];
     const int component_type = accessor.componentType;

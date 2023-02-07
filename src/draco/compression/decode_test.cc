@@ -21,6 +21,7 @@
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 #include "draco/io/file_utils.h"
+#include "draco/io/obj_encoder.h"
 
 namespace {
 

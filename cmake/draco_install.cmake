@@ -23,10 +23,10 @@ include(GNUInstallDirs)
 # Sets up the draco install targets. Must be called after the static library
 # target is created.
 macro(draco_setup_install_target)
-  set(bin_path "${CMAKE_INSTALL_FULL_BINDIR}")
-  set(data_path "${CMAKE_INSTALL_FULL_DATAROOTDIR}")
-  set(includes_path "${CMAKE_INSTALL_FULL_INCLUDEDIR}")
-  set(libs_path "${CMAKE_INSTALL_FULL_LIBDIR}")
+  set(bin_path "${CMAKE_INSTALL_BINDIR}")
+  set(data_path "${CMAKE_INSTALL_DATAROOTDIR}")
+  set(includes_path "${CMAKE_INSTALL_INCLUDEDIR}")
+  set(libs_path "${CMAKE_INSTALL_LIBDIR}")
 
   foreach(file ${draco_sources})
     if(file MATCHES "h$")

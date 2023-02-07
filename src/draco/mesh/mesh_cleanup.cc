@@ -14,7 +14,11 @@
 //
 #include "draco/mesh/mesh_cleanup.h"
 
+#include <array>
+#include <memory>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "draco/core/hash_utils.h"
 

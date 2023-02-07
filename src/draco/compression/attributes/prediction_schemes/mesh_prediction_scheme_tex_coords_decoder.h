@@ -165,6 +165,11 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
   if (num_orientations == 0) {
     return false;
   }
+  if (num_orientations > this->mesh_data().corner_table()->num_corners()) {
+    // We can't have more orientations than the maximum number of decoded
+    // values.
+    return false;
+  }
   orientations_.resize(num_orientations);
   bool last_orientation = true;
   RAnsBitDecoder decoder;

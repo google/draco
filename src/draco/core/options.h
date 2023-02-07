@@ -19,6 +19,8 @@
 #include <map>
 #include <string>
 
+#include "draco/draco_features.h"
+
 namespace draco {
 
 // Class for storing generic options as a <name, value> pair in a string map.

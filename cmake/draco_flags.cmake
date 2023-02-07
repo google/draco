@@ -99,8 +99,8 @@ macro(draco_test_cxx_flag)
   # are passed as a list it will remove the list separators, and attempt to run
   # a compile command using list entries concatenated together as a single
   # argument. Avoid the problem by forcing the argument to be a string.
-  draco_set_and_stringify(SOURCE_VARS all_cxx_flags DEST all_cxx_flags)
-  check_cxx_compiler_flag("${all_cxx_flags}" draco_all_cxx_flags_pass)
+  draco_set_and_stringify(SOURCE_VARS all_cxx_flags DEST all_cxx_flags_string)
+  check_cxx_compiler_flag("${all_cxx_flags_string}" draco_all_cxx_flags_pass)
 
   if(cxx_test_FLAG_REQUIRED AND NOT draco_all_cxx_flags_pass)
     draco_die("Flag test failed for required flag(s): "

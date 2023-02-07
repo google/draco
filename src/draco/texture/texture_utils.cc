@@ -15,7 +15,13 @@
 #include "draco/texture/texture_utils.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <algorithm>
+#include <cstdint>
+#include <limits>
+#include <memory>
+#include <string>
 #include <unordered_set>
+#include <vector>
 
 namespace draco {
 

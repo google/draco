@@ -55,16 +55,15 @@ endmacro()
 macro(draco_dump_cmake_flag_variables)
   unset(flag_variables)
   list(APPEND flag_variables "CMAKE_CXX_FLAGS_INIT" "CMAKE_CXX_FLAGS"
-       "CMAKE_EXE_LINKER_FLAGS_INIT" "CMAKE_EXE_LINKER_FLAGS")
+              "CMAKE_EXE_LINKER_FLAGS_INIT" "CMAKE_EXE_LINKER_FLAGS")
   if(CMAKE_BUILD_TYPE)
     list(
-      APPEND
-      flag_variables
-      "CMAKE_BUILD_TYPE"
-      "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}_INIT"
-      "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}"
-      "CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE}_INIT"
-      "CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE}")
+      APPEND flag_variables
+             "CMAKE_BUILD_TYPE"
+             "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}_INIT"
+             "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}"
+             "CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE}_INIT"
+             "CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE}")
   endif()
   foreach(flag_variable ${flag_variables})
     message("${flag_variable}:${${flag_variable}}")
