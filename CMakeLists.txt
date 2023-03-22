@@ -1101,14 +1101,14 @@ else()
   # Draco app targets.
   draco_add_executable(
     NAME draco_decoder
-    SOURCES "${draco_src_root}/tools/draco_decoder.cc" ${draco_io_sources}
+    SOURCES "${draco_src_root}/tools/draco_decoder.cc"
     DEFINES ${draco_defines}
     INCLUDES ${draco_include_paths}
     LIB_DEPS ${draco_dependency})
 
   draco_add_executable(
     NAME draco_encoder
-    SOURCES "${draco_src_root}/tools/draco_encoder.cc" ${draco_io_sources}
+    SOURCES "${draco_src_root}/tools/draco_encoder.cc"
     DEFINES ${draco_defines}
     INCLUDES ${draco_include_paths}
     LIB_DEPS ${draco_dependency})
@@ -1119,7 +1119,6 @@ else()
       SOURCES "${draco_src_root}/tools/draco_transcoder.cc"
               "${draco_src_root}/tools/draco_transcoder_lib.cc"
               "${draco_src_root}/tools/draco_transcoder_lib.h"
-              ${draco_io_sources}
       DEFINES ${draco_defines}
       INCLUDES ${draco_include_paths}
       LIB_DEPS ${draco_dependency})
@@ -1131,7 +1130,6 @@ else()
                 "${draco_src_root}/tools/draco_simplifier.cc"
                 "${draco_src_root}/tools/draco_simplifier_lib.cc"
                 "${draco_src_root}/tools/draco_simplifier_lib.h"
-                ${draco_io_sources}
         DEFINES ${draco_defines}
         INCLUDES ${draco_include_paths}
         LIB_DEPS ${draco_dependency})
