@@ -108,7 +108,6 @@ std::unique_ptr<PointsSequencer>
 MeshEdgebreakerDecoderImpl<TraversalDecoder>::CreateVertexTraversalSequencer(
     MeshAttributeIndicesEncodingData *encoding_data) {
   typedef typename TraverserT::TraversalObserver AttObserver;
-  typedef typename TraverserT::CornerTable CornerTable;
 
   const Mesh *mesh = decoder_->mesh();
   std::unique_ptr<MeshTraversalSequencer<TraverserT>> traversal_sequencer(
