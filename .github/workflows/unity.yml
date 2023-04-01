@@ -385,7 +385,7 @@ jobs:
 
   linux_legacy:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v3
@@ -396,7 +396,6 @@ jobs:
         path: ${{env.EM_1_CACHE_FOLDER}}
         key: ${{env.EM_1_VERSION}}-${{ runner.os }}
 
-    # CMake that comes with Ubuntu 18.04 is too old, so install a recent version here
     - name: Get latest CMake and ninja
       uses: lukka/get-cmake@latest
 
