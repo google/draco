@@ -454,7 +454,7 @@ jobs:
     needs: [mac, windows, linux, linux_legacy, linux_emscripten_3]
     steps:
       - name: download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: artifacts
       - name: Display structure of downloaded files
