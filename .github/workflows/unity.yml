@@ -19,13 +19,13 @@ on:
 env:
   # Emscripten version for Unity 2022.2 or newer
   EM_3_VERSION: 3.1.8
-  EM_3_CACHE_FOLDER: 'emsdk-cache'
+  EM_3_CACHE_FOLDER: 'emsdk-3-cache'
   # Emscripten version for Unity 2021.2 and 2021.3
   EM_2_VERSION: 2.0.19
-  EM_2_CACHE_FOLDER: 'emsdk-cache'
+  EM_2_CACHE_FOLDER: 'emsdk-2-cache'
   # Emscripten version that comes with older Unity versions
   EM_1_VERSION: 1.38.48-fastcomp
-  EM_1_CACHE_FOLDER: 'emsdk-legacy-cache'
+  EM_1_CACHE_FOLDER: 'emsdk-1-cache'
 
 jobs:
 
@@ -482,7 +482,7 @@ jobs:
           name: draco
           path: draco
       - name: delete obsolete artifacts
-        uses: geekyeggo/delete-artifact@v1
+        uses: geekyeggo/delete-artifact@v2
         with:
           name: |
             draco_apple
