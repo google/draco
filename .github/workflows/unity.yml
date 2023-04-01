@@ -43,7 +43,7 @@ jobs:
     - uses: seanmiddleditch/gha-setup-ninja@v3
 
     - name: configure_mac
-      # ARCHS_STANDARD explicitely enables Apple silicon on Xcode 12.2
+      # ARCHS_STANDARD explicitly enables Apple silicon on Xcode 12.2
       run: >
         cmake . -G Ninja -B build_mac
         -DCMAKE_BUILD_TYPE=MinSizeRel
