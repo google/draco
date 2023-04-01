@@ -313,9 +313,9 @@ jobs:
     # Linux artifacts
     - name: package Linux
       run: |
-        mkdir -p draco_linux/WebGL
-        mv build_web/libdracodec_unity.a draco_linux/WebGL
-        mv build_web/libdracoenc_unity.a draco_linux/WebGL
+        mkdir -p draco_linux/WebGL/2021
+        mv build_web/libdracodec_unity.a draco_linux/WebGL/2021
+        mv build_web/libdracoenc_unity.a draco_linux/WebGL/2021
         mkdir -p draco_linux/Android/libs/arm64-v8a
         mkdir -p draco_linux/Android/libs/armeabi-v7a
         mkdir -p draco_linux/Android/libs/x86
@@ -373,9 +373,9 @@ jobs:
     # Artifacts
     - name: package
       run: |
-        mkdir -p draco_emscripten_3/WebGL
-        mv build_web/libdracodec_unity.a draco_emscripten_3/WebGL/libdracodec_unity_3.a
-        mv build_web/libdracoenc_unity.a draco_emscripten_3/WebGL/libdracoenc_unity_3.a
+        mkdir -p draco_emscripten_3/WebGL/2022
+        mv build_web/libdracodec_unity.a draco_emscripten_3/WebGL/2022
+        mv build_web/libdracoenc_unity.a draco_emscripten_3/WebGL/2022
     - name: upload artifact
       uses: actions/upload-artifact@v3
       with:
@@ -437,9 +437,9 @@ jobs:
         mkdir -p draco_linux_legacy/x86_64
         mv build_linux_64/libdracodec_unity.so draco_linux_legacy/x86_64
         mv build_linux_64/libdracoenc_unity.so draco_linux_legacy/x86_64
-        mkdir -p draco_linux_legacy/WebGL
-        mv build_web/libdracodec_unity.bc draco_linux_legacy/WebGL
-        mv build_web/libdracoenc_unity.bc draco_linux_legacy/WebGL
+        mkdir -p draco_linux_legacy/WebGL/2020
+        mv build_web/libdracodec_unity.bc draco_linux_legacy/WebGL/2020
+        mv build_web/libdracoenc_unity.bc draco_linux_legacy/WebGL/2020
     - name: upload artifact
       uses: actions/upload-artifact@v3
       with:
