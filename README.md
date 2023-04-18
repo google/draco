@@ -21,6 +21,7 @@ versioned release.
 * The CMake flag DRACO_DEBUG_MSVC_WARNINGS has been replaced with
   DRACO_DEBUG_COMPILER_WARNINGS, and the behavior has changed. It is now a
   boolean flag defined in draco_options.cmake.
+* Added support for binary STL files.
 * Bug fixes.
 * Security fixes.
 
