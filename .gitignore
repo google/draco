@@ -1,1 +1,6 @@
 docs/_site
+
+/.vscode
+/build*
+
+.DS_Store
