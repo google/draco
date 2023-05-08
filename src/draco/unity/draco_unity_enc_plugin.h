@@ -64,11 +64,12 @@ namespace draco {
 
   template<class T>
   void dracoEncodeIndices(DracoMeshEncoder *encoder, uint32_t indexCount,
-                          T *indices);
+                          bool flip, T *indices);
   template <class T>
   uint32_t dracoSetAttribute(T *encoder, GeometryAttribute::Type attributeType,
                                     draco::DataType dracoDataType,
                                     int32_t componentCount, int32_t stride,
+                                    bool flip,
                                     void *data);
 
   template<class T>
@@ -89,8 +90,18 @@ extern "C" {
   void EXPORT_API dracoEncoderCopy(DracoEncoder *encoder, uint8_t *data);
   bool EXPORT_API dracoEncoderSetIndices(DracoMeshEncoder *encoder,
                                          DataType indexComponentType,
-                                         uint32_t indexCount, void *indices);
-  uint32_t EXPORT_API dracoEncoderSetAttribute(DracoEncoder *encoder, GeometryAttribute::Type attributeType, draco::DataType dracoDataType, int32_t componentCount, int32_t stride, void *data); 
+                                         uint32_t indexCount,
+                                         bool flip,
+                                         void *indices);
+  uint32_t EXPORT_API dracoEncoderSetAttribute(
+    DracoEncoder *encoder,
+    GeometryAttribute::Type attributeType,
+    draco::DataType dracoDataType,
+    int32_t componentCount,
+    int32_t stride,
+    bool flip,
+    void *data
+    );
   }  // extern "C"
 
 }  // namespace draco
