@@ -135,6 +135,12 @@ namespace draco {
       memcpy(data, encoder->encoderBuffer.data(), encoder->encoderBuffer.size());
   }
 
+  void dracoEncoderGetEncodeBuffer(DracoEncoder *encoder, void **data, uint64_t *size)
+  {
+      *data = (void*) encoder->encoderBuffer.data();
+      *size = encoder->encoderBuffer.size();
+  }
+
   bool dracoEncodeIndices(DracoMeshEncoder *encoder, uint32_t indexCount, DataType indexType, bool flip, void *indices)
   {
     switch (indexType)

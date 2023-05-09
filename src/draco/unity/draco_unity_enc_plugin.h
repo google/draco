@@ -88,6 +88,7 @@ extern "C" {
   uint32_t EXPORT_API dracoEncoderGetEncodedIndexCount(DracoEncoder *encoder);
   uint64_t EXPORT_API dracoEncoderGetByteLength(DracoEncoder *encoder);
   void EXPORT_API dracoEncoderCopy(DracoEncoder *encoder, uint8_t *data);
+  void EXPORT_API dracoEncoderGetEncodeBuffer(DracoEncoder *encoder, void **data, uint64_t *size);
   bool EXPORT_API dracoEncoderSetIndices(DracoMeshEncoder *encoder,
                                          DataType indexComponentType,
                                          uint32_t indexCount,
