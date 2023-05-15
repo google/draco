@@ -238,8 +238,8 @@ namespace draco {
 
     switch (componentCount) {
       case 2: 
-      {
-        T tmp[componentCount];
+      { 
+        T tmp[2];
         for (uint32_t i = 0; i < count; i++)
         {
           T* srcPtr = (T*) (dataBytes + i * stride);
@@ -252,7 +252,7 @@ namespace draco {
       }
       case 3:
       {
-        T tmp[componentCount];
+        T tmp[3];
         for (uint32_t i = 0; i < count; i++)
         {
           T* srcPtr = (T*) (dataBytes + i * stride);
@@ -266,7 +266,7 @@ namespace draco {
       }
       case 4:
       {
-        T tmp[componentCount];
+        T tmp[4];
         for (uint32_t i = 0; i < count; i++)
         {
           T* srcPtr = (T*) (dataBytes + i * stride);
