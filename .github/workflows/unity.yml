@@ -40,7 +40,8 @@ jobs:
       with:
         xcode-version: latest-stable
 
-    - uses: seanmiddleditch/gha-setup-ninja@v3
+    - name: Install Ninja
+      run: brew install ninja
 
     - name: configure_mac
       # ARCHS_STANDARD explicitly enables Apple silicon on Xcode 12.2
@@ -244,7 +245,9 @@ jobs:
       with:
         path: ${{env.EM_2_CACHE_FOLDER}}
         key: ${{env.EM_2_VERSION}}-${{ runner.os }}
-    - uses: seanmiddleditch/gha-setup-ninja@v3
+    - name: Install Ninja
+      shell: bash
+      run: sudo apt-get install ninja-build
 
     # Android
     - name: install Android NDK
