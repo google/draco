@@ -70,16 +70,22 @@ jobs:
       run: cmake --build build_ios --config MinSizeRel --target dracodec_unity
     - name: build_ios_dracoenc_unity
       run: cmake --build build_ios --config MinSizeRel --target dracoenc_unity
-    
+    - name: build_ios_simulator_dracodec_unity
+      run: cmake --build build_ios --config MinSizeRel --target dracodec_unity -- -sdk iphonesimulator
+    - name: build_ios_simulator_dracoenc_unity
+      run: cmake --build build_ios --config MinSizeRel --target dracoenc_unity -- -sdk iphonesimulator
+
     - name: package Apple
       run: |
         mkdir draco_apple
         mkdir draco_apple/x86_64
         mv build_mac/dracodec_unity.bundle draco_apple/x86_64
         mv build_mac/dracoenc_unity.bundle draco_apple/x86_64
-        mkdir draco_apple/iOS
+        mkdir -p draco_apple/iOS/simulator
         mv build_ios/MinSizeRel-iphoneos/libdracodec_unity.a draco_apple/iOS
         mv build_ios/MinSizeRel-iphoneos/libdracoenc_unity.a draco_apple/iOS
+        mv build_ios/MinSizeRel-iphonesimulator/libdracodec_unity.a draco_apple/iOS/simulator
+        mv build_ios/MinSizeRel-iphonesimulator/libdracoenc_unity.a draco_apple/iOS/simulator
     - name: upload artifact
       uses: actions/upload-artifact@v3
       with:
