@@ -1,0 +1,8 @@
+{
+  "name": "com.unity.cloud.draco.webgl-2023",
+  "version": "0.1.0",
+  "displayName": "Draco for Unity WebGL 2023",
+  "description": "Provides the Draco for Unity package with WebGL native libraries for Unity versions 2023.2 and newer",
+  "unity": "2023.2",
+  "unityRelease": "0a17"
+}
