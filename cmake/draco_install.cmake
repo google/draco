@@ -81,7 +81,7 @@ macro(draco_setup_install_target)
   endif()
 
   if(DRACO_UNITY_PLUGIN)
-    install(TARGETS dracodec_unity DESTINATION "${libs_path}")
+    install(TARGETS draco_unity DESTINATION "${libs_path}")
   endif()
 
   if(DRACO_MAYA_PLUGIN)
