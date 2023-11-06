@@ -1,0 +1,7 @@
+{
+  "name": "com.unity.cloud.draco.webgl-2021",
+  "version": "1.0.0-pre.1",
+  "displayName": "Draco for Unity WebGL 2021",
+  "description": "Provides the Draco for Unity package with WebGL native libraries for Unity versions 2021.2 to 2022.1",
+  "unity": "2021.2"
+}

@@ -1,0 +1,31 @@
+is_monorepo: !!bool true
+enable_nightly: !!bool true
+using_submodule: !!bool false
+git_main_branch: main
+
+enable_codecov: !!bool false
+enable_sonarqube: !!bool true
+
+upm_test_platforms:
+  - name: win
+    type: Unity::VM
+    flavor: b1.large
+    image: package-ci/win10:v4
+  - name: mac
+    type: Unity::VM::osx
+    image: package-ci/macos-13:v4
+    flavor: m1.mac
+
+web_packages:
+  - name: 2020
+    emscripten_version: 1.38.48-fastcomp
+    unity_version: 2020.1
+  - name: 2021
+    emscripten_version: 2.0.19
+    unity_version: 2021.2
+  - name: 2022
+    emscripten_version: 3.1.8
+    unity_version: 2022.2
+  - name: 2023
+    emscripten_version: 3.1.38
+    unity_version: 2023.2

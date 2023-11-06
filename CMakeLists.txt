@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
-cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project(draco C CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -533,6 +533,10 @@ list(APPEND draco_unity_plug_sources
             "${draco_src_root}/unity/draco_unity_plugin.cc"
             "${draco_src_root}/unity/draco_unity_plugin.h")
 
+list(APPEND draco_unity_enc_plug_sources
+            "${draco_src_root}/unity/draco_unity_enc_plugin.cc"
+            "${draco_src_root}/unity/draco_unity_enc_plugin.h")
+
 list(APPEND draco_maya_plug_sources
             "${draco_src_root}/maya/draco_maya_plugin.cc"
             "${draco_src_root}/maya/draco_maya_plugin.h")
@@ -1049,11 +1053,42 @@ else()
   endif()
 
   if(DRACO_UNITY_PLUGIN)
-    if(IOS)
+    if(IOS OR EMSCRIPTEN OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
       set(unity_decoder_lib_type STATIC)
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+      set(unity_decoder_lib_type SHARED)
     else()
       set(unity_decoder_lib_type MODULE)
     endif()
+
+    set(unity_objlib_dependency draco_unity_plugin)
+
+    list(APPEND unity_objlib_dependency
+      # Link selected object libs directly instead of ${draco_plugin_dependency}
+      # minimizes build size by omitting animation/IO/transcoder related symbols
+      # results in a single static lib file (no dependency on target `draco`)
+      draco_attributes
+      draco_compression_attributes_dec
+      draco_compression_attributes_enc
+      draco_compression_attributes_pred_schemes_dec
+      draco_compression_attributes_pred_schemes_enc
+      draco_compression_bit_coders
+      draco_compression_decode
+      draco_compression_encode
+      draco_compression_entropy
+      draco_compression_mesh_dec
+      draco_compression_mesh_enc
+      draco_compression_point_cloud_dec
+      draco_compression_point_cloud_enc
+      draco_core
+      draco_mesh
+      draco_metadata
+      draco_metadata_dec
+      draco_metadata_enc
+      draco_point_cloud
+      draco_points_dec
+      draco_points_enc
+    )
 
     draco_add_library(
       NAME draco_unity_plugin
@@ -1063,16 +1098,23 @@ else()
       INCLUDES ${draco_include_paths})
 
     draco_add_library(
-      NAME dracodec_unity
+      NAME draco_unity_enc_plugin
+      TYPE OBJECT
+      SOURCES ${draco_unity_enc_plug_sources}
+      DEFINES ${draco_defines}
+      INCLUDES ${draco_include_paths})
+
+    draco_add_library(
+      NAME draco_unity
       TYPE ${unity_decoder_lib_type}
       DEFINES ${draco_defines}
       INCLUDES ${draco_include_paths}
-      OBJLIB_DEPS draco_unity_plugin
-      LIB_DEPS ${draco_plugin_dependency})
+      OBJLIB_DEPS ${unity_objlib_dependency} draco_unity_enc_plugin
+    )
 
-    # For Mac, we need to build a .bundle for the unity plugin.
-    if(APPLE)
-      set_target_properties(dracodec_unity PROPERTIES BUNDLE true)
+    # For macOS, we need to build a .bundle for the unity plugin.
+    if(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+      set_target_properties(draco_unity PROPERTIES BUNDLE true)
     endif()
   endif()
 

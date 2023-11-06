@@ -1,0 +1,44 @@
+log_path: "test_results~"
+
+artifactory_url: "https://artifactory.prd.cds.internal.unity3d.com/artifactory"
+homebrew_url: "git@github.cds.internal.unity3d.com:unity/homebrew-unity.git"
+
+sonarqube_ci:
+  url: "https://sonarqube.internal.unity3d.com"
+  dependency:
+    name: "com.unity.ide.rider"
+    version: "3.0.13"
+  analysis:
+    - pr
+    - branch
+
+generic_project_path: .yamato/common/test_project~
+player_path: build/player
+
+npm_registry: "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
+upm_ci_registry: "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm"
+
+ci:
+  win:
+    env_sonar_token: "!SONARQUBE_PROD_ACCESS_TOKEN!"
+    env_unity_path: "%UNITY_EDITOR_PATH%"
+    env_yamato_src_dir: "%YAMATO_SOURCE_DIR%"
+    tool_utr: "utr.bat"
+  android:
+    env_sonar_token: "!SONARQUBE_PROD_ACCESS_TOKEN!"
+    env_unity_path: "%UNITY_EDITOR_PATH%"
+    env_yamato_src_dir: "%YAMATO_SOURCE_DIR%"
+    tool_utr: "utr.bat"
+  mac:
+    env_sonar_token: "$SONARQUBE_PROD_ACCESS_TOKEN"
+    env_unity_path: "$UNITY_EDITOR_PATH"
+    env_yamato_src_dir: "$YAMATO_SOURCE_DIR"
+    tool_utr: "./utr"
+
+editor_component:
+  android:
+    args: "-c Android"
+  ios:
+    args: "-c iOS"
+
+build_and_run: [ build, run ]

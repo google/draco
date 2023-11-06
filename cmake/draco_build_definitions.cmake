@@ -153,5 +153,17 @@ macro(draco_set_build_definitions)
       FLAG_LIST_VAR_LINKER draco_base_exe_linker_flags)
   endif()
 
+  if(IOS)
+    # ensure bitcode is generated when generating an iOS library with Makefiles
+    # as generator.
+    list(APPEND draco_base_cxx_flags "-fembed-bitcode")
+  endif()
+
+  if(WIN32 AND ${CMAKE_SYSTEM_NAME} STREQUAL "WindowsStore")
+    # Ignoring Error C4146 unary minus operator applied to unsigned type, result
+    # still unsigned
+    list(APPEND draco_msvc_cxx_flags "/wd4146")
+  endif()
+
   draco_configure_sanitizer()
 endmacro()

@@ -37,7 +37,10 @@ class PointCloudSequentialEncodingTest : public ::testing::Test {
 
     std::unique_ptr<PointCloud> out_pc(new PointCloud());
     DecoderOptions dec_options;
-    if (!decoder.Decode(dec_options, &dec_buffer, out_pc.get()).ok()) {
+    if (!decoder.DecodeStep1(dec_options, &dec_buffer, out_pc.get()).ok()) {
+      return nullptr;
+    }
+    if (!decoder.DecodeStep2().ok()) {
       return nullptr;
     }
     return out_pc;

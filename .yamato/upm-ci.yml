@@ -1,0 +1,166 @@
+{% metadata_file .yamato/environments.metafile %}
+{% metadata_file .yamato/project.metafile  %}
+---
+{% for pkg in web_packages -%}
+{% assign emscripten_version_suffix = pkg.emscripten_version | split: "-" | last %}
+emscripten_{{pkg.name}}:
+  name: "Emscripten {{ pkg.name }}"
+  agent:
+    type: Unity::VM
+    image: package-ci/ubuntu-22.04:v4
+    flavor: b1.small
+  commands:
+
+# TODO: Remove fastcomp support once 2020 is dropped
+{% if emscripten_version_suffix == "fastcomp" %}
+    ## Fastcomp requires legacy version (tag 3.1.29 or sooner; Unity fork latest synced tag is 2.0.18)
+    - git clone -b 2.0.18 --single-branch https://github.com/Unity-Technologies/emsdk.git
+{% else %}
+      # Clone Emscripten
+    - git clone -b 3.1.38-unity --single-branch https://github.com/Unity-Technologies/emsdk.git
+{% endif %}
+
+    # Install and activate correct Emscripten version
+    - |
+      pushd emsdk
+      ./emsdk install {{ pkg.emscripten_version }}
+      ./emsdk activate {{ pkg.emscripten_version }}
+      popd
+
+    # Configure
+{% if emscripten_version_suffix == "fastcomp" %}
+    - |
+      source ./emsdk/emsdk_env.sh
+      emcmake cmake . -B build_web -DEMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=1 -DCMAKE_BUILD_TYPE=MinSizeRel -DDRACO_JS_GLUE=OFF -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF_BITSTREAM=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+{% else %}
+    - |
+      source ./emsdk/emsdk_env.sh
+      EMSCRIPTEN="$EMSDK/upstream/emscripten" emcmake cmake . -B build_web -DCMAKE_BUILD_TYPE=MinSizeRel -DDRACO_JS_GLUE=OFF -DDRACO_UNITY_PLUGIN=ON -DDRACO_GLTF_BITSTREAM=ON -DDRACO_BACKWARDS_COMPATIBILITY=OFF
+{% endif %}
+
+    # Build
+    - |
+      source ./emsdk/emsdk_env.sh
+      cmake --build build_web --target draco_unity
+
+    # Create and fill results folder
+    - |
+      mkdir -p wasm-binaries~/{{ pkg.name }}
+      mv build_web/libdraco_unity.* wasm-binaries~/{{ pkg.name }}
+
+  artifacts:
+    wasm-binaries:
+      paths:
+        - "wasm-binaries~/**/*"
+{% endfor -%}
+
+{% for pkg in web_packages -%}
+upm_ci_pack_{{pkg.name}}:
+  name: "Pack {{ pkg.name }}"
+  agent:
+    type: Unity::VM
+    image: package-ci/ubuntu-22.04:v4
+    flavor: b1.small
+  commands:
+    # Install upm-ci
+    - npm install upm-ci-utils@stable -g --registry {{upm_ci_registry}}
+
+    # Move binaries into package
+    - mv wasm-binaries~/{{ pkg.name }}/lib*.* UnityPackages/com.unity.cloud.draco.webgl-{{ pkg.name }}/Runtime/Plugins/WebGL
+
+    # Pack
+    - upm-ci package pack --package-path "UnityPackages/com.unity.cloud.draco.webgl-{{ pkg.name }}"
+  dependencies:
+    - .yamato/upm-ci.yml#emscripten_{{pkg.name}}
+  artifacts:
+    packages:
+      paths:
+        - "upm-ci~/packages/**/*"
+{% endfor -%}
+
+{% for pkg in web_packages -%}
+{% for platform in upm_test_platforms -%}
+upm_ci_test_{{pkg.name}}_{{pkg.unity_version}}_{{platform.name}}:
+  name : "Test Editor {{pkg.name}} ({{ pkg.unity_version }}) on {{ platform.name }}"
+  agent:
+    type: {{platform.type}}
+    image: {{platform.image}}
+    flavor: {{platform.flavor}}
+  commands:
+     - npm install upm-ci-utils@stable -g --registry {{upm_ci_registry}}
+     - upm-ci package test --package-path "UnityPackages/com.unity.cloud.draco.webgl-{{ pkg.name }}" -u {{pkg.unity_version}} --type isolation-tests --enable-load-and-test-isolation
+  artifacts:
+    packages:
+      paths:
+        - "upm-ci~/packages/**/*"
+    logs:
+      paths:
+        - "upm-ci~/test-results/**/*"
+  dependencies:
+    - .yamato/upm-ci.yml#upm_ci_pack_{{pkg.name}}
+{% endfor -%}
+{% endfor -%}
+
+{% for pkg in web_packages -%}
+upm_ci_publish_dry_run_{{pkg.name}}:
+  name: "Dry Run Publish {{ pkg.name }}"
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:v4
+    flavor: b1.small
+  commands:
+    - npm install upm-ci-utils@stable -g --registry {{ upm_ci_registry }}
+    # going for dry run until we're ready to do a real publish
+    - upm-ci package publish --package-path "UnityPackages/com.unity.cloud.draco.webgl-{{ pkg.name }}" --dry-run
+  dependencies:
+{% for platform in upm_test_platforms -%}
+    - .yamato/upm-ci.yml#upm_ci_test_{{pkg.name}}_{{pkg.unity_version}}_{{platform.name}}
+{% endfor -%}
+  artifacts:
+    logs_{{pkg.name}}:
+      paths:
+        - "{{ log_path }}/**/*"
+    package:
+      paths:
+        - "upm-ci~/packages/*.tgz"
+{% endfor -%}
+
+
+upm_ci_publish_dry_run:
+  name: "Dry Run Publish"
+  dependencies:
+{% for pkg in web_packages -%}
+    - .yamato/upm-ci.yml#upm_ci_publish_dry_run_{{pkg.name}}
+{% endfor -%}
+
+
+{% for pkg in web_packages -%}
+upm_ci_publish_{{pkg.name}}:
+  name: "Publish to Internal Registry {{ pkg.name }}"
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:v4
+    flavor: b1.small
+  commands:
+    - npm install upm-ci-utils@stable -g --registry {{ upm_ci_registry }}
+    # going for dry run until we're ready to do a real publish
+    - upm-ci package publish --package-path "UnityPackages/com.unity.cloud.draco.webgl-{{ pkg.name }}"
+  dependencies:
+{% for platform in upm_test_platforms -%}
+    - .yamato/upm-ci.yml#upm_ci_test_{{pkg.name}}_{{pkg.unity_version}}_{{platform.name}}
+{% endfor -%}
+  artifacts:
+    logs_{{pkg.name}}:
+      paths:
+        - "{{ log_path }}/**/*"
+    package:
+      paths:
+        - "upm-ci~/packages/*.tgz"
+{% endfor -%}
+
+upm_ci_publish:
+  name: "Publish to Internal Registry"
+  dependencies:
+{% for pkg in web_packages -%}
+    - .yamato/upm-ci.yml#upm_ci_publish_{{pkg.name}}
+{% endfor -%}

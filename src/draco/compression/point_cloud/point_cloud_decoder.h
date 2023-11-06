@@ -37,8 +37,10 @@ class PointCloudDecoder {
   static Status DecodeHeader(DecoderBuffer *buffer, DracoHeader *out_header);
 
   // The main entry point for point cloud decoding.
-  Status Decode(const DecoderOptions &options, DecoderBuffer *in_buffer,
+  Status DecodeStep1(const DecoderOptions &options, DecoderBuffer *in_buffer,
                 PointCloud *out_point_cloud);
+
+  Status DecodeStep2();
 
   bool SetAttributesDecoder(
       int att_decoder_id, std::unique_ptr<AttributesDecoderInterface> decoder) {
@@ -87,7 +89,8 @@ class PointCloudDecoder {
   // Creates an attribute decoder.
   virtual bool CreateAttributesDecoder(int32_t att_decoder_id) = 0;
   virtual bool DecodeGeometryData() { return true; }
-  virtual bool DecodePointAttributes();
+  virtual bool DecodePointAttributesStep1();
+  virtual bool DecodePointAttributesStep2();
 
   virtual bool DecodeAllAttributes();
   virtual bool OnAttributesDecoded() { return true; }
