@@ -10,8 +10,7 @@ namespace KtxUnity.Webgl.Editor.Tests
         const string k_PackagePrefix = "Packages/com.unity.cloud.draco.webgl-2020/Runtime/Plugins/WebGL";
 
         static readonly string[] k_WebglBinaries = {
-            $"{k_PackagePrefix}/libdracodec_unity.bc",
-            $"{k_PackagePrefix}/libdracoenc_unity.bc"
+            $"{k_PackagePrefix}/libdraco_unity.bc"
         };
 
         [Test]
