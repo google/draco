@@ -23,7 +23,7 @@ namespace SubPackage
 #endif
         static async void InitializeOnLoad()
         {
-            var request = Client.List(offlineMode: true, includeIndirectDependencies: false);
+            var request = Client.List(offlineMode: true, includeIndirectDependencies: true);
 
             while (!request.IsCompleted)
                 await Task.Yield();

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Removed warning about missing main package when it was installed as indirect dependency
+
 ## [1.0.0-pre.1] - 2023-11-03
 
 Initial sub package publication
