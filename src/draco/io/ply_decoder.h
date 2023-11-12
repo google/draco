@@ -48,7 +48,12 @@ class PlyDecoder {
   DecoderBuffer *buffer() { return &buffer_; }
 
  private:
-  Status DecodeFaceData(const PlyElement *face_element);
+  Status DecodeFaceData(const PlyElement *face_element,
+                        const int num_vertices);
+  Status DecodeFaceTexCoordData(
+      const PlyElement *face_element,
+      const PlyProperty *vertex_indices,
+      const int num_vertices);
   Status DecodeVertexData(const PlyElement *vertex_element);
 
   template <typename DataTypeT>

@@ -69,12 +69,20 @@ Status PlyDecoder::DecodeFromBuffer(DecoderBuffer *buffer,
 Status PlyDecoder::DecodeInternal() {
   PlyReader ply_reader;
   DRACO_RETURN_IF_ERROR(ply_reader.Read(buffer()));
+ 
+  const PlyElement *vertex_element = ply_reader.GetElementByName("vertex");
+  if (vertex_element == nullptr) {
+    return Status(Status::DRACO_ERROR, "no vertex element");
+  }
+
   // First, decode the connectivity data.
-  if (out_mesh_)
-    DRACO_RETURN_IF_ERROR(DecodeFaceData(ply_reader.GetElementByName("face")));
+  if (out_mesh_) {
+    const int num_vertices = vertex_element->num_entries();
+    DRACO_RETURN_IF_ERROR(DecodeFaceData(ply_reader.GetElementByName("face"),
+                                         num_vertices));
+  }
   // Decode all attributes.
-  DRACO_RETURN_IF_ERROR(
-      DecodeVertexData(ply_reader.GetElementByName("vertex")));
+  DRACO_RETURN_IF_ERROR(DecodeVertexData(vertex_element));
   // In case there are no faces this is just a point cloud which does
   // not require deduplication.
   if (out_mesh_ && out_mesh_->num_faces() != 0) {
@@ -91,7 +99,7 @@ Status PlyDecoder::DecodeInternal() {
   return OkStatus();
 }
 
-Status PlyDecoder::DecodeFaceData(const PlyElement *face_element) {
+Status PlyDecoder::DecodeFaceData(const PlyElement *face_element, const int num_vertices) {
   // We accept point clouds now.
   if (face_element == nullptr) {
     return Status(Status::INVALID_PARAMETER, "face_element is null");
@@ -133,6 +141,65 @@ Status PlyDecoder::DecodeFaceData(const PlyElement *face_element) {
     }
   }
   out_mesh_->SetNumFaces(face_index.value());
+
+  DecodeFaceTexCoordData(face_element, vertex_indices, num_vertices);
+
+  return OkStatus();
+}
+
+// Decodes per-face texture coordinate data into the TEX_COORD attribute.
+// When texture coordinates are stored on faces, the same vertex may have
+// multiple sets of texture coordinates from different faces. This function
+// rewrites the texture coordinates every time the same vertex is encountered
+// on a new face, effectively choosing the last coordinate pair encountered
+// for each vertex.
+Status PlyDecoder::DecodeFaceTexCoordData(
+    const PlyElement *face_element,
+    const PlyProperty *vertex_indices,
+    const int num_vertices) {
+  if (face_element == nullptr) {
+    return Status(Status::INVALID_PARAMETER, "face_element is null");
+  }
+  if (vertex_indices == nullptr) {
+    return Status(Status::INVALID_PARAMETER, "vertex_indices is null");
+  }
+
+  const PlyProperty *texture_coordinates =
+      face_element->GetPropertyByName("texcoord");
+  if (!texture_coordinates) {
+    return OkStatus();  // No texture coordinates to decode.
+  }
+
+  // Allocate attribute for texture coordinates.
+  GeometryAttribute uv_attr;
+  uv_attr.Init(GeometryAttribute::TEX_COORD, nullptr, 2, DT_FLOAT32, false, sizeof(float) * 2, 0);
+  const int uv_att_id = out_point_cloud_->AddAttribute(uv_attr, true, num_vertices);
+
+  const int64_t num_polygons = face_element->num_entries();
+  PlyPropertyReader<float> uv_reader(texture_coordinates);
+  PlyPropertyReader<PointIndex::ValueType> vertex_index_reader(vertex_indices);
+
+  for (int64_t face_index = 0; face_index < num_polygons; ++face_index) {
+      const int64_t vertex_list_offset = vertex_indices->GetListEntryOffset(face_index);
+      const int64_t vertex_list_size = vertex_indices->GetListEntryNumValues(face_index);
+
+      const int64_t uv_list_offset = texture_coordinates->GetListEntryOffset(face_index);
+      const int64_t uv_list_size = texture_coordinates->GetListEntryNumValues(face_index);
+
+      if (uv_list_size < 2 * vertex_list_size) {
+        continue;  // Skip invalid uv list. Must have two texture coords per vertex.
+      }
+
+      for (int64_t i = 0; i < vertex_list_size; ++i) {
+        uint32_t vertex_index = vertex_index_reader.ReadValue(static_cast<int>(vertex_list_offset + i));
+        float uv_value[2];
+        uv_value[0] = uv_reader.ReadValue(static_cast<int>(uv_list_offset + i * 2));
+        uv_value[1] = uv_reader.ReadValue(static_cast<int>(uv_list_offset + i * 2 + 1));
+        out_point_cloud_->attribute(uv_att_id)->SetAttributeValue(
+            AttributeValueIndex(vertex_index), uv_value);
+      }
+  }
+
   return OkStatus();
 }
 

@@ -77,6 +77,21 @@ TEST_F(PlyDecoderTest, TestPlyNormals) {
   ASSERT_EQ(att->size(), 6);  // 6 unique normal values.
 }
 
+TEST_F(PlyDecoderTest, TestPlyTexCoords) {
+  const std::string file_name = "cube_att.ply";
+  std::unique_ptr<Mesh> mesh;
+  test_decoding(file_name, 12, 3 * 8, &mesh);
+  ASSERT_NE(mesh, nullptr);
+  const int att_id = mesh->GetNamedAttributeId(GeometryAttribute::TEX_COORD);
+  ASSERT_GE(att_id, 0);
+  const PointAttribute *const att = mesh->attribute(att_id);
+  ASSERT_EQ(att->size(), 4);  // 4 unique texture coordinate values.
+  float vertex_0_tex_coord[2];
+  att->GetValue(AttributeValueIndex(0), vertex_0_tex_coord);
+  ASSERT_EQ(vertex_0_tex_coord[0], 0);
+  ASSERT_EQ(vertex_0_tex_coord[1], 1);
+}
+
 TEST_F(PlyDecoderTest, TestPlyDecodingAll) {
   // test if we can read all ply that are currently in test folder.
   test_decoding("bun_zipper.ply");
