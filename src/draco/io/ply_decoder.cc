@@ -99,7 +99,8 @@ Status PlyDecoder::DecodeInternal() {
   return OkStatus();
 }
 
-Status PlyDecoder::DecodeFaceData(const PlyElement *face_element, const int num_vertices) {
+Status PlyDecoder::DecodeFaceData(const PlyElement *face_element,
+                                  const int num_vertices) {
   // We accept point clouds now.
   if (face_element == nullptr) {
     return Status(Status::INVALID_PARAMETER, "face_element is null");
@@ -142,7 +143,8 @@ Status PlyDecoder::DecodeFaceData(const PlyElement *face_element, const int num_
   }
   out_mesh_->SetNumFaces(face_index.value());
 
-  DecodeFaceTexCoordData(face_element, vertex_indices, num_vertices);
+  DRACO_RETURN_IF_ERROR(
+      DecodeFaceTexCoordData(face_element, vertex_indices, num_vertices));
 
   return OkStatus();
 }
@@ -172,32 +174,35 @@ Status PlyDecoder::DecodeFaceTexCoordData(
 
   // Allocate attribute for texture coordinates.
   GeometryAttribute uv_attr;
-  uv_attr.Init(GeometryAttribute::TEX_COORD, nullptr, 2, DT_FLOAT32, false, sizeof(float) * 2, 0);
-  const int uv_att_id = out_point_cloud_->AddAttribute(uv_attr, true, num_vertices);
+  uv_attr.Init(GeometryAttribute::TEX_COORD, nullptr, 2, DT_FLOAT32, false,
+               sizeof(float) * 2, 0);
+  const int uv_att_id =
+      out_point_cloud_->AddAttribute(uv_attr, true, num_vertices);
 
-  const int64_t num_polygons = face_element->num_entries();
+  const int num_polygons = face_element->num_entries();
   PlyPropertyReader<float> uv_reader(texture_coordinates);
   PlyPropertyReader<PointIndex::ValueType> vertex_index_reader(vertex_indices);
 
-  for (int64_t face_index = 0; face_index < num_polygons; ++face_index) {
-      const int64_t vertex_list_offset = vertex_indices->GetListEntryOffset(face_index);
-      const int64_t vertex_list_size = vertex_indices->GetListEntryNumValues(face_index);
+  for (int i = 0; i < num_polygons; ++i) {
+    const int vertex_list_offset = vertex_indices->GetListEntryOffset(i);
+    const int vertex_list_size = vertex_indices->GetListEntryNumValues(i);
 
-      const int64_t uv_list_offset = texture_coordinates->GetListEntryOffset(face_index);
-      const int64_t uv_list_size = texture_coordinates->GetListEntryNumValues(face_index);
+    const int uv_list_offset = texture_coordinates->GetListEntryOffset(i);
+    const int uv_list_size = texture_coordinates->GetListEntryNumValues(i);
 
-      if (uv_list_size < 2 * vertex_list_size) {
-        continue;  // Skip invalid uv list. Must have two texture coords per vertex.
-      }
+    if (uv_list_size < 2 * vertex_list_size) {
+      continue;  // Skip invalid uv list. Need two texture coords per vertex.
+    }
 
-      for (int64_t i = 0; i < vertex_list_size; ++i) {
-        uint32_t vertex_index = vertex_index_reader.ReadValue(static_cast<int>(vertex_list_offset + i));
-        float uv_value[2];
-        uv_value[0] = uv_reader.ReadValue(static_cast<int>(uv_list_offset + i * 2));
-        uv_value[1] = uv_reader.ReadValue(static_cast<int>(uv_list_offset + i * 2 + 1));
-        out_point_cloud_->attribute(uv_att_id)->SetAttributeValue(
-            AttributeValueIndex(vertex_index), uv_value);
-      }
+    for (int j = 0; j < vertex_list_size; ++j) {
+      uint32_t vertex_index =
+          vertex_index_reader.ReadValue(vertex_list_offset + j);
+      float uv_value[2];
+      uv_value[0] = uv_reader.ReadValue(uv_list_offset + j * 2);
+      uv_value[1] = uv_reader.ReadValue(uv_list_offset + j * 2 + 1);
+      out_point_cloud_->attribute(uv_att_id)->SetAttributeValue(
+          AttributeValueIndex(vertex_index), uv_value);
+    }
   }
 
   return OkStatus();
