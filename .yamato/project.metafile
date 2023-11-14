@@ -19,7 +19,7 @@ upm_test_platforms:
 web_packages:
   - name: 2020
     emscripten_version: 1.38.48-fastcomp
-    unity_version: 2020.1
+    unity_version: 2020.3
   - name: 2021
     emscripten_version: 2.0.19
     unity_version: 2021.2

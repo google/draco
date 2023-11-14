@@ -3,7 +3,7 @@ using NUnit.Framework;
 using UnityEngine;
 using File = UnityEngine.Windows.File;
 
-namespace KtxUnity.Webgl.Editor.Tests
+namespace Draco.Webgl.Editor.Tests
 {
     class WebglEditorTests
     {
