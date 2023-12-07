@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Added copy of license to `Third Party Notices.md`
+
 ## [1.0.0-pre.2] - 2023-11-13
 
 ### Added
