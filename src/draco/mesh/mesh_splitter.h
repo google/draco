@@ -63,6 +63,25 @@ class MeshSplitter {
   // Default = false.
   void SetPreserveMeshFeatures(bool flag) { preserve_mesh_features_ = flag; }
 
+  // Sets a flag that tells the splitter to preserve structural metadata on the
+  // input mesh during mesh splitting. When set, the structural metadata like
+  // property attributes indices used on sub-meshes are going to be copied over.
+  // Any redundant structural metadata on sub-meshes are going to be deleted.
+  // Default = false.
+  void SetPreserveStructuralMetadata(bool flag) {
+    preserve_structural_metadata_ = flag;
+  }
+
+  // By default, the splitter will attempt to deduplicate vertices after
+  // splitting the mesh. This means lower memory usage and smaller output glTFs
+  // after encoding. However, for very large meshes, this may become an
+  // expensive operation. If that becomes an issue, you might want to consider
+  // disabling deduplication with |SetDeduplicateVertices(false)|.
+  //
+  // Note that at this moment, disabling deduplication works ONLY for point
+  // clouds.
+  void SetDeduplicateVertices(bool flag) { deduplicate_vertices_ = flag; }
+
   // Splits the input |mesh| according to attribute values stored in the
   // specified attribute. If the |mesh| contains faces, the attribute values
   // need to be defined per-face, that is, all points attached to a single face
@@ -98,6 +117,8 @@ class MeshSplitter {
   bool preserve_materials_;
   bool remove_unused_material_indices_;
   bool preserve_mesh_features_;
+  bool preserve_structural_metadata_;
+  bool deduplicate_vertices_;
 
   template <typename BuilderT>
   friend class MeshSplitterInternal;

@@ -36,6 +36,22 @@ namespace draco {
 IndexTypeVector<MeshInstanceIndex, SceneUtils::MeshInstance>
 SceneUtils::ComputeAllInstances(const Scene &scene) {
   IndexTypeVector<MeshInstanceIndex, MeshInstance> instances;
+  for (int i = 0; i < scene.NumRootNodes(); ++i) {
+    const auto node_instances =
+        ComputeAllInstancesFromNode(scene, scene.GetRootNodeIndex(i));
+    const size_t old_size = instances.size();
+    instances.resize(instances.size() + node_instances.size());
+    for (MeshInstanceIndex mii(0); mii < node_instances.size(); ++mii) {
+      instances[mii + old_size] = node_instances[mii];
+    }
+  }
+  return instances;
+}
+
+IndexTypeVector<MeshInstanceIndex, SceneUtils::MeshInstance>
+SceneUtils::ComputeAllInstancesFromNode(const Scene &scene,
+                                        SceneNodeIndex node_index) {
+  IndexTypeVector<MeshInstanceIndex, MeshInstance> instances;
 
   // Traverse the scene assuming multiple root nodes.
   const Eigen::Matrix4d transform = Eigen::Matrix4d::Identity();
@@ -45,10 +61,7 @@ SceneUtils::ComputeAllInstances(const Scene &scene) {
     Eigen::Matrix4d transform;
   };
   std::vector<Node> nodes;
-  nodes.reserve(scene.NumRootNodes());
-  for (int i = 0; i < scene.NumRootNodes(); ++i) {
-    nodes.push_back({scene.GetRootNodeIndex(i), transform});
-  }
+  nodes.push_back({node_index, transform});
 
   while (!nodes.empty()) {
     const Node node = nodes.back();
@@ -220,7 +233,7 @@ void UpdateMeshFeaturesTexturesOnMesh(
 }  // namespace
 
 StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
-    std::unique_ptr<Mesh> mesh) {
+    std::unique_ptr<Mesh> mesh, bool deduplicate_vertices) {
   const size_t num_mesh_materials = mesh->GetMaterialLibrary().NumMaterials();
   std::unique_ptr<Scene> scene(new Scene());
   if (num_mesh_materials > 0) {
@@ -230,6 +243,9 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
     // Create a default material for the scene.
     scene->GetMaterialLibrary().MutableMaterial(0);
   }
+
+  // Copy structural metadata.
+  scene->GetStructuralMetadata().Copy(mesh->GetStructuralMetadata());
 
   // Copy mesh feature textures.
   scene->GetNonMaterialTextureLibrary().Copy(
@@ -255,6 +271,10 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
                                      &scene->GetNonMaterialTextureLibrary(),
                                      &scene->GetMesh(mesh_index));
 
+    // The non-material texture library is now in the scene. The non-material
+    // texture library of the mesh must be cleared, because mesh features may
+    // contain texture pointers invalid for this non-material texture library.
+    scene->GetMesh(mesh_index).GetNonMaterialTextureLibrary().Clear();
   } else {
     const int32_t mat_att_id =
         mesh->GetNamedAttributeId(GeometryAttribute::MATERIAL);
@@ -274,6 +294,7 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
     }
 
     MeshSplitter splitter;
+    splitter.SetDeduplicateVertices(deduplicate_vertices);
     DRACO_ASSIGN_OR_RETURN(MeshSplitter::MeshVector split_meshes,
                            splitter.SplitMesh(*mesh, mat_att_id));
     // Note: cannot clear mesh here, since mat_att points into it.
@@ -299,6 +320,16 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
       UpdateMeshFeaturesTexturesOnMesh(old_texture_to_index_map,
                                        &scene->GetNonMaterialTextureLibrary(),
                                        &scene_mesh);
+
+      // Copy over property attibutes indices that were associated with the
+      // |material_index|.
+      Mesh::CopyPropertyAttributesIndicesForMaterial(*mesh, &scene_mesh,
+                                                     material_index);
+
+      // The non-material texture library is now in the scene. The non-material
+      // texture library of the mesh must be cleared, because mesh features may
+      // contain texture pointers invalid for this non-material texture library.
+      scene_mesh.GetNonMaterialTextureLibrary().Clear();
     }
   }
 
