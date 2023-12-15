@@ -1,6 +1,6 @@
 {
   "name": "com.unity.cloud.draco.webgl-2022",
-  "version": "1.0.0-pre.2",
+  "version": "1.0.0",
   "displayName": "Draco for Unity WebGL 2022",
   "description": "Provides the Draco for Unity package with WebGL native libraries for Unity versions 2022.2 to 2023.1",
   "unity": "2022.2"
