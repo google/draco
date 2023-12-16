@@ -96,7 +96,6 @@ class Mesh : public PointCloud {
     }
   }
 
-#ifdef DRACO_TRANSCODER_SUPPORTED
   // Adds a point attribute |att| to the mesh and returns the index of the
   // newly inserted attribute. Attribute connectivity data is specified in
   // |corner_to_value| array that contains mapping between face corners and
@@ -108,6 +107,7 @@ class Mesh : public PointCloud {
       std::unique_ptr<PointAttribute> att,
       const IndexTypeVector<CornerIndex, AttributeValueIndex> &corner_to_value);
 
+#ifdef DRACO_TRANSCODER_SUPPORTED
   // Adds a point attribute |att| to the mesh and returns the index of the
   // newly inserted attribute. The inserted attribute must have the same
   // connectivity as the position attribute of the mesh (that is, the attribute

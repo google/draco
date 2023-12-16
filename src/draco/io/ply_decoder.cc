@@ -69,20 +69,15 @@ Status PlyDecoder::DecodeFromBuffer(DecoderBuffer *buffer,
 Status PlyDecoder::DecodeInternal() {
   PlyReader ply_reader;
   DRACO_RETURN_IF_ERROR(ply_reader.Read(buffer()));
- 
-  const PlyElement *vertex_element = ply_reader.GetElementByName("vertex");
-  if (vertex_element == nullptr) {
-    return Status(Status::DRACO_ERROR, "no vertex element");
-  }
-
   // First, decode the connectivity data.
   if (out_mesh_) {
-    const int num_vertices = vertex_element->num_entries();
-    DRACO_RETURN_IF_ERROR(DecodeFaceData(ply_reader.GetElementByName("face"),
-                                         num_vertices));
+    const PlyElement *face_element = ply_reader.GetElementByName("face");
+    DRACO_RETURN_IF_ERROR(DecodeFaceData(face_element));
+    DRACO_RETURN_IF_ERROR(DecodeTexCoordData(face_element));
   }
   // Decode all attributes.
-  DRACO_RETURN_IF_ERROR(DecodeVertexData(vertex_element));
+  DRACO_RETURN_IF_ERROR(
+      DecodeVertexData(ply_reader.GetElementByName("vertex")));
   // In case there are no faces this is just a point cloud which does
   // not require deduplication.
   if (out_mesh_ && out_mesh_->num_faces() != 0) {
@@ -99,8 +94,7 @@ Status PlyDecoder::DecodeInternal() {
   return OkStatus();
 }
 
-Status PlyDecoder::DecodeFaceData(const PlyElement *face_element,
-                                  const int num_vertices) {
+Status PlyDecoder::DecodeFaceData(const PlyElement *face_element) {
   // We accept point clouds now.
   if (face_element == nullptr) {
     return Status(Status::INVALID_PARAMETER, "face_element is null");
@@ -142,69 +136,65 @@ Status PlyDecoder::DecodeFaceData(const PlyElement *face_element,
     }
   }
   out_mesh_->SetNumFaces(face_index.value());
-
-  DRACO_RETURN_IF_ERROR(
-      DecodeFaceTexCoordData(face_element, vertex_indices, num_vertices));
-
   return OkStatus();
 }
 
-// Decodes per-face texture coordinate data into the TEX_COORD attribute.
-// When texture coordinates are stored on faces, the same vertex may have
-// multiple sets of texture coordinates from different faces. This function
-// rewrites the texture coordinates every time the same vertex is encountered
-// on a new face, effectively choosing the last coordinate pair encountered
-// for each vertex.
-Status PlyDecoder::DecodeFaceTexCoordData(
-    const PlyElement *face_element,
-    const PlyProperty *vertex_indices,
-    const int num_vertices) {
+Status PlyDecoder::DecodeTexCoordData(const PlyElement *face_element) {
   if (face_element == nullptr) {
     return Status(Status::INVALID_PARAMETER, "face_element is null");
   }
-  if (vertex_indices == nullptr) {
-    return Status(Status::INVALID_PARAMETER, "vertex_indices is null");
-  }
-
   const PlyProperty *texture_coordinates =
       face_element->GetPropertyByName("texcoord");
-  if (!texture_coordinates) {
-    return OkStatus();  // No texture coordinates to decode.
+  if (texture_coordinates == nullptr || !texture_coordinates->is_list()) {
+    return OkStatus();
   }
 
   // Allocate attribute for texture coordinates.
-  GeometryAttribute uv_attr;
-  uv_attr.Init(GeometryAttribute::TEX_COORD, nullptr, 2, DT_FLOAT32, false,
-               sizeof(float) * 2, 0);
-  const int uv_att_id =
-      out_point_cloud_->AddAttribute(uv_attr, true, num_vertices);
-
-  const int num_polygons = face_element->num_entries();
+  // There is one pair of texture coordinates per triangle corner.
+  const int num_corners = out_mesh_->num_faces() * 3;
+  
+  
+  std::unique_ptr<PointAttribute> attr(new PointAttribute());
+  attr->Init(GeometryAttribute::TEX_COORD, 2, DT_FLOAT32, false, num_corners);
+    
   PlyPropertyReader<float> uv_reader(texture_coordinates);
-  PlyPropertyReader<PointIndex::ValueType> vertex_index_reader(vertex_indices);
+  AttributeValueIndex corner_index(0);
+  
+  auto pushTexcoordPair = [uv_reader, &corner_index, &attr]
+      (uint64_t offset, uint64_t index) -> void {
+    float uv_value[2];
+    uv_value[0] = uv_reader.ReadValue(static_cast<int>(offset + index * 2));
+    uv_value[1] = uv_reader.ReadValue(static_cast<int>(offset + index * 2 + 1));
+    attr->SetAttributeValue(corner_index, uv_value);
+    corner_index++;
+  };
 
+  const int64_t num_polygons = face_element->num_entries();
   for (int i = 0; i < num_polygons; ++i) {
-    const int vertex_list_offset = vertex_indices->GetListEntryOffset(i);
-    const int vertex_list_size = vertex_indices->GetListEntryNumValues(i);
-
-    const int uv_list_offset = texture_coordinates->GetListEntryOffset(i);
-    const int uv_list_size = texture_coordinates->GetListEntryNumValues(i);
-
-    if (uv_list_size < 2 * vertex_list_size) {
-      continue;  // Skip invalid uv list. Need two texture coords per vertex.
+    const int64_t uv_list_offset = texture_coordinates->GetListEntryOffset(i);
+    const int64_t uv_list_size = texture_coordinates->GetListEntryNumValues(i);
+    if (uv_list_size < 6 || uv_list_size % 2 != 0) {
+      continue;  // Need at least three pairs of UV coordinates per polygon.
     }
 
-    for (int j = 0; j < vertex_list_size; ++j) {
-      uint32_t vertex_index =
-          vertex_index_reader.ReadValue(vertex_list_offset + j);
-      float uv_value[2];
-      uv_value[0] = uv_reader.ReadValue(uv_list_offset + j * 2);
-      uv_value[1] = uv_reader.ReadValue(uv_list_offset + j * 2 + 1);
-      out_point_cloud_->attribute(uv_att_id)->SetAttributeValue(
-          AttributeValueIndex(vertex_index), uv_value);
+    // Triangulate polygon assuming the polygon is convex.
+    const int64_t num_triangles = uv_list_size / 2 - 2;
+    pushTexcoordPair(uv_list_offset, 0);
+    for (int64_t ti = 0; ti < num_triangles; ++ti) {
+      for (int64_t c = 1; c < 3; ++c) {
+        pushTexcoordPair(uv_list_offset, ti + c);
+      }
     }
   }
 
+  IndexTypeVector<CornerIndex, AttributeValueIndex> corner_map(num_corners);
+  for (CornerIndex ci(0); ci < num_corners; ++ci) {
+    corner_map[ci] = AttributeValueIndex(ci.value());
+  }
+  // I don't think it works to have this as the only point-mapped attribute
+  // while the rest of the attributes are identity-mapped.
+  out_mesh_->set_num_points(num_corners);
+  out_mesh_->AddAttributeWithConnectivity(std::move(attr), corner_map);
   return OkStatus();
 }
 
