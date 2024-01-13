@@ -88,7 +88,7 @@ TEST_F(PlyDecoderTest, TestPlyTexCoords) {
   ASSERT_EQ(att->size(), 4);  // 4 unique texture coordinate values.
   float vertex_0_tex_coord[2];
   att->GetValue(AttributeValueIndex(0), vertex_0_tex_coord);
-  ASSERT_EQ(vertex_0_tex_coord[0], 0);
+  ASSERT_EQ(vertex_0_tex_coord[0], 1);
   ASSERT_EQ(vertex_0_tex_coord[1], 1);
 }
 

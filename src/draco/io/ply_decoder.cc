@@ -179,8 +179,9 @@ Status PlyDecoder::DecodeTexCoordData(const PlyElement *face_element) {
 
     // Triangulate polygon assuming the polygon is convex.
     const int64_t num_triangles = uv_list_size / 2 - 2;
-    pushTexcoordPair(uv_list_offset, 0);
+
     for (int64_t ti = 0; ti < num_triangles; ++ti) {
+      pushTexcoordPair(uv_list_offset, 0);
       for (int64_t c = 1; c < 3; ++c) {
         pushTexcoordPair(uv_list_offset, ti + c);
       }
@@ -193,7 +194,6 @@ Status PlyDecoder::DecodeTexCoordData(const PlyElement *face_element) {
   }
   // I don't think it works to have this as the only point-mapped attribute
   // while the rest of the attributes are identity-mapped.
-  out_mesh_->set_num_points(num_corners);
   out_mesh_->AddAttributeWithConnectivity(std::move(attr), corner_map);
   return OkStatus();
 }
