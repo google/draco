@@ -317,6 +317,17 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
       // Copy over mesh features that were associated with the |material_index|.
       Mesh &scene_mesh = scene->GetMesh(mesh_index);
       Mesh::CopyMeshFeaturesForMaterial(*mesh, &scene_mesh, material_index);
+
+      // Update mesh features attribute indices if needed.
+      for (MeshFeaturesIndex mfi(0); mfi < scene_mesh.NumMeshFeatures();
+           ++mfi) {
+        auto &mesh_features = scene_mesh.GetMeshFeatures(mfi);
+        if (mesh_features.GetAttributeIndex() != -1) {
+          mesh_features.SetAttributeIndex(splitter.GetSplitMeshAttributeIndex(
+              mesh_features.GetAttributeIndex()));
+        }
+      }
+
       UpdateMeshFeaturesTexturesOnMesh(old_texture_to_index_map,
                                        &scene->GetNonMaterialTextureLibrary(),
                                        &scene_mesh);

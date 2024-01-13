@@ -98,10 +98,13 @@ class MeshSplitter {
   StatusOr<MeshVector> SplitMeshToComponents(
       const Mesh &mesh, const MeshConnectedComponents &connected_components);
 
+  // Returns attribute index on each split mesh that corresponds to the
+  // |source_mesh_att_index| of the source Mesh.
+  // Must be called after SplitMesh() or SplitMeshToComponents().
+  int GetSplitMeshAttributeIndex(int source_mesh_att_index) const;
+
  private:
   struct WorkData {
-    // Map between attribute ids of the input and output meshes.
-    std::vector<int> att_id_map;
     std::vector<int> num_sub_mesh_elements;
     bool split_by_materials = false;
   };
@@ -119,6 +122,9 @@ class MeshSplitter {
   bool preserve_mesh_features_;
   bool preserve_structural_metadata_;
   bool deduplicate_vertices_;
+
+  // Map between attribute ids of the input and output meshes.
+  std::vector<int> att_id_map_;
 
   template <typename BuilderT>
   friend class MeshSplitterInternal;

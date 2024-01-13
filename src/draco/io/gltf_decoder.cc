@@ -313,7 +313,7 @@ Status CopyDataFromBufferView(const tinygltf::Model &model, int buffer_view_id,
   const uint8_t *const data_start = buffer.data.data() + buffer_view.byteOffset;
 
   data->resize(buffer_view.byteLength);
-  memcpy(&(*data)[0], data_start, buffer_view.byteLength);
+  memcpy(data->data(), data_start, buffer_view.byteLength);
   return OkStatus();
 }
 

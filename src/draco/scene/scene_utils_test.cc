@@ -403,6 +403,39 @@ TEST(SceneUtilsTest, TestMeshToSceneMultipleMeshFeatures) {
   }
 }
 
+TEST(SceneUtilsTest, TestMeshToSceneMeshFeaturesWithAttributes) {
+  // Tests that converting a mesh into scene properly updates mesh features
+  // attribute indices.
+  auto mesh =
+      draco::ReadMeshFromTestFile("CesiumMilkTruck/glTF/CesiumMilkTruck.gltf");
+  ASSERT_NE(mesh, nullptr);
+
+  // Add a new dummy mesh features and mesh features attribute to the mesh.
+  std::unique_ptr<draco::PointAttribute> mf_att(new draco::PointAttribute());
+  mf_att->Init(draco::GeometryAttribute::GENERIC, 1, draco::DT_FLOAT32, false,
+               mesh->num_points());
+  const int mf_att_id = mesh->AddAttribute(std::move(mf_att));
+  std::unique_ptr<draco::MeshFeatures> mf(new draco::MeshFeatures());
+  mf->SetAttributeIndex(mf_att_id);
+  mesh->AddMeshFeatures(std::move(mf));
+
+  // Convert the mesh into a scene.
+  DRACO_ASSIGN_OR_ASSERT(const std::unique_ptr<draco::Scene> scene_from_mesh,
+                         draco::SceneUtils::MeshToScene(std::move(mesh)));
+  ASSERT_NE(scene_from_mesh, nullptr);
+
+  // Ensure the attribute indices on the meshes from scene are decremented by
+  // one because the material attribute was removed.
+  ASSERT_EQ(scene_from_mesh->NumMeshes(), 4);
+  for (draco::MeshIndex mi(0); mi < scene_from_mesh->NumMeshes(); ++mi) {
+    for (draco::MeshFeaturesIndex mfi(0);
+         mfi < scene_from_mesh->GetMesh(mi).NumMeshFeatures(); ++mfi) {
+      const auto &mf = scene_from_mesh->GetMesh(mi).GetMeshFeatures(mfi);
+      ASSERT_EQ(mf.GetAttributeIndex(), mf_att_id - 1);
+    }
+  }
+}
+
 TEST(SceneUtilsTest, TestMeshToSceneStructuralMetadata) {
   const std::string filename = "cube_att.obj";
   std::unique_ptr<draco::Mesh> mesh = draco::ReadMeshFromTestFile(filename);

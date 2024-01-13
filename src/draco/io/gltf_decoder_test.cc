@@ -1268,6 +1268,31 @@ TEST(GltfDecoderTest, DecodeMeshWithMeshFeaturesWithStructuralMetadata) {
   GltfTestHelper::CheckBoxMetaStructuralMetadata(*mesh, use_case);
 }
 
+TEST(GltfDecoderTest, DecodeMeshWithStructuralMetadataWithEmptyStringBuffer) {
+  // Checks that the decoder correctly handles 0-length buffers. An example case
+  // where this could happen is an EXT_structural_metadata extension with a
+  // buffer containing an empty string.
+  const auto path =
+      GetTestFileFullPath("ZeroLengthBufferView/ZeroLengthBufferView.gltf");
+  GltfTestHelper::UseCase use_case;
+  use_case.has_mesh_features = true;
+  use_case.has_structural_metadata = true;
+
+  draco::GltfDecoder decoder;
+  DRACO_ASSIGN_OR_ASSERT(auto mesh, decoder.DecodeFromFile(path));
+  ASSERT_NE(mesh, nullptr);
+  ASSERT_EQ(mesh->GetStructuralMetadata().NumPropertyTables(), 1);
+  ASSERT_EQ(mesh->GetStructuralMetadata().GetPropertyTable(0).GetCount(), 1);
+  ASSERT_EQ(mesh->GetStructuralMetadata().GetPropertyTable(0).NumProperties(),
+            1);
+  ASSERT_EQ(mesh->GetStructuralMetadata()
+                .GetPropertyTable(0)
+                .GetProperty(0)
+                .GetData()
+                .data.size(),
+            0);
+}
+
 TEST(GltfDecoderTest, DecodeMeshWithMeshFeaturesWithDracoCompression) {
   // Checks decoding of a simple glTF with mesh features compressed with Draco
   // as draco::Mesh.

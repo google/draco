@@ -1,0 +1,130 @@
+{
+  "asset": {
+    "generator": "by_hand",
+    "version": "2.0"
+  },
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "scene": 0,
+  "nodes": [
+    {
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 1
+          },
+          "indices": 0,
+          "mode": 4,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "metallicFactor": 0
+      }
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5121,
+      "count": 6,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 4,
+      "max": [
+        1,
+        1,
+        0
+      ],
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "type": "VEC3"
+    }
+  ],
+  "extensions": {
+    "EXT_structural_metadata": {
+      "schema": {
+        "classes": {
+          "class": {
+            "properties": {
+              "entity_id": {
+                "type": "STRING"
+              }
+            }
+          }
+        }
+      },
+      "propertyTables": [
+        {
+          "class": "class",
+          "count": 1,
+          "properties": {
+            "entity_id": {
+              "values": 2,
+              "stringOffsetType": "UINT8",
+              "stringOffsets": 3
+            }
+          }
+        }
+      ],
+      "propertyAttributes": []
+    }
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 8,
+      "byteLength": 48
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 56,
+      "byteLength": 0
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 56,
+      "byteLength": 4
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 60,
+      "uri": "ZeroLengthBufferView.bin"
+    }
+  ],
+  "extensionsUsed": [
+    "EXT_structural_metadata"
+  ]
+}

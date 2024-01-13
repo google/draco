@@ -36,6 +36,7 @@ class MeshSplitterInternal {
   struct WorkData : public MeshSplitter::WorkData {
     // TriangleSoupMeshBuilder or PointCloudBuilder.
     std::vector<BuilderT> builders;
+    std::vector<int> *att_id_map;
   };
 
   // Computes number of elements (faces or points) for each sub-mesh.
@@ -112,7 +113,8 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::SplitMeshInternal(
   // Create the sub-meshes.
   work_data.builders.resize(num_out_meshes);
   // Map between attribute ids of the input and output meshes.
-  work_data.att_id_map.resize(mesh.num_attributes(), -1);
+  att_id_map_.resize(mesh.num_attributes(), -1);
+  work_data.att_id_map = &att_id_map_;
   const int ignored_att_id =
       (!preserve_split_attribute ? split_attribute_id : -1);
   for (int mi = 0; mi < num_out_meshes; ++mi) {
@@ -185,10 +187,10 @@ void MeshSplitterInternal<BuilderT>::InitializeBuilder(
       continue;
     }
     const GeometryAttribute *const src_att = mesh.attribute(ai);
-    work_data->att_id_map[ai] = work_data->builders[b_index].AddAttribute(
+    (*work_data->att_id_map)[ai] = work_data->builders[b_index].AddAttribute(
         src_att->attribute_type(), src_att->num_components(),
         src_att->data_type(), src_att->normalized());
-    work_data->builders[b_index].SetAttributeName(work_data->att_id_map[ai],
+    work_data->builders[b_index].SetAttributeName(work_data->att_id_map->at(ai),
                                                   src_att->name());
   }
 }
@@ -228,7 +230,7 @@ void AddElementToBuilder(
   const auto &face = mesh.face(source_i);
   for (int ai = 0; ai < mesh.num_attributes(); ++ai) {
     const PointAttribute *const src_att = mesh.attribute(ai);
-    const int target_att_id = work_data->att_id_map[ai];
+    const int target_att_id = work_data->att_id_map->at(ai);
     if (target_att_id == -1) {
       continue;
     }
@@ -245,7 +247,7 @@ void AddElementToBuilder(
     MeshSplitterInternal<PointCloudBuilder>::WorkData *work_data) {
   for (int ai = 0; ai < mesh.num_attributes(); ++ai) {
     const PointAttribute *const src_att = mesh.attribute(ai);
-    const int target_att_id = work_data->att_id_map[ai];
+    const int target_att_id = work_data->att_id_map->at(ai);
     if (target_att_id == -1) {
       continue;
     }
@@ -391,7 +393,7 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::FinalizeMeshes(
 
     // Copy over attribute unique ids.
     for (int att_id = 0; att_id < mesh.num_attributes(); ++att_id) {
-      const int mapped_att_id = work_data.att_id_map[att_id];
+      const int mapped_att_id = att_id_map_[att_id];
       if (mapped_att_id == -1) {
         continue;
       }
@@ -431,6 +433,14 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::FinalizeMeshes(
         // Create a copy of source mesh features.
         std::unique_ptr<MeshFeatures> mf(new MeshFeatures());
         mf->Copy(mesh.GetMeshFeatures(mfi));
+
+        // Update mesh features attribute index if used.
+        if (mf->GetAttributeIndex() != -1) {
+          const int new_mf_attribute_index =
+              att_id_map_[mf->GetAttributeIndex()];
+          mf->SetAttributeIndex(new_mf_attribute_index);
+        }
+
         const MeshFeaturesIndex new_mfi =
             out_meshes[mi]->AddMeshFeatures(std::move(mf));
         if (work_data.split_by_materials && !preserve_materials_) {
@@ -548,7 +558,8 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::SplitMeshToComponents(
   typename MeshSplitterInternal<TriangleSoupMeshBuilder>::WorkData work_data;
   work_data.builders.resize(num_out_meshes);
   work_data.num_sub_mesh_elements.resize(num_out_meshes, 0);
-  work_data.att_id_map.resize(mesh.num_attributes(), -1);
+  att_id_map_.resize(mesh.num_attributes(), -1);
+  work_data.att_id_map = &att_id_map_;
   for (int mi = 0; mi < num_out_meshes; ++mi) {
     const int num_faces = connected_components.NumConnectedComponentFaces(mi);
     work_data.num_sub_mesh_elements[mi] = num_faces;
@@ -570,6 +581,10 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::SplitMeshToComponents(
       auto out_meshes,
       splitter_internal.BuildMeshes(mesh, &work_data, deduplicate_vertices_));
   return FinalizeMeshes(mesh, work_data, std::move(out_meshes));
+}
+
+int MeshSplitter::GetSplitMeshAttributeIndex(int source_mesh_att_index) const {
+  return att_id_map_[source_mesh_att_index];
 }
 
 }  // namespace draco

@@ -387,10 +387,8 @@ class GltfAsset {
       std::unordered_map<int, int> *feature_id_name_indices);
 
   // Iterate through the materials that are associated with |mesh| and add them
-  // to the asset. Returns true if |mesh| does not contain any materials or all
-  // the materials are supported. Returns false if |mesh| contains materials
-  // that are not supported.
-  bool AddMaterials(const Mesh &mesh);
+  // to the asset.
+  void AddMaterials(const Mesh &mesh);
 
   // Checks whether a given Draco |attribute| has data of expected |data_type|
   // and whether the data has one of expected |num_components|. Returns true
@@ -428,10 +426,8 @@ class GltfAsset {
   Status AddSceneNode(const Scene &scene, SceneNodeIndex scene_node_index);
 
   // Iterate through the materials that are associated with |scene| and add them
-  // to the asset. Returns true if |scene| does not contain any materials or all
-  // the materials are supported. Returns false if |scene| contains materials
-  // that are not supported.
-  bool AddMaterials(const Scene &scene);
+  // to the asset.
+  void AddMaterials(const Scene &scene);
 
   // Iterate through the animations that are associated with |scene| and add
   // them to the asset. Returns OkStatus() if |scene| does not contain any
@@ -736,9 +732,7 @@ bool GltfAsset::AddDracoMesh(const Mesh &mesh) {
   if (scene_index < 0) {
     return false;
   }
-  if (!AddMaterials(mesh)) {
-    return false;
-  }
+  AddMaterials(mesh);
 
   GltfMesh gltf_mesh;
   meshes_.push_back(gltf_mesh);
@@ -1286,9 +1280,12 @@ int GltfAsset::AddDracoNormals(const Mesh &mesh, int num_encoded_points) {
 int GltfAsset::AddDracoColors(const Mesh &mesh, int num_encoded_points) {
   const PointAttribute *const att =
       mesh.GetNamedAttribute(GeometryAttribute::COLOR);
-  // TODO(b/200302561): Add support for DT_UINT16 with COLOR.
-  if (!CheckDracoAttribute(att, {DT_UINT8, DT_FLOAT32}, {3, 4})) {
+  if (!CheckDracoAttribute(att, {DT_UINT8, DT_UINT16, DT_FLOAT32}, {3, 4})) {
     return -1;
+  }
+  if (att->data_type() == DT_UINT16) {
+    return AddAttribute<uint16_t>(*att, mesh.num_points(), num_encoded_points,
+                                  mesh.IsCompressionEnabled());
   }
   if (att->data_type() == DT_FLOAT32) {
     return AddAttribute<float>(*att, mesh.num_points(), num_encoded_points,
@@ -1460,12 +1457,10 @@ std::vector<std::pair<std::string, int>> GltfAsset::AddDracoGenerics(
   return attrs;
 }
 
-bool GltfAsset::AddMaterials(const Mesh &mesh) {
-  if (mesh.GetMaterialLibrary().NumMaterials() == 0) {
-    return true;
+void GltfAsset::AddMaterials(const Mesh &mesh) {
+  if (mesh.GetMaterialLibrary().NumMaterials()) {
+    material_library_.Copy(mesh.GetMaterialLibrary());
   }
-  material_library_.Copy(mesh.GetMaterialLibrary());
-  return true;
 }
 
 bool GltfAsset::CheckDracoAttribute(const PointAttribute *attribute,
@@ -1589,9 +1584,7 @@ Status GltfAsset::AddScene(const Scene &scene) {
   if (scene_index < 0) {
     return Status(Status::DRACO_ERROR, "Error creating a new scene.");
   }
-  if (!AddMaterials(scene)) {
-    return Status(Status::DRACO_ERROR, "Error adding materials to the scene.");
-  }
+  AddMaterials(scene);
   AddStructuralMetadata(scene);
 
   // Initialize base mesh transforms that may be needed when the base meshes are
@@ -1695,12 +1688,10 @@ Status GltfAsset::AddSceneNode(const Scene &scene,
   return OkStatus();
 }
 
-bool GltfAsset::AddMaterials(const Scene &scene) {
-  if (scene.GetMaterialLibrary().NumMaterials() == 0) {
-    return true;
+void GltfAsset::AddMaterials(const Scene &scene) {
+  if (scene.GetMaterialLibrary().NumMaterials()) {
+    material_library_.Copy(scene.GetMaterialLibrary());
   }
-  material_library_.Copy(scene.GetMaterialLibrary());
-  return true;
 }
 
 Status GltfAsset::AddAnimations(const Scene &scene) {
