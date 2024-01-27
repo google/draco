@@ -1029,15 +1029,6 @@ else()
     add_library(draco::draco ALIAS draco)
 
   else()
-    draco_add_library(
-      NAME draco_static
-      OUTPUT_NAME draco
-      TYPE STATIC
-      DEFINES ${draco_defines}
-      INCLUDES ${draco_include_paths}
-      OBJLIB_DEPS ${draco_object_library_deps}
-      LIB_DEPS ${draco_lib_deps})
-
     if(BUILD_SHARED_LIBS)
       draco_add_library(
         NAME draco_shared
@@ -1046,10 +1037,19 @@ else()
         TYPE SHARED
         DEFINES ${draco_defines}
         INCLUDES ${draco_include_paths}
-        LIB_DEPS draco_static)
+        OBJLIB_DEPS ${draco_object_library_deps}
+        LIB_DEPS ${draco_lib_deps})
       add_library(draco::draco ALIAS draco_shared)
       set_target_properties(draco_shared PROPERTIES EXPORT_NAME draco)
     else()
+      draco_add_library(
+        NAME draco_static
+        OUTPUT_NAME draco
+        TYPE STATIC
+        DEFINES ${draco_defines}
+        INCLUDES ${draco_include_paths}
+        OBJLIB_DEPS ${draco_object_library_deps}
+        LIB_DEPS ${draco_lib_deps})
       add_library(draco::draco ALIAS draco_static)
       set_target_properties(draco_static PROPERTIES EXPORT_NAME draco)
     endif()
