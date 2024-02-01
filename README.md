@@ -2,7 +2,7 @@
 <img width="350px" src="docs/artwork/draco3d-vert.svg" />
 </p>
 
-[![draco-ci](https://github.com/google/draco/workflows/draco-ci/badge.svg?branch=master)](https://github.com/google/draco/actions/workflows/ci.yml)
+[![draco-ci](https://github.com/google/draco/workflows/draco-ci/badge.svg?branch=main)](https://github.com/google/draco/actions/workflows/ci.yml)
 
 News
 =======
@@ -611,6 +611,6 @@ References
 [meshes]: https://en.wikipedia.org/wiki/Polygon_mesh
 [point clouds]: https://en.wikipedia.org/wiki/Point_cloud
 [Bunny]: https://graphics.stanford.edu/data/3Dscanrep/
-[CONTRIBUTING]: https://raw.githubusercontent.com/google/draco/master/CONTRIBUTING.md
+[CONTRIBUTING]: https://raw.githubusercontent.com/google/draco/main/CONTRIBUTING.md
 
 Bunny model from Stanford's graphic department <https://graphics.stanford.edu/data/3Dscanrep/>
