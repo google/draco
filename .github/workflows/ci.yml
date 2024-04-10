@@ -3,9 +3,9 @@ on:
   # Run on all pull requests.
 
   push:
-    # Run on merges/pushes to master.
+    # Run on merges/pushes to main.
     branches:
-      - master
+      - main
 
   schedule:
     # Run nightly, at midnight.
