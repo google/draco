@@ -3,7 +3,7 @@
 version: 2
 updates:
   - package-ecosystem: "bundler"
-    directory: "/doc" # Location of package manifests
+    directory: "/doc"
     schedule:
       interval: "monthly"
     groups:
@@ -11,4 +11,3 @@ updates:
         applies-to: "security-updates"
         patterns:
           - "*"
-
