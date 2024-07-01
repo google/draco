@@ -59,16 +59,19 @@ inline int MostSignificantBit(uint32_t n) {
 #if defined(__GNUC__)
   return 31 ^ __builtin_clz(n);
 #elif defined(_MSC_VER)
-
   unsigned long where;
   _BitScanReverse(&where, n);
   return (int)where;
 #else
-  // TODO(fgalligan): Optimize this code.
-  int msb = -1;
-  while (n != 0) {
-    msb++;
-    n >>= 1;
+  uint32_t msb = 0;
+  if (n) {
+    if (0xFFFF0000 & n) { n >>= (1 << 4); msb |= (1 << 4); }
+    if (0x0000FF00 & n) { n >>= (1 << 3); msb |= (1 << 3); }
+    if (0x000000F0 & n) { n >>= (1 << 2); msb |= (1 << 2); }
+    if (0x0000000C & n) { n >>= (1 << 1); msb |= (1 << 1); }
+    if (0x00000002 & n) { msb |= (1 << 0); }
+  } else {
+    msb = -1;
   }
   return msb;
 #endif
