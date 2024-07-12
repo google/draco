@@ -23,7 +23,7 @@ let decoderModule = null;
 let encoderModule = null;
 
 // The code to create the encoder and decoder modules is asynchronous.
-// draco3d.createDecoderModule will return a promise to a funciton with a
+// draco3d.createDecoderModule will return a promise to a function with a
 // module as a parameter when the module has been fully initialized.
 // Create and set the decoder module.
 draco3d.createDecoderModule({}).then(function(module) {
