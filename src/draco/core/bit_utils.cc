@@ -13,7 +13,8 @@
 // limitations under the License.
 //
 #include "draco/core/bit_utils.h"
-
+#include  <stdexcept>
+	
 namespace draco {
 
 void ConvertSignedIntsToSymbols(const int32_t *in, int in_values,
@@ -23,6 +24,9 @@ void ConvertSignedIntsToSymbols(const int32_t *in, int in_values,
   // Put the sign bit into LSB pos and shift the rest one bit left.
   for (int i = 0; i < in_values; ++i) {
     out[i] = ConvertSignedIntToSymbol(in[i]);
+    if (out[i] == 0xFFFFFFFF) {
+      throw std::runtime_error("Failure in ConvertSignedIntsToSymbols.");
+    }
   }
 }
 
