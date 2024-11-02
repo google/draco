@@ -30,42 +30,42 @@ class PlyPropertyWriter {
     // Find the suitable function for converting values.
     switch (property->data_type()) {
       case DT_UINT8:
-        convert_value_func_ = [=](WriteTypeT val) {
+        convert_value_func_ = [this](WriteTypeT val) {
           return this->ConvertValue<uint8_t>(val);
         };
         break;
       case DT_INT8:
-        convert_value_func_ = [=](WriteTypeT val) {
+        convert_value_func_ = [this](WriteTypeT val) {
           return this->ConvertValue<int8_t>(val);
         };
         break;
       case DT_UINT16:
-        convert_value_func_ = [=](WriteTypeT val) {
+        convert_value_func_ = [this](WriteTypeT val) {
           return this->ConvertValue<uint16_t>(val);
         };
         break;
       case DT_INT16:
-        convert_value_func_ = [=](WriteTypeT val) {
+        convert_value_func_ = [this](WriteTypeT val) {
           return this->ConvertValue<int16_t>(val);
         };
         break;
       case DT_UINT32:
-        convert_value_func_ = [=](WriteTypeT val) {
+        convert_value_func_ = [this](WriteTypeT val) {
           return this->ConvertValue<uint32_t>(val);
         };
         break;
       case DT_INT32:
-        convert_value_func_ = [=](WriteTypeT val) {
+        convert_value_func_ = [this](WriteTypeT val) {
           return this->ConvertValue<int32_t>(val);
         };
         break;
       case DT_FLOAT32:
-        convert_value_func_ = [=](WriteTypeT val) {
+        convert_value_func_ = [this](WriteTypeT val) {
           return this->ConvertValue<float>(val);
         };
         break;
       case DT_FLOAT64:
-        convert_value_func_ = [=](WriteTypeT val) {
+        convert_value_func_ = [this](WriteTypeT val) {
           return this->ConvertValue<double>(val);
         };
         break;
