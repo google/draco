@@ -67,6 +67,7 @@ class IndexType {
   typedef ValueTypeT ValueType;
 
   constexpr IndexType() : value_(ValueTypeT()) {}
+  constexpr IndexType(const IndexType &i) : value_(i.value_) {}
   constexpr explicit IndexType(ValueTypeT value) : value_(value) {}
 
   constexpr ValueTypeT value() const { return value_; }
