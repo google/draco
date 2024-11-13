@@ -3,7 +3,7 @@
 version: 2
 updates:
   - package-ecosystem: "bundler"
-    directory: "/doc"
+    directory: "/docs"
     schedule:
       interval: "monthly"
     groups:
