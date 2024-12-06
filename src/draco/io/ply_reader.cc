@@ -14,6 +14,7 @@
 //
 #include "draco/io/ply_reader.h"
 
+#include <algorithm>
 #include <array>
 #include <regex>
 
