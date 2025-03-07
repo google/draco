@@ -18,6 +18,7 @@
 #include "draco/io/obj_decoder.h"
 #include "draco/io/parser_utils.h"
 #include "draco/io/ply_decoder.h"
+#include "draco/io/splat_decoder.cc"
 
 namespace draco {
 
@@ -26,7 +27,7 @@ StatusOr<std::unique_ptr<PointCloud>> ReadPointCloudFromFile(
   std::unique_ptr<PointCloud> pc(new PointCloud());
   // Analyze file extension.
   const std::string extension = parser::ToLower(
-      file_name.size() >= 4 ? file_name.substr(file_name.size() - 4)
+      file_name.size() >= 5 ? file_name.substr(file_name.find_last_of('.'))
                             : file_name);
   if (extension == ".obj") {
     // Wavefront OBJ file format.
@@ -41,6 +42,12 @@ StatusOr<std::unique_ptr<PointCloud>> ReadPointCloudFromFile(
     // Wavefront PLY file format.
     PlyDecoder ply_decoder;
     DRACO_RETURN_IF_ERROR(ply_decoder.DecodeFromFile(file_name, pc.get()));
+    return std::move(pc);
+  }
+  if (extension == ".splat") {
+    // SPLAT file format.
+    SplatDecoder splat_decoder;
+    DRACO_RETURN_IF_ERROR(splat_decoder.ReadSplatFile(file_name, pc.get()));
     return std::move(pc);
   }
 
