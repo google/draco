@@ -26,6 +26,9 @@ bool PointCloudKdTreeDecoder::DecodeGeometryData() {
   if (num_points < 0) {
     return false;
   }
+  if (num_points > std::numeric_limits<int32_t>::max()){
+    return false;
+  }
   point_cloud()->set_num_points(num_points);
   return true;
 }

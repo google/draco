@@ -243,3 +243,33 @@ TEST_F(DecodeTest, TestSkipAttributeTransformUniqueId) {
 }
 
 }  // namespace
++TEST_F(DecodeTest, TestInvalidNumberOfPoints) {
+  // Tests that decoders can handle invalid number of points.
+  const int32_t num_points = -10;
+  const std::string file_name = "cube_att.obj";
+
+  draco::EncoderBuffer encoder_buffer;
+  draco::Encoder encoder;
+  encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 10);
+  encoder.SetAttributeQuantization(draco::GeometryAttribute::NORMAL, 11);
+
+  //Encode the mesh into the buffer.
+  auto src_mesh = draco::ReadMeshFromTestFile(file_name);
+  ASSERT_NE(src_mesh, nullptr);
+  encoder.EncodeMeshToBuffer(*src_mesh, &encoder_buffer);
+
+  // Create a corrupted draco decoding buffer.
+  draco::DecoderBuffer buffer;
+  buffer.Init(encoder_buffer.data(), encoder_buffer.size());
+  
+  // Modify the number of points in the buffer to an invalid number.
+  buffer.mutable_data()[5] = num_points;
+
+  draco::Decoder decoder;
+
+  // Decode the input data into a geometry.
+  auto result = decoder.DecodeMeshFromBuffer(&buffer);
+
+  // Check that the result was a failure.
+  ASSERT_FALSE(result.ok());
+}
