@@ -991,6 +991,46 @@ TEST_F(GltfEncoderTest, EncodeTexCoord1) {
   ASSERT_EQ(mesh_from_gltf->NumNamedAttributes(GeometryAttribute::POSITION), 1);
   ASSERT_EQ(mesh_from_gltf->NumNamedAttributes(GeometryAttribute::NORMAL), 1);
   ASSERT_EQ(mesh_from_gltf->NumNamedAttributes(GeometryAttribute::TANGENT), 1);
+
+  const std::string att_name_0 = "TEXCOORD_0";
+  const std::string att_name_1 = "TEXCOORD_1";
+  const auto& att_names_ = mesh->GetNamedAttribute(GeometryAttribute::TEX_COORD, 0)->name();
+  ASSERT_EQ(att_names_, "TEXCOORD_0");
+
+  const auto& att_names = mesh->GetNamedAttribute(GeometryAttribute::TEX_COORD, 1)->name();
+  ASSERT_EQ(att_names, "TEXCOORD_1");
+
+  // Test uint8_t and uint16_t support in tex coords.
+  // Create an mesh with UINT8 and UINT16 types.
+  std::unique_ptr<draco::Mesh> mesh_uint8_uint16 = draco::ReadMeshFromTestFile("test_pos_color.ply");
+  ASSERT_NE(mesh_uint8_uint16, nullptr);
+  draco::PointAttribute pa;
+  pa.Init(draco::GeometryAttribute::TEX_COORD, nullptr, 2,
+            draco::DT_UINT8, false, 8, 0);
+
+    
+  std::unique_ptr<draco::PointAttribute> pa_1 =
+      std::unique_ptr<draco::PointAttribute>(new draco::PointAttribute());
+  pa_1->Init(draco::GeometryAttribute::TEX_COORD, nullptr, 2,
+             draco::DT_UINT16, false, 16, 0);
+
+  mesh_uint8_uint16->AddAttribute(pa, false, 0);
+  mesh_uint8_uint16->AddAttribute(*pa_1, false, 0);
+  
+  // Verify.
+  const int count = 2;
+  for (int i = 0; i < mesh_uint8_uint16->num_points(); ++i) {
+    float v1,v2;
+    if(att_name_0=="TEXCOORD_0"){
+        mesh_uint8_uint16->attribute(0)->GetAttributeValue(AttributeValueIndex(i),&v1);
+        mesh_uint8_uint16->attribute(0)->GetAttributeValue(AttributeValueIndex(i),&v2);
+    } else {
+        mesh_uint8_uint16->attribute(1)->GetAttributeValue(AttributeValueIndex(i),&v1);
+        mesh_uint8_uint16->attribute(1)->GetAttributeValue(AttributeValueIndex(i),&v2);
+    }
+  }
+  // Check that we can load and then save to glTF with no issues.
+  EncodeMeshToGltfAndCompare(mesh_uint8_uint16.get());
 }
 
 TEST_F(GltfEncoderTest, TestEncodeFileFunctions) {

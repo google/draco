@@ -1300,7 +1300,7 @@ int GltfAsset::AddDracoTexture(const Mesh &mesh, int tex_coord_index,
   const PointAttribute *const att =
       mesh.GetNamedAttribute(GeometryAttribute::TEX_COORD, tex_coord_index);
   // TODO(b/200303080): Add support for DT_UINT8 and DT_UINT16 with TEX_COORD.
-  if (!CheckDracoAttribute(att, {DT_FLOAT32}, {2})) {
+  if (!CheckDracoAttribute(att, {DT_FLOAT32, DT_UINT8, DT_UINT16}, {2})) {
     return -1;
   }
 
