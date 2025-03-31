@@ -1,0 +1,15 @@
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  - package-ecosystem: "bundler"
+    directory: "/docs"
+    schedule:
+      interval: "monthly"
+    groups:
+      doc-gems-security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
+    commit-message:
+      include: "scope"

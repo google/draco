@@ -36,9 +36,11 @@
             "POSITION": 1,
             "TEXCOORD_0": 3,
             "TEXCOORD_1": 4,
+            "_DIRECTION": 8,
             "_FEATURE_ID_0": 5,
             "_FEATURE_ID_1": 6,
-            "_FEATURE_ID_2": 7
+            "_FEATURE_ID_2": 7,
+            "_MAGNITUDE": 9
           },
           "indices": 0,
           "mode": 4,
@@ -87,6 +89,11 @@
                     ]
                   }
                 }
+              ]
+            },
+            "EXT_structural_metadata": {
+              "propertyAttributes": [
+                0
               ]
             }
           }
@@ -197,6 +204,18 @@
       "componentType": 5126,
       "count": 36,
       "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 36,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 36,
+      "type": "SCALAR"
     }
   ],
   "extensions": {
@@ -218,8 +237,27 @@
                 "type": "STRING"
               },
               "sequence": {
+                "componentType": "FLOAT32",
                 "description": "The number sequence.",
                 "required": false,
+                "type": "SCALAR"
+              }
+            }
+          },
+          "movement": {
+            "name": "The movement.",
+            "description": "Vertex movement.",
+            "properties": {
+              "direction": {
+                "componentType": "FLOAT32",
+                "description": "Movement direction.",
+                "required": true,
+                "type": "VEC3"
+              },
+              "magnitude": {
+                "componentType": "FLOAT32",
+                "description": "Movement magnitude.",
+                "required": true,
                 "type": "SCALAR"
               }
             }
@@ -261,17 +299,31 @@
           "count": 16,
           "properties": {
             "color": {
-              "values": 8
+              "values": 10
             },
             "name": {
-              "values": 9,
+              "values": 11,
               "stringOffsetType": "UINT32",
-              "stringOffsets": 10
+              "stringOffsets": 12
             },
             "sequence": {
-              "values": 11,
+              "values": 13,
               "arrayOffsetType": "UINT8",
-              "arrayOffsets": 12
+              "arrayOffsets": 14
+            }
+          }
+        }
+      ],
+      "propertyAttributes": [
+        {
+          "name": "The movement.",
+          "class": "movement",
+          "properties": {
+            "direction": {
+              "attribute": "_DIRECTION"
+            },
+            "magnitude": {
+              "attribute": "_MAGNITUDE"
             }
           }
         }
@@ -322,37 +374,47 @@
     {
       "buffer": 0,
       "byteOffset": 1728,
+      "byteLength": 432
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2160,
+      "byteLength": 144
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2304,
       "byteLength": 48,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteOffset": 1776,
+      "byteOffset": 2352,
       "byteLength": 296,
       "target": 34963
     },
     {
       "buffer": 0,
-      "byteOffset": 2072,
+      "byteOffset": 2648,
       "byteLength": 68,
       "target": 34963
     },
     {
       "buffer": 0,
-      "byteOffset": 2140,
+      "byteOffset": 2716,
       "byteLength": 164,
       "target": 34963
     },
     {
       "buffer": 0,
-      "byteOffset": 2304,
+      "byteOffset": 2880,
       "byteLength": 20,
       "target": 34963
     }
   ],
   "buffers": [
     {
-      "byteLength": 2324,
+      "byteLength": 2900,
       "uri": "buffer0.bin"
     }
   ],
