@@ -135,6 +135,10 @@ macro(draco_set_default_options)
     NAME DRACO_INSTALL
     HELPSTRING "Enable installation."
     VALUE ON)
+  draco_option(
+    NAME DRACO_BUILD_EXECUTABLES
+    HELPSTRING "Enable executables build."
+    VALUE ON)
   draco_check_deprecated_options()
 endmacro()
 
