@@ -706,28 +706,30 @@ if(EMSCRIPTEN AND DRACO_JS_GLUE)
                 "DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED")
   endif()
 
-  draco_add_emscripten_executable(
-    NAME draco_decoder
-    SOURCES ${draco_decoder_src}
-    DEFINES ${draco_defines}
-    FEATURES ${draco_decoder_features}
-    INCLUDES ${draco_include_paths}
-    LINK_FLAGS "-sEXPORT_NAME=\"DracoDecoderModule\""
-    GLUE_PATH ${draco_decoder_glue_path}
-    PRE_LINK_JS_SOURCES ${draco_pre_link_js_sources}
-    POST_LINK_JS_SOURCES ${draco_post_link_js_decoder_sources})
+  if(DRACO_BUILD_EXECUTABLES)
+    draco_add_emscripten_executable(
+      NAME draco_decoder
+      SOURCES ${draco_decoder_src}
+      DEFINES ${draco_defines}
+      FEATURES ${draco_decoder_features}
+      INCLUDES ${draco_include_paths}
+      LINK_FLAGS "-sEXPORT_NAME=\"DracoDecoderModule\""
+      GLUE_PATH ${draco_decoder_glue_path}
+      PRE_LINK_JS_SOURCES ${draco_pre_link_js_sources}
+      POST_LINK_JS_SOURCES ${draco_post_link_js_decoder_sources})
 
-  draco_add_emscripten_executable(
-    NAME draco_encoder
-    SOURCES ${draco_encoder_src}
-    DEFINES ${draco_defines}
-    FEATURES DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
-             DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
-    INCLUDES ${draco_include_paths}
-    LINK_FLAGS "-sEXPORT_NAME=\"DracoEncoderModule\""
-    GLUE_PATH ${draco_encoder_glue_path}
-    PRE_LINK_JS_SOURCES ${draco_pre_link_js_sources}
-    POST_LINK_JS_SOURCES ${draco_post_link_js_sources})
+    draco_add_emscripten_executable(
+      NAME draco_encoder
+      SOURCES ${draco_encoder_src}
+      DEFINES ${draco_defines}
+      FEATURES DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
+               DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
+      INCLUDES ${draco_include_paths}
+      LINK_FLAGS "-sEXPORT_NAME=\"DracoEncoderModule\""
+      GLUE_PATH ${draco_encoder_glue_path}
+      PRE_LINK_JS_SOURCES ${draco_pre_link_js_sources}
+      POST_LINK_JS_SOURCES ${draco_post_link_js_sources})
+  endif()
 
   if(DRACO_ANIMATION_ENCODING)
     set(draco_anim_decoder_glue_path "${draco_build}/glue_animation_decoder")
@@ -1106,42 +1108,44 @@ else()
   endif()
 
   # Draco app targets.
-  draco_add_executable(
-    NAME draco_decoder
-    SOURCES "${draco_src_root}/tools/draco_decoder.cc" ${draco_io_sources}
-    DEFINES ${draco_defines}
-    INCLUDES ${draco_include_paths}
-    LIB_DEPS ${draco_dependency})
-
-  draco_add_executable(
-    NAME draco_encoder
-    SOURCES "${draco_src_root}/tools/draco_encoder.cc" ${draco_io_sources}
-    DEFINES ${draco_defines}
-    INCLUDES ${draco_include_paths}
-    LIB_DEPS ${draco_dependency})
-
-  if(DRACO_TRANSCODER_SUPPORTED)
+  if(DRACO_BUILD_EXECUTABLES)
     draco_add_executable(
-      NAME draco_transcoder
-      SOURCES "${draco_src_root}/tools/draco_transcoder.cc"
-              "${draco_src_root}/tools/draco_transcoder_lib.cc"
-              "${draco_src_root}/tools/draco_transcoder_lib.h"
-              ${draco_io_sources}
+      NAME draco_decoder
+      SOURCES "${draco_src_root}/tools/draco_decoder.cc" ${draco_io_sources}
       DEFINES ${draco_defines}
       INCLUDES ${draco_include_paths}
       LIB_DEPS ${draco_dependency})
 
-    if(DRACO_SIMPLIFIER_SUPPORTED)
+    draco_add_executable(
+      NAME draco_encoder
+      SOURCES "${draco_src_root}/tools/draco_encoder.cc" ${draco_io_sources}
+      DEFINES ${draco_defines}
+      INCLUDES ${draco_include_paths}
+      LIB_DEPS ${draco_dependency})
+
+    if(DRACO_TRANSCODER_SUPPORTED)
       draco_add_executable(
-        NAME draco_simplifier
-        SOURCES ${draco_pipeline_proto_header}
-                "${draco_src_root}/tools/draco_simplifier.cc"
-                "${draco_src_root}/tools/draco_simplifier_lib.cc"
-                "${draco_src_root}/tools/draco_simplifier_lib.h"
+        NAME draco_transcoder
+        SOURCES "${draco_src_root}/tools/draco_transcoder.cc"
+                "${draco_src_root}/tools/draco_transcoder_lib.cc"
+                "${draco_src_root}/tools/draco_transcoder_lib.h"
                 ${draco_io_sources}
         DEFINES ${draco_defines}
         INCLUDES ${draco_include_paths}
         LIB_DEPS ${draco_dependency})
+
+      if(DRACO_SIMPLIFIER_SUPPORTED)
+        draco_add_executable(
+          NAME draco_simplifier
+          SOURCES ${draco_pipeline_proto_header}
+                  "${draco_src_root}/tools/draco_simplifier.cc"
+                  "${draco_src_root}/tools/draco_simplifier_lib.cc"
+                  "${draco_src_root}/tools/draco_simplifier_lib.h"
+                  ${draco_io_sources}
+          DEFINES ${draco_defines}
+          INCLUDES ${draco_include_paths}
+          LIB_DEPS ${draco_dependency})
+      endif()
     endif()
   endif()
 
