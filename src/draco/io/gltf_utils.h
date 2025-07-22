@@ -18,6 +18,7 @@
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <cstdint>
 #include <iomanip>
 #include <sstream>
 #include <string>
