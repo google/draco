@@ -1485,6 +1485,19 @@ Status GltfDecoder::DecodeGltfToScene() {
   MoveNonMaterialTextures(scene_.get());
   DRACO_RETURN_IF_ERROR(AddAssetMetadata(scene_.get()));
 
+  // Cesium RTC
+  if (std::find(gltf_model_.extensionsUsed.begin(),
+                gltf_model_.extensionsUsed.end(),
+                "CESIUM_RTC") != gltf_model_.extensionsUsed.end()) {
+    auto center = gltf_model_.extensions["CESIUM_RTC"].Get("center");
+    std::vector<double> cesium_rtc;
+
+    cesium_rtc.push_back(center.Get(0).GetNumberAsDouble());
+    cesium_rtc.push_back(center.Get(1).GetNumberAsDouble());
+    cesium_rtc.push_back(center.Get(2).GetNumberAsDouble());
+    scene_->SetCesiumRtc(cesium_rtc);
+  }
+
   return OkStatus();
 }
 
