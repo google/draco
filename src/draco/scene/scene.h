@@ -225,7 +225,7 @@ class Scene {
   const Metadata &GetMetadata() const { return *metadata_; }
   Metadata &GetMetadata() { return *metadata_; }
 
-  const std::vector<double> GetCesiumRtc() const { return cesium_rtc_; }
+  const std::vector<double> &GetCesiumRtc() const { return cesium_rtc_; }
   void SetCesiumRtc(const std::vector<double> &cesium_rtc) {
     cesium_rtc_ = cesium_rtc;
   }

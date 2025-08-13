@@ -140,7 +140,8 @@ TEST(GltfDecoderTest, TriangleGltfCesiumRtc) {
   CompareVectorArray(pos, pos_test);
 
   const std::unique_ptr<Scene> scene(DecodeGltfFileToScene(file_name));
-  EXPECT_EQ(scene->GetCesiumRtc(), std::vector<double>({-123.4, 234.5, 345678.9}));
+  const std::vector<double> expected_cesium_rtc = {-123.4, 234.5, 345678.9};
+  EXPECT_EQ(scene->GetCesiumRtc(), expected_cesium_rtc);
 }
 
 TEST(GltfDecoderTest, MirroredTriangleGltf) {

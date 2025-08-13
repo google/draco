@@ -1486,9 +1486,8 @@ Status GltfDecoder::DecodeGltfToScene() {
   DRACO_RETURN_IF_ERROR(AddAssetMetadata(scene_.get()));
 
   // Cesium RTC
-  if (std::find(gltf_model_.extensionsUsed.begin(),
-                gltf_model_.extensionsUsed.end(),
-                "CESIUM_RTC") != gltf_model_.extensionsUsed.end()) {
+  const auto rtc_it = gltf_model_.extensions.find("CESIUM_RTC");
+  if (rtc_it != gltf_model_.extensions.end()) {
     auto center = gltf_model_.extensions["CESIUM_RTC"].Get("center");
     std::vector<double> cesium_rtc;
 
