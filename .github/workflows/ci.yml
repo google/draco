@@ -261,6 +261,10 @@ jobs:
       - name: Run tests
         if: runner.os == 'Windows'
         shell: msys2 {0}
+        run: ${{ matrix.draco_test_command }}
+        working-directory: ./_gh_build
+
+      - name: Run tests
         if: runner.os != 'Windows'
         shell: bash
         run: ${{ matrix.draco_test_command }}
