@@ -260,7 +260,7 @@ jobs:
 
       - name: Run tests
         if: runner.os == 'Windows'
-        shell: msys2 {0}
+        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
         run: ${{ matrix.draco_test_command }}
         working-directory: ./_gh_build
 
