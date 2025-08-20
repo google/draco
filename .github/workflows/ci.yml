@@ -302,6 +302,7 @@ jobs:
           - test_name: windows-make-with-transcoder
             os: windows-latest
             test_command: python3 test.py -v -t -G "MinGW Makefiles"
+            shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
 
           - test_name: windows-msvc
             os: windows-latest
