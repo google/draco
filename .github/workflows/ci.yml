@@ -296,14 +296,12 @@ jobs:
             os: macos-latest
             test_command: python3 test.py -v -t -G Xcode
 
-          # TODO: These fail when attempting to run install_check.exe with exit
-          # code 0xC0000139 (DLL entry point not found).
-          # - test_name: windows-make
-          #   os: windows-latest
-          #   test_command: python3 test.py -v -G "MinGW Makefiles"
-          # - test_name: windows-make-with-transcoder
-          #   os: windows-latest
-          #   test_command: python3 test.py -v -t -G "MinGW Makefiles"
+          - test_name: windows-make
+            os: windows-latest
+            test_command: python3 test.py -v -G "MinGW Makefiles"
+          - test_name: windows-make-with-transcoder
+            os: windows-latest
+            test_command: python3 test.py -v -t -G "MinGW Makefiles"
 
           - test_name: windows-msvc
             os: windows-latest
@@ -321,7 +319,16 @@ jobs:
         with:
           submodules: true
 
+      # Note msys bash is only needed for the MinGW Makefiles builds, but it
+      # works for the MSVC builds as well.
       - name: Run src/draco/tools/install_test/test.py
+        if: runner.os == 'Windows'
+        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
+        run: ${{ matrix.test_command }}
+        working-directory: ./src/draco/tools/install_test
+
+      - name: Run src/draco/tools/install_test/test.py
+        if: runner.os != 'Windows'
         shell: bash
         run: ${{ matrix.test_command }}
         working-directory: ./src/draco/tools/install_test
