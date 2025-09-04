@@ -105,8 +105,8 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc-10 \
-                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
@@ -116,8 +116,8 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc-10 \
-                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
@@ -129,8 +129,8 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc-10 \
-                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
@@ -140,26 +140,26 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc-10 \
-                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
 
           - test_name: windows-msvc-release-shared
-            os: windows-2019
+            os: windows-latest
             cmake_configure_command: |-
-              cmake .. -G "Visual Studio 16 2019" \
+              cmake .. -G "Visual Studio 17 2022" \
                 -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_CONFIGURATION_TYPES=Release \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . --config Release -- -m:2
             draco_test_command: Release/draco_tests
           - test_name: windows-msvc-release-shared-with-transcoder
-            os: windows-2019
+            os: windows-latest
             cmake_configure_command: |-
-              cmake .. -G "Visual Studio 16 2019" \
+              cmake .. -G "Visual Studio 17 2022" \
                 -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_CONFIGURATION_TYPES=Release \
                 -DDRACO_TESTS=ON \
@@ -168,18 +168,18 @@ jobs:
             draco_test_command: Release/draco_tests
 
           - test_name: windows-msvc-release-static
-            os: windows-2019
+            os: windows-latest
             cmake_configure_command: |-
-              cmake .. -G "Visual Studio 16 2019" \
+              cmake .. -G "Visual Studio 17 2022" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_CONFIGURATION_TYPES=Release \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . --config Release -- -m:2
             draco_test_command: Release/draco_tests
           - test_name: windows-msvc-release-static-with-transcoder
-            os: windows-2019
+            os: windows-latest
             cmake_configure_command: |-
-              cmake .. -G "Visual Studio 16 2019" \
+              cmake .. -G "Visual Studio 17 2022" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_CONFIGURATION_TYPES=Release \
                 -DDRACO_TESTS=ON \
@@ -188,7 +188,7 @@ jobs:
             draco_test_command: Release/draco_tests
 
           - test_name: windows-make-release-shared
-            os: windows-2019
+            os: windows-latest
             cmake_configure_command: |-
               cmake .. -G "MinGW Makefiles" \
                 -DBUILD_SHARED_LIBS=ON \
@@ -199,7 +199,7 @@ jobs:
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
           - test_name: windows-make-release-shared-with-transcoder
-            os: windows-2019
+            os: windows-latest
             cmake_configure_command: |-
               cmake .. -G "MinGW Makefiles" \
                 -DBUILD_SHARED_LIBS=ON \
@@ -212,7 +212,7 @@ jobs:
             draco_test_command: ./draco_tests
 
           - test_name: windows-make-release-static
-            os: windows-2019
+            os: windows-latest
             cmake_configure_command: |-
               cmake .. -G "MinGW Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
@@ -223,7 +223,7 @@ jobs:
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
           - test_name: windows-make-release-static-with-transcoder
-            os: windows-2019
+            os: windows-latest
             cmake_configure_command: |-
               cmake .. -G "MinGW Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
@@ -259,6 +259,13 @@ jobs:
         working-directory: ./_gh_build
 
       - name: Run tests
+        if: runner.os == 'Windows'
+        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
+        run: ${{ matrix.draco_test_command }}
+        working-directory: ./_gh_build
+
+      - name: Run tests
+        if: runner.os != 'Windows'
         shell: bash
         run: ${{ matrix.draco_test_command }}
         working-directory: ./_gh_build
@@ -290,18 +297,18 @@ jobs:
             test_command: python3 test.py -v -t -G Xcode
 
           - test_name: windows-make
-            os: windows-2019
+            os: windows-latest
             test_command: python3 test.py -v -G "MinGW Makefiles"
           - test_name: windows-make-with-transcoder
-            os: windows-2019
+            os: windows-latest
             test_command: python3 test.py -v -t -G "MinGW Makefiles"
 
           - test_name: windows-msvc
-            os: windows-2019
-            test_command: python3 test.py -v -G "Visual Studio 16 2019"
+            os: windows-latest
+            test_command: python3 test.py -v -G "Visual Studio 17 2022"
           - test_name: windows-msvc-with-transcoder
-            os: windows-2019
-            test_command: python3 test.py -v -t -G "Visual Studio 16 2019"
+            os: windows-latest
+            test_command: python3 test.py -v -t -G "Visual Studio 17 2022"
 
     name: install-test-${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}
@@ -312,7 +319,16 @@ jobs:
         with:
           submodules: true
 
+      # Note msys bash is only needed for the MinGW Makefiles builds, but it
+      # works for the MSVC builds as well.
       - name: Run src/draco/tools/install_test/test.py
+        if: runner.os == 'Windows'
+        shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -e -o pipefail {0}
+        run: ${{ matrix.test_command }}
+        working-directory: ./src/draco/tools/install_test
+
+      - name: Run src/draco/tools/install_test/test.py
+        if: runner.os != 'Windows'
         shell: bash
         run: ${{ matrix.test_command }}
         working-directory: ./src/draco/tools/install_test
