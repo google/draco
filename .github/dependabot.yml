@@ -3,7 +3,7 @@
 version: 2
 updates:
   - package-ecosystem: "bundler"
-    directory: "/doc"
+    directory: "/docs"
     schedule:
       interval: "monthly"
     groups:
@@ -11,3 +11,5 @@ updates:
         applies-to: "security-updates"
         patterns:
           - "*"
+    commit-message:
+      include: "scope"
