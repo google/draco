@@ -3,9 +3,9 @@ on:
   # Run on all pull requests.
 
   push:
-    # Run on merges/pushes to master.
+    # Run on merges/pushes to main.
     branches:
-      - master
+      - main
 
   schedule:
     # Run nightly, at midnight.
@@ -105,8 +105,8 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc-10 \
-                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
@@ -116,8 +116,8 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc-10 \
-                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
@@ -129,8 +129,8 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc-10 \
-                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DDRACO_TESTS=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
@@ -140,8 +140,8 @@ jobs:
               cmake .. -G "Unix Makefiles" \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_C_COMPILER=gcc-10 \
-                -DCMAKE_CXX_COMPILER=g++-10 \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2

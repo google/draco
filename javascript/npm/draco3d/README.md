@@ -1,12 +1,12 @@
 
 <p align="center">
-<img src="https://github.com/google/draco/raw/master/docs/DracoLogo.jpeg" />
+<img src="https://github.com/google/draco/raw/main/docs/DracoLogo.jpeg" />
 </p>
 
 News
 =======
 
-Check out the [README](https://github.com/google/draco/blob/1.5.6/README.md)
+Check out the [README](https://github.com/google/draco/blob/1.5.7/README.md)
 file for news about this release.
 
 Description

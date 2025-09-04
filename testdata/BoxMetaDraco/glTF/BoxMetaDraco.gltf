@@ -207,12 +207,12 @@
     {
       "buffer": 0,
       "byteOffset": 0,
-      "byteLength": 620
+      "byteLength": 520
     }
   ],
   "buffers": [
     {
-      "byteLength": 620,
+      "byteLength": 520,
       "uri": "buffer0.bin"
     }
   ],

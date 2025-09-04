@@ -18,6 +18,7 @@
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <cstdint>
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -90,6 +91,7 @@ class JsonWriter {
   void EndObject();
 
   // Every call to BeginArray should have a matching call to EndArray.
+  void BeginArray();
   void BeginArray(const std::string &name);
   void EndArray();
 
