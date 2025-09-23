@@ -25,7 +25,7 @@ namespace draco {
 
 // Decodes a SPLAT file into draco::PointCloud.
 // The current implementation assumes the properties: POSITION, SCALE, COLOR, ROTATION.
-// POSITION and SCALE are stored together as GeometryAttribute.POSITION. COLOR and ROATION
+// POSITION and SCALE are stored together as GeometryAttribute.POSITION. COLOR and ROTATION
 // are stored together as GeometryAttribute.COLOR. Currently, it is not possible to use 
 // custom GeometryAttribute types or the GENERIC type. This types cannot be decoded in
 // the WebGL version of Draco.
