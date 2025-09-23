@@ -203,6 +203,9 @@ class GltfEncoderTest : public ::testing::Test {
                 scene1->GetMaterialLibrary().GetMaterialsVariantName(i));
     }
 
+    // Check that Cesium RTC values are the same.
+    ASSERT_EQ(scene0->GetCesiumRtc(), scene1->GetCesiumRtc());
+
     // Check Nodes are the same.
     for (draco::SceneNodeIndex i(0); i < scene0->NumNodes(); ++i) {
       const SceneNode *const scene_node0 = scene0->GetNode(i);
@@ -621,6 +624,15 @@ TEST_F(GltfEncoderTest, EncodeSceneWithNodeNames) {
   const std::string file_name = "Lantern/glTF/Lantern.gltf";
   const std::unique_ptr<Scene> scene(DecodeTestGltfFileToScene(file_name));
   ASSERT_NE(scene, nullptr);
+  EncodeSceneToGltfAndCompare(scene.get());
+}
+
+// Tests encoding a simple glTF with Cesium RTC.
+TEST_F(GltfEncoderTest, EncodeWithCesiumRtc) {
+  const std::string file_name = "Box/glTF/Box.gltf";
+  const std::unique_ptr<Scene> scene(DecodeTestGltfFileToScene(file_name));
+  ASSERT_NE(scene, nullptr);
+  scene->SetCesiumRtc(std::vector<double>({123.4, -234.5, -45678.9}));
   EncodeSceneToGltfAndCompare(scene.get());
 }
 
