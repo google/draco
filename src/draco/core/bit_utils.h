@@ -81,7 +81,7 @@ inline int MostSignificantBit(uint32_t n) {
 // symbols that can be encoded using an entropy encoder.
 void ConvertSignedIntsToSymbols(const int32_t *in, int in_values,
                                 uint32_t *out);
-
+#pragma optimize("",off)
 // Converts unsigned integer symbols encoded with an entropy encoder back to
 // signed values.
 void ConvertSymbolsToSignedInts(const uint32_t *in, int in_values,
