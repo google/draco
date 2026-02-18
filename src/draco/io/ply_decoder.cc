@@ -70,8 +70,11 @@ Status PlyDecoder::DecodeInternal() {
   PlyReader ply_reader;
   DRACO_RETURN_IF_ERROR(ply_reader.Read(buffer()));
   // First, decode the connectivity data.
-  if (out_mesh_)
-    DRACO_RETURN_IF_ERROR(DecodeFaceData(ply_reader.GetElementByName("face")));
+  if (out_mesh_) {
+    const PlyElement *face_element = ply_reader.GetElementByName("face");
+    DRACO_RETURN_IF_ERROR(DecodeFaceData(face_element));
+    DRACO_RETURN_IF_ERROR(DecodeTexCoordData(face_element));
+  }
   // Decode all attributes.
   DRACO_RETURN_IF_ERROR(
       DecodeVertexData(ply_reader.GetElementByName("vertex")));
@@ -133,6 +136,65 @@ Status PlyDecoder::DecodeFaceData(const PlyElement *face_element) {
     }
   }
   out_mesh_->SetNumFaces(face_index.value());
+  return OkStatus();
+}
+
+Status PlyDecoder::DecodeTexCoordData(const PlyElement *face_element) {
+  if (face_element == nullptr) {
+    return Status(Status::INVALID_PARAMETER, "face_element is null");
+  }
+  const PlyProperty *texture_coordinates =
+      face_element->GetPropertyByName("texcoord");
+  if (texture_coordinates == nullptr || !texture_coordinates->is_list()) {
+    return OkStatus();
+  }
+
+  // Allocate attribute for texture coordinates.
+  // There is one pair of texture coordinates per triangle corner.
+  const int num_corners = out_mesh_->num_faces() * 3;
+  
+  
+  std::unique_ptr<PointAttribute> attr(new PointAttribute());
+  attr->Init(GeometryAttribute::TEX_COORD, 2, DT_FLOAT32, false, num_corners);
+    
+  PlyPropertyReader<float> uv_reader(texture_coordinates);
+  AttributeValueIndex corner_index(0);
+  
+  auto pushTexcoordPair = [uv_reader, &corner_index, &attr]
+      (uint64_t offset, uint64_t index) -> void {
+    float uv_value[2];
+    uv_value[0] = uv_reader.ReadValue(static_cast<int>(offset + index * 2));
+    uv_value[1] = uv_reader.ReadValue(static_cast<int>(offset + index * 2 + 1));
+    attr->SetAttributeValue(corner_index, uv_value);
+    corner_index++;
+  };
+
+  const int64_t num_polygons = face_element->num_entries();
+  for (int i = 0; i < num_polygons; ++i) {
+    const int64_t uv_list_offset = texture_coordinates->GetListEntryOffset(i);
+    const int64_t uv_list_size = texture_coordinates->GetListEntryNumValues(i);
+    if (uv_list_size < 6 || uv_list_size % 2 != 0) {
+      continue;  // Need at least three pairs of UV coordinates per polygon.
+    }
+
+    // Triangulate polygon assuming the polygon is convex.
+    const int64_t num_triangles = uv_list_size / 2 - 2;
+
+    for (int64_t ti = 0; ti < num_triangles; ++ti) {
+      pushTexcoordPair(uv_list_offset, 0);
+      for (int64_t c = 1; c < 3; ++c) {
+        pushTexcoordPair(uv_list_offset, ti + c);
+      }
+    }
+  }
+
+  IndexTypeVector<CornerIndex, AttributeValueIndex> corner_map(num_corners);
+  for (CornerIndex ci(0); ci < num_corners; ++ci) {
+    corner_map[ci] = AttributeValueIndex(ci.value());
+  }
+  // I don't think it works to have this as the only point-mapped attribute
+  // while the rest of the attributes are identity-mapped.
+  out_mesh_->AddAttributeWithConnectivity(std::move(attr), corner_map);
   return OkStatus();
 }
 

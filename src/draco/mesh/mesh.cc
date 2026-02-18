@@ -64,6 +64,7 @@ void Mesh::Copy(const Mesh &src) {
   property_attributes_ = src.property_attributes_;
   property_attributes_material_mask_ = src.property_attributes_material_mask_;
 }
+#endif
 
 namespace {
 // A helper struct that augments a point index with an attribute value index.
@@ -178,6 +179,7 @@ int32_t Mesh::AddAttributeWithConnectivity(
   return PointCloud::AddAttribute(std::move(att));
 }
 
+#ifdef DRACO_TRANSCODER_SUPPORTED
 int32_t Mesh::AddPerVertexAttribute(std::unique_ptr<PointAttribute> att) {
   const PointAttribute *const pos_att =
       GetNamedAttribute(GeometryAttribute::POSITION);
