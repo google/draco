@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GLB to Draco Compressed Converter</title>
+  <script src="draco_encoder.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js"
+    }
+  }
+  </script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f7f7f7; }
+  .container { background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px #0001; max-width: 900px; margin: auto; }
+    h2 { text-align: center; }
+    .row { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; }
+    input[type="file"] { width: 100%; }
+    .compression-options { display: flex; gap: 20px; justify-content: center; }
+    button { padding: 10px 20px; font-size: 16px; border: none; background: #1976d2; color: #fff; border-radius: 5px; cursor: pointer; }
+    button:disabled { background: #aaa; }
+  #status { margin-top: 20px; text-align: center; color: #1976d2; }
+  #viewer { width: 100%; height: 480px; margin-top: 20px; border-radius: 8px; overflow: hidden; background: #111; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p style="text-align:center;">
+      <img src="https://github.com/google/draco/raw/main/docs/DracoLogo.jpeg" alt="Draco Logo" style="max-width:180px; margin-bottom: 20px;" />
+    </p>
+    <h1 style="text-align:center; margin-bottom: 10px;">GLB to Draco Compressed Converter</h1>
+    <hr style="margin: 20px 0;">
+    <h2>Description</h2>
+    <p>
+      Draco is a library for compressing and decompressing 3D geometric meshes and point clouds. It is intended to improve the storage and transmission of 3D graphics.<br>
+      This tool allows you to convert a <b>GLB</b> file to a compressed <b>Draco</b> format (.drc) directly in your browser.
+    </p>
+    <h2>How to use</h2>
+    <ol>
+      <li>Select a <b>GLB</b> file below.</li>
+      <li>Choose a compression level (80% or 50%).</li>
+      <li>Click <b>Convert & Download</b> to get the compressed Draco file.</li>
+    </ol>
+    <div class="row">
+      <label for="glbFile"><b>Select GLB file:</b></label>
+      <input type="file" id="glbFile" accept=".glb">
+    </div>
+    <div class="row">
+      <label><b>Compression Level:</b></label>
+      <div class="compression-options">
+        <label><input type="radio" name="compression" value="80" checked> 80%</label>
+        <label><input type="radio" name="compression" value="50"> 50%</label>
+      </div>
+    </div>
+    <div class="row" style="text-align:center;">
+      <button id="convertBtn" disabled>Convert & Download</button>
+    </div>
+    <div id="status"></div>
+    <hr style="margin: 30px 0 10px 0;">
+    <h2>References</h2>
+    <ul>
+      <li><a href="https://github.com/google/draco">Draco GitHub</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Polygon_mesh">Polygon Meshes</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Point_cloud">Point Clouds</a></li>
+      <li><a href="https://graphics.stanford.edu/data/3Dscanrep/">Stanford Bunny Model</a></li>
+    </ul>
+  </div>
+  <script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/GLTFLoader.js';
+  import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/controls/OrbitControls.js';
+  import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/DRACOLoader.js';
+
+    let glbBuffer = null;
+    let meshData = null;
+    const glbInput = document.getElementById('glbFile');
+    const convertBtn = document.getElementById('convertBtn');
+    const statusDiv = document.getElementById('status');
+  // Create a labeled "Before" viewer (original GLB)
+  const beforeWrap = document.createElement('div');
+  beforeWrap.style.marginTop = '20px';
+  const beforeLabel = document.createElement('h3');
+  beforeLabel.textContent = 'Before (Original GLB)';
+  beforeLabel.style.margin = '6px 0';
+  beforeWrap.appendChild(beforeLabel);
+  const viewerEl = document.createElement('div');
+  viewerEl.id = 'viewer';
+  viewerEl.style.height = '480px';
+  beforeWrap.appendChild(viewerEl);
+  document.querySelector('.container').appendChild(beforeWrap);
+
+  // Create a labeled "After" viewer (compressed Draco result)
+  const afterWrap = document.createElement('div');
+  afterWrap.style.marginTop = '20px';
+  const afterLabel = document.createElement('h3');
+  afterLabel.textContent = 'After (Draco .drc)';
+  afterLabel.style.margin = '6px 0';
+  afterWrap.appendChild(afterLabel);
+  const resultViewerEl = document.createElement('div');
+  resultViewerEl.id = 'resultViewer';
+  resultViewerEl.style.height = '300px';
+  afterWrap.appendChild(resultViewerEl);
+  document.querySelector('.container').appendChild(afterWrap);
+
+    // Viewer state
+  let renderer, scene, camera, controls, currentModel;
+  // Result viewer state
+  let renderer2, scene2, camera2, controls2, currentResultModel;
+  const dracoLoader = new DRACOLoader();
+  // decoder files are in same folder as this html (draco_decoder.js/wasm)
+  dracoLoader.setDecoderPath('./');
+
+    function initViewer() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x222222);
+
+      const width = viewerEl.clientWidth || 800;
+      const height = viewerEl.clientHeight || 480;
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      camera.position.set(0, 1.5, 3);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio || 1);
+      renderer.setSize(width, height);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+      viewerEl.appendChild(renderer.domElement);
+
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.7);
+      hemi.position.set(0, 1, 0);
+      scene.add(hemi);
+
+      const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+      dir.position.set(3, 10, 10);
+      scene.add(dir);
+
+      window.addEventListener('resize', onWindowResize);
+      animateViewer();
+    }
+
+    function initResultViewer() {
+      scene2 = new THREE.Scene();
+      scene2.background = new THREE.Color(0x111111);
+
+      const width = resultViewerEl.clientWidth || 800;
+      const height = resultViewerEl.clientHeight || 300;
+      camera2 = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      camera2.position.set(0, 1.5, 3);
+
+      renderer2 = new THREE.WebGLRenderer({ antialias: true });
+      renderer2.setPixelRatio(window.devicePixelRatio || 1);
+      renderer2.setSize(width, height);
+  renderer2.outputEncoding = THREE.sRGBEncoding;
+      resultViewerEl.appendChild(renderer2.domElement);
+
+      controls2 = new OrbitControls(camera2, renderer2.domElement);
+      controls2.enableDamping = true;
+
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x222222, 0.7);
+      hemi.position.set(0, 1, 0);
+      scene2.add(hemi);
+
+      const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+      dir.position.set(3, 10, 10);
+      scene2.add(dir);
+
+      (function animate2(){ requestAnimationFrame(animate2); if (controls2) controls2.update(); if (renderer2 && scene2 && camera2) renderer2.render(scene2, camera2); })();
+    }
+
+    function onWindowResize() {
+      if (!camera || !renderer) return;
+      const w = viewerEl.clientWidth;
+      const h = viewerEl.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    }
+
+    function animateViewer() {
+      requestAnimationFrame(animateViewer);
+      if (controls) controls.update();
+      if (renderer && scene && camera) renderer.render(scene, camera);
+    }
+
+    function clearCurrentModel() {
+      if (!currentModel) return;
+      scene.remove(currentModel);
+      currentModel.traverse(function(node) {
+        if (node.geometry) node.geometry.dispose();
+        if (node.material) {
+          if (Array.isArray(node.material)) node.material.forEach(m => m.dispose()); else node.material.dispose();
+        }
+      });
+      currentModel = null;
+    }
+
+    initViewer();
+  initResultViewer();
+
+    glbInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      statusDiv.textContent = 'Loading GLB...';
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        glbBuffer = evt.target.result;
+        statusDiv.textContent = 'GLB loaded. Ready to convert.';
+        convertBtn.disabled = false;
+        // Also load into viewer
+        try { loadArrayBufferToViewer(glbBuffer); } catch (e) { console.warn('Viewer load failed', e); }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    function loadArrayBufferToViewer(arrayBuffer) {
+      if (!arrayBuffer) return;
+      const blob = new Blob([arrayBuffer], { type: 'model/gltf-binary' });
+      const url = URL.createObjectURL(blob);
+      const localLoader = new GLTFLoader();
+      localLoader.load(url, function(gltf) {
+        URL.revokeObjectURL(url);
+        clearCurrentModel();
+        currentModel = gltf.scene || gltf.scenes[0];
+        scene.add(currentModel);
+        // Frame camera
+        const box = new THREE.Box3().setFromObject(currentModel);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const fov = camera.fov * (Math.PI / 180);
+        let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+        cameraZ *= 1.5;
+        camera.position.set(center.x, center.y + maxDim * 0.3, center.z + cameraZ);
+        camera.lookAt(center);
+        controls.target.copy(center);
+        controls.update();
+        statusDiv.textContent = 'Loaded into viewer.';
+      }, undefined, function(err) {
+        URL.revokeObjectURL(url);
+        console.error('Viewer GLB load error', err);
+        statusDiv.textContent = 'Viewer failed to load model.';
+      });
+    }
+
+  convertBtn.addEventListener('click', async function() {
+      if (!glbBuffer) return;
+      convertBtn.disabled = true;
+      statusDiv.textContent = 'Parsing GLB and preparing mesh...';
+      try {
+  // Parse GLB using GLTFLoader (ES module)
+  const loader = new GLTFLoader();
+        const arrayBuffer = glbBuffer;
+        const blob = new Blob([arrayBuffer]);
+        const url = URL.createObjectURL(blob);
+        loader.load(url, function(gltf) {
+          URL.revokeObjectURL(url);
+          // Assume first mesh in scene
+          let mesh = null;
+          gltf.scene.traverse(function(obj) {
+            if (obj.isMesh && !mesh) mesh = obj;
+          });
+          if (!mesh) {
+            statusDiv.textContent = 'No mesh found in GLB.';
+            convertBtn.disabled = false;
+            return;
+          }
+          const geometry = mesh.geometry;
+          // Get attributes
+          const pos = geometry.getAttribute('position');
+          const nor = geometry.getAttribute('normal');
+          const col = geometry.getAttribute('color');
+          const uv = geometry.getAttribute('uv');
+          const idx = geometry.index;
+          if (!pos || !idx) {
+            statusDiv.textContent = 'Mesh must have positions and indices.';
+            convertBtn.disabled = false;
+            return;
+          }
+          // Prepare mesh data for Draco
+          const meshData = {
+            indices: idx.array,
+            vertices: pos.array,
+            normals: nor ? nor.array : undefined,
+            colors: col ? col.array : undefined,
+            texcoords: uv ? uv.array : undefined
+          };
+          // Get compression level
+          const comp = document.querySelector('input[name="compression"]:checked').value;
+          let quantization = comp === '80' ? 14 : 10; // 80% = higher quantization (smaller file), 50% = lower quantization (better quality)
+          // Ensure Draco encoder is available
+          if (typeof DracoEncoderModule !== 'function') {
+            statusDiv.textContent = 'Draco encoder (draco_encoder.js) not found or not loaded. Make sure draco_encoder.js is available and exposes DracoEncoderModule().';
+            convertBtn.disabled = false;
+            return;
+          }
+
+          statusDiv.textContent = 'Compressing with Draco...';
+          DracoEncoderModule().then(function(encoderModule) {
+            const encoder = new encoderModule.Encoder();
+            encoder.SetAttributeQuantization(encoderModule.POSITION, quantization);
+            if (meshData.normals) encoder.SetAttributeQuantization(encoderModule.NORMAL, quantization);
+            if (meshData.colors) encoder.SetAttributeQuantization(encoderModule.COLOR, quantization);
+            if (meshData.texcoords) encoder.SetAttributeQuantization(encoderModule.TEX_COORD, quantization);
+            const meshBuilder = new encoderModule.MeshBuilder();
+            const dracoMesh = new encoderModule.Mesh();
+            const numFaces = meshData.indices.length / 3;
+            const numPoints = meshData.vertices.length / 3;
+            meshBuilder.AddFacesToMesh(dracoMesh, numFaces, meshData.indices);
+            meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.POSITION, numPoints, 3, meshData.vertices);
+            if (meshData.normals) meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.NORMAL, numPoints, 3, meshData.normals);
+            if (meshData.colors) meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.COLOR, numPoints, col.itemSize || 3, meshData.colors);
+            if (meshData.texcoords) meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.TEX_COORD, numPoints, uv.itemSize || 2, meshData.texcoords);
+            // Use default encoding method (edgebreaker)
+            encoder.SetEncodingMethod(encoderModule.MESH_EDGEBREAKER_ENCODING);
+            const encodedData = new encoderModule.DracoInt8Array();
+            const encodedLen = encoder.EncodeMeshToDracoBuffer(dracoMesh, encodedData);
+            if (encodedLen <= 0) {
+              statusDiv.textContent = 'Draco encoding failed.';
+              encoderModule.destroy(dracoMesh);
+              encoderModule.destroy(encoder);
+              encoderModule.destroy(meshBuilder);
+              convertBtn.disabled = false;
+              return;
+            }
+            // Download
+            const out = new Uint8Array(encodedLen);
+            for (let i = 0; i < encodedLen; ++i) out[i] = encodedData.GetValue(i);
+            const outBlob = new Blob([out], {type: 'application/octet-stream'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(outBlob);
+            a.download = 'model.drc';
+            a.click();
+            // Also load compressed result into result viewer
+            try {
+              const drcUrl = URL.createObjectURL(outBlob);
+              loadDracoUrlToResultViewer(drcUrl);
+            } catch (err) {
+              console.warn('Failed to load result into viewer:', err);
+            }
+            statusDiv.textContent = 'Compression complete. File downloaded!';
+            encoderModule.destroy(dracoMesh);
+            encoderModule.destroy(encoder);
+            encoderModule.destroy(meshBuilder);
+            convertBtn.disabled = false;
+          });
+        }, function(err) {
+          statusDiv.textContent = 'Failed to parse GLB: ' + err;
+          convertBtn.disabled = false;
+        });
+      } catch (e) {
+        statusDiv.textContent = 'Error: ' + e;
+        convertBtn.disabled = false;
+      }
+
+      function clearCurrentResultModel() {
+        if (!currentResultModel) return;
+        scene2.remove(currentResultModel);
+        currentResultModel.traverse(function(node) {
+          if (node.geometry) node.geometry.dispose();
+          if (node.material) {
+            if (Array.isArray(node.material)) node.material.forEach(m => m.dispose()); else node.material.dispose();
+          }
+        });
+        currentResultModel = null;
+      }
+
+      function loadDracoUrlToResultViewer(url) {
+        dracoLoader.load(url, function(geometry) {
+          // geometry is a BufferGeometry
+          clearCurrentResultModel();
+          // Ensure normals for correct lighting
+          if (!geometry.attributes || !geometry.attributes.normal) {
+            try { geometry.computeVertexNormals(); } catch (e) { console.warn('computeVertexNormals failed', e); }
+          }
+          const material = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.0, roughness: 0.8, side: THREE.DoubleSide });
+          const mesh = new THREE.Mesh(geometry, material);
+          currentResultModel = mesh;
+          scene2.add(mesh);
+          // frame camera
+          const box = new THREE.Box3().setFromObject(mesh);
+          const size = box.getSize(new THREE.Vector3());
+          const center = box.getCenter(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const fov = camera2.fov * (Math.PI / 180);
+          let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+          cameraZ *= 1.5;
+          camera2.position.set(center.x, center.y + maxDim * 0.3, center.z + cameraZ);
+          camera2.lookAt(center);
+          controls2.target.copy(center);
+          controls2.update();
+          statusDiv.textContent = 'Result loaded into viewer.';
+        }, undefined, function(err) {
+          console.error('DRACO load error', err);
+          statusDiv.textContent = 'Failed to load compressed result into viewer.';
+        });
+      }
+    });
+  </script>
+</body>
+</html>
