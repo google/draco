@@ -162,7 +162,7 @@ macro(draco_add_executable)
   endif()
 
   if(exe_LIB_DEPS)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "^Clang|^GNU")
+    if(UNIX AND NOT APPLE AND (CMAKE_CXX_COMPILER_ID MATCHES "^(Clang|GNU)$"))
       # Third party dependencies can introduce dependencies on system and test
       # libraries. Since the target created here is an executable, and CMake
       # does not provide a method of controlling order of link dependencies,
