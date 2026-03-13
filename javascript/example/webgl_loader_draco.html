@@ -79,6 +79,7 @@
       light.position.set( - 1, 1, 1 );
       scene.add( light );
 
+      dracoLoader.setDecoderPath( '/javascript/' );
       dracoLoader.load( 'models/bunny.drc', function ( geometry ) {
 
         geometry.computeVertexNormals();
