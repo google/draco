@@ -15,8 +15,6 @@
 // File contains helper classes used for parsing of PLY files. The classes are
 // used by the PlyDecoder (ply_decoder.h) to read a point cloud or mesh from a
 // source PLY file.
-// TODO(ostava): Currently, we support only binary PLYs encoded in the little
-// endian format ("format binary_little_endian 1.0").
 
 #ifndef DRACO_IO_PLY_READER_H_
 #define DRACO_IO_PLY_READER_H_
@@ -131,7 +129,7 @@ class PlyReader {
   }
 
  private:
-  enum Format { kLittleEndian = 0, kAscii };
+  enum Format { kLittleEndian = 0, kBigEndian, kAscii };
 
   Status ParseHeader(DecoderBuffer *buffer);
   StatusOr<bool> ParseEndHeader(DecoderBuffer *buffer);
@@ -144,6 +142,8 @@ class PlyReader {
   // Splits |line| by whitespace characters.
   std::vector<std::string> SplitWords(const std::string &line);
   DataType GetDataTypeFromString(const std::string &name) const;
+
+  static void SwapBytes(uint8_t *data, int num_bytes);
 
   std::vector<PlyElement> elements_;
   std::map<std::string, int> element_index_;
