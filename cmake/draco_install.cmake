@@ -31,15 +31,14 @@ macro(draco_setup_install_target)
 
     foreach(file ${draco_sources})
       if(file MATCHES "h$")
-        list(APPEND draco_api_includes ${file})
+        # Strip $draco_src_root from the file paths: we need to install relative to
+        # $include_directory.
+        file(RELATIVE_PATH relative_file ${draco_src_root} ${file})
+        list(APPEND draco_api_includes ${relative_file})
       endif()
     endforeach()
 
     list(REMOVE_DUPLICATES draco_api_includes)
-
-    # Strip $draco_src_root from the file paths: we need to install relative to
-    # $include_directory.
-    list(TRANSFORM draco_api_includes REPLACE "${draco_src_root}/" "")
 
     foreach(draco_api_include ${draco_api_includes})
       get_filename_component(file_directory ${draco_api_include} DIRECTORY)
