@@ -20,6 +20,10 @@ namespace maya {
 static void decode_faces(std::unique_ptr<draco::Mesh> &drc_mesh,
                          Drc2PyMesh *out_mesh) {
   int num_faces = drc_mesh->num_faces();
+  // Check for integer overflow in num_faces * 3.
+  if (num_faces < 0 || static_cast<uint64_t>(num_faces) * 3 > SIZE_MAX / sizeof(int)) {
+    return;
+  }
   out_mesh->faces = new int[num_faces * 3];
   out_mesh->faces_num = num_faces;
   for (int i = 0; i < num_faces; i++) {

@@ -175,7 +175,11 @@ template <typename T>
 bool GetTrianglesArray(const draco::Mesh &m, const int out_size,
                        T *out_values) {
   const uint32_t num_faces = m.num_faces();
-  if (num_faces * 3 * sizeof(T) != out_size) {
+  // Check for integer overflow before size comparison.
+  const uint64_t required_size =
+      static_cast<uint64_t>(num_faces) * 3 * sizeof(T);
+  if (required_size > static_cast<uint64_t>(out_size) ||
+      static_cast<int>(required_size) != out_size) {
     return false;
   }
 
