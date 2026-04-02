@@ -125,6 +125,16 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
     }
   }
   point_cloud()->set_num_points(num_points);
+
+  // Validate that all face vertex indices are within [0, num_points).
+  for (draco::FaceIndex fi(0); fi < mesh()->num_faces(); ++fi) {
+    const auto &face = mesh()->face(fi);
+    for (int j = 0; j < 3; ++j) {
+      if (face[j].value() >= num_points) {
+        return false;
+      }
+    }
+  }
   return true;
 }
 
