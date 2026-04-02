@@ -236,6 +236,10 @@ bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DracoData **indices) {
     return false;
   }
   const Mesh *const m = static_cast<const Mesh *>(mesh->private_mesh);
+  // Check for integer overflow in num_faces * 3.
+  if (m->num_faces() > SIZE_MAX / 3 / sizeof(int)) {
+    return false;
+  }
   int *const temp_indices = new int[m->num_faces() * 3];
   for (draco::FaceIndex face_id(0); face_id < m->num_faces(); ++face_id) {
     const Mesh::Face &face = m->face(draco::FaceIndex(face_id));
@@ -328,6 +332,11 @@ int DecodeMeshForUnity(char *data, unsigned int length,
   unity_mesh->num_faces = in_mesh->num_faces();
   unity_mesh->num_vertices = in_mesh->num_points();
 
+  // Check for integer overflow in num_faces * 3.
+  if (in_mesh->num_faces() > SIZE_MAX / 3 / sizeof(int)) {
+    ReleaseUnityMesh(&unity_mesh);
+    return -4;
+  }
   unity_mesh->indices = new int[in_mesh->num_faces() * 3];
   for (draco::FaceIndex face_id(0); face_id < in_mesh->num_faces(); ++face_id) {
     const Mesh::Face &face = in_mesh->face(draco::FaceIndex(face_id));
@@ -336,6 +345,11 @@ int DecodeMeshForUnity(char *data, unsigned int length,
   }
 
   // TODO(draco-eng): Add other attributes.
+  // Check for integer overflow in num_points * components * sizeof(float).
+  if (in_mesh->num_points() > SIZE_MAX / 4 / sizeof(float)) {
+    ReleaseUnityMesh(&unity_mesh);
+    return -4;
+  }
   unity_mesh->position = new float[in_mesh->num_points() * 3];
   const auto pos_att =
       in_mesh->GetNamedAttribute(draco::GeometryAttribute::POSITION);
