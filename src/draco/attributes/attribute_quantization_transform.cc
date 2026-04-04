@@ -80,8 +80,8 @@ bool AttributeQuantizationTransform::InverseTransformAttribute(
   const int num_components = target_attribute->num_components();
   const int entry_size = sizeof(float) * num_components;
   const std::unique_ptr<float[]> att_val(new float[num_components]);
-  int quant_val_id = 0;
-  int out_byte_pos = 0;
+  int64_t quant_val_id = 0;
+  int64_t out_byte_pos = 0;
   Dequantizer dequantizer;
   if (!dequantizer.Init(range_, max_quantized_value)) {
     return false;

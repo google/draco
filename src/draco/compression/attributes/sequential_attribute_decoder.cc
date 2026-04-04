@@ -103,7 +103,7 @@ bool SequentialAttributeDecoder::DecodeValues(
   const int entry_size = static_cast<int>(attribute_->byte_stride());
   std::unique_ptr<uint8_t[]> value_data_ptr(new uint8_t[entry_size]);
   uint8_t *const value_data = value_data_ptr.get();
-  int out_byte_pos = 0;
+  int64_t out_byte_pos = 0;
   // Decode raw attribute values in their original format.
   for (int i = 0; i < num_values; ++i) {
     if (!in_buffer->Decode(value_data, entry_size)) {
