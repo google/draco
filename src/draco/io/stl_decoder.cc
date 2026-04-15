@@ -41,9 +41,14 @@ StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromBuffer(
     return Status(Status::IO_ERROR,
                   "Currently only binary STL files are supported.");
   }
+  if (buffer->remaining_size() < 80) {
+    return Status(Status::IO_ERROR, "STL: truncated header");
+  }
   buffer->Advance(80);
   uint32_t face_count;
-  buffer->Decode(&face_count, 4);
+  if (!buffer->Decode(&face_count, 4)) {
+    return Status(Status::IO_ERROR, "STL: truncated face count");
+  }
 
   TriangleSoupMeshBuilder builder;
   builder.Start(face_count);
@@ -55,9 +60,13 @@ StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromBuffer(
 
   for (uint32_t i = 0; i < face_count; i++) {
     float data[48];
-    buffer->Decode(data, 48);
+    if (!buffer->Decode(data, 48)) {
+      return Status(Status::IO_ERROR, "STL: truncated face data");
+    }
     uint16_t unused;
-    buffer->Decode(&unused, 2);
+    if (!buffer->Decode(&unused, 2)) {
+      return Status(Status::IO_ERROR, "STL: truncated face data");
+    }
 
     builder.SetPerFaceAttributeValueForFace(
         norm_att_id, draco::FaceIndex(i),
