@@ -441,6 +441,9 @@ class RAnsDecoder {
       ans_.buf_offset = offset - 3;
       ans_.state = mem_get_le24(buf + offset - 3) & 0x3FFFFF;
     } else if (x == 3) {
+      if (offset < 4) {
+        return 1;
+      }
       ans_.buf_offset = offset - 4;
       ans_.state = mem_get_le32(buf + offset - 4) & 0x3FFFFFFF;
     } else {
