@@ -19,7 +19,7 @@ using the Draco library to apply compression to glTF files include:
 [glTF Transform](https://gltf-transform.donmccurdy.com/), and
 [glTF Pipeline](https://github.com/CesiumGS/gltf-pipeline).
 
-Draco github glTF branch URL: https://github.com/google/draco/tree/gltf_2.0_draco_extension
+Draco github URL: https://github.com/google/draco
 
 News
 =======
