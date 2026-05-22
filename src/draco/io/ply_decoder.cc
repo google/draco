@@ -232,6 +232,32 @@ Status PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
     }
   }
 
+  // Decode texcoord data if present.
+  const PlyProperty *u_prop = vertex_element->GetPropertyByName("u");
+  if (!u_prop) u_prop = vertex_element->GetPropertyByName("texture_u");
+
+  const PlyProperty *v_prop = vertex_element->GetPropertyByName("v");
+  if (!v_prop) v_prop = vertex_element->GetPropertyByName("texture_v");
+
+  if (u_prop != nullptr && v_prop != nullptr) {
+    // For now, all texcoord properties must be set and of type float32
+    if (u_prop->data_type() == DT_FLOAT32 && v_prop->data_type() == DT_FLOAT32) {
+      PlyPropertyReader<float> u_reader(u_prop);
+      PlyPropertyReader<float> v_reader(v_prop);
+      GeometryAttribute va;
+      va.Init(GeometryAttribute::TEX_COORD, nullptr, 2, DT_FLOAT32, false,
+              sizeof(float) * 2, 0);
+      const int att_id = out_point_cloud_->AddAttribute(va, true, num_vertices);
+      for (PointIndex::ValueType i = 0; i < num_vertices; ++i) {
+        std::array<float, 2> val;
+        val[0] = u_reader.ReadValue(i);
+        val[1] = v_reader.ReadValue(i);
+        out_point_cloud_->attribute(att_id)->SetAttributeValue(
+            AttributeValueIndex(i), &val[0]);
+      }
+    }
+  }
+
   // Decode color data if present.
   int num_colors = 0;
   const PlyProperty *const r_prop = vertex_element->GetPropertyByName("red");
