@@ -464,6 +464,12 @@ StatusOr<std::unique_ptr<Mesh>> GltfDecoder::DecodeFromBuffer(
   return BuildMesh();
 }
 
+StatusOr<std::unique_ptr<Mesh>> GltfDecoder::DecodeFromTextBuffer(
+    DecoderBuffer *buffer) {
+  DRACO_RETURN_IF_ERROR(LoadTextBuffer(*buffer));
+  return BuildMesh();
+}
+
 StatusOr<std::unique_ptr<Scene>> GltfDecoder::DecodeFromFileToScene(
     const std::string &file_name) {
   return DecodeFromFileToScene(file_name, nullptr);
@@ -480,6 +486,14 @@ StatusOr<std::unique_ptr<Scene>> GltfDecoder::DecodeFromFileToScene(
 StatusOr<std::unique_ptr<Scene>> GltfDecoder::DecodeFromBufferToScene(
     DecoderBuffer *buffer) {
   DRACO_RETURN_IF_ERROR(LoadBuffer(*buffer));
+  scene_ = std::unique_ptr<Scene>(new Scene());
+  DRACO_RETURN_IF_ERROR(DecodeGltfToScene());
+  return std::move(scene_);
+}
+
+StatusOr<std::unique_ptr<Scene>> GltfDecoder::DecodeFromTextBufferToScene(
+    DecoderBuffer *buffer) {
+  DRACO_RETURN_IF_ERROR(LoadTextBuffer(*buffer));
   scene_ = std::unique_ptr<Scene>(new Scene());
   DRACO_RETURN_IF_ERROR(DecodeGltfToScene());
   return std::move(scene_);
@@ -530,6 +544,22 @@ Status GltfDecoder::LoadBuffer(const DecoderBuffer &buffer) {
           buffer.remaining_size())) {
     return Status(Status::DRACO_ERROR,
                   "TinyGLTF failed to load glb buffer: " + err);
+  }
+  DRACO_RETURN_IF_ERROR(CheckUnsupportedFeatures());
+  input_file_name_.clear();
+  return OkStatus();
+}
+
+Status GltfDecoder::LoadTextBuffer(const DecoderBuffer &buffer) {
+  tinygltf::TinyGLTF loader;
+  std::string err;
+  std::string warn;
+  if (!loader.LoadASCIIFromString(
+          &gltf_model_, &err, &warn,
+          reinterpret_cast<const char *>(buffer.data_head()),
+          buffer.remaining_size(),"")) {
+    return Status(Status::DRACO_ERROR,
+                  "TinyGLTF failed to load gltf buffer: " + err);
   }
   DRACO_RETURN_IF_ERROR(CheckUnsupportedFeatures());
   input_file_name_.clear();
