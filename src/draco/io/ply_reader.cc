@@ -194,20 +194,32 @@ bool PlyReader::ParseElementData(DecoderBuffer *buffer, int element_index) {
       if (prop.is_list()) {
         // Parse the number of entries for the list element.
         int64_t num_entries = 0;
-        buffer->Decode(&num_entries, prop.list_data_type_num_bytes());
+        if (!buffer->Decode(&num_entries, prop.list_data_type_num_bytes())) {
+          return false;
+        }
+        if (num_entries < 0) {
+          return false;
+        }
+        const int64_t entry_size = prop.data_type_num_bytes();
+        if (entry_size <= 0 ||
+            num_entries > buffer->remaining_size() / entry_size) {
+          return false;
+        }
+        const int64_t num_bytes_to_read = entry_size * num_entries;
         // Store offset to the main data entry.
         prop.list_data_.push_back(prop.data_.size() /
                                   prop.data_type_num_bytes_);
         // Store the number of entries.
         prop.list_data_.push_back(num_entries);
-        // Read and store the actual property data
-        const int64_t num_bytes_to_read =
-            prop.data_type_num_bytes() * num_entries;
+        // Read and store the actual property data.
         prop.data_.insert(prop.data_.end(), buffer->data_head(),
                           buffer->data_head() + num_bytes_to_read);
         buffer->Advance(num_bytes_to_read);
       } else {
-        // Non-list property
+        // Non-list property.
+        if (buffer->remaining_size() < prop.data_type_num_bytes()) {
+          return false;
+        }
         prop.data_.insert(prop.data_.end(), buffer->data_head(),
                           buffer->data_head() + prop.data_type_num_bytes());
         buffer->Advance(prop.data_type_num_bytes());
