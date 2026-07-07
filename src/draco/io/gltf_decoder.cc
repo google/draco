@@ -167,7 +167,14 @@ StatusOr<std::vector<uint32_t>> CopyDataAsUint32(
       tinygltf::GetComponentSizeInBytes(accessor.componentType);
   const int num_components =
       TinyGltfUtils::GetNumComponentsForType(accessor.type);
-  const int num_elements = accessor.count * num_components;
+  // Check for integer overflow in accessor.count * num_components.
+  const int64_t num_elements_64 =
+      static_cast<int64_t>(accessor.count) * num_components;
+  if (num_elements_64 > std::numeric_limits<int>::max()) {
+    return Status(Status::DRACO_ERROR,
+                  "CopyDataAsUint32: accessor count overflow.");
+  }
+  const int num_elements = static_cast<int>(num_elements_64);
 
   std::vector<uint32_t> output;
   output.resize(num_elements);
