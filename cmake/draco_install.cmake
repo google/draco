@@ -68,10 +68,6 @@ macro(draco_setup_install_target)
         ARCHIVE DESTINATION "${libs_path}"
         LIBRARY DESTINATION "${libs_path}")
     else()
-      install(
-        TARGETS draco_static
-        EXPORT dracoExport
-        DESTINATION "${libs_path}")
 
       if(BUILD_SHARED_LIBS)
         install(
@@ -80,6 +76,11 @@ macro(draco_setup_install_target)
           RUNTIME DESTINATION "${bin_path}"
           ARCHIVE DESTINATION "${libs_path}"
           LIBRARY DESTINATION "${libs_path}")
+      else()
+        install(
+          TARGETS draco_static
+          EXPORT dracoExport
+          DESTINATION "${libs_path}")
       endif()
     endif()
 
