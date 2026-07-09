@@ -107,6 +107,10 @@ Status ObjDecoder::DecodeInternal() {
   }
 
   bool use_identity_mapping = false;
+  if (num_obj_faces_ > 0 && num_positions_ == 0) {
+    return Status(Status::DRACO_ERROR,
+                  "Faces reference vertex positions but none are defined.");
+  }
   if (num_obj_faces_ == 0) {
     // Mesh has no faces. In this case we try to read the geometry as a point
     // cloud where every attribute entry is a point.
@@ -639,13 +643,19 @@ void ObjDecoder::MapPointToVertexIndices(
   // point is mapped directly to the specified attribute index. Negative input
   // indices indicate addressing from the last element (e.g. -1 is the last
   // attribute value of a given type, -2 the second last, etc.).
+  if (pos_att_id_ < 0) {
+    return;
+  }
   if (indices[0] > 0) {
     out_point_cloud_->attribute(pos_att_id_)
         ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[0] - 1));
   } else if (indices[0] < 0) {
+    const int32_t resolved = num_positions_ + indices[0];
+    if (resolved < 0) {
+      return;
+    }
     out_point_cloud_->attribute(pos_att_id_)
-        ->SetPointMapEntry(vert_id,
-                           AttributeValueIndex(num_positions_ + indices[0]));
+        ->SetPointMapEntry(vert_id, AttributeValueIndex(resolved));
   }
 
   if (tex_att_id_ >= 0) {
