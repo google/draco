@@ -218,8 +218,8 @@ void SequentialIntegerAttributeDecoder::StoreTypedValues(uint32_t num_values) {
   const std::unique_ptr<AttributeTypeT[]> att_val(
       new AttributeTypeT[num_components]);
   const int32_t *const portable_attribute_data = GetPortableAttributeData();
-  int val_id = 0;
-  int out_byte_pos = 0;
+  int64_t val_id = 0;
+  int64_t out_byte_pos = 0;
   for (uint32_t i = 0; i < num_values; ++i) {
     for (int c = 0; c < num_components; ++c) {
       const AttributeTypeT value =

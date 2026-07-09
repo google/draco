@@ -56,9 +56,9 @@ inline bool ComputeParallelogramPrediction(
   if (vert_opp < data_entry_id && vert_next < data_entry_id &&
       vert_prev < data_entry_id) {
     // Apply the parallelogram prediction.
-    const int v_opp_off = vert_opp * num_components;
-    const int v_next_off = vert_next * num_components;
-    const int v_prev_off = vert_prev * num_components;
+    const int64_t v_opp_off = static_cast<int64_t>(vert_opp) * num_components;
+    const int64_t v_next_off = static_cast<int64_t>(vert_next) * num_components;
+    const int64_t v_prev_off = static_cast<int64_t>(vert_prev) * num_components;
     for (int c = 0; c < num_components; ++c) {
       const int64_t in_data_next_off = in_data[v_next_off + c];
       const int64_t in_data_prev_off = in_data[v_prev_off + c];
