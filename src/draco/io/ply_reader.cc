@@ -203,6 +203,10 @@ bool PlyReader::ParseElementData(DecoderBuffer *buffer, int element_index) {
         // Read and store the actual property data
         const int64_t num_bytes_to_read =
             prop.data_type_num_bytes() * num_entries;
+        if (num_entries < 0 ||
+            num_bytes_to_read > buffer->remaining_size()) {
+          return false;
+        }
         prop.data_.insert(prop.data_.end(), buffer->data_head(),
                           buffer->data_head() + num_bytes_to_read);
         buffer->Advance(num_bytes_to_read);

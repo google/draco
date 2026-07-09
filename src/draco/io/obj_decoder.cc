@@ -447,7 +447,11 @@ bool ObjDecoder::ParseFace(Status *status) {
       for (int c = 0; c < 3; c++) {
         const PointIndex vert_id(3 * num_obj_faces_ + c);
         const int triangulated_index = Triangulate(t, c);
-        MapPointToVertexIndices(vert_id, indices[triangulated_index]);
+        if (!MapPointToVertexIndices(vert_id, indices[triangulated_index])) {
+          *status = Status(Status::DRACO_ERROR,
+                           "OBJ: negative index out of range");
+          return true;
+        }
         // Save info about new edges that will allow us to reconstruct polygons.
         if (added_edge_att_id_ >= 0) {
           const AttributeValueIndex avi(IsNewEdge(nt, t, c));
@@ -631,7 +635,7 @@ bool ObjDecoder::ParseVertexIndices(std::array<int32_t, 3> *out_indices) {
   return true;
 }
 
-void ObjDecoder::MapPointToVertexIndices(
+bool ObjDecoder::MapPointToVertexIndices(
     PointIndex vert_id, const std::array<int32_t, 3> &indices) {
   // Use face entries to store mapping between vertex and attribute indices
   // (positions, texture coordinates and normal indices).
@@ -643,6 +647,9 @@ void ObjDecoder::MapPointToVertexIndices(
     out_point_cloud_->attribute(pos_att_id_)
         ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[0] - 1));
   } else if (indices[0] < 0) {
+    if (-indices[0] > num_positions_) {
+      return false;
+    }
     out_point_cloud_->attribute(pos_att_id_)
         ->SetPointMapEntry(vert_id,
                            AttributeValueIndex(num_positions_ + indices[0]));
@@ -653,6 +660,9 @@ void ObjDecoder::MapPointToVertexIndices(
       out_point_cloud_->attribute(tex_att_id_)
           ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[1] - 1));
     } else if (indices[1] < 0) {
+      if (-indices[1] > num_tex_coords_) {
+        return false;
+      }
       out_point_cloud_->attribute(tex_att_id_)
           ->SetPointMapEntry(vert_id,
                              AttributeValueIndex(num_tex_coords_ + indices[1]));
@@ -669,6 +679,9 @@ void ObjDecoder::MapPointToVertexIndices(
       out_point_cloud_->attribute(norm_att_id_)
           ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[2] - 1));
     } else if (indices[2] < 0) {
+      if (-indices[2] > num_normals_) {
+        return false;
+      }
       out_point_cloud_->attribute(norm_att_id_)
           ->SetPointMapEntry(vert_id,
                              AttributeValueIndex(num_normals_ + indices[2]));
@@ -691,6 +704,7 @@ void ObjDecoder::MapPointToVertexIndices(
     out_point_cloud_->attribute(sub_obj_att_id_)
         ->SetPointMapEntry(vert_id, AttributeValueIndex(last_sub_obj_id_));
   }
+  return true;
 }
 
 bool ObjDecoder::ParseMaterialFile(const std::string &file_name,
