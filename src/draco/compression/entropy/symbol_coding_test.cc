@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 #include "draco/compression/config/compression_shared.h"
+#include "draco/compression/entropy/rans_symbol_coding.h"
 #include "draco/compression/entropy/symbol_decoding.h"
 #include "draco/compression/entropy/symbol_encoding.h"
 #include "draco/core/bit_utils.h"
@@ -165,6 +166,15 @@ TEST_F(SymbolCodingTest, TestConversionFullRange) {
   TestConvertToSymbolAndBack(static_cast<int8_t>(0));
   TestConvertToSymbolAndBack(static_cast<int8_t>(1));
   TestConvertToSymbolAndBack(static_cast<int8_t>(127));
+}
+
+TEST_F(SymbolCodingTest, TestFrequencyTableBitsAboveInt32Max) {
+  // A larger maximum symbol needs a larger frequency table, also above
+  // INT32_MAX. The encoder compares these estimates to choose a configuration.
+  const int64_t below = ApproximateRAnsFrequencyTableBits(0x7fffffffu, 2);
+  const int64_t above = ApproximateRAnsFrequencyTableBits(0xffffffffu, 2);
+  ASSERT_GT(below, 0);
+  ASSERT_GT(above, below);
 }
 
 }  // namespace draco

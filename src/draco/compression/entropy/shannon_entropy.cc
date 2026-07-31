@@ -140,8 +140,11 @@ int64_t ShannonEntropyTracker::GetNumberOfDataBits(
 
 int64_t ShannonEntropyTracker::GetNumberOfRAnsTableBits(
     const EntropyData &entropy_data) {
-  return ApproximateRAnsFrequencyTableBits(entropy_data.max_symbol + 1,
-                                           entropy_data.num_unique_symbols);
+  // |max_symbol| is an int that holds a symbol value. Casting it to uint32_t
+  // gives back the value for symbols above INT32_MAX.
+  return ApproximateRAnsFrequencyTableBits(
+      static_cast<uint32_t>(entropy_data.max_symbol + 1),
+      entropy_data.num_unique_symbols);
 }
 
 }  // namespace draco
