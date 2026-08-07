@@ -104,6 +104,26 @@ class TinyGltfUtils {
     const unsigned char *const data_start =
         buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
     const int byte_stride = accessor.ByteStride(buffer_view);
+
+    // Validate that reading |accessor.count| elements with |byte_stride|
+    // does not read past the end of the buffer.
+    if (accessor.count < 0 || byte_stride <= 0) {
+      return Status(Status::DRACO_ERROR,
+                     "Error CopyDataAsFloat() invalid accessor.");
+    }
+    const size_t start_offset =
+        buffer_view.byteOffset + accessor.byteOffset;
+    if (start_offset > buffer.data.size()) {
+      return Status(Status::DRACO_ERROR,
+                     "Error CopyDataAsFloat() accessor offset out of bounds.");
+    }
+    const size_t available_bytes = buffer.data.size() - start_offset;
+    const size_t required_bytes =
+        static_cast<size_t>(byte_stride) * static_cast<size_t>(accessor.count);
+    if (required_bytes > available_bytes) {
+      return Status(Status::DRACO_ERROR,
+                     "Error CopyDataAsFloat() accessor data out of bounds.");
+    }
     const int component_size =
         tinygltf::GetComponentSizeInBytes(accessor.componentType);
 
