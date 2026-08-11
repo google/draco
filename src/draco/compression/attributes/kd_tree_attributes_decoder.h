@@ -32,7 +32,7 @@ class KdTreeAttributesDecoder : public AttributesDecoder {
 
  private:
   template <int level_t, typename OutIteratorT>
-  bool DecodePoints(int total_dimensionality, int num_expected_points,
+  bool DecodePoints(int total_dimensionality, uint32_t num_expected_points,
                     DecoderBuffer *in_buffer, OutIteratorT *out_iterator);
 
   template <typename SignedDataTypeT>
