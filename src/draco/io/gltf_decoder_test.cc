@@ -114,6 +114,36 @@ TEST(GltfDecoderTest, TriangleGltf) {
   CompareVectorArray(pos, pos_test);
 }
 
+TEST(GltfDecoderTest, TriangleGltfCesiumRtc) {
+  const std::string file_name = "one_face_123_cesium_rtc.gltf";
+  const std::unique_ptr<Mesh> mesh(DecodeGltfFile(file_name));
+  EXPECT_EQ(mesh->num_attributes(), 1) << "Unexpected number of attributes.";
+  EXPECT_EQ(mesh->num_points(), 3) << "Unexpected number of vertices.";
+  EXPECT_EQ(mesh->num_faces(), 1) << "Unexpected number of faces.";
+  ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), 1);
+  ASSERT_EQ(mesh->GetMaterialLibrary().GetMaterial(0)->NumTextureMaps(), 0);
+
+  const auto *const pos_attribute =
+      mesh->GetNamedAttribute(GeometryAttribute::POSITION);
+  EXPECT_NE(pos_attribute, nullptr);
+  const auto &face = mesh->face(FaceIndex(0));
+  std::array<Vector3f, 3> pos;
+  for (int c = 0; c < 3; ++c) {
+    pos_attribute->GetMappedValue(face[c], &pos[c][0]);
+  }
+
+  // Test position values match.
+  std::array<Vector3f, 3> pos_test;
+  pos_test[0] = Vector3f(1, 0.0999713, 0);
+  pos_test[1] = Vector3f(2.00006104, 0.01, 0);
+  pos_test[2] = Vector3f(3, 0.10998169, 0);
+  CompareVectorArray(pos, pos_test);
+
+  const std::unique_ptr<Scene> scene(DecodeGltfFileToScene(file_name));
+  const std::vector<double> expected_cesium_rtc = {-123.4, 234.5, 345678.9};
+  EXPECT_EQ(scene->GetCesiumRtc(), expected_cesium_rtc);
+}
+
 TEST(GltfDecoderTest, MirroredTriangleGltf) {
   const std::string file_name = "one_face_123_mirror.gltf";
   const std::unique_ptr<Mesh> mesh(DecodeGltfFile(file_name));

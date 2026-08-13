@@ -17,6 +17,7 @@
 #define DRACO_COMPRESSION_ATTRIBUTES_POINT_D_VECTOR_H_
 
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <iterator>
 #include <memory>
