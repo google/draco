@@ -529,6 +529,18 @@ TEST(SceneUtilsTest, TestInstantiateMesh) {
   EXPECT_NEAR(instanced_bbox.GetMaxPoint()[2], +1.05800, tolerance);
 }
 
+TEST(SceneUtilsTest, TestInstantiateMeshWithInvalidMeshIndex) {
+  // Instantiating a mesh with an index that is not present in the scene must
+  // return an error instead of accessing the out-of-bounds mesh.
+  draco::Scene scene;
+  const draco::SceneUtils::MeshInstance invalid_instance = {
+      draco::MeshIndex(0), draco::SceneNodeIndex(0), 0,
+      Eigen::Matrix4d::Identity()};
+  const auto result =
+      draco::SceneUtils::InstantiateMesh(scene, invalid_instance);
+  EXPECT_FALSE(result.ok());
+}
+
 TEST(SceneUtilsTest, TestCleanupEmptyMeshGroup) {
   auto scene =
       draco::ReadSceneFromTestFile("CesiumMilkTruck/glTF/CesiumMilkTruck.gltf");
