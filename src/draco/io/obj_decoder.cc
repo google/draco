@@ -598,12 +598,28 @@ bool ObjDecoder::ParseVertexIndices(std::array<int32_t, 3> *out_indices) {
     return false;  // Position index must be present and valid.
   }
   (*out_indices)[1] = (*out_indices)[2] = 0;
+  const auto indices_in_bounds = [this, out_indices]() {
+    if ((*out_indices)[0] > num_positions_ ||
+        (*out_indices)[0] < -num_positions_) {
+      return false;
+    }
+    if ((*out_indices)[1] != 0 && ((*out_indices)[1] > num_tex_coords_ ||
+                                   (*out_indices)[1] < -num_tex_coords_)) {
+      return false;
+    }
+    if ((*out_indices)[2] != 0 && ((*out_indices)[2] > num_normals_ ||
+                                   (*out_indices)[2] < -num_normals_)) {
+      return false;
+    }
+    return true;
+  };
+
   char ch;
   if (!buffer()->Peek(&ch)) {
-    return true;  // It may be OK if we cannot read any more characters.
+    return indices_in_bounds();  // It may be OK if we cannot read any more characters.
   }
   if (ch != '/') {
-    return true;
+    return indices_in_bounds();
   }
   buffer()->Advance(1);
   // Check if we should skip texture index or not.
@@ -618,7 +634,7 @@ bool ObjDecoder::ParseVertexIndices(std::array<int32_t, 3> *out_indices) {
     }
   }
   if (!buffer()->Peek(&ch)) {
-    return true;
+    return indices_in_bounds();
   }
   if (ch == '/') {
     buffer()->Advance(1);
@@ -628,7 +644,8 @@ bool ObjDecoder::ParseVertexIndices(std::array<int32_t, 3> *out_indices) {
       return false;  // Normal index must be present and valid.
     }
   }
-  return true;
+
+  return indices_in_bounds();
 }
 
 void ObjDecoder::MapPointToVertexIndices(
