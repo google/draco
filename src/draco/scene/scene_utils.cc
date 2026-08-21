@@ -457,7 +457,7 @@ StatusOr<std::unique_ptr<Mesh>> SceneUtils::InstantiateMesh(
     const Scene &scene, const MeshInstance &instance) {
   // Check if the |scene| has base mesh corresponding to mesh |instance|.
   if (scene.NumMeshes() <= instance.mesh_index.value()) {
-    Status(Status::DRACO_ERROR, "Scene has no corresponding base mesh.");
+    return Status(Status::DRACO_ERROR, "Scene has no corresponding base mesh.");
   }
 
   // Check that mesh has valid positions.
