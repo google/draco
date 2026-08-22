@@ -37,7 +37,7 @@ if("${draco_root}" STREQUAL "${draco_build}")
       "And re-run CMake from the draco_build directory.")
 endif()
 
-include(FindPythonInterp)
+find_package(Python COMPONENTS Interpreter)
 include("${draco_root}/cmake/draco_build_definitions.cmake")
 include("${draco_root}/cmake/draco_cpu_detection.cmake")
 include("${draco_root}/cmake/draco_dependencies.cmake")
