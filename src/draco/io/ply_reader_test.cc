@@ -140,4 +140,31 @@ TEST_F(PlyReaderTest, TestReaderMoreDataTypes) {
   }
 }
 
+TEST_F(PlyReaderTest, TestReaderTruncatedListData) {
+  // Binary PLY where the "face" element declares a list property whose
+  // count field claims far more entries than the remaining buffer can hold.
+  // Regression test for a heap-buffer-overflow read in
+  // PlyReader::ParseElementData(): the list count was previously used to
+  // copy data out of the input buffer without a bounds check.
+  const char kData[] =
+      "ply\n"
+      "format binary_little_endian 1.0\n"
+      "element vertex 1\n"
+      "property float x\n"
+      "property float y\n"
+      "property float z\n"
+      "element face 1\n"
+      "property list uchar int vertex_indices\n"
+      "end_header\n"
+      "\x00\x00\x80\x3f\x00\x00\x00\x40\x00\x00\x40\x40"  // vertex: 1, 2, 3
+      "\xff"      // list count claims 255 int32 entries (1020 bytes)
+      "\x41\x41"  // but only 2 bytes of data actually follow
+      ;
+  DecoderBuffer buf;
+  buf.Init(kData, sizeof(kData) - 1);
+  PlyReader reader;
+  const Status status = reader.Read(&buf);
+  ASSERT_FALSE(status.ok());
+}
+
 }  // namespace draco
