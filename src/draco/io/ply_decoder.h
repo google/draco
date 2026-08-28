@@ -49,6 +49,8 @@ class PlyDecoder {
 
  private:
   Status DecodeFaceData(const PlyElement *face_element);
+  Status DecodeTexCoordData(const PlyElement *face_element);
+
   Status DecodeVertexData(const PlyElement *vertex_element);
 
   template <typename DataTypeT>
