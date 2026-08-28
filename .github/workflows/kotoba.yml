@@ -1,0 +1,28 @@
+# Compile the Kotoba v1 Draco magic/header binding and assert fixture fields.
+# Fork-only. Does not build C++/JS and does not touch google/draco.
+name: Kotoba v1
+
+on:
+  push:
+    paths:
+      - "kotoba/**"
+      - ".github/workflows/kotoba.yml"
+  pull_request:
+    paths:
+      - "kotoba/**"
+      - ".github/workflows/kotoba.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  header:
+    name: magic and header
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run kotoba/checks.sh
+        run: bash kotoba/checks.sh

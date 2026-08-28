@@ -1,0 +1,60 @@
+(ns draco)
+
+;; Honest Kotoba v1: Draco bitstream magic + header.
+;; Layout matches src/draco/compression/config/compression_shared.h
+;; DracoHeader and PointCloudDecoder::DecodeHeader.
+;; wasm32, i64-v1, no FFI, no IEEE floats. No mesh decode or encode.
+
+(defn fixture-byte [i]
+  (if (= i 0) 68
+    (if (= i 1) 82
+      (if (= i 2) 65
+        (if (= i 3) 67
+          (if (= i 4) 79
+            (if (= i 5) 2
+              (if (= i 6) 2
+                (if (= i 7) 1
+                  (if (= i 8) 1
+                    (if (= i 9) 0
+                      (if (= i 10) 0
+                        0))))))))))))
+
+(defn magic-ok []
+  (and (= (fixture-byte 0) 68)
+       (= (fixture-byte 1) 82)
+       (= (fixture-byte 2) 65)
+       (= (fixture-byte 3) 67)
+       (= (fixture-byte 4) 79)))
+
+(defn version-major []
+  (fixture-byte 5))
+
+(defn version-minor []
+  (fixture-byte 6))
+
+(defn encoder-type []
+  (fixture-byte 7))
+
+(defn encoder-method []
+  (fixture-byte 8))
+
+;; flags is uint16 stored as native/little-endian bytes (Decode memcpy).
+(defn flags []
+  (+ (fixture-byte 9)
+     (* (fixture-byte 10) 256)))
+
+;; EncodedGeometryType: POINT_CLOUD = 0, TRIANGULAR_MESH = 1
+(defn triangular-mesh? []
+  (= (encoder-type) 1))
+
+;; Packed i64 for checks.sh:
+;; 1 + 10*major + 100*minor + 1000*type + 10000*method + 1000000*flags
+(defn main []
+  (if (and (magic-ok) (triangular-mesh?))
+    (+ 1
+       (* (version-major) 10)
+       (* (version-minor) 100)
+       (* (encoder-type) 1000)
+       (* (encoder-method) 10000)
+       (* (flags) 1000000))
+    0))
