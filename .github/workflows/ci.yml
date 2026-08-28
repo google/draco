@@ -1,11 +1,17 @@
 on:
   pull_request:
-  # Run on all pull requests.
+    # Fork kotoba/ tree is checked by .github/workflows/kotoba.yml.
+    paths-ignore:
+      - "kotoba/**"
+      - ".github/workflows/kotoba.yml"
 
   push:
     # Run on merges/pushes to main.
     branches:
       - main
+    paths-ignore:
+      - "kotoba/**"
+      - ".github/workflows/kotoba.yml"
 
   schedule:
     # Run nightly, at midnight.
