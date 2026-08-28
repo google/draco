@@ -1,17 +1,11 @@
 on:
   pull_request:
-    # Run on all pull requests except kotoba-only header binding changes.
-    paths-ignore:
-      - "kotoba/**"
-      - ".github/workflows/kotoba.yml"
+  # Run on all pull requests.
 
   push:
     # Run on merges/pushes to main.
     branches:
       - main
-    paths-ignore:
-      - "kotoba/**"
-      - ".github/workflows/kotoba.yml"
 
   schedule:
     # Run nightly, at midnight.
