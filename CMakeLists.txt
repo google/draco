@@ -24,7 +24,7 @@ endif()
 
 set(draco_root "${CMAKE_CURRENT_SOURCE_DIR}")
 set(draco_src_root "${draco_root}/src/draco")
-set(draco_build "${CMAKE_BINARY_DIR}")
+set(draco_build "${CMAKE_CURRENT_BINARY_DIR}")
 
 if("${draco_root}" STREQUAL "${draco_build}")
   message(
