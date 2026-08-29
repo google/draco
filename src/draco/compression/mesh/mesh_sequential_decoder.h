@@ -30,8 +30,9 @@ class MeshSequentialDecoder : public MeshDecoder {
 
  private:
   // Decodes face indices that were compressed with an entropy code.
+  // |num_points| is used to validate that every decoded index is in range.
   // Returns false on error.
-  bool DecodeAndDecompressIndices(uint32_t num_faces);
+  bool DecodeAndDecompressIndices(uint32_t num_faces, uint32_t num_points);
 };
 
 }  // namespace draco

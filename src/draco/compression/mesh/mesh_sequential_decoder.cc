@@ -65,7 +65,7 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
     return false;
   }
   if (connectivity_method == 0) {
-    if (!DecodeAndDecompressIndices(num_faces)) {
+    if (!DecodeAndDecompressIndices(num_faces, num_points)) {
       return false;
     }
   } else {
@@ -76,6 +76,9 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
         for (int j = 0; j < 3; ++j) {
           uint8_t val;
           if (!buffer()->Decode(&val)) {
+            return false;
+          }
+          if (val >= num_points) {
             return false;
           }
           face[j] = val;
@@ -89,6 +92,9 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
         for (int j = 0; j < 3; ++j) {
           uint16_t val;
           if (!buffer()->Decode(&val)) {
+            return false;
+          }
+          if (val >= num_points) {
             return false;
           }
           face[j] = val;
@@ -105,6 +111,9 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
           if (!DecodeVarint(&val, buffer())) {
             return false;
           }
+          if (val >= num_points) {
+            return false;
+          }
           face[j] = val;
         }
         mesh()->AddFace(face);
@@ -116,6 +125,9 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
         for (int j = 0; j < 3; ++j) {
           uint32_t val;
           if (!buffer()->Decode(&val)) {
+            return false;
+          }
+          if (val >= num_points) {
             return false;
           }
           face[j] = val;
@@ -138,7 +150,8 @@ bool MeshSequentialDecoder::CreateAttributesDecoder(int32_t att_decoder_id) {
                   new LinearSequencer(point_cloud()->num_points())))));
 }
 
-bool MeshSequentialDecoder::DecodeAndDecompressIndices(uint32_t num_faces) {
+bool MeshSequentialDecoder::DecodeAndDecompressIndices(uint32_t num_faces,
+                                                       uint32_t num_points) {
   // Get decoded indices differences that were encoded with an entropy code.
   std::vector<uint32_t> indices_buffer(num_faces * 3);
   if (!DecodeSymbols(num_faces * 3, 1, buffer(), indices_buffer.data())) {
@@ -167,6 +180,10 @@ bool MeshSequentialDecoder::DecodeAndDecompressIndices(uint32_t num_faces) {
         }
       }
       const int32_t index_value = index_diff + last_index_value;
+      if (index_value < 0 ||
+          static_cast<uint32_t>(index_value) >= num_points) {
+        return false;
+      }
       face[j] = index_value;
       last_index_value = index_value;
     }
