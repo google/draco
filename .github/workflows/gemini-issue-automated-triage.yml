@@ -60,8 +60,9 @@ jobs:
         id: 'gemini_issue_triage'
         env:
           GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
-          ISSUE_TITLE: '${{ github.event.issue.title }}'
-          ISSUE_BODY: '${{ github.event.issue.body }}'
+          # ISSUE_TITLE and ISSUE_BODY intentionally omitted: passing raw GitHub event
+          # content as env vars is a prompt-injection vector. The agent should
+          # fetch issue content via the GitHub API using ISSUE_NUMBER.
           ISSUE_NUMBER: '${{ github.event.issue.number }}'
           REPOSITORY: '${{ github.repository }}'
         with:
