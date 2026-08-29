@@ -97,7 +97,7 @@ template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeGeometricNormalDecoder<
     DataTypeT, TransformT,
     MeshDataT>::ComputeOriginalValues(const CorrType *in_corr,
-                                      DataTypeT *out_data, int /* size */,
+                                      DataTypeT *out_data, int size,
                                       int num_components,
                                       const PointIndex *entry_to_point_id_map) {
   this->SetQuantizationBits(this->transform().quantization_bits());
@@ -109,6 +109,9 @@ bool MeshPredictionSchemeGeometricNormalDecoder<
 
   const int corner_map_size =
       static_cast<int>(this->mesh_data().data_to_corner_map()->size());
+  if (corner_map_size * num_components > size) {
+    return false;
+  }
 
   VectorD<int32_t, 3> pred_normal_3d;
   int32_t pred_normal_oct[2];

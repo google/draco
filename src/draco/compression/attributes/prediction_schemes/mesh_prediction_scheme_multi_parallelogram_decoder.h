@@ -59,7 +59,7 @@ template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeMultiParallelogramDecoder<DataTypeT, TransformT,
                                                    MeshDataT>::
     ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
-                          int /* size */, int num_components,
+                          int size, int num_components,
                           const PointIndex * /* entry_to_point_id_map */) {
   this->transform().Init(num_components);
 
@@ -76,6 +76,9 @@ bool MeshPredictionSchemeMultiParallelogramDecoder<DataTypeT, TransformT,
 
   const int corner_map_size =
       static_cast<int>(this->mesh_data().data_to_corner_map()->size());
+  if (corner_map_size * num_components > size) {
+    return false;
+  }
   for (int p = 1; p < corner_map_size; ++p) {
     const CornerIndex start_corner_id =
         this->mesh_data().data_to_corner_map()->at(p);
