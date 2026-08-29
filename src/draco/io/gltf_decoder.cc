@@ -160,14 +160,33 @@ StatusOr<std::vector<uint32_t>> CopyDataAsUint32(
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
 
-  const uint8_t *const data_start =
-      buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
   const int byte_stride = accessor.ByteStride(buffer_view);
   const int component_size =
       tinygltf::GetComponentSizeInBytes(accessor.componentType);
   const int num_components =
       TinyGltfUtils::GetNumComponentsForType(accessor.type);
-  const int num_elements = accessor.count * num_components;
+
+  // Validate that accessor data fits within the buffer.
+  const size_t start_offset =
+      static_cast<size_t>(buffer_view.byteOffset) + accessor.byteOffset;
+  if (accessor.count <= 0 || component_size <= 0 || num_components <= 0 ||
+      byte_stride <= 0) {
+    return Status(Status::DRACO_ERROR,
+                  "Invalid accessor or buffer view parameters.");
+  }
+  const size_t last_element_end =
+      start_offset +
+      static_cast<size_t>(accessor.count - 1) * byte_stride +
+      static_cast<size_t>(num_components) * component_size;
+  if (last_element_end > buffer.data.size()) {
+    return Status(Status::DRACO_ERROR,
+                  "Accessor data exceeds buffer bounds.");
+  }
+
+  const uint8_t *const data_start = buffer.data.data() + start_offset;
+
+  const size_t num_elements =
+      static_cast<size_t>(accessor.count) * num_components;
 
   std::vector<uint32_t> output;
   output.resize(num_elements);
@@ -225,17 +244,34 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
 
-  const uint8_t *const data_start =
-      buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
   const int byte_stride = accessor.ByteStride(buffer_view);
   const int component_size =
       tinygltf::GetComponentSizeInBytes(accessor.componentType);
+  const int num_components =
+      TinyGltfUtils::GetNumComponentsForType(accessor.type);
+
+  // Validate that accessor data fits within the buffer.
+  const size_t start_offset =
+      static_cast<size_t>(buffer_view.byteOffset) + accessor.byteOffset;
+  if (accessor.count <= 0 || component_size <= 0 || num_components <= 0 ||
+      byte_stride <= 0) {
+    return Status(Status::DRACO_ERROR,
+                  "Invalid accessor or buffer view parameters.");
+  }
+  const size_t last_element_end =
+      start_offset +
+      static_cast<size_t>(accessor.count - 1) * byte_stride +
+      static_cast<size_t>(num_components) * component_size;
+  if (last_element_end > buffer.data.size()) {
+    return Status(Status::DRACO_ERROR,
+                  "Accessor data exceeds buffer bounds.");
+  }
+
+  const uint8_t *const data_start = buffer.data.data() + start_offset;
 
   std::vector<TypeT> output;
   output.resize(accessor.count);
 
-  const int num_components =
-      TinyGltfUtils::GetNumComponentsForType(accessor.type);
   int out_index = 0;
   const uint8_t *data = data_start;
   for (int i = 0; i < accessor.count; ++i) {
@@ -273,11 +309,28 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
 
-  const uint8_t *const data_start =
-      buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
   const int byte_stride = accessor.ByteStride(buffer_view);
   const int component_size =
       tinygltf::GetComponentSizeInBytes(accessor.componentType);
+
+  // Validate that accessor data fits within the buffer.
+  const size_t start_offset =
+      static_cast<size_t>(buffer_view.byteOffset) + accessor.byteOffset;
+  if (accessor.count <= 0 || component_size <= 0 || num_components <= 0 ||
+      byte_stride <= 0) {
+    return Status(Status::DRACO_ERROR,
+                  "Invalid accessor or buffer view parameters.");
+  }
+  const size_t last_element_end =
+      start_offset +
+      static_cast<size_t>(accessor.count - 1) * byte_stride +
+      static_cast<size_t>(num_components) * component_size;
+  if (last_element_end > buffer.data.size()) {
+    return Status(Status::DRACO_ERROR,
+                  "Accessor data exceeds buffer bounds.");
+  }
+
+  const uint8_t *const data_start = buffer.data.data() + start_offset;
 
   std::vector<TypeT> output;
   output.resize(accessor.count);
@@ -310,6 +363,15 @@ Status CopyDataFromBufferView(const tinygltf::Model &model, int buffer_view_id,
   }
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
+
+  // Validate that buffer view data fits within the buffer.
+  const size_t end_offset =
+      static_cast<size_t>(buffer_view.byteOffset) + buffer_view.byteLength;
+  if (end_offset > buffer.data.size()) {
+    return ErrorStatus(
+        "Buffer view byteOffset + byteLength exceeds buffer size.");
+  }
+
   const uint8_t *const data_start = buffer.data.data() + buffer_view.byteOffset;
 
   data->resize(buffer_view.byteLength);

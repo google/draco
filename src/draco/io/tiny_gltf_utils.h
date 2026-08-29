@@ -101,16 +101,33 @@ class TinyGltfUtils {
 
     const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
 
-    const unsigned char *const data_start =
-        buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
     const int byte_stride = accessor.ByteStride(buffer_view);
     const int component_size =
         tinygltf::GetComponentSizeInBytes(accessor.componentType);
+    const int num_components = GetNumComponentsForType(accessor.type);
+
+    // Validate that accessor data fits within the buffer.
+    const size_t start_offset =
+        static_cast<size_t>(buffer_view.byteOffset) + accessor.byteOffset;
+    if (accessor.count <= 0 || component_size <= 0 || num_components <= 0 ||
+        byte_stride <= 0) {
+      return Status(Status::DRACO_ERROR,
+                    "Invalid accessor or buffer view parameters.");
+    }
+    const size_t last_element_end =
+        start_offset +
+        static_cast<size_t>(accessor.count - 1) * byte_stride +
+        static_cast<size_t>(num_components) * component_size;
+    if (last_element_end > buffer.data.size()) {
+      return Status(Status::DRACO_ERROR,
+                    "Accessor data exceeds buffer bounds.");
+    }
+
+    const unsigned char *const data_start = buffer.data.data() + start_offset;
 
     std::vector<T> output;
     output.resize(accessor.count);
 
-    const int num_components = GetNumComponentsForType(accessor.type);
     const unsigned char *data = data_start;
     for (int i = 0; i < accessor.count; ++i) {
       T values;
