@@ -78,6 +78,9 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
           if (!buffer()->Decode(&val)) {
             return false;
           }
+          if (val >= num_points) {
+            return false;
+          }
           face[j] = val;
         }
         mesh()->AddFace(face);
@@ -89,6 +92,9 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
         for (int j = 0; j < 3; ++j) {
           uint16_t val;
           if (!buffer()->Decode(&val)) {
+            return false;
+          }
+          if (val >= num_points) {
             return false;
           }
           face[j] = val;
@@ -105,6 +111,9 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
           if (!DecodeVarint(&val, buffer())) {
             return false;
           }
+          if (val >= num_points) {
+            return false;
+          }
           face[j] = val;
         }
         mesh()->AddFace(face);
@@ -116,6 +125,9 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
         for (int j = 0; j < 3; ++j) {
           uint32_t val;
           if (!buffer()->Decode(&val)) {
+            return false;
+          }
+          if (val >= num_points) {
             return false;
           }
           face[j] = val;
