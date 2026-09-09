@@ -455,4 +455,20 @@ TEST_F(PointCloudKdTreeEncodingTest, TestIntKdTreeEncodingHighDimensional) {
   TestKdTreeEncoding(*pc);
 }
 
+TEST_F(PointCloudKdTreeEncodingTest, RejectZeroDimensionalAttributes) {
+  // Tests that malformed inputs with 0 total dimensions are cleanly rejected
+  // without crashing (fixes #1103).
+  const uint8_t kCorruptedData[] = {
+      0x44, 0x52, 0x41, 0x43, 0x4f, 0x02, 0x03, 0x00, 0x01, 0x00, 0x01,
+      0x00, 0x01, 0x01, 0x00, 0x01, 0x00, 0x01, 0xfa, 0x03, 0x01, 0x05,
+      0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x44, 0x72};
+  DecoderBuffer dec_buffer;
+  dec_buffer.Init(reinterpret_cast<const char *>(kCorruptedData),
+                  sizeof(kCorruptedData));
+  PointCloudKdTreeDecoder decoder;
+  std::unique_ptr<PointCloud> out_pc(new PointCloud());
+  DecoderOptions dec_options;
+  ASSERT_FALSE(decoder.Decode(dec_options, &dec_buffer, out_pc.get()).ok());
+}
+
 }  // namespace draco

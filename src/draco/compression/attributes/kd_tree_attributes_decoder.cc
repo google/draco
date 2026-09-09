@@ -198,6 +198,9 @@ bool KdTreeAttributesDecoder::DecodePortableAttributes(
                               data_size, num_components);
     total_dimensionality += num_components;
   }
+  if (total_dimensionality == 0) {
+    return false;
+  }
   typedef PointAttributeVectorOutputIterator<uint32_t> OutIt;
   OutIt out_it(atts);
 
@@ -262,9 +265,10 @@ bool KdTreeAttributesDecoder::DecodePoints(int total_dimensionality,
                                            int num_expected_points,
                                            DecoderBuffer *in_buffer,
                                            OutIteratorT *out_iterator) {
-  DynamicIntegerPointsKdTreeDecoder<level_t> decoder(total_dimensionality);
-  if (!decoder.DecodePoints(in_buffer, *out_iterator, num_expected_points) ||
-      decoder.num_decoded_points() != num_expected_points) {
+  std::unique_ptr<DynamicIntegerPointsKdTreeDecoder<level_t>> decoder(
+      new DynamicIntegerPointsKdTreeDecoder<level_t>(total_dimensionality));
+  if (!decoder->DecodePoints(in_buffer, *out_iterator, num_expected_points) ||
+      decoder->num_decoded_points() != num_expected_points) {
     return false;
   }
   return true;
@@ -342,6 +346,9 @@ bool KdTreeAttributesDecoder::DecodeDataNeededByPortableTransforms(
         att, total_dimensionality, data_type, data_size, num_components);
     // everything is treated as 32bit in the encoder.
     total_dimensionality += num_components;
+  }
+  if (total_dimensionality == 0 || num_attributes == 0) {
+    return false;
   }
 
   const int att_id = GetAttributeId(0);
