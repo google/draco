@@ -370,6 +370,14 @@ bool MeshEdgebreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
     return false;  // Split symbols are a sub-set of all symbols.
   }
 
+  // Each symbol requires at least 1 bit in the remaining bitstream. Guard
+  // against malformed input attempting excessive allocation (fixes #1169).
+  if (decoder_->buffer()->remaining_size() < 0 ||
+      num_encoded_symbols >
+          static_cast<uint64_t>(decoder_->buffer()->remaining_size()) * 8) {
+    return false;
+  }
+
   // Decode topology (connectivity).
   vertex_traversal_length_.clear();
   corner_table_ = std::unique_ptr<CornerTable>(new CornerTable());
