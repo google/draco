@@ -183,6 +183,9 @@ template <int compression_level_t>
 template <class OutputIteratorT>
 bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
     DecoderBuffer *buffer, OutputIteratorT &oit, uint32_t oit_max_points) {
+  if (dimension_ == 0) {
+    return false;
+  }
   if (!buffer->Decode(&bit_length_)) {
     return false;
   }
