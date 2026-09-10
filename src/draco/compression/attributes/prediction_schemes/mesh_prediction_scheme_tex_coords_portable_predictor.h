@@ -174,7 +174,15 @@ bool MeshPredictionSchemeTexCoordsPortablePredictor<
         // Return false if squared length calculation would overflow.
         return false;
       }
-      const Vec2 x_uv = n_uv * pn_norm2_squared + (cn_dot_pn * pn_uv);
+      // Keep the scaled prediction arithmetic in the unsigned domain.  The
+      // decoder accepts untrusted deltas, so intermediate values may exceed
+      // the signed range even though the final wrapped value is valid for the
+      // bitstream.  Performing the addition as signed arithmetic invokes
+      // undefined behaviour on malformed input.
+      const Vec2 x_uv =
+          Vec2(Vec2u(n_uv) * pn_norm2_squared +
+               Vec2u(static_cast<uint64_t>(cn_dot_pn),
+                     static_cast<uint64_t>(cn_dot_pn)) * Vec2u(pn_uv));
       const int64_t pn_absmax_element =
           std::max(std::max(std::abs(pn[0]), std::abs(pn[1])), std::abs(pn[2]));
       if (std::abs(cn_dot_pn) >
