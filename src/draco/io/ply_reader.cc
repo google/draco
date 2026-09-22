@@ -58,11 +58,8 @@ Status PlyReader::Read(DecoderBuffer *buffer) {
     return Status(Status::UNSUPPORTED_VERSION, "Unsupported PLY version");
   }
   if (format == "binary_big_endian") {
-    return Status(Status::UNSUPPORTED_VERSION,
-                  "Unsupported format. Currently we support only ascii and"
-                  " binary_little_endian format.");
-  }
-  if (format == "ascii") {
+    format_ = kBigEndian;
+  } else if (format == "ascii") {
     format_ = kAscii;
   } else {
     format_ = kLittleEndian;
@@ -173,7 +170,7 @@ StatusOr<bool> PlyReader::ParseProperty(DecoderBuffer *buffer) {
 
 bool PlyReader::ParsePropertiesData(DecoderBuffer *buffer) {
   for (int i = 0; i < static_cast<int>(elements_.size()); ++i) {
-    if (format_ == kLittleEndian) {
+    if (format_ == kLittleEndian || format_ == kBigEndian) {
       if (!ParseElementData(buffer, i)) {
         return false;
       }
@@ -186,8 +183,15 @@ bool PlyReader::ParsePropertiesData(DecoderBuffer *buffer) {
   return true;
 }
 
+void PlyReader::SwapBytes(uint8_t *data, int num_bytes) {
+  for (int i = 0; i < num_bytes / 2; ++i) {
+    std::swap(data[i], data[num_bytes - 1 - i]);
+  }
+}
+
 bool PlyReader::ParseElementData(DecoderBuffer *buffer, int element_index) {
   PlyElement &element = elements_[element_index];
+  const bool swap_bytes = (format_ == kBigEndian);
   for (int entry = 0; entry < element.num_entries(); ++entry) {
     for (int i = 0; i < element.num_properties(); ++i) {
       PlyProperty &prop = element.property(i);
@@ -195,6 +199,10 @@ bool PlyReader::ParseElementData(DecoderBuffer *buffer, int element_index) {
         // Parse the number of entries for the list element.
         int64_t num_entries = 0;
         buffer->Decode(&num_entries, prop.list_data_type_num_bytes());
+        if (swap_bytes && prop.list_data_type_num_bytes() > 1) {
+          SwapBytes(reinterpret_cast<uint8_t *>(&num_entries),
+                    prop.list_data_type_num_bytes());
+        }
         // Store offset to the main data entry.
         prop.list_data_.push_back(prop.data_.size() /
                                   prop.data_type_num_bytes_);
@@ -203,14 +211,27 @@ bool PlyReader::ParseElementData(DecoderBuffer *buffer, int element_index) {
         // Read and store the actual property data
         const int64_t num_bytes_to_read =
             prop.data_type_num_bytes() * num_entries;
+        const size_t data_offset = prop.data_.size();
         prop.data_.insert(prop.data_.end(), buffer->data_head(),
                           buffer->data_head() + num_bytes_to_read);
         buffer->Advance(num_bytes_to_read);
+        if (swap_bytes && prop.data_type_num_bytes() > 1) {
+          for (int64_t j = 0; j < num_entries; ++j) {
+            SwapBytes(prop.data_.data() + data_offset +
+                          j * prop.data_type_num_bytes(),
+                      prop.data_type_num_bytes());
+          }
+        }
       } else {
         // Non-list property
+        const size_t data_offset = prop.data_.size();
         prop.data_.insert(prop.data_.end(), buffer->data_head(),
                           buffer->data_head() + prop.data_type_num_bytes());
         buffer->Advance(prop.data_type_num_bytes());
+        if (swap_bytes && prop.data_type_num_bytes() > 1) {
+          SwapBytes(prop.data_.data() + data_offset,
+                    prop.data_type_num_bytes());
+        }
       }
     }
   }
