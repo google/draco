@@ -259,7 +259,7 @@ bool KdTreeAttributesDecoder::DecodePortableAttributes(
 
 template <int level_t, typename OutIteratorT>
 bool KdTreeAttributesDecoder::DecodePoints(int total_dimensionality,
-                                           int num_expected_points,
+                                           uint32_t num_expected_points,
                                            DecoderBuffer *in_buffer,
                                            OutIteratorT *out_iterator) {
   DynamicIntegerPointsKdTreeDecoder<level_t> decoder(total_dimensionality);
@@ -399,54 +399,55 @@ bool KdTreeAttributesDecoder::DecodeDataNeededByPortableTransforms(
       attr->SetIdentityMapping();
     }
 
-    PointAttributeVectorOutputIterator<uint32_t> out_it(atts);
+    using OutIt = PointAttributeVectorOutputIterator<uint32_t>;
+    OutIt out_it(atts);
 
     switch (compression_level) {
       case 0: {
-        DynamicIntegerPointsKdTreeDecoder<0> decoder(total_dimensionality);
-        if (!decoder.DecodePoints(in_buffer, out_it)) {
+        if (!DecodePoints<0, OutIt>(total_dimensionality, num_points, in_buffer,
+                                    &out_it)) {
           return false;
         }
         break;
       }
       case 1: {
-        DynamicIntegerPointsKdTreeDecoder<1> decoder(total_dimensionality);
-        if (!decoder.DecodePoints(in_buffer, out_it)) {
+        if (!DecodePoints<1, OutIt>(total_dimensionality, num_points, in_buffer,
+                                    &out_it)) {
           return false;
         }
         break;
       }
       case 2: {
-        DynamicIntegerPointsKdTreeDecoder<2> decoder(total_dimensionality);
-        if (!decoder.DecodePoints(in_buffer, out_it)) {
+        if (!DecodePoints<2, OutIt>(total_dimensionality, num_points, in_buffer,
+                                    &out_it)) {
           return false;
         }
         break;
       }
       case 3: {
-        DynamicIntegerPointsKdTreeDecoder<3> decoder(total_dimensionality);
-        if (!decoder.DecodePoints(in_buffer, out_it)) {
+        if (!DecodePoints<3, OutIt>(total_dimensionality, num_points, in_buffer,
+                                    &out_it)) {
           return false;
         }
         break;
       }
       case 4: {
-        DynamicIntegerPointsKdTreeDecoder<4> decoder(total_dimensionality);
-        if (!decoder.DecodePoints(in_buffer, out_it)) {
+        if (!DecodePoints<4, OutIt>(total_dimensionality, num_points, in_buffer,
+                                    &out_it)) {
           return false;
         }
         break;
       }
       case 5: {
-        DynamicIntegerPointsKdTreeDecoder<5> decoder(total_dimensionality);
-        if (!decoder.DecodePoints(in_buffer, out_it)) {
+        if (!DecodePoints<5, OutIt>(total_dimensionality, num_points, in_buffer,
+                                    &out_it)) {
           return false;
         }
         break;
       }
       case 6: {
-        DynamicIntegerPointsKdTreeDecoder<6> decoder(total_dimensionality);
-        if (!decoder.DecodePoints(in_buffer, out_it)) {
+        if (!DecodePoints<6, OutIt>(total_dimensionality, num_points, in_buffer,
+                                    &out_it)) {
           return false;
         }
         break;
