@@ -140,4 +140,63 @@ TEST_F(PlyReaderTest, TestReaderMoreDataTypes) {
   }
 }
 
+TEST_F(PlyReaderTest, TestReaderTruncatedListData) {
+  // Binary PLY where the "face" element declares a list property whose
+  // count field claims far more entries than the remaining buffer can hold.
+  // Regression test for a heap-buffer-overflow read in
+  // PlyReader::ParseElementData(): the list count was previously used to
+  // copy data out of the input buffer without a bounds check.
+  const char kData[] =
+      "ply\n"
+      "format binary_little_endian 1.0\n"
+      "element vertex 1\n"
+      "property float x\n"
+      "property float y\n"
+      "property float z\n"
+      "element face 1\n"
+      "property list uchar int vertex_indices\n"
+      "end_header\n"
+      "\x00\x00\x80\x3f\x00\x00\x00\x40\x00\x00\x40\x40"  // vertex: 1, 2, 3
+      "\xff"      // list count claims 255 int32 entries (1020 bytes)
+      "\x41\x41"  // but only 2 bytes of data actually follow
+      ;
+  DecoderBuffer buf;
+  buf.Init(kData, sizeof(kData) - 1);
+  PlyReader reader;
+  const Status status = reader.Read(&buf);
+  ASSERT_FALSE(status.ok());
+}
+
+TEST_F(PlyReaderTest, TestReaderBigEndian) {
+  const std::string file_name = "test_pos_color.ply";
+  const std::vector<char> data = ReadPlyFile(file_name);
+  ASSERT_NE(data.size(), 0u);
+  DecoderBuffer buf;
+  buf.Init(data.data(), data.size());
+  PlyReader reader;
+  Status status = reader.Read(&buf);
+  DRACO_ASSERT_OK(status);
+
+  const std::string file_name_big_endian = "test_pos_color_big_endian.ply";
+  const std::vector<char> data_big_endian = ReadPlyFile(file_name_big_endian);
+  buf.Init(data_big_endian.data(), data_big_endian.size());
+  PlyReader reader_big_endian;
+  status = reader_big_endian.Read(&buf);
+  DRACO_ASSERT_OK(status);
+  ASSERT_EQ(reader.num_elements(), reader_big_endian.num_elements());
+  ASSERT_EQ(reader.element(0).num_properties(),
+            reader_big_endian.element(0).num_properties());
+
+  ASSERT_TRUE(reader.element(0).GetPropertyByName("x") != nullptr);
+  const PlyProperty *const prop = reader.element(0).GetPropertyByName("x");
+  const PlyProperty *const prop_big_endian =
+      reader_big_endian.element(0).GetPropertyByName("x");
+  PlyPropertyReader<float> reader_float(prop);
+  PlyPropertyReader<float> reader_float_big_endian(prop_big_endian);
+  for (int i = 0; i < reader.element(0).num_entries(); ++i) {
+    ASSERT_NEAR(reader_float.ReadValue(i), reader_float_big_endian.ReadValue(i),
+                1e-4f);
+  }
+}
+
 }  // namespace draco
