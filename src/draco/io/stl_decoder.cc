@@ -37,13 +37,25 @@ StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromFile(
 
 StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromBuffer(
     DecoderBuffer *buffer) {
+  // Binary STL requires at least an 80-byte header + 4-byte face count.
+  if (buffer->remaining_size() < 84) {
+    return Status(Status::IO_ERROR, "STL file too small.");
+  }
   if (!strncmp(buffer->data_head(), "solid ", 6)) {
     return Status(Status::IO_ERROR,
                   "Currently only binary STL files are supported.");
   }
   buffer->Advance(80);
   uint32_t face_count;
-  buffer->Decode(&face_count, 4);
+  if (!buffer->Decode(&face_count, 4)) {
+    return Status(Status::IO_ERROR, "Failed to read STL face count.");
+  }
+  // Each face is 50 bytes (12 floats = 48 bytes + 2-byte attribute).
+  constexpr int64_t kBytesPerFace = 50;
+  if (face_count >
+      static_cast<uint64_t>(buffer->remaining_size()) / kBytesPerFace) {
+    return Status(Status::IO_ERROR, "STL face count exceeds available data.");
+  }
 
   TriangleSoupMeshBuilder builder;
   builder.Start(face_count);
@@ -55,9 +67,13 @@ StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromBuffer(
 
   for (uint32_t i = 0; i < face_count; i++) {
     float data[48];
-    buffer->Decode(data, 48);
+    if (!buffer->Decode(data, 48)) {
+      return Status(Status::IO_ERROR, "Failed to read STL face data.");
+    }
     uint16_t unused;
-    buffer->Decode(&unused, 2);
+    if (!buffer->Decode(&unused, 2)) {
+      return Status(Status::IO_ERROR, "Failed to read STL face attribute.");
+    }
 
     builder.SetPerFaceAttributeValueForFace(
         norm_att_id, draco::FaceIndex(i),
