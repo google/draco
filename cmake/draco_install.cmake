@@ -37,14 +37,14 @@ macro(draco_setup_install_target)
 
     list(REMOVE_DUPLICATES draco_api_includes)
 
-    # Strip $draco_src_root from the file paths: we need to install relative to
-    # $include_directory.
-    list(TRANSFORM draco_api_includes REPLACE "${draco_src_root}/" "")
-
+    # Use file(RELATIVE_PATH) — not list(TRANSFORM REPLACE) — because the
+    # REPLACE pattern is a regex, and ${draco_src_root} may contain regex
+    # metacharacters (e.g. '+', '.') in package-manager and sandboxed paths.
     foreach(draco_api_include ${draco_api_includes})
-      get_filename_component(file_directory ${draco_api_include} DIRECTORY)
+      file(RELATIVE_PATH rel_include "${draco_src_root}" "${draco_api_include}")
+      get_filename_component(file_directory "${rel_include}" DIRECTORY)
       set(target_directory "${includes_path}/draco/${file_directory}")
-      install(FILES ${draco_src_root}/${draco_api_include}
+      install(FILES "${draco_api_include}"
               DESTINATION "${target_directory}")
     endforeach()
 
