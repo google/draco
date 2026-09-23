@@ -198,7 +198,9 @@ bool PlyReader::ParseElementData(DecoderBuffer *buffer, int element_index) {
       if (prop.is_list()) {
         // Parse the number of entries for the list element.
         int64_t num_entries = 0;
-        buffer->Decode(&num_entries, prop.list_data_type_num_bytes());
+        if (!buffer->Decode(&num_entries, prop.list_data_type_num_bytes())) {
+          return false;
+        }
         if (swap_bytes && prop.list_data_type_num_bytes() > 1) {
           SwapBytes(reinterpret_cast<uint8_t *>(&num_entries),
                     prop.list_data_type_num_bytes());
@@ -224,6 +226,9 @@ bool PlyReader::ParseElementData(DecoderBuffer *buffer, int element_index) {
         }
       } else {
         // Non-list property
+        if (buffer->remaining_size() < prop.data_type_num_bytes()) {
+          return false;
+        }
         const size_t data_offset = prop.data_.size();
         prop.data_.insert(prop.data_.end(), buffer->data_head(),
                           buffer->data_head() + prop.data_type_num_bytes());
