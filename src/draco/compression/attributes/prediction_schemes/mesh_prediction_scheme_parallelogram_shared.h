@@ -32,9 +32,27 @@ inline void GetParallelogramEntries(
   // One vertex of the input |table| correspond to exactly one attribute value
   // entry. The |table| can be either CornerTable for per-vertex attributes,
   // or MeshAttributeCornerTable for attributes with interior seams.
-  *opp_entry = vertex_to_data_map[table->Vertex(ci).value()];
-  *next_entry = vertex_to_data_map[table->Vertex(table->Next(ci)).value()];
-  *prev_entry = vertex_to_data_map[table->Vertex(table->Previous(ci)).value()];
+  const VertexIndex vert_opp = table->Vertex(ci);
+  const VertexIndex vert_next = table->Vertex(table->Next(ci));
+  const VertexIndex vert_prev = table->Vertex(table->Previous(ci));
+  if (vert_opp == kInvalidVertexIndex || vert_next == kInvalidVertexIndex ||
+      vert_prev == kInvalidVertexIndex) {
+    *opp_entry = -1;
+    *next_entry = -1;
+    *prev_entry = -1;
+    return;
+  }
+  if (vert_opp.value() >= vertex_to_data_map.size() ||
+      vert_next.value() >= vertex_to_data_map.size() ||
+      vert_prev.value() >= vertex_to_data_map.size()) {
+    *opp_entry = -1;
+    *next_entry = -1;
+    *prev_entry = -1;
+    return;
+  }
+  *opp_entry = vertex_to_data_map[vert_opp.value()];
+  *next_entry = vertex_to_data_map[vert_next.value()];
+  *prev_entry = vertex_to_data_map[vert_prev.value()];
 }
 
 // Computes parallelogram prediction for a given corner and data entry id.
