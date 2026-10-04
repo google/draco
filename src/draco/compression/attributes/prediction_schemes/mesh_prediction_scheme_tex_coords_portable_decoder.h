@@ -121,6 +121,16 @@ bool MeshPredictionSchemeTexCoordsPortableDecoder<
   if (!buffer->Decode(&num_orientations) || num_orientations < 0) {
     return false;
   }
+  // Each predicted entry uses at most one orientation, so the count cannot be
+  // larger than the number of entries. The loop below cannot stop early,
+  // because DecodeNextBit() returns false both for a zero bit and at the end
+  // of the buffer.
+  const std::vector<CornerIndex> *const data_to_corner_map =
+      this->mesh_data().data_to_corner_map();
+  if (data_to_corner_map == nullptr ||
+      static_cast<size_t>(num_orientations) > data_to_corner_map->size()) {
+    return false;
+  }
   predictor_.ResizeOrientations(num_orientations);
   bool last_orientation = true;
   RAnsBitDecoder decoder;
