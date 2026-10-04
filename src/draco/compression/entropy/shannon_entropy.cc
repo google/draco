@@ -69,8 +69,25 @@ ShannonEntropyTracker::EntropyData ShannonEntropyTracker::UpdateSymbols(
   ret_data.num_values += num_symbols;
   for (int i = 0; i < num_symbols; ++i) {
     const uint32_t symbol = symbols[i];
-    if (frequencies_.size() <= symbol) {
-      frequencies_.resize(symbol + 1, 0);
+    // The frequency table is indexed by symbol value, so its size follows the
+    // largest symbol it covers. Peek() only scores a candidate that the caller
+    // may reject, so the table grows only when symbols are pushed.
+    //
+    // A symbol outside the table has a frequency of zero. While peeking, its
+    // count is the number of times it already appeared in this call.
+    int frequency = 0;
+    if (static_cast<size_t>(symbol) < frequencies_.size()) {
+      frequency = frequencies_[symbol];
+    } else if (push_changes) {
+      // The new size is computed in size_t because |symbol| + 1 does not fit
+      // in uint32_t for the largest symbol value.
+      frequencies_.resize(static_cast<size_t>(symbol) + 1, 0);
+    } else {
+      for (int j = 0; j < i; ++j) {
+        if (symbols[j] == symbol) {
+          ++frequency;
+        }
+      }
     }
 
     // Update the entropy of the stream. Note that entropy of |N| values
@@ -92,7 +109,6 @@ ShannonEntropyTracker::EntropyData ShannonEntropyTracker::UpdateSymbols(
     //  entropy = log2(N) - entropy_norm / N
     //
     double old_symbol_entropy_norm = 0;
-    int &frequency = frequencies_[symbol];
     if (frequency > 1) {
       old_symbol_entropy_norm = frequency * std::log2(frequency);
     } else if (frequency == 0) {
@@ -102,6 +118,9 @@ ShannonEntropyTracker::EntropyData ShannonEntropyTracker::UpdateSymbols(
       }
     }
     frequency++;
+    if (static_cast<size_t>(symbol) < frequencies_.size()) {
+      frequencies_[symbol] = frequency;
+    }
     const double new_symbol_entropy_norm = frequency * std::log2(frequency);
 
     // Update the final entropy.
@@ -112,10 +131,13 @@ ShannonEntropyTracker::EntropyData ShannonEntropyTracker::UpdateSymbols(
     entropy_data_ = ret_data;
   } else {
     // We are only peeking so do not update the stream.
-    // Revert changes in the frequency table.
+    // Revert changes in the frequency table. Symbols outside the table were
+    // not counted in it, so they need no revert.
     for (int i = 0; i < num_symbols; ++i) {
       const uint32_t symbol = symbols[i];
-      frequencies_[symbol]--;
+      if (static_cast<size_t>(symbol) < frequencies_.size()) {
+        frequencies_[symbol]--;
+      }
     }
   }
   return ret_data;

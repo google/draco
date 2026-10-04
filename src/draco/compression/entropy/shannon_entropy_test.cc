@@ -55,4 +55,21 @@ TEST(ShannonEntropyTest, TestStreamEntropy) {
   ASSERT_EQ(stream_2_entropy_bits, entropy_tracker_2.GetNumberOfDataBits());
 }
 
+TEST(ShannonEntropyTest, TestPeekMaximumSymbol) {
+  // UINT32_MAX is what a prediction residual near INT32_MIN zig-zags to.
+  // Peeking it counts it like any other symbol and leaves the table as it is.
+  const std::vector<uint32_t> symbols = {0xffffffffu, 0xffffffffu, 3};
+
+  draco::ShannonEntropyTracker entropy_tracker;
+  const auto entropy_data =
+      entropy_tracker.Peek(symbols.data(), static_cast<int>(symbols.size()));
+  ASSERT_EQ(entropy_data.num_values, 3);
+  ASSERT_EQ(entropy_data.num_unique_symbols, 2);
+  // One symbol seen twice contributes 2 * log2(2), the other 1 * log2(1).
+  ASSERT_NEAR(entropy_data.entropy_norm, 2.0, 1e-9);
+
+  // A peek leaves the stream as it was.
+  ASSERT_EQ(entropy_tracker.GetNumberOfDataBits(), 0);
+}
+
 }  // namespace
