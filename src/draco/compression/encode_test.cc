@@ -15,6 +15,8 @@
 
 #include "draco/compression/encode.h"
 
+#include <algorithm>
+#include <array>
 #include <cinttypes>
 #include <fstream>
 #include <sstream>
@@ -636,5 +638,74 @@ TEST_F(EncodeTest, TestDracoCompressionOptionsGridQuantizationWithOffset) {
               31.f * 0.0625f, 1e-6f);
 }
 #endif  // DRACO_TRANSCODER_SUPPORTED
+
+// Integer normals at the lowest speed. The encoder selects geometric normal
+// prediction for normals, and these have no octahedral coordinates. They must
+// still round-trip.
+TEST_F(EncodeTest, TestIntegerNormalsAtSpeedZeroRoundTrip) {
+  draco::Mesh mesh;
+  mesh.set_num_points(25);
+  draco::GeometryAttribute pos;
+  pos.Init(draco::GeometryAttribute::POSITION, nullptr, 3, draco::DT_FLOAT32,
+           false, sizeof(float) * 3, 0);
+  const int pos_id = mesh.AddAttribute(pos, true, 25);
+  draco::GeometryAttribute nrm;
+  nrm.Init(draco::GeometryAttribute::NORMAL, nullptr, 3, draco::DT_INT32, false,
+           sizeof(int32_t) * 3, 0);
+  const int nrm_id = mesh.AddAttribute(nrm, true, 25);
+  for (int y = 0; y < 5; ++y) {
+    for (int x = 0; x < 5; ++x) {
+      const int p = y * 5 + x;
+      const float position[3] = {static_cast<float>(x), static_cast<float>(y),
+                                 ((x * y) % 3) * 0.25f};
+      const int32_t normal[3] = {(p % 7) - 3, ((p + 1) % 7) - 3,
+                                 ((p + 2) % 7) - 3};
+      mesh.attribute(pos_id)->SetAttributeValue(draco::AttributeValueIndex(p),
+                                                position);
+      mesh.attribute(nrm_id)->SetAttributeValue(draco::AttributeValueIndex(p),
+                                                normal);
+    }
+  }
+  for (int y = 0; y < 4; ++y) {
+    for (int x = 0; x < 4; ++x) {
+      const int i = y * 5 + x;
+      mesh.AddFace({draco::PointIndex(i), draco::PointIndex(i + 1),
+                    draco::PointIndex(i + 5)});
+      mesh.AddFace({draco::PointIndex(i + 1), draco::PointIndex(i + 6),
+                    draco::PointIndex(i + 5)});
+    }
+  }
+
+  draco::Encoder encoder;
+  encoder.SetSpeedOptions(0, 0);
+  encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 11);
+  draco::EncoderBuffer buffer;
+  DRACO_ASSERT_OK(encoder.EncodeMeshToBuffer(mesh, &buffer));
+
+  draco::DecoderBuffer in;
+  in.Init(buffer.data(), buffer.size());
+  draco::Decoder decoder;
+  auto decoded = decoder.DecodeMeshFromBuffer(&in);
+  ASSERT_TRUE(decoded.ok()) << decoded.status().error_msg_string();
+  const auto &out = *decoded.value();
+  const draco::PointAttribute *out_nrm =
+      out.GetNamedAttribute(draco::GeometryAttribute::NORMAL);
+  ASSERT_NE(out_nrm, nullptr);
+  // The encoder reorders points, so the normals are compared as sorted lists.
+  std::vector<std::array<int32_t, 3>> want, got;
+  for (int p = 0; p < 25; ++p) {
+    std::array<int32_t, 3> v;
+    mesh.attribute(nrm_id)->GetValue(draco::AttributeValueIndex(p), v.data());
+    want.push_back(v);
+  }
+  for (draco::PointIndex p(0); p < out.num_points(); ++p) {
+    std::array<int32_t, 3> v;
+    out_nrm->GetMappedValue(p, v.data());
+    got.push_back(v);
+  }
+  std::sort(want.begin(), want.end());
+  std::sort(got.begin(), got.end());
+  ASSERT_EQ(got, want);
+}
 
 }  // namespace
