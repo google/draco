@@ -546,7 +546,7 @@ bool ObjDecoder::ParseMaterial(Status * /* status */) {
   std::string mat_name;
   parser::ParseLine(&line_buffer, &mat_name);
   if (mat_name.empty()) {
-    return false;
+    return true;  // Ignore empty material name entries.
   }
   auto it = material_name_to_id_.find(mat_name);
   if (it == material_name_to_id_.end()) {
