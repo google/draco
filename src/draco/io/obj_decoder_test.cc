@@ -306,4 +306,223 @@ TEST_F(ObjDecoderTest, TestObjDecodingAll) {
   test_decoding("inf_nan.obj");
 }
 
+TEST_F(ObjDecoderTest, RejectOutOfRangeIndices) {
+  // Tests that OBJ with out-of-range indices are safely rejected (fixes #1194).
+  const auto decode_string = [](const std::string &obj) -> Status {
+    DecoderBuffer buffer;
+    buffer.Init(obj.data(), obj.size());
+    ObjDecoder decoder;
+    Mesh mesh;
+    return decoder.DecodeFromBuffer(&buffer, &mesh);
+  };
+
+  // Texture coordinate index out of range (positive).
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "vt 0 0\n"
+        "vt 0 0\n"
+        "vt 0 0\n"
+        "vn 0 0 1\n"
+        "vn 0 0 1\n"
+        "vn 0 0 1\n"
+        "f 1/100/1 2/100/2 3/100/3\n";
+    const Status status = decode_string(obj);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(status.code(), Status::DRACO_ERROR);
+    EXPECT_EQ(status.error_msg_string(), "Face index out of range");
+  }
+
+  // Vertex position index out of range (positive).
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "f 1 4 2\n";
+    const Status status = decode_string(obj);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(status.code(), Status::DRACO_ERROR);
+    EXPECT_EQ(status.error_msg_string(), "Face index out of range");
+  }
+
+  // Vertex position index out of range (negative).
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "f -1 -4 -2\n";
+    const Status status = decode_string(obj);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(status.code(), Status::DRACO_ERROR);
+    EXPECT_EQ(status.error_msg_string(), "Face index out of range");
+  }
+
+  // Normal index out of range (positive).
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "vn 0 0 1\n"
+        "f 1//10 2//1 3//1\n";
+    const Status status = decode_string(obj);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(status.code(), Status::DRACO_ERROR);
+    EXPECT_EQ(status.error_msg_string(), "Face index out of range");
+  }
+
+  // Normal index out of range (negative).
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "vn 0 0 1\n"
+        "f 1//-2 2//-1 3//-1\n";
+    const Status status = decode_string(obj);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(status.code(), Status::DRACO_ERROR);
+    EXPECT_EQ(status.error_msg_string(), "Face index out of range");
+  }
+
+  // Texture coordinate index out of range (negative).
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "vt 0 0\n"
+        "f 1/-2 2/-1 3/-1\n";
+    const Status status = decode_string(obj);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(status.code(), Status::DRACO_ERROR);
+    EXPECT_EQ(status.error_msg_string(), "Face index out of range");
+  }
+
+  // Point cloud decoding with out-of-range texture index.
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "vt 0 0\n"
+        "f 1/100 2/100 3/100\n";
+    DecoderBuffer buffer;
+    buffer.Init(obj.data(), obj.size());
+    ObjDecoder decoder;
+    PointCloud pc;
+    const Status status = decoder.DecodeFromBuffer(&buffer, &pc);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(status.code(), Status::DRACO_ERROR);
+    EXPECT_EQ(status.error_msg_string(), "Face index out of range");
+  }
+
+  // Quad face where 4th corner has out-of-range index.
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 1 1 0\n"
+        "v 0 1 0\n"
+        "f 1 2 3 99\n";
+    const Status status = decode_string(obj);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(status.code(), Status::DRACO_ERROR);
+    EXPECT_EQ(status.error_msg_string(), "Face index out of range");
+  }
+
+  // Quad face where 4th corner has out-of-range index (negative).
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 1 1 0\n"
+        "v 0 1 0\n"
+        "f 1 2 3 -10\n";
+    const Status status = decode_string(obj);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(status.code(), Status::DRACO_ERROR);
+    EXPECT_EQ(status.error_msg_string(), "Face index out of range");
+  }
+
+  // Quad face where 4th corner has out-of-range texture index.
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 1 1 0\n"
+        "v 0 1 0\n"
+        "vt 0 0\n"
+        "f 1/1 2/1 3/1 4/99\n";
+    const Status status = decode_string(obj);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(status.code(), Status::DRACO_ERROR);
+    EXPECT_EQ(status.error_msg_string(), "Face index out of range");
+  }
+
+  // Quad face where 4th corner has invalid texture index 0.
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 1 1 0\n"
+        "v 0 1 0\n"
+        "vt 0 0\n"
+        "f 1/1 2/1 3/1 4/0\n";
+    const Status status = decode_string(obj);
+    EXPECT_FALSE(status.ok());
+  }
+
+  // Quad face where 4th corner is index 0.
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 1 1 0\n"
+        "v 0 1 0\n"
+        "f 1 2 3 0\n";
+    const Status status = decode_string(obj);
+    EXPECT_FALSE(status.ok());
+  }
+
+  // Point cloud decoding with out-of-range position index.
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "f 100 2 3\n";
+    DecoderBuffer buffer;
+    buffer.Init(obj.data(), obj.size());
+    ObjDecoder decoder;
+    PointCloud pc;
+    const Status status = decoder.DecodeFromBuffer(&buffer, &pc);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(status.code(), Status::DRACO_ERROR);
+    EXPECT_EQ(status.error_msg_string(), "Face index out of range");
+  }
+
+  // Point cloud decoding with out-of-range normal index.
+  {
+    const std::string obj =
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "vn 0 0 1\n"
+        "f 1//100 2//1 3//1\n";
+    DecoderBuffer buffer;
+    buffer.Init(obj.data(), obj.size());
+    ObjDecoder decoder;
+    PointCloud pc;
+    const Status status = decoder.DecodeFromBuffer(&buffer, &pc);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(status.code(), Status::DRACO_ERROR);
+    EXPECT_EQ(status.error_msg_string(), "Face index out of range");
+  }
+}
+
 }  // namespace draco
