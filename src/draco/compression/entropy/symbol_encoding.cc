@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 #include "draco/compression/entropy/rans_symbol_encoder.h"
 #include "draco/compression/entropy/shannon_entropy.h"
@@ -28,7 +29,10 @@ constexpr int32_t kMaxTagSymbolBitLength = 32;
 constexpr int kMaxRawEncodingBitLength = 18;
 constexpr int kDefaultSymbolCodingCompressionLevel = 7;
 
-typedef uint64_t TaggedBitLengthFrequencies[kMaxTagSymbolBitLength];
+// One entry for each bit length from 0 to kMaxTagSymbolBitLength. Values at or
+// above 2^31 are 32 bits long. RAnsSymbolEncoder::Create() drops trailing zero
+// frequencies, so the last entry adds nothing to the stream unless it is used.
+typedef uint64_t TaggedBitLengthFrequencies[kMaxTagSymbolBitLength + 1];
 
 void SetSymbolEncodingMethod(Options *options, SymbolCodingMethod method) {
   options->SetInt("symbol_encoding_method", method);
@@ -134,16 +138,24 @@ bool EncodeSymbols(const uint32_t *symbols, int num_values, int num_components,
   const int64_t tagged_scheme_total_bits =
       ApproximateTaggedSchemeBits(bit_lengths, num_components);
 
-  // Approximate number of bits needed for storing the symbols using the raw
-  // scheme.
-  int num_unique_symbols = 0;
-  const int64_t raw_scheme_total_bits = ApproximateRawSchemeBits(
-      symbols, num_values, max_value, &num_unique_symbols);
-
   // The maximum bit length of a single entry value that we can encode using
   // the raw scheme.
   const int max_value_bit_length =
       MostSignificantBit(std::max(1u, max_value)) + 1;
+
+  // Approximate number of bits needed for storing the symbols using the raw
+  // scheme. The estimate counts symbols in a table with one entry per value up
+  // to |max_value|. It is computed only when the raw scheme can be chosen, that
+  // is for values up to kMaxRawEncodingBitLength bits or when it is requested.
+  const bool raw_requested =
+      options != nullptr && options->IsOptionSet("symbol_encoding_method") &&
+      options->GetInt("symbol_encoding_method") == SYMBOL_CODING_RAW;
+  int num_unique_symbols = 0;
+  int64_t raw_scheme_total_bits = std::numeric_limits<int64_t>::max();
+  if (max_value_bit_length <= kMaxRawEncodingBitLength || raw_requested) {
+    raw_scheme_total_bits = ApproximateRawSchemeBits(
+        symbols, num_values, max_value, &num_unique_symbols);
+  }
 
   int method = -1;
   if (options != nullptr && options->IsOptionSet("symbol_encoding_method")) {
@@ -201,7 +213,7 @@ bool EncodeTaggedSymbols(const uint32_t *symbols, int num_values,
 
   // Create encoder for encoding the bit tags.
   SymbolEncoderT<5> tag_encoder;
-  tag_encoder.Create(frequencies, kMaxTagSymbolBitLength, target_buffer);
+  tag_encoder.Create(frequencies, kMaxTagSymbolBitLength + 1, target_buffer);
 
   // Start encoding bit tags.
   tag_encoder.StartEncoding(target_buffer);
