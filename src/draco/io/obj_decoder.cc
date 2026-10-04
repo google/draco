@@ -434,14 +434,33 @@ bool ObjDecoder::ParseFace(Status *status) {
     // Parse face indices.
     int num_valid_indices = 0;
     for (int i = 0; i < kMaxCorners; ++i) {
-      if (!ParseVertexIndices(&indices[i])) {
+      parser::SkipCharacters(buffer(), " \t");
+      char ch;
+      if (!buffer()->Peek(&ch) || ch == '\n' || ch == '\r' || ch == '#') {
         if (i >= 3) {
-          break;  // It's OK if there is no fourth or higher vertex index.
+          break;
         }
         *status = Status(Status::DRACO_ERROR, "Failed to parse vertex indices");
         return true;
       }
+      if (!ParseVertexIndices(&indices[i])) {
+        *status = Status(Status::DRACO_ERROR, "Failed to parse vertex indices");
+        return true;
+      }
       ++num_valid_indices;
+    }
+    for (int i = 0; i < num_valid_indices; ++i) {
+      if (indices[i][0] > num_positions_ ||
+          (indices[i][0] < 0 && num_positions_ + indices[i][0] < 0) ||
+          (tex_att_id_ >= 0 &&
+           (indices[i][1] > num_tex_coords_ ||
+            (indices[i][1] < 0 && num_tex_coords_ + indices[i][1] < 0))) ||
+          (norm_att_id_ >= 0 &&
+           (indices[i][2] > num_normals_ ||
+            (indices[i][2] < 0 && num_normals_ + indices[i][2] < 0)))) {
+        *status = Status(Status::DRACO_ERROR, "Face index out of range");
+        return true;
+      }
     }
     // Split quads and other n-gons into n - 2 triangles.
     const int nt = num_valid_indices - 2;
@@ -646,6 +665,20 @@ void ObjDecoder::MapPointToVertexIndices(
   if (pos_att_id_ < 0) {
     return;
   }
+  if (indices[0] == 0 || indices[0] > num_positions_ ||
+      (indices[0] < 0 && num_positions_ + indices[0] < 0)) {
+    return;
+  }
+  if (tex_att_id_ >= 0 &&
+      (indices[1] > num_tex_coords_ ||
+       (indices[1] < 0 && num_tex_coords_ + indices[1] < 0))) {
+    return;
+  }
+  if (norm_att_id_ >= 0 &&
+      (indices[2] > num_normals_ ||
+       (indices[2] < 0 && num_normals_ + indices[2] < 0))) {
+    return;
+  }
   if (indices[0] > 0) {
     out_point_cloud_->attribute(pos_att_id_)
         ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[0] - 1));
@@ -663,9 +696,12 @@ void ObjDecoder::MapPointToVertexIndices(
       out_point_cloud_->attribute(tex_att_id_)
           ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[1] - 1));
     } else if (indices[1] < 0) {
+      const int32_t resolved = num_tex_coords_ + indices[1];
+      if (resolved < 0) {
+        return;
+      }
       out_point_cloud_->attribute(tex_att_id_)
-          ->SetPointMapEntry(vert_id,
-                             AttributeValueIndex(num_tex_coords_ + indices[1]));
+          ->SetPointMapEntry(vert_id, AttributeValueIndex(resolved));
     } else {
       // Texture index not provided but expected. Insert 0 entry as the
       // default value.
@@ -679,9 +715,12 @@ void ObjDecoder::MapPointToVertexIndices(
       out_point_cloud_->attribute(norm_att_id_)
           ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[2] - 1));
     } else if (indices[2] < 0) {
+      const int32_t resolved = num_normals_ + indices[2];
+      if (resolved < 0) {
+        return;
+      }
       out_point_cloud_->attribute(norm_att_id_)
-          ->SetPointMapEntry(vert_id,
-                             AttributeValueIndex(num_normals_ + indices[2]));
+          ->SetPointMapEntry(vert_id, AttributeValueIndex(resolved));
     } else {
       // Normal index not provided but expected. Insert 0 entry as the default
       // value.
