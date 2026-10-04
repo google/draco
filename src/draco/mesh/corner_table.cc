@@ -50,7 +50,7 @@ bool CornerTable::Init(const IndexTypeVector<FaceIndex, FaceType> &faces) {
   if (!ComputeOppositeCorners(&num_vertices)) {
     return false;
   }
-  if (!BreakNonManifoldEdges()) {
+  if (!BreakNonManifoldEdges(num_vertices)) {
     return false;
   }
   if (!ComputeVertexCorners(num_vertices)) {
@@ -209,7 +209,7 @@ bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
   return true;
 }
 
-bool CornerTable::BreakNonManifoldEdges() {
+bool CornerTable::BreakNonManifoldEdges(int num_vertices) {
   // This function detects and breaks non-manifold edges that are caused by
   // folds in 1-ring neighborhood around a vertex. Non-manifold edges can occur
   // when the 1-ring surface around a vertex self-intersects in a common edge.
@@ -225,7 +225,23 @@ bool CornerTable::BreakNonManifoldEdges() {
   // on disjoint 1-ring surface patches.
 
   std::vector<bool> visited_corners(num_corners(), false);
-  std::vector<std::pair<VertexIndex, CornerIndex>> sink_vertices;
+
+  // The edges already processed around the current pivot vertex, indexed by
+  // their sink vertex. Each pivot can have many edges, and searching a list of
+  // them for every new edge costs time quadratic in the valence of the pivot.
+  // The search takes the first edge with the same sink vertex whose corner is
+  // not the opposite of the current edge corner. The stored corners are all
+  // different, so only the first two edges with a given sink vertex can be
+  // taken. |walk| identifies the pivot an entry belongs to, so the table does
+  // not have to be cleared between pivots. ComputeOppositeCorners() counts
+  // every vertex the corners refer to, so all of them are below num_vertices.
+  struct SinkEdges {
+    uint64_t walk = 0;
+    uint32_t num_corners = 0;
+    CornerIndex corners[2];
+  };
+  std::vector<SinkEdges> sink_edges(num_vertices);
+  uint64_t walk = 0;
   bool mesh_connectivity_updated = false;
   do {
     mesh_connectivity_updated = false;
@@ -233,7 +249,7 @@ bool CornerTable::BreakNonManifoldEdges() {
       if (visited_corners[c.value()]) {
         continue;
       }
-      sink_vertices.clear();
+      ++walk;
 
       // First swing all the way to find the left-most corner connected to the
       // corner's vertex.
@@ -262,20 +278,21 @@ bool CornerTable::BreakNonManifoldEdges() {
         // Corner that defines the edge on the face.
         const CornerIndex edge_corner = Previous(current_c);
         bool vertex_connectivity_updated = false;
-        // Go over all processed edges (sink vertices). If the current sink
-        // vertex has been already encountered before it may indicate a
-        // non-manifold edge that needs to be broken.
-        for (auto &&attached_sink_vertex : sink_vertices) {
-          if (attached_sink_vertex.first == sink_v) {
-            // Sink vertex has been already processed.
-            const CornerIndex other_edge_corner = attached_sink_vertex.second;
-            const CornerIndex opp_edge_corner = Opposite(edge_corner);
-
-            if (opp_edge_corner == other_edge_corner) {
-              // We are closing the loop so no need to change the connectivity.
-              continue;
-            }
-
+        // Check the processed edges with the same sink vertex. If the current
+        // sink vertex has been already encountered before it may indicate a
+        // non-manifold edge that needs to be broken. An edge whose corner is
+        // opposite to |edge_corner| closes the loop and needs no change, so the
+        // next edge with the same sink vertex is used instead.
+        const SinkEdges &processed = sink_edges[sink_v.value()];
+        if (processed.walk == walk) {
+          const CornerIndex opp_edge_corner = Opposite(edge_corner);
+          CornerIndex other_edge_corner = kInvalidCornerIndex;
+          if (processed.corners[0] != opp_edge_corner) {
+            other_edge_corner = processed.corners[0];
+          } else if (processed.num_corners > 1) {
+            other_edge_corner = processed.corners[1];
+          }
+          if (other_edge_corner != kInvalidCornerIndex) {
             // Break the connectivity on the non-manifold edge.
             // TODO(ostava): It may be possible to reconnect the faces in a way
             // that the final surface would be manifold.
@@ -292,7 +309,6 @@ bool CornerTable::BreakNonManifoldEdges() {
             SetOppositeCorner(other_edge_corner, kInvalidCornerIndex);
 
             vertex_connectivity_updated = true;
-            break;
           }
         }
         if (vertex_connectivity_updated) {
@@ -304,10 +320,15 @@ bool CornerTable::BreakNonManifoldEdges() {
           break;
         }
         // Insert new sink vertex information <sink vertex index, edge corner>.
-        std::pair<VertexIndex, CornerIndex> new_sink_vert;
-        new_sink_vert.first = corner_to_vertex_map_[Previous(current_c)];
-        new_sink_vert.second = sink_c;
-        sink_vertices.push_back(new_sink_vert);
+        SinkEdges &new_sink_edges =
+            sink_edges[corner_to_vertex_map_[Previous(current_c)].value()];
+        if (new_sink_edges.walk != walk) {
+          new_sink_edges.walk = walk;
+          new_sink_edges.num_corners = 0;
+        }
+        if (new_sink_edges.num_corners < 2) {
+          new_sink_edges.corners[new_sink_edges.num_corners++] = sink_c;
+        }
 
         current_c = SwingRight(current_c);
       } while (current_c != first_c && current_c != kInvalidCornerIndex);
