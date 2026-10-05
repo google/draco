@@ -295,6 +295,12 @@ macro(draco_add_library)
 
   target_include_directories(${lib_NAME} PUBLIC $<INSTALL_INTERFACE:include>)
 
+  # Let consumers in the same build (add_subdirectory(), FetchContent) find the
+  # draco headers and the generated draco/draco_features.h.
+  target_include_directories(
+    ${lib_NAME} PUBLIC $<BUILD_INTERFACE:${draco_root}/src>
+                       $<BUILD_INTERFACE:${draco_build}>)
+
   if(BUILD_SHARED_LIBS)
     # Enable PIC for all targets in shared configurations.
     set_target_properties(${lib_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
