@@ -18,7 +18,7 @@ endif() # DRACO_CMAKE_DRACO_EMSCRIPTEN_CMAKE_
 
 # Checks environment for Emscripten prerequisites.
 macro(draco_check_emscripten_environment)
-  if(NOT PYTHONINTERP_FOUND)
+  if(NOT Python_Interpreter_FOUND)
     message(
       FATAL_ERROR
         "Python required for Emscripten builds, but cmake cannot find it.")
@@ -120,7 +120,7 @@ macro(draco_generate_emscripten_glue)
 
   # Generate the glue source.
   execute_process(
-    COMMAND ${PYTHON_EXECUTABLE} $ENV{EMSCRIPTEN}/tools/webidl_binder.py
+    COMMAND ${Python_EXECUTABLE} $ENV{EMSCRIPTEN}/tools/webidl_binder.py
             ${glue_INPUT_IDL} ${glue_OUTPUT_PATH})
   if(NOT EXISTS "${glue_OUTPUT_PATH}.cpp")
     message(FATAL_ERROR "JS glue generation failed for ${glue_INPUT_IDL}.")
@@ -129,7 +129,7 @@ macro(draco_generate_emscripten_glue)
   # Create a dependency so that it regenerated on edits.
   add_custom_command(
     OUTPUT "${glue_OUTPUT_PATH}.cpp"
-    COMMAND ${PYTHON_EXECUTABLE} $ENV{EMSCRIPTEN}/tools/webidl_binder.py
+    COMMAND ${Python_EXECUTABLE} $ENV{EMSCRIPTEN}/tools/webidl_binder.py
             ${glue_INPUT_IDL} ${glue_OUTPUT_PATH}
     DEPENDS ${draco_js_dec_idl}
     COMMENT "Generating ${glue_OUTPUT_PATH}.cpp."
