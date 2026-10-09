@@ -88,11 +88,7 @@ class DynamicIntegerPointsKdTreeDecoder {
         num_decoded_points_(0),
         dimension_(dimension),
         p_(dimension, 0),
-        axes_(dimension, 0),
-        // Init the stack with the maximum depth of the tree.
-        // +1 for a second leaf.
-        base_stack_(32 * dimension + 1, VectorUint32(dimension, 0)),
-        levels_stack_(32 * dimension + 1, VectorUint32(dimension, 0)) {}
+        axes_(dimension, 0) {}
 
   // Decodes an integer point cloud from |buffer|. Optional |oit_max_points| can
   // be used to tell the decoder the maximum number of points accepted by the
@@ -130,14 +126,25 @@ class DynamicIntegerPointsKdTreeDecoder {
 
   struct DecodingStatus {
     DecodingStatus(uint32_t num_remaining_points_, uint32_t last_axis_,
-                   uint32_t stack_pos_)
+                   uint32_t depth_)
         : num_remaining_points(num_remaining_points_),
           last_axis(last_axis_),
-          stack_pos(stack_pos_) {}
+          depth(depth_) {}
 
     uint32_t num_remaining_points;
     uint32_t last_axis;
-    uint32_t stack_pos;  // used to get base and levels
+    uint32_t depth;  // used to get base and levels
+  };
+
+  // What one split changed in |base_| and |levels_|, kept so the walk can put
+  // it back when it returns to a shallower node. The node that split keeps
+  // the new level of |axis|. The node one level deeper also has the split
+  // bit set in its base.
+  struct SplitUndo {
+    uint32_t depth;
+    uint32_t axis;
+    uint32_t old_level;
+    uint32_t old_base;
   };
 
   uint32_t bit_length_;
@@ -150,8 +157,11 @@ class DynamicIntegerPointsKdTreeDecoder {
   HalfDecoder half_decoder_;
   VectorUint32 p_;
   VectorUint32 axes_;
-  std::vector<VectorUint32> base_stack_;
-  std::vector<VectorUint32> levels_stack_;
+  // The base and levels of the node being decoded, and the splits on the
+  // walk's current path, deepest last.
+  VectorUint32 base_;
+  VectorUint32 levels_;
+  std::vector<SplitUndo> undo_;
 };
 
 // Decodes a point cloud from |buffer|.
@@ -252,8 +262,22 @@ template <class OutputIteratorT>
 bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
     uint32_t num_points, OutputIteratorT &oit) {
   typedef DecodingStatus Status;
-  base_stack_[0] = VectorUint32(dimension_, 0);
-  levels_stack_[0] = VectorUint32(dimension_, 0);
+  // The tree can be 32 * dimension levels deep, so keeping a base and levels
+  // vector per level takes memory quadratic in the dimension. The walk keeps
+  // one of each instead. A split at depth d raises one level of the node at
+  // d, and the node at d + 1 has the same levels and one more base bit set.
+  // Each split is logged in |undo_|, and on reaching a node at depth t the
+  // walk undoes the splits deeper than t and the base bit of the last split
+  // at t.
+  //
+  // A split takes its node off the top of |status_stack|, where every node
+  // below is shallower, and pushes its halves at d and d + 1. So the depths
+  // on the stack strictly increase towards its top, and a node is reached
+  // only after everything deeper than it has been decoded.
+  base_.assign(dimension_, 0);
+  levels_.assign(dimension_, 0);
+  undo_.clear();
+  uint32_t depth = 0;
   DecodingStatus init_status(num_points, 0, 0);
   std::stack<Status> status_stack;
   status_stack.push(init_status);
@@ -265,9 +289,29 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
 
     const uint32_t num_remaining_points = status.num_remaining_points;
     const uint32_t last_axis = status.last_axis;
-    const uint32_t stack_pos = status.stack_pos;
-    const VectorUint32 &old_base = base_stack_[stack_pos];
-    const VectorUint32 &levels = levels_stack_[stack_pos];
+    // A node at the current depth is the second half of the split just made,
+    // and nothing needs to be undone for it.
+    if (status.depth != depth) {
+      if (status.depth > depth) {
+        return false;
+      }
+      while (!undo_.empty()) {
+        const SplitUndo &split = undo_.back();
+        if (split.depth < status.depth) {
+          break;
+        }
+        base_[split.axis] = split.old_base;
+        if (split.depth == status.depth) {
+          // The node's own split, whose level stays raised.
+          break;
+        }
+        levels_[split.axis] = split.old_level;
+        undo_.pop_back();
+      }
+      depth = status.depth;
+    }
+    const VectorUint32 &old_base = base_;
+    const VectorUint32 &levels = levels_;
 
     if (num_remaining_points > num_points) {
       return false;
@@ -325,8 +369,6 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
 
     const int num_remaining_bits = bit_length_ - level;
     const uint32_t modifier = 1 << (num_remaining_bits - 1);
-    base_stack_[stack_pos + 1] = old_base;         // copy
-    base_stack_[stack_pos + 1][axis] += modifier;  // new base
 
     const int incoming_bits = MostSignificantBit(num_remaining_points);
 
@@ -347,14 +389,22 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
       }
     }
 
-    levels_stack_[stack_pos][axis] += 1;
-    levels_stack_[stack_pos + 1] = levels_stack_[stack_pos];  // copy
+    if (depth == std::numeric_limits<uint32_t>::max()) {
+      return false;
+    }
+    // Both halves see |axis| one level deeper. The first half stays at this
+    // depth and keeps the base, the second goes one deeper with the split bit
+    // set in its base.
+    undo_.push_back({depth, axis, levels_[axis], base_[axis]});
+    levels_[axis] += 1;
+    base_[axis] += modifier;
     if (first_half) {
-      status_stack.push(DecodingStatus(first_half, axis, stack_pos));
+      status_stack.push(DecodingStatus(first_half, axis, depth));
     }
     if (second_half) {
-      status_stack.push(DecodingStatus(second_half, axis, stack_pos + 1));
+      status_stack.push(DecodingStatus(second_half, axis, depth + 1));
     }
+    ++depth;
   }
   return true;
 }
