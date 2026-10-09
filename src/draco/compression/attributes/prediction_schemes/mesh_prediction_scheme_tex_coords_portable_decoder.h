@@ -85,7 +85,7 @@ template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeTexCoordsPortableDecoder<
     DataTypeT, TransformT,
     MeshDataT>::ComputeOriginalValues(const CorrType *in_corr,
-                                      DataTypeT *out_data, int /* size */,
+                                      DataTypeT *out_data, int size,
                                       int num_components,
                                       const PointIndex *entry_to_point_id_map) {
   if (num_components != MeshPredictionSchemeTexCoordsPortablePredictor<
@@ -97,6 +97,9 @@ bool MeshPredictionSchemeTexCoordsPortableDecoder<
 
   const int corner_map_size =
       static_cast<int>(this->mesh_data().data_to_corner_map()->size());
+  if (corner_map_size * num_components > size) {
+    return false;
+  }
   for (int p = 0; p < corner_map_size; ++p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     if (!predictor_.template ComputePredictedValue<false>(corner_id, out_data,
