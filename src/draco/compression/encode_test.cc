@@ -17,6 +17,7 @@
 
 #include <cinttypes>
 #include <fstream>
+#include <limits>
 #include <sstream>
 
 #include "draco/attributes/attribute_quantization_transform.h"
@@ -636,5 +637,30 @@ TEST_F(EncodeTest, TestDracoCompressionOptionsGridQuantizationWithOffset) {
               31.f * 0.0625f, 1e-6f);
 }
 #endif  // DRACO_TRANSCODER_SUPPORTED
+
+TEST_F(EncodeTest, TestQuantizationRangeWiderThanFloatIsRefused) {
+  // Each coordinate is finite, but the span between them is not. The encoder
+  // reports an error instead of writing a stream it cannot decode.
+  draco::Mesh mesh;
+  mesh.set_num_points(3);
+  draco::GeometryAttribute pos;
+  pos.Init(draco::GeometryAttribute::POSITION, nullptr, 3, draco::DT_FLOAT32,
+           false, sizeof(float) * 3, 0);
+  const int pos_id = mesh.AddAttribute(pos, true, 3);
+  const float max = std::numeric_limits<float>::max();
+  const float positions[3][3] = {{-max, 0.f, 0.f}, {max, 1.f, 0.f},
+                                 {0.f, 0.f, 1.f}};
+  for (int i = 0; i < 3; ++i) {
+    mesh.attribute(pos_id)->SetAttributeValue(draco::AttributeValueIndex(i),
+                                              positions[i]);
+  }
+  mesh.AddFace({draco::PointIndex(0), draco::PointIndex(1),
+                draco::PointIndex(2)});
+
+  draco::Encoder encoder;
+  encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 14);
+  draco::EncoderBuffer buffer;
+  ASSERT_FALSE(encoder.EncodeMeshToBuffer(mesh, &buffer).ok());
+}
 
 }  // namespace
