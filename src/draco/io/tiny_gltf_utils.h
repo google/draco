@@ -88,15 +88,15 @@ class TinyGltfUtils {
       return Status(Status::DRACO_ERROR,
                     "Non-float data is not supported by CopyDataAsFloat().");
     }
-    if (accessor.bufferView < 0) {
+    if (accessor.bufferView < 0 || accessor.bufferView >= model.bufferViews.size()) {
       return Status(Status::DRACO_ERROR,
-                    "Error CopyDataAsFloat() bufferView < 0.");
+                    "Error CopyDataAsFloat() bufferView out of bounds.");
     }
 
     const tinygltf::BufferView &buffer_view =
         model.bufferViews[accessor.bufferView];
-    if (buffer_view.buffer < 0) {
-      return Status(Status::DRACO_ERROR, "Error CopyDataAsFloat() buffer < 0.");
+    if (buffer_view.buffer < 0 || buffer_view.buffer >= model.buffers.size()) {
+      return Status(Status::DRACO_ERROR, "Error CopyDataAsFloat() buffer out of bounds.");
     }
 
     const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];

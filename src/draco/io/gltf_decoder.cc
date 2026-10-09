@@ -147,15 +147,15 @@ StatusOr<std::vector<uint32_t>> CopyDataAsUint32(
   if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_DOUBLE) {
     return Status(Status::DRACO_ERROR, "Double cannot be converted to Uint32.");
   }
-  if (accessor.bufferView < 0) {
+  if (accessor.bufferView < 0 || accessor.bufferView >= model.bufferViews.size()) {
     return Status(Status::DRACO_ERROR,
-                  "Error CopyDataAsUint32() bufferView < 0.");
+                  "Error CopyDataAsUint32() bufferView out of bounds.");
   }
 
   const tinygltf::BufferView &buffer_view =
       model.bufferViews[accessor.bufferView];
-  if (buffer_view.buffer < 0) {
-    return Status(Status::DRACO_ERROR, "Error CopyDataAsUint32() buffer < 0.");
+  if (buffer_view.buffer < 0 || buffer_view.buffer >= model.buffers.size()) {
+    return Status(Status::DRACO_ERROR, "Error CopyDataAsUint32() buffer out of bounds.");
   }
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
@@ -213,14 +213,14 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
       return ErrorStatus("Accessor data cannot be converted to Float.");
     }
   }
-  if (accessor.bufferView < 0) {
-    return Status(Status::DRACO_ERROR, "Error CopyDataAs() bufferView < 0.");
+  if (accessor.bufferView < 0 || accessor.bufferView >= model.bufferViews.size()) {
+    return Status(Status::DRACO_ERROR, "Error CopyDataAs() bufferView out of bounds.");
   }
 
   const tinygltf::BufferView &buffer_view =
       model.bufferViews[accessor.bufferView];
-  if (buffer_view.buffer < 0) {
-    return Status(Status::DRACO_ERROR, "Error CopyDataAs() buffer < 0.");
+  if (buffer_view.buffer < 0 || buffer_view.buffer >= model.buffers.size()) {
+    return Status(Status::DRACO_ERROR, "Error CopyDataAs() buffer out of bounds.");
   }
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
@@ -261,14 +261,14 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
     return Status(Status::DRACO_ERROR,
                   "Dimension does not equal num components.");
   }
-  if (accessor.bufferView < 0) {
-    return Status(Status::DRACO_ERROR, "Error CopyDataAs() bufferView < 0.");
+  if (accessor.bufferView < 0 || accessor.bufferView >= model.bufferViews.size()) {
+    return Status(Status::DRACO_ERROR, "Error CopyDataAs() bufferView out of bounds.");
   }
 
   const tinygltf::BufferView &buffer_view =
       model.bufferViews[accessor.bufferView];
-  if (buffer_view.buffer < 0) {
-    return Status(Status::DRACO_ERROR, "Error CopyDataAs() buffer < 0.");
+  if (buffer_view.buffer < 0 || buffer_view.buffer >= model.buffers.size()) {
+    return Status(Status::DRACO_ERROR, "Error CopyDataAs() buffer out of bounds.");
   }
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
@@ -298,12 +298,12 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
 // supports a byte stride of 0. I.e. tightly packed.
 Status CopyDataFromBufferView(const tinygltf::Model &model, int buffer_view_id,
                               std::vector<uint8_t> *data) {
-  if (buffer_view_id < 0) {
-    return ErrorStatus("Error CopyDataFromBufferView() bufferView < 0.");
+  if (buffer_view_id < 0 || buffer_view_id >= model.bufferViews.size()) {
+    return ErrorStatus("Error CopyDataFromBufferView() bufferView out of bounds.");
   }
   const tinygltf::BufferView &buffer_view = model.bufferViews[buffer_view_id];
-  if (buffer_view.buffer < 0) {
-    return ErrorStatus("Error CopyDataFromBufferView() buffer < 0.");
+  if (buffer_view.buffer < 0 || buffer_view.buffer >= model.buffers.size()) {
+    return ErrorStatus("Error CopyDataFromBufferView() buffer out of bounds.");
   }
   if (buffer_view.byteStride != 0) {
     return Status(Status::DRACO_ERROR, "Error buffer view byteStride != 0.");
