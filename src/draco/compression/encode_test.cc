@@ -16,6 +16,7 @@
 #include "draco/compression/encode.h"
 
 #include <algorithm>
+#include <array>
 #include <cinttypes>
 #include <fstream>
 #include <limits>
@@ -673,9 +674,9 @@ TEST_F(EncodeTest, TestTexCoordPredictionThatWrapsRoundTrips) {
   const uint16_t positions[6][3] = {{32511, 13823, 13312}, {53, 308, 63587},
                                     {51712, 36676, 65535}, {308, 63523, 65280},
                                     {25601, 30005, 46389}, {308, 63523, 128}};
-  const int32_t tex_coords[6][2] = {{901068149, 1661023232}, {16261889, -1},
-                                    {3538814, 895746356},    {901071249, 67108864},
-                                    {587281656, 872448248},  {-518656, 520036351}};
+  const int32_t tex_coords[6][2] = {
+      {901068149, 1661023232}, {16261889, -1},         {3538814, 895746356},
+      {901071249, 67108864},   {587281656, 872448248}, {-518656, 520036351}};
   const int faces[45][3] = {
       {0, 1, 2}, {2, 3, 3}, {4, 2, 4}, {2, 5, 1}, {3, 0, 1}, {2, 2, 3},
       {3, 5, 2}, {4, 2, 5}, {5, 1, 4}, {5, 1, 4}, {1, 1, 5}, {4, 0, 1},
@@ -701,7 +702,7 @@ TEST_F(EncodeTest, TestTexCoordPredictionThatWrapsRoundTrips) {
     mesh.attribute(tex_id)->SetAttributeValue(draco::AttributeValueIndex(i),
                                               tex_coords[i]);
   }
-  for (const auto &f : faces) {
+  for (const auto& f : faces) {
     mesh.AddFace({draco::PointIndex(f[0]), draco::PointIndex(f[1]),
                   draco::PointIndex(f[2])});
   }
@@ -724,10 +725,10 @@ TEST_F(EncodeTest, TestTexCoordPredictionThatWrapsRoundTrips) {
 
   // EdgeBreaker reorders the points. Every decoded point must carry a position
   // and a texture coordinate that some input point carried together.
-  const draco::Mesh &out = *decoded.value();
-  const draco::PointAttribute *const out_pos =
+  const draco::Mesh& out = *decoded.value();
+  const draco::PointAttribute* const out_pos =
       out.GetNamedAttribute(draco::GeometryAttribute::POSITION);
-  const draco::PointAttribute *const out_tex =
+  const draco::PointAttribute* const out_tex =
       out.GetNamedAttribute(draco::GeometryAttribute::TEX_COORD);
   ASSERT_NE(out_pos, nullptr);
   ASSERT_NE(out_tex, nullptr);
@@ -744,6 +745,75 @@ TEST_F(EncodeTest, TestTexCoordPredictionThatWrapsRoundTrips) {
     EXPECT_TRUE(found) << "point " << p.value() << " decoded to a value no "
                        << "input point carried";
   }
+}
+
+// Integer normals at the lowest speed. The encoder selects geometric normal
+// prediction for normals, and these have no octahedral coordinates. They must
+// still round-trip.
+TEST_F(EncodeTest, TestIntegerNormalsAtSpeedZeroRoundTrip) {
+  draco::Mesh mesh;
+  mesh.set_num_points(25);
+  draco::GeometryAttribute pos;
+  pos.Init(draco::GeometryAttribute::POSITION, nullptr, 3, draco::DT_FLOAT32,
+           false, sizeof(float) * 3, 0);
+  const int pos_id = mesh.AddAttribute(pos, true, 25);
+  draco::GeometryAttribute nrm;
+  nrm.Init(draco::GeometryAttribute::NORMAL, nullptr, 3, draco::DT_INT32, false,
+           sizeof(int32_t) * 3, 0);
+  const int nrm_id = mesh.AddAttribute(nrm, true, 25);
+  for (int y = 0; y < 5; ++y) {
+    for (int x = 0; x < 5; ++x) {
+      const int p = y * 5 + x;
+      const float position[3] = {static_cast<float>(x), static_cast<float>(y),
+                                 ((x * y) % 3) * 0.25f};
+      const int32_t normal[3] = {(p % 7) - 3, ((p + 1) % 7) - 3,
+                                 ((p + 2) % 7) - 3};
+      mesh.attribute(pos_id)->SetAttributeValue(draco::AttributeValueIndex(p),
+                                                position);
+      mesh.attribute(nrm_id)->SetAttributeValue(draco::AttributeValueIndex(p),
+                                                normal);
+    }
+  }
+  for (int y = 0; y < 4; ++y) {
+    for (int x = 0; x < 4; ++x) {
+      const int i = y * 5 + x;
+      mesh.AddFace({draco::PointIndex(i), draco::PointIndex(i + 1),
+                    draco::PointIndex(i + 5)});
+      mesh.AddFace({draco::PointIndex(i + 1), draco::PointIndex(i + 6),
+                    draco::PointIndex(i + 5)});
+    }
+  }
+
+  draco::Encoder encoder;
+  encoder.SetSpeedOptions(0, 0);
+  encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 11);
+  draco::EncoderBuffer buffer;
+  DRACO_ASSERT_OK(encoder.EncodeMeshToBuffer(mesh, &buffer));
+
+  draco::DecoderBuffer in;
+  in.Init(buffer.data(), buffer.size());
+  draco::Decoder decoder;
+  auto decoded = decoder.DecodeMeshFromBuffer(&in);
+  ASSERT_TRUE(decoded.ok()) << decoded.status().error_msg_string();
+  const auto& out = *decoded.value();
+  const draco::PointAttribute* out_nrm =
+      out.GetNamedAttribute(draco::GeometryAttribute::NORMAL);
+  ASSERT_NE(out_nrm, nullptr);
+  // The encoder reorders points, so the normals are compared as sorted lists.
+  std::vector<std::array<int32_t, 3>> want, got;
+  for (int p = 0; p < 25; ++p) {
+    std::array<int32_t, 3> v;
+    mesh.attribute(nrm_id)->GetValue(draco::AttributeValueIndex(p), v.data());
+    want.push_back(v);
+  }
+  for (draco::PointIndex p(0); p < out.num_points(); ++p) {
+    std::array<int32_t, 3> v;
+    out_nrm->GetMappedValue(p, v.data());
+    got.push_back(v);
+  }
+  std::sort(want.begin(), want.end());
+  std::sort(got.begin(), got.end());
+  ASSERT_EQ(got, want);
 }
 
 }  // namespace
