@@ -672,8 +672,12 @@ StatusOr<int> GltfDecoder::DecodePrimitiveAttributeCount(
   if (primitive.attributes.empty()) {
     return Status(Status::DRACO_ERROR, "Primitive has no attributes.");
   }
+  const int accessor_index = primitive.attributes.begin()->second;
+  if (accessor_index < 0 || accessor_index >= gltf_model_.accessors.size()) {
+    return Status(Status::DRACO_ERROR, "Accessor index out of bounds.");
+  }
   const tinygltf::Accessor &accessor =
-      gltf_model_.accessors[primitive.attributes.begin()->second];
+      gltf_model_.accessors[accessor_index];
   return accessor.count;
 }
 
@@ -683,6 +687,9 @@ StatusOr<int> GltfDecoder::DecodePrimitiveIndicesCount(
     // Primitive has implicit indices [0, 1, 2, 3, ...]. Determine indices count
     // based on entry count of a primitive attribute.
     return DecodePrimitiveAttributeCount(primitive);
+  }
+  if (primitive.indices >= gltf_model_.accessors.size()) {
+    return Status(Status::DRACO_ERROR, "Accessor index out of bounds.");
   }
   const tinygltf::Accessor &indices = gltf_model_.accessors[primitive.indices];
   return indices.count;
@@ -702,6 +709,9 @@ StatusOr<std::vector<uint32_t>> GltfDecoder::DecodePrimitiveIndices(
     }
   } else {
     // Get indices from the primitive's indices property.
+    if (primitive.indices >= gltf_model_.accessors.size()) {
+      return Status(Status::DRACO_ERROR, "Accessor index out of bounds.");
+    }
     const tinygltf::Accessor &indices =
         gltf_model_.accessors[primitive.indices];
     if (indices.count <= 0) {
@@ -735,6 +745,9 @@ Status GltfDecoder::DecodePrimitive(const tinygltf::Primitive &primitive,
   const int number_of_points = indices_data.size();
 
   for (const auto &attribute : primitive.attributes) {
+    if (attribute.second < 0 || attribute.second >= gltf_model_.accessors.size()) {
+      return Status(Status::DRACO_ERROR, "Accessor index out of bounds.");
+    }
     const tinygltf::Accessor &accessor =
         gltf_model_.accessors[attribute.second];
 
@@ -3068,6 +3081,9 @@ Status GltfDecoder::AddSkinsToScene() {
     }
 
     if (skin.inverseBindMatrices >= 0) {
+      if (skin.inverseBindMatrices >= gltf_model_.accessors.size()) {
+        return Status(Status::DRACO_ERROR, "Accessor index out of bounds.");
+      }
       const tinygltf::Accessor &accessor =
           gltf_model_.accessors[skin.inverseBindMatrices];
       DRACO_RETURN_IF_ERROR(TinyGltfUtils::AddAccessorToAnimationData(
