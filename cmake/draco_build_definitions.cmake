@@ -146,7 +146,7 @@ macro(draco_set_build_definitions)
     draco_enable_feature(FEATURE "DRACO_OLD_GCC")
   endif()
 
-  if(EMSCRIPTEN)
+  if(EMSCRIPTEN AND DRACO_JS_GLUE)
     draco_check_emscripten_environment()
     draco_get_required_emscripten_flags(
       FLAG_LIST_VAR_COMPILER draco_base_cxx_flags
