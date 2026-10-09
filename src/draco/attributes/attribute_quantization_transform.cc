@@ -171,6 +171,13 @@ bool AttributeQuantizationTransform::ComputeParameters(
     }
   }
 
+  // Both ends are finite, but their difference can overflow, for example for
+  // values from -3.4e38 to 3.4e38. The range is stored as a float, so such
+  // values cannot be quantized.
+  if (std::isinf(range_)) {
+    return false;
+  }
+
   // In case all values are the same, initialize the range to unit length. This
   // will ensure that all values are quantized properly to the same value.
   if (range_ == 0.f) {

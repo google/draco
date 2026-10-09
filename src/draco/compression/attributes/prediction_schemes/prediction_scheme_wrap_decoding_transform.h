@@ -46,20 +46,19 @@ class PredictionSchemeWrapDecodingTransform
 
     predicted_vals = this->ClampPredictedValue(predicted_vals);
 
-    // Perform the wrapping using unsigned coordinates to avoid potential signed
-    // integer overflows caused by malformed input.
-    const uint32_t *const uint_predicted_vals =
-        reinterpret_cast<const uint32_t *>(predicted_vals);
-    const uint32_t *const uint_corr_vals =
-        reinterpret_cast<const uint32_t *>(corr_vals);
+    // The sum is computed in int64_t, where it is exact. The encoder keeps each
+    // correction within half of the span, so the sum lies at most one span
+    // outside [min, max] and a single wrap gives the original value. Malformed
+    // corrections cannot overflow int64_t either.
     for (int i = 0; i < this->num_components(); ++i) {
-      out_original_vals[i] =
-          static_cast<DataTypeT>(uint_predicted_vals[i] + uint_corr_vals[i]);
-      if (out_original_vals[i] > this->max_value()) {
-        out_original_vals[i] -= this->max_dif();
-      } else if (out_original_vals[i] < this->min_value()) {
-        out_original_vals[i] += this->max_dif();
+      int64_t value = static_cast<int64_t>(predicted_vals[i]) +
+                      static_cast<int64_t>(corr_vals[i]);
+      if (value > this->max_value()) {
+        value -= this->max_dif();
+      } else if (value < this->min_value()) {
+        value += this->max_dif();
       }
+      out_original_vals[i] = static_cast<DataTypeT>(value);
     }
   }
 

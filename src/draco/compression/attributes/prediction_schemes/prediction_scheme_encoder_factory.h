@@ -67,7 +67,15 @@ struct MeshPredictionSchemeEncoderFactory {
                                                 mesh_data));
     }
 #ifdef DRACO_NORMAL_ENCODING_SUPPORTED
-    else if (method == MESH_PREDICTION_GEOMETRIC_NORMAL) {
+    // Geometric normal prediction works on octahedral coordinates, which only
+    // the normal octahedron transforms provide. Integer normals that are not
+    // quantized use the wrap transform, which has no quantization bits for the
+    // predictor. For them the factory returns nullptr and the caller falls back
+    // to delta coding, as it does for any scheme it cannot build.
+    else if (method == MESH_PREDICTION_GEOMETRIC_NORMAL &&
+             (transform.GetType() ==
+                  PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON_CANONICALIZED ||
+              transform.GetType() == PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON)) {
       return std::unique_ptr<PredictionSchemeEncoder<DataTypeT, TransformT>>(
           new MeshPredictionSchemeGeometricNormalEncoder<DataTypeT, TransformT,
                                                          MeshDataT>(

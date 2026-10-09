@@ -140,6 +140,29 @@ TEST_F(PointCloudKdTreeEncodingTest, TestRejectMismatchedLegacyPointCount) {
   EXPECT_FALSE(decoder.DecodePointCloudFromBuffer(&buffer).ok());
 }
 
+TEST_F(PointCloudKdTreeEncodingTest, TestRejectTruncatedHighDimensionalStream) {
+  // A KD-tree point cloud with one point and 25 float attributes of 255
+  // components each, for a total dimension of 6375. The stream ends after the
+  // compression level, before any of the KD-tree data. The decoder must fail
+  // without allocating stacks for a walk it never reads.
+  std::vector<uint8_t> data = {'D', 'R', 'A', 'C', 'O', 2, 3, 0, 1, 0, 0,
+                               // One point, one attributes decoder and 25
+                               // attributes.
+                               1, 0, 0, 0, 1, 25};
+  for (uint8_t i = 0; i < 25; ++i) {
+    // Generic, float32, 255 components, not normalized, unique id |i|.
+    const uint8_t attribute[] = {4, 9, 255, 0, i};
+    data.insert(data.end(), attribute, attribute + sizeof(attribute));
+  }
+  // Compression level 0.
+  data.push_back(0);
+
+  DecoderBuffer buffer;
+  buffer.Init(reinterpret_cast<const char *>(data.data()), data.size());
+  Decoder decoder;
+  EXPECT_FALSE(decoder.DecodePointCloudFromBuffer(&buffer).ok());
+}
+
 // test higher dimensions with more attributes
 TEST_F(PointCloudKdTreeEncodingTest, TestIntKdTreeEncodingHigherDimension) {
   constexpr int num_points = 120;
