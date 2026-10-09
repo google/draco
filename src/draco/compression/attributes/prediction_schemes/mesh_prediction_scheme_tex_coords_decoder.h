@@ -121,7 +121,7 @@ class MeshPredictionSchemeTexCoordsDecoder
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
     ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
-                          int /* size */, int num_components,
+                          int size, int num_components,
                           const PointIndex *entry_to_point_id_map) {
   if (num_components != 2) {
     // Corrupt/malformed input. Two output components are req'd.
@@ -135,6 +135,9 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
 
   const int corner_map_size =
       static_cast<int>(this->mesh_data().data_to_corner_map()->size());
+  if (corner_map_size * num_components > size) {
+    return false;
+  }
   for (int p = 0; p < corner_map_size; ++p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
     if (!ComputePredictedValue(corner_id, out_data, p)) {
