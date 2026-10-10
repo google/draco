@@ -885,7 +885,7 @@ Status GltfDecoder::AccumulatePrimitiveStats(
   }
 
   for (const auto &attribute : primitive.attributes) {
-    if (attribute.second >= gltf_model_.accessors.size()) {
+    if (attribute.second < 0 || attribute.second >= gltf_model_.accessors.size()) {
       return ErrorStatus("Invalid accessor.");
     }
     const tinygltf::Accessor &accessor =
@@ -2051,7 +2051,7 @@ Status GltfDecoder::DecodePrimitiveForScene(
 
   std::set<int32_t> normalized_attributes;
   for (const auto &attribute : primitive.attributes) {
-    if (attribute.second >= gltf_model_.accessors.size()) {
+    if (attribute.second < 0 || attribute.second >= gltf_model_.accessors.size()) {
       return ErrorStatus("Invalid accessor.");
     }
     const tinygltf::Accessor &accessor =
