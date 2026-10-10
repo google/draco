@@ -368,7 +368,7 @@ class CornerTable {
   // Finds and breaks non-manifold edges in the 1-ring neighborhood around
   // vertices (vertices themselves will be split in the ComputeVertexCorners()
   // function if necessary).
-  bool BreakNonManifoldEdges();
+  bool BreakNonManifoldEdges(int num_vertices);
 
   // Computes the lookup map for going from a vertex to a corner. This method
   // can handle non-manifold vertices by splitting them into multiple manifold
