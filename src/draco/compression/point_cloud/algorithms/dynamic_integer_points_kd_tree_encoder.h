@@ -104,9 +104,7 @@ class DynamicIntegerPointsKdTreeEncoder {
         dimension_(dimension),
         deviations_(dimension, 0),
         num_remaining_bits_(dimension, 0),
-        axes_(dimension, 0),
-        base_stack_(32 * dimension + 1, VectorUint32(dimension, 0)),
-        levels_stack_(32 * dimension + 1, VectorUint32(dimension, 0)) {}
+        axes_(dimension, 0) {}
 
   // Encodes an integer point cloud given by [begin,end) into buffer.
   // |bit_length| gives the highest bit used for all coordinates.
@@ -152,11 +150,8 @@ class DynamicIntegerPointsKdTreeEncoder {
   template <class RandomAccessIteratorT>
   struct EncodingStatus {
     EncodingStatus(RandomAccessIteratorT begin_, RandomAccessIteratorT end_,
-                   uint32_t last_axis_, uint32_t stack_pos_)
-        : begin(begin_),
-          end(end_),
-          last_axis(last_axis_),
-          stack_pos(stack_pos_) {
+                   uint32_t last_axis_, uint32_t depth_)
+        : begin(begin_), end(end_), last_axis(last_axis_), depth(depth_) {
       num_remaining_points = static_cast<uint32_t>(end - begin);
     }
 
@@ -164,7 +159,18 @@ class DynamicIntegerPointsKdTreeEncoder {
     RandomAccessIteratorT end;
     uint32_t last_axis;
     uint32_t num_remaining_points;
-    uint32_t stack_pos;  // used to get base and levels
+    uint32_t depth;  // used to get base and levels
+  };
+
+  // What one split changed in |base_| and |levels_|, kept so the walk can put
+  // it back when it returns to a shallower node. The node that split keeps
+  // the new level of |axis|. The node one level deeper also has the split
+  // bit set in its base.
+  struct SplitUndo {
+    uint32_t depth;
+    uint32_t axis;
+    uint32_t old_level;
+    uint32_t old_base;
   };
 
   uint32_t bit_length_;
@@ -177,8 +183,11 @@ class DynamicIntegerPointsKdTreeEncoder {
   VectorUint32 deviations_;
   VectorUint32 num_remaining_bits_;
   VectorUint32 axes_;
-  std::vector<VectorUint32> base_stack_;
-  std::vector<VectorUint32> levels_stack_;
+  // The base and levels of the node being encoded, and the splits on the
+  // walk's current path, deepest last.
+  VectorUint32 base_;
+  VectorUint32 levels_;
+  std::vector<SplitUndo> undo_;
 };
 
 template <int compression_level_t>
@@ -273,9 +282,22 @@ template <class RandomAccessIteratorT>
 void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
     RandomAccessIteratorT begin, RandomAccessIteratorT end) {
   typedef EncodingStatus<RandomAccessIteratorT> Status;
-
-  base_stack_[0] = VectorUint32(dimension_, 0);
-  levels_stack_[0] = VectorUint32(dimension_, 0);
+  // The tree can be 32 * dimension levels deep, so keeping a base and levels
+  // vector per level takes memory quadratic in the dimension. The walk keeps
+  // one of each instead, as DynamicIntegerPointsKdTreeDecoder does. A split
+  // at depth d raises one level of the node at d, and the node at d + 1 has
+  // the same levels and one more base bit set. Each split is logged in
+  // |undo_|, and on reaching a node at depth t the walk undoes the splits
+  // deeper than t and the base bit of the last split at t.
+  //
+  // A split takes its node off the top of |status_stack|, where every node
+  // below is shallower, and pushes its halves at d and d + 1. So the depths
+  // on the stack strictly increase towards its top, and a node is reached
+  // only after everything deeper than it has been encoded.
+  base_.assign(dimension_, 0);
+  levels_.assign(dimension_, 0);
+  undo_.clear();
+  uint32_t depth = 0;
   Status init_status(begin, end, 0, 0);
   std::stack<Status> status_stack;
   status_stack.push(init_status);
@@ -288,9 +310,27 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
     begin = status.begin;
     end = status.end;
     const uint32_t last_axis = status.last_axis;
-    const uint32_t stack_pos = status.stack_pos;
-    const VectorUint32 &old_base = base_stack_[stack_pos];
-    const VectorUint32 &levels = levels_stack_[stack_pos];
+    // A node at the current depth is the second half of the split just made,
+    // and nothing needs to be undone for it.
+    if (status.depth != depth) {
+      DRACO_DCHECK_LT(status.depth, depth);
+      while (!undo_.empty()) {
+        const SplitUndo &split = undo_.back();
+        if (split.depth < status.depth) {
+          break;
+        }
+        base_[split.axis] = split.old_base;
+        if (split.depth == status.depth) {
+          // The node's own split, whose level stays raised.
+          break;
+        }
+        levels_[split.axis] = split.old_level;
+        undo_.pop_back();
+      }
+      depth = status.depth;
+    }
+    const VectorUint32 &old_base = base_;
+    const VectorUint32 &levels = levels_;
 
     const uint32_t axis =
         GetAndEncodeAxis(begin, end, old_base, levels, last_axis);
@@ -326,12 +366,10 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
 
     const uint32_t num_remaining_bits = bit_length_ - level;
     const uint32_t modifier = 1 << (num_remaining_bits - 1);
-    base_stack_[stack_pos + 1] = old_base;  // copy
-    base_stack_[stack_pos + 1][axis] += modifier;
-    const VectorUint32 &new_base = base_stack_[stack_pos + 1];
+    const uint32_t new_base_axis = old_base[axis] + modifier;
 
     const RandomAccessIteratorT split =
-        std::partition(begin, end, Splitter(axis, new_base[axis]));
+        std::partition(begin, end, Splitter(axis, new_base_axis));
 
     DRACO_DCHECK_EQ(true, (end - begin) > 0);
 
@@ -352,14 +390,19 @@ void DynamicIntegerPointsKdTreeEncoder<compression_level_t>::EncodeInternal(
       EncodeNumber(required_bits, num_remaining_points / 2 - second_half);
     }
 
-    levels_stack_[stack_pos][axis] += 1;
-    levels_stack_[stack_pos + 1] = levels_stack_[stack_pos];  // copy
+    // Both halves see |axis| one level deeper. The first half stays at this
+    // depth and keeps the base, the second goes one deeper with the split bit
+    // set in its base.
+    undo_.push_back({depth, axis, levels_[axis], base_[axis]});
+    levels_[axis] += 1;
+    base_[axis] = new_base_axis;
     if (split != begin) {
-      status_stack.push(Status(begin, split, axis, stack_pos));
+      status_stack.push(Status(begin, split, axis, depth));
     }
     if (split != end) {
-      status_stack.push(Status(split, end, axis, stack_pos + 1));
+      status_stack.push(Status(split, end, axis, depth + 1));
     }
+    ++depth;
   }
 }
 extern template class DynamicIntegerPointsKdTreeEncoder<0>;
