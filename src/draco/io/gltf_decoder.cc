@@ -438,6 +438,12 @@ bool WriteWholeFile(std::string * /*err*/, const std::string &filepath,
   return WriteBufferToFile(contents.data(), contents.size(), filepath);
 }
 
+bool GetFileSizeInBytes(size_t *filesize_out, std::string * /*err*/,
+                        const std::string &filepath, void * /*user_data*/) {
+  *filesize_out = GetFileSize(filepath);
+  return true;
+}
+
 }  // namespace
 
 GltfDecoder::GltfDecoder()
@@ -497,7 +503,7 @@ Status GltfDecoder::LoadFile(const std::string &file_name,
       // TinyGLTF's ExpandFilePath does not do filesystem i/o, so it's safe to
       // use in all environments.
       &tinygltf::ExpandFilePath, &ReadWholeFile, &WriteWholeFile,
-      reinterpret_cast<void *>(input_files)};
+      &GetFileSizeInBytes, reinterpret_cast<void *>(input_files)};
 
   loader.SetFsCallbacks(fs_callbacks);
 
