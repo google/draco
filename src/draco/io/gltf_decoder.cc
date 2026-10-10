@@ -1445,7 +1445,7 @@ Status GltfDecoder::CheckAndAddTextureToDracoMaterial(
     int texture_index, int tex_coord_attribute_index,
     const tinygltf::ExtensionMap &tex_info_ext, Material *material,
     TextureMap::Type type) {
-  if (texture_index < 0) {
+  if (texture_index < 0 || texture_index >= gltf_model_.textures.size()) {
     return OkStatus();
   }
 
@@ -1460,7 +1460,8 @@ Status GltfDecoder::CheckAndAddTextureToDracoMaterial(
     TextureMap::FilterType min_filter = TextureMap::UNSPECIFIED;
     TextureMap::FilterType mag_filter = TextureMap::UNSPECIFIED;
 
-    if (input_texture.sampler >= 0) {
+    if (input_texture.sampler >= 0 &&
+        input_texture.sampler < gltf_model_.samplers.size()) {
       const tinygltf::Sampler &sampler =
           gltf_model_.samplers[input_texture.sampler];
       DRACO_ASSIGN_OR_RETURN(wrapping_mode.s,
