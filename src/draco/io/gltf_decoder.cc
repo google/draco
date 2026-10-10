@@ -17,6 +17,7 @@
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include <array>
 #include <cstdint>
+#include <limits>
 #include <map>
 #include <memory>
 #include <set>
@@ -147,18 +148,24 @@ StatusOr<std::vector<uint32_t>> CopyDataAsUint32(
   if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_DOUBLE) {
     return Status(Status::DRACO_ERROR, "Double cannot be converted to Uint32.");
   }
-  if (accessor.bufferView < 0) {
+  if (accessor.bufferView < 0 || accessor.bufferView >= model.bufferViews.size()) {
     return Status(Status::DRACO_ERROR,
-                  "Error CopyDataAsUint32() bufferView < 0.");
+                  "Error CopyDataAsUint32() bufferView out of bounds.");
   }
 
   const tinygltf::BufferView &buffer_view =
       model.bufferViews[accessor.bufferView];
-  if (buffer_view.buffer < 0) {
-    return Status(Status::DRACO_ERROR, "Error CopyDataAsUint32() buffer < 0.");
+  if (buffer_view.buffer < 0 || buffer_view.buffer >= model.buffers.size()) {
+    return Status(Status::DRACO_ERROR, "Error CopyDataAsUint32() buffer out of bounds.");
   }
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
+  if (buffer_view.byteOffset < 0 || accessor.byteOffset < 0 ||
+      static_cast<size_t>(buffer_view.byteOffset) > buffer.data.size() ||
+      static_cast<size_t>(accessor.byteOffset) >
+          buffer.data.size() - static_cast<size_t>(buffer_view.byteOffset)) {
+    return Status(Status::DRACO_ERROR, "Byte offset out of bounds.");
+  }
 
   const uint8_t *const data_start =
       buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
@@ -167,6 +174,11 @@ StatusOr<std::vector<uint32_t>> CopyDataAsUint32(
       tinygltf::GetComponentSizeInBytes(accessor.componentType);
   const int num_components =
       TinyGltfUtils::GetNumComponentsForType(accessor.type);
+  if (accessor.count < 0 || num_components <= 0 ||
+      accessor.count >
+          std::numeric_limits<int>::max() / num_components) {
+    return Status(Status::DRACO_ERROR, "Accessor count overflow.");
+  }
   const int num_elements = accessor.count * num_components;
 
   std::vector<uint32_t> output;
@@ -213,17 +225,23 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
       return ErrorStatus("Accessor data cannot be converted to Float.");
     }
   }
-  if (accessor.bufferView < 0) {
-    return Status(Status::DRACO_ERROR, "Error CopyDataAs() bufferView < 0.");
+  if (accessor.bufferView < 0 || accessor.bufferView >= model.bufferViews.size()) {
+    return Status(Status::DRACO_ERROR, "Error CopyDataAs() bufferView out of bounds.");
   }
 
   const tinygltf::BufferView &buffer_view =
       model.bufferViews[accessor.bufferView];
-  if (buffer_view.buffer < 0) {
-    return Status(Status::DRACO_ERROR, "Error CopyDataAs() buffer < 0.");
+  if (buffer_view.buffer < 0 || buffer_view.buffer >= model.buffers.size()) {
+    return Status(Status::DRACO_ERROR, "Error CopyDataAs() buffer out of bounds.");
   }
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
+  if (buffer_view.byteOffset < 0 || accessor.byteOffset < 0 ||
+      static_cast<size_t>(buffer_view.byteOffset) > buffer.data.size() ||
+      static_cast<size_t>(accessor.byteOffset) >
+          buffer.data.size() - static_cast<size_t>(buffer_view.byteOffset)) {
+    return Status(Status::DRACO_ERROR, "Byte offset out of bounds.");
+  }
 
   const uint8_t *const data_start =
       buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
@@ -231,6 +249,9 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
   const int component_size =
       tinygltf::GetComponentSizeInBytes(accessor.componentType);
 
+  if (accessor.count < 0) {
+    return Status(Status::DRACO_ERROR, "Negative accessor count.");
+  }
   std::vector<TypeT> output;
   output.resize(accessor.count);
 
@@ -261,17 +282,23 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
     return Status(Status::DRACO_ERROR,
                   "Dimension does not equal num components.");
   }
-  if (accessor.bufferView < 0) {
-    return Status(Status::DRACO_ERROR, "Error CopyDataAs() bufferView < 0.");
+  if (accessor.bufferView < 0 || accessor.bufferView >= model.bufferViews.size()) {
+    return Status(Status::DRACO_ERROR, "Error CopyDataAs() bufferView out of bounds.");
   }
 
   const tinygltf::BufferView &buffer_view =
       model.bufferViews[accessor.bufferView];
-  if (buffer_view.buffer < 0) {
-    return Status(Status::DRACO_ERROR, "Error CopyDataAs() buffer < 0.");
+  if (buffer_view.buffer < 0 || buffer_view.buffer >= model.buffers.size()) {
+    return Status(Status::DRACO_ERROR, "Error CopyDataAs() buffer out of bounds.");
   }
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
+  if (buffer_view.byteOffset < 0 || accessor.byteOffset < 0 ||
+      static_cast<size_t>(buffer_view.byteOffset) > buffer.data.size() ||
+      static_cast<size_t>(accessor.byteOffset) >
+          buffer.data.size() - static_cast<size_t>(buffer_view.byteOffset)) {
+    return Status(Status::DRACO_ERROR, "Byte offset out of bounds.");
+  }
 
   const uint8_t *const data_start =
       buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
@@ -279,6 +306,9 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
   const int component_size =
       tinygltf::GetComponentSizeInBytes(accessor.componentType);
 
+  if (accessor.count < 0) {
+    return Status(Status::DRACO_ERROR, "Negative accessor count.");
+  }
   std::vector<TypeT> output;
   output.resize(accessor.count);
 
@@ -298,18 +328,24 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
 // supports a byte stride of 0. I.e. tightly packed.
 Status CopyDataFromBufferView(const tinygltf::Model &model, int buffer_view_id,
                               std::vector<uint8_t> *data) {
-  if (buffer_view_id < 0) {
-    return ErrorStatus("Error CopyDataFromBufferView() bufferView < 0.");
+  if (buffer_view_id < 0 || buffer_view_id >= model.bufferViews.size()) {
+    return ErrorStatus("Error CopyDataFromBufferView() bufferView out of bounds.");
   }
   const tinygltf::BufferView &buffer_view = model.bufferViews[buffer_view_id];
-  if (buffer_view.buffer < 0) {
-    return ErrorStatus("Error CopyDataFromBufferView() buffer < 0.");
+  if (buffer_view.buffer < 0 || buffer_view.buffer >= model.buffers.size()) {
+    return ErrorStatus("Error CopyDataFromBufferView() buffer out of bounds.");
   }
   if (buffer_view.byteStride != 0) {
     return Status(Status::DRACO_ERROR, "Error buffer view byteStride != 0.");
   }
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
+  if (buffer_view.byteOffset < 0 || buffer_view.byteLength < 0 ||
+      static_cast<size_t>(buffer_view.byteOffset) > buffer.data.size() ||
+      static_cast<size_t>(buffer_view.byteLength) >
+          buffer.data.size() - static_cast<size_t>(buffer_view.byteOffset)) {
+    return ErrorStatus("Error CopyDataFromBufferView() byte range out of bounds.");
+  }
   const uint8_t *const data_start = buffer.data.data() + buffer_view.byteOffset;
 
   data->resize(buffer_view.byteLength);
@@ -587,8 +623,11 @@ Status GltfDecoder::AddPrimitiveExtensionsToDracoMesh(Mesh *mesh) {
 
 Status GltfDecoder::AddPrimitiveExtensionsToDracoMesh(int node_index,
                                                       Mesh *mesh) {
+  if (node_index < 0 || node_index >= gltf_model_.nodes.size()) {
+    return Status(Status::DRACO_ERROR, "Invalid node index.");
+  }
   const tinygltf::Node &node = gltf_model_.nodes[node_index];
-  if (node.mesh >= 0) {
+  if (node.mesh >= 0 && node.mesh < gltf_model_.meshes.size()) {
     const tinygltf::Mesh &gltf_mesh = gltf_model_.meshes[node.mesh];
     for (const auto &primitive : gltf_mesh.primitives) {
       // Decode extensions present in this primitive.
@@ -648,12 +687,15 @@ Status GltfDecoder::CheckUnsupportedFeatures() {
 
 Status GltfDecoder::DecodeNode(int node_index,
                                const Eigen::Matrix4d &parent_matrix) {
+  if (node_index < 0 || node_index >= gltf_model_.nodes.size()) {
+    return Status(Status::DRACO_ERROR, "Invalid node index.");
+  }
   const tinygltf::Node &node = gltf_model_.nodes[node_index];
   const std::unique_ptr<TrsMatrix> trsm = GetNodeTrsMatrix(node);
   const Eigen::Matrix4d node_matrix =
       parent_matrix * trsm->ComputeTransformationMatrix();
 
-  if (node.mesh >= 0) {
+  if (node.mesh >= 0 && node.mesh < gltf_model_.meshes.size()) {
     const tinygltf::Mesh &mesh = gltf_model_.meshes[node.mesh];
     for (const auto &primitive : mesh.primitives) {
       DRACO_RETURN_IF_ERROR(DecodePrimitive(primitive, node_matrix));
@@ -672,8 +714,12 @@ StatusOr<int> GltfDecoder::DecodePrimitiveAttributeCount(
   if (primitive.attributes.empty()) {
     return Status(Status::DRACO_ERROR, "Primitive has no attributes.");
   }
+  const int accessor_index = primitive.attributes.begin()->second;
+  if (accessor_index < 0 || accessor_index >= gltf_model_.accessors.size()) {
+    return Status(Status::DRACO_ERROR, "Accessor index out of bounds.");
+  }
   const tinygltf::Accessor &accessor =
-      gltf_model_.accessors[primitive.attributes.begin()->second];
+      gltf_model_.accessors[accessor_index];
   return accessor.count;
 }
 
@@ -683,6 +729,9 @@ StatusOr<int> GltfDecoder::DecodePrimitiveIndicesCount(
     // Primitive has implicit indices [0, 1, 2, 3, ...]. Determine indices count
     // based on entry count of a primitive attribute.
     return DecodePrimitiveAttributeCount(primitive);
+  }
+  if (primitive.indices >= gltf_model_.accessors.size()) {
+    return Status(Status::DRACO_ERROR, "Accessor index out of bounds.");
   }
   const tinygltf::Accessor &indices = gltf_model_.accessors[primitive.indices];
   return indices.count;
@@ -702,6 +751,9 @@ StatusOr<std::vector<uint32_t>> GltfDecoder::DecodePrimitiveIndices(
     }
   } else {
     // Get indices from the primitive's indices property.
+    if (primitive.indices >= gltf_model_.accessors.size()) {
+      return Status(Status::DRACO_ERROR, "Accessor index out of bounds.");
+    }
     const tinygltf::Accessor &indices =
         gltf_model_.accessors[primitive.indices];
     if (indices.count <= 0) {
@@ -735,6 +787,9 @@ Status GltfDecoder::DecodePrimitive(const tinygltf::Primitive &primitive,
   const int number_of_points = indices_data.size();
 
   for (const auto &attribute : primitive.attributes) {
+    if (attribute.second < 0 || attribute.second >= gltf_model_.accessors.size()) {
+      return Status(Status::DRACO_ERROR, "Accessor index out of bounds.");
+    }
     const tinygltf::Accessor &accessor =
         gltf_model_.accessors[attribute.second];
 
@@ -778,7 +833,7 @@ Status GltfDecoder::DecodePrimitive(const tinygltf::Primitive &primitive,
 
 Status GltfDecoder::NodeGatherAttributeAndMaterialStats(
     const tinygltf::Node &node) {
-  if (node.mesh >= 0) {
+  if (node.mesh >= 0 && node.mesh < gltf_model_.meshes.size()) {
     const tinygltf::Mesh &mesh = gltf_model_.meshes[node.mesh];
     for (const auto &primitive : mesh.primitives) {
       DRACO_RETURN_IF_ERROR(AccumulatePrimitiveStats(primitive));
@@ -792,6 +847,10 @@ Status GltfDecoder::NodeGatherAttributeAndMaterialStats(
     }
   }
   for (int i = 0; i < node.children.size(); ++i) {
+    if (node.children[i] < 0 ||
+        node.children[i] >= gltf_model_.nodes.size()) {
+      return Status(Status::DRACO_ERROR, "Invalid child node index.");
+    }
     const tinygltf::Node &child = gltf_model_.nodes[node.children[i]];
     DRACO_RETURN_IF_ERROR(NodeGatherAttributeAndMaterialStats(child));
   }
@@ -802,6 +861,9 @@ Status GltfDecoder::NodeGatherAttributeAndMaterialStats(
 Status GltfDecoder::GatherAttributeAndMaterialStats() {
   for (const auto &scene : gltf_model_.scenes) {
     for (int i = 0; i < scene.nodes.size(); ++i) {
+      if (scene.nodes[i] < 0 || scene.nodes[i] >= gltf_model_.nodes.size()) {
+        return Status(Status::DRACO_ERROR, "Invalid scene node index.");
+      }
       const tinygltf::Node &node = gltf_model_.nodes[scene.nodes[i]];
       DRACO_RETURN_IF_ERROR(NodeGatherAttributeAndMaterialStats(node));
     }
@@ -859,7 +921,7 @@ Status GltfDecoder::AccumulatePrimitiveStats(
   }
 
   for (const auto &attribute : primitive.attributes) {
-    if (attribute.second >= gltf_model_.accessors.size()) {
+    if (attribute.second < 0 || attribute.second >= gltf_model_.accessors.size()) {
       return ErrorStatus("Invalid accessor.");
     }
     const tinygltf::Accessor &accessor =
@@ -1419,7 +1481,7 @@ Status GltfDecoder::CheckAndAddTextureToDracoMaterial(
     int texture_index, int tex_coord_attribute_index,
     const tinygltf::ExtensionMap &tex_info_ext, Material *material,
     TextureMap::Type type) {
-  if (texture_index < 0) {
+  if (texture_index < 0 || texture_index >= gltf_model_.textures.size()) {
     return OkStatus();
   }
 
@@ -1434,7 +1496,8 @@ Status GltfDecoder::CheckAndAddTextureToDracoMaterial(
     TextureMap::FilterType min_filter = TextureMap::UNSPECIFIED;
     TextureMap::FilterType mag_filter = TextureMap::UNSPECIFIED;
 
-    if (input_texture.sampler >= 0) {
+    if (input_texture.sampler >= 0 &&
+        input_texture.sampler < gltf_model_.samplers.size()) {
       const tinygltf::Sampler &sampler =
           gltf_model_.samplers[input_texture.sampler];
       DRACO_ASSIGN_OR_RETURN(wrapping_mode.s,
@@ -1889,6 +1952,9 @@ Status GltfDecoder::AddAnimationsToScene() {
 
 Status GltfDecoder::DecodeNodeForScene(int node_index,
                                        SceneNodeIndex parent_index) {
+  if (node_index < 0 || node_index >= gltf_model_.nodes.size()) {
+    return Status(Status::DRACO_ERROR, "Invalid node index.");
+  }
   SceneNodeIndex scene_node_index = kInvalidSceneNodeIndex;
   SceneNode *scene_node = nullptr;
   bool is_new_node;
@@ -1928,7 +1994,7 @@ Status GltfDecoder::DecodeNodeForScene(int node_index,
     // later when the skins are processed.
     scene_node->SetSkinIndex(SkinIndex(node.skin));
   }
-  if (node.mesh >= 0) {
+  if (node.mesh >= 0 && node.mesh < gltf_model_.meshes.size()) {
     // Check if we have already parsed this glTF Mesh.
     const auto it = gltf_mesh_to_scene_mesh_group_.find(node.mesh);
     if (it != gltf_mesh_to_scene_mesh_group_.end()) {
@@ -2021,7 +2087,7 @@ Status GltfDecoder::DecodePrimitiveForScene(
 
   std::set<int32_t> normalized_attributes;
   for (const auto &attribute : primitive.attributes) {
-    if (attribute.second >= gltf_model_.accessors.size()) {
+    if (attribute.second < 0 || attribute.second >= gltf_model_.accessors.size()) {
       return ErrorStatus("Invalid accessor.");
     }
     const tinygltf::Accessor &accessor =
@@ -3068,6 +3134,9 @@ Status GltfDecoder::AddSkinsToScene() {
     }
 
     if (skin.inverseBindMatrices >= 0) {
+      if (skin.inverseBindMatrices >= gltf_model_.accessors.size()) {
+        return Status(Status::DRACO_ERROR, "Accessor index out of bounds.");
+      }
       const tinygltf::Accessor &accessor =
           gltf_model_.accessors[skin.inverseBindMatrices];
       DRACO_RETURN_IF_ERROR(TinyGltfUtils::AddAccessorToAnimationData(
