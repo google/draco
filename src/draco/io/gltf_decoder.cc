@@ -159,6 +159,12 @@ StatusOr<std::vector<uint32_t>> CopyDataAsUint32(
   }
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
+  if (buffer_view.byteOffset < 0 || accessor.byteOffset < 0 ||
+      static_cast<size_t>(buffer_view.byteOffset) > buffer.data.size() ||
+      static_cast<size_t>(accessor.byteOffset) >
+          buffer.data.size() - static_cast<size_t>(buffer_view.byteOffset)) {
+    return Status(Status::DRACO_ERROR, "Byte offset out of bounds.");
+  }
 
   const uint8_t *const data_start =
       buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
@@ -224,6 +230,12 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
   }
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
+  if (buffer_view.byteOffset < 0 || accessor.byteOffset < 0 ||
+      static_cast<size_t>(buffer_view.byteOffset) > buffer.data.size() ||
+      static_cast<size_t>(accessor.byteOffset) >
+          buffer.data.size() - static_cast<size_t>(buffer_view.byteOffset)) {
+    return Status(Status::DRACO_ERROR, "Byte offset out of bounds.");
+  }
 
   const uint8_t *const data_start =
       buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
@@ -272,6 +284,12 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
   }
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
+  if (buffer_view.byteOffset < 0 || accessor.byteOffset < 0 ||
+      static_cast<size_t>(buffer_view.byteOffset) > buffer.data.size() ||
+      static_cast<size_t>(accessor.byteOffset) >
+          buffer.data.size() - static_cast<size_t>(buffer_view.byteOffset)) {
+    return Status(Status::DRACO_ERROR, "Byte offset out of bounds.");
+  }
 
   const uint8_t *const data_start =
       buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
@@ -310,6 +328,12 @@ Status CopyDataFromBufferView(const tinygltf::Model &model, int buffer_view_id,
   }
 
   const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
+  if (buffer_view.byteOffset < 0 || buffer_view.byteLength < 0 ||
+      static_cast<size_t>(buffer_view.byteOffset) > buffer.data.size() ||
+      static_cast<size_t>(buffer_view.byteLength) >
+          buffer.data.size() - static_cast<size_t>(buffer_view.byteOffset)) {
+    return ErrorStatus("Error CopyDataFromBufferView() byte range out of bounds.");
+  }
   const uint8_t *const data_start = buffer.data.data() + buffer_view.byteOffset;
 
   data->resize(buffer_view.byteLength);
