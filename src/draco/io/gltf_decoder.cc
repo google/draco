@@ -587,8 +587,11 @@ Status GltfDecoder::AddPrimitiveExtensionsToDracoMesh(Mesh *mesh) {
 
 Status GltfDecoder::AddPrimitiveExtensionsToDracoMesh(int node_index,
                                                       Mesh *mesh) {
+  if (node_index < 0 || node_index >= gltf_model_.nodes.size()) {
+    return Status(Status::DRACO_ERROR, "Invalid node index.");
+  }
   const tinygltf::Node &node = gltf_model_.nodes[node_index];
-  if (node.mesh >= 0) {
+  if (node.mesh >= 0 && node.mesh < gltf_model_.meshes.size()) {
     const tinygltf::Mesh &gltf_mesh = gltf_model_.meshes[node.mesh];
     for (const auto &primitive : gltf_mesh.primitives) {
       // Decode extensions present in this primitive.
@@ -648,12 +651,15 @@ Status GltfDecoder::CheckUnsupportedFeatures() {
 
 Status GltfDecoder::DecodeNode(int node_index,
                                const Eigen::Matrix4d &parent_matrix) {
+  if (node_index < 0 || node_index >= gltf_model_.nodes.size()) {
+    return Status(Status::DRACO_ERROR, "Invalid node index.");
+  }
   const tinygltf::Node &node = gltf_model_.nodes[node_index];
   const std::unique_ptr<TrsMatrix> trsm = GetNodeTrsMatrix(node);
   const Eigen::Matrix4d node_matrix =
       parent_matrix * trsm->ComputeTransformationMatrix();
 
-  if (node.mesh >= 0) {
+  if (node.mesh >= 0 && node.mesh < gltf_model_.meshes.size()) {
     const tinygltf::Mesh &mesh = gltf_model_.meshes[node.mesh];
     for (const auto &primitive : mesh.primitives) {
       DRACO_RETURN_IF_ERROR(DecodePrimitive(primitive, node_matrix));
@@ -791,7 +797,7 @@ Status GltfDecoder::DecodePrimitive(const tinygltf::Primitive &primitive,
 
 Status GltfDecoder::NodeGatherAttributeAndMaterialStats(
     const tinygltf::Node &node) {
-  if (node.mesh >= 0) {
+  if (node.mesh >= 0 && node.mesh < gltf_model_.meshes.size()) {
     const tinygltf::Mesh &mesh = gltf_model_.meshes[node.mesh];
     for (const auto &primitive : mesh.primitives) {
       DRACO_RETURN_IF_ERROR(AccumulatePrimitiveStats(primitive));
@@ -805,6 +811,10 @@ Status GltfDecoder::NodeGatherAttributeAndMaterialStats(
     }
   }
   for (int i = 0; i < node.children.size(); ++i) {
+    if (node.children[i] < 0 ||
+        node.children[i] >= gltf_model_.nodes.size()) {
+      return Status(Status::DRACO_ERROR, "Invalid child node index.");
+    }
     const tinygltf::Node &child = gltf_model_.nodes[node.children[i]];
     DRACO_RETURN_IF_ERROR(NodeGatherAttributeAndMaterialStats(child));
   }
@@ -815,6 +825,9 @@ Status GltfDecoder::NodeGatherAttributeAndMaterialStats(
 Status GltfDecoder::GatherAttributeAndMaterialStats() {
   for (const auto &scene : gltf_model_.scenes) {
     for (int i = 0; i < scene.nodes.size(); ++i) {
+      if (scene.nodes[i] < 0 || scene.nodes[i] >= gltf_model_.nodes.size()) {
+        return Status(Status::DRACO_ERROR, "Invalid scene node index.");
+      }
       const tinygltf::Node &node = gltf_model_.nodes[scene.nodes[i]];
       DRACO_RETURN_IF_ERROR(NodeGatherAttributeAndMaterialStats(node));
     }
@@ -1902,6 +1915,9 @@ Status GltfDecoder::AddAnimationsToScene() {
 
 Status GltfDecoder::DecodeNodeForScene(int node_index,
                                        SceneNodeIndex parent_index) {
+  if (node_index < 0 || node_index >= gltf_model_.nodes.size()) {
+    return Status(Status::DRACO_ERROR, "Invalid node index.");
+  }
   SceneNodeIndex scene_node_index = kInvalidSceneNodeIndex;
   SceneNode *scene_node = nullptr;
   bool is_new_node;
@@ -1941,7 +1957,7 @@ Status GltfDecoder::DecodeNodeForScene(int node_index,
     // later when the skins are processed.
     scene_node->SetSkinIndex(SkinIndex(node.skin));
   }
-  if (node.mesh >= 0) {
+  if (node.mesh >= 0 && node.mesh < gltf_model_.meshes.size()) {
     // Check if we have already parsed this glTF Mesh.
     const auto it = gltf_mesh_to_scene_mesh_group_.find(node.mesh);
     if (it != gltf_mesh_to_scene_mesh_group_.end()) {
