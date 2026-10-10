@@ -498,4 +498,44 @@ TEST_F(PointCloudKdTreeEncodingTest, TestIntKdTreeEncodingHighDimensional) {
   TestKdTreeEncoding(*pc);
 }
 
+TEST_F(PointCloudKdTreeEncodingTest, TestKdTreeEncodingOfManyComponents) {
+  // Three equal points with 25 attributes of 255 components each, for a total
+  // dimension of 6375. Equal points are never separated, so the walk goes as
+  // deep as the tree allows: every bit of every component, 11 * 6375 levels
+  // for these values. The encoder keeps one base and levels vector for that
+  // walk, where a vector per level would take memory quadratic in the
+  // dimension.
+  constexpr int num_points = 3;
+  constexpr int num_attributes = 25;
+  constexpr uint8_t num_components = 255;
+  std::unique_ptr<PointCloud> pc(new PointCloud());
+  pc->set_num_points(num_points);
+  const std::vector<uint16_t> value(num_components, 1234);
+  for (int a = 0; a < num_attributes; ++a) {
+    GeometryAttribute ga;
+    ga.Init(GeometryAttribute::GENERIC, nullptr, num_components, DT_UINT16,
+            false, sizeof(uint16_t) * num_components, 0);
+    const int att_id = pc->AddAttribute(ga, true, num_points);
+    for (int i = 0; i < num_points; ++i) {
+      pc->attribute(att_id)->SetAttributeValue(AttributeValueIndex(i),
+                                               value.data());
+    }
+  }
+
+  EncoderBuffer buffer;
+  PointCloudKdTreeEncoder encoder;
+  EncoderOptions options = EncoderOptions::CreateDefaultOptions();
+  options.SetSpeed(8, 8);
+  encoder.SetPointCloud(*pc);
+  DRACO_ASSERT_OK(encoder.Encode(options, &buffer));
+
+  DecoderBuffer dec_buffer;
+  dec_buffer.Init(buffer.data(), buffer.size());
+  PointCloudKdTreeDecoder decoder;
+  std::unique_ptr<PointCloud> out_pc(new PointCloud());
+  DecoderOptions dec_options;
+  DRACO_ASSERT_OK(decoder.Decode(dec_options, &dec_buffer, out_pc.get()));
+  ComparePointClouds(*pc, *out_pc);
+}
+
 }  // namespace draco
