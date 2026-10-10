@@ -358,6 +358,16 @@ To add Draco to your project:
                             # included in the NDK.
                             ${log-lib} )
 
+     Some platforms, the linker may be stripping out the self-registering 
+     classes FileReaderFactory uses to read inputs. You can use the following
+     ways to avoid this problem.
+
+     target_link_libraries(native-lib -Wl,--whole-archive draco -Wl,--no-whole-archive)
+
+     or
+
+     target_link_libraries(native-lib -Wl,-force_load draco)
+
 vcpkg
 ---------------------
 You can download and install Draco using the
