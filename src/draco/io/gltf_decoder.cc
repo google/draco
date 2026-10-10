@@ -17,6 +17,7 @@
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include <array>
 #include <cstdint>
+#include <limits>
 #include <map>
 #include <memory>
 #include <set>
@@ -173,6 +174,11 @@ StatusOr<std::vector<uint32_t>> CopyDataAsUint32(
       tinygltf::GetComponentSizeInBytes(accessor.componentType);
   const int num_components =
       TinyGltfUtils::GetNumComponentsForType(accessor.type);
+  if (accessor.count < 0 || num_components <= 0 ||
+      accessor.count >
+          std::numeric_limits<int>::max() / num_components) {
+    return Status(Status::DRACO_ERROR, "Accessor count overflow.");
+  }
   const int num_elements = accessor.count * num_components;
 
   std::vector<uint32_t> output;
@@ -243,6 +249,9 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
   const int component_size =
       tinygltf::GetComponentSizeInBytes(accessor.componentType);
 
+  if (accessor.count < 0) {
+    return Status(Status::DRACO_ERROR, "Negative accessor count.");
+  }
   std::vector<TypeT> output;
   output.resize(accessor.count);
 
@@ -297,6 +306,9 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
   const int component_size =
       tinygltf::GetComponentSizeInBytes(accessor.componentType);
 
+  if (accessor.count < 0) {
+    return Status(Status::DRACO_ERROR, "Negative accessor count.");
+  }
   std::vector<TypeT> output;
   output.resize(accessor.count);
 
