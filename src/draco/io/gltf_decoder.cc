@@ -170,6 +170,27 @@ StatusOr<std::vector<uint32_t>> CopyDataAsUint32(
   const uint8_t *const data_start =
       buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
   const int byte_stride = accessor.ByteStride(buffer_view);
+  // Validate that reading |accessor.count| elements with |byte_stride| stays
+  // inside the buffer. |accessor.count| is attacker-controlled via the glTF
+  // JSON; without this check a large count causes a heap out-of-bounds read
+  // in the loop below (runtime-confirmed with ASan). Mirrors the September
+  // upstream fix in TinyGltfUtils::CopyDataAsFloatImpl (commit 4844035).
+  // Note: a negative byteStride cannot reach here — tinygltf parses it as
+  // unsigned and rejects values > 252; the byte_stride <= 0 check is kept for
+  // parity with upstream, covering ByteStride()'s -1 error return.
+  if (accessor.count < 0 || byte_stride <= 0) {
+    return Status(Status::DRACO_ERROR,
+                  "Error: invalid accessor count or byte stride.");
+  }
+  const size_t start_offset =
+      static_cast<size_t>(buffer_view.byteOffset) +
+      static_cast<size_t>(accessor.byteOffset);
+  const size_t available_bytes = buffer.data.size() - start_offset;
+  const size_t required_bytes =
+      static_cast<size_t>(byte_stride) * static_cast<size_t>(accessor.count);
+  if (required_bytes > available_bytes) {
+    return Status(Status::DRACO_ERROR, "Error: accessor data out of bounds.");
+  }
   const int component_size =
       tinygltf::GetComponentSizeInBytes(accessor.componentType);
   const int num_components =
@@ -246,6 +267,27 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
   const uint8_t *const data_start =
       buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
   const int byte_stride = accessor.ByteStride(buffer_view);
+  // Validate that reading |accessor.count| elements with |byte_stride| stays
+  // inside the buffer. |accessor.count| is attacker-controlled via the glTF
+  // JSON; without this check a large count causes a heap out-of-bounds read
+  // in the loop below (runtime-confirmed with ASan). Mirrors the September
+  // upstream fix in TinyGltfUtils::CopyDataAsFloatImpl (commit 4844035).
+  // Note: a negative byteStride cannot reach here — tinygltf parses it as
+  // unsigned and rejects values > 252; the byte_stride <= 0 check is kept for
+  // parity with upstream, covering ByteStride()'s -1 error return.
+  if (accessor.count < 0 || byte_stride <= 0) {
+    return Status(Status::DRACO_ERROR,
+                  "Error: invalid accessor count or byte stride.");
+  }
+  const size_t start_offset =
+      static_cast<size_t>(buffer_view.byteOffset) +
+      static_cast<size_t>(accessor.byteOffset);
+  const size_t available_bytes = buffer.data.size() - start_offset;
+  const size_t required_bytes =
+      static_cast<size_t>(byte_stride) * static_cast<size_t>(accessor.count);
+  if (required_bytes > available_bytes) {
+    return Status(Status::DRACO_ERROR, "Error: accessor data out of bounds.");
+  }
   const int component_size =
       tinygltf::GetComponentSizeInBytes(accessor.componentType);
 
@@ -303,6 +345,27 @@ StatusOr<std::vector<TypeT>> CopyDataAs(const tinygltf::Model &model,
   const uint8_t *const data_start =
       buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
   const int byte_stride = accessor.ByteStride(buffer_view);
+  // Validate that reading |accessor.count| elements with |byte_stride| stays
+  // inside the buffer. |accessor.count| is attacker-controlled via the glTF
+  // JSON; without this check a large count causes a heap out-of-bounds read
+  // in the loop below (runtime-confirmed with ASan). Mirrors the September
+  // upstream fix in TinyGltfUtils::CopyDataAsFloatImpl (commit 4844035).
+  // Note: a negative byteStride cannot reach here — tinygltf parses it as
+  // unsigned and rejects values > 252; the byte_stride <= 0 check is kept for
+  // parity with upstream, covering ByteStride()'s -1 error return.
+  if (accessor.count < 0 || byte_stride <= 0) {
+    return Status(Status::DRACO_ERROR,
+                  "Error: invalid accessor count or byte stride.");
+  }
+  const size_t start_offset =
+      static_cast<size_t>(buffer_view.byteOffset) +
+      static_cast<size_t>(accessor.byteOffset);
+  const size_t available_bytes = buffer.data.size() - start_offset;
+  const size_t required_bytes =
+      static_cast<size_t>(byte_stride) * static_cast<size_t>(accessor.count);
+  if (required_bytes > available_bytes) {
+    return Status(Status::DRACO_ERROR, "Error: accessor data out of bounds.");
+  }
   const int component_size =
       tinygltf::GetComponentSizeInBytes(accessor.componentType);
 
