@@ -1067,8 +1067,10 @@ Status GltfAsset::CompressMesh(const Mesh& mesh,
   buffer_views_.push_back(buffer_view);
   primitive->compressed_mesh_info.buffer_view_index =
       static_cast<int>(buffer_views_.size() - 1);
+#ifdef DRACO_PMC_SUPPORTED
   primitive->compressed_mesh_info.is_pmc_compression =
       mesh.GetCompressionOptions().use_pmc;
+#endif  // DRACO_PMC_SUPPORTED
   return OkStatus();
 }
 
