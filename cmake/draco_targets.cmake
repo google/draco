@@ -293,7 +293,11 @@ macro(draco_add_library)
 
     target_compile_features(${lib_NAME} PUBLIC cxx_std_11)
 
-  target_include_directories(${lib_NAME} PUBLIC $<INSTALL_INTERFACE:include>)
+  target_include_directories(${lib_NAME} PUBLIC
+    $<BUILD_INTERFACE:${draco_root}/src>
+    $<BUILD_INTERFACE:${draco_build}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  )
 
   if(BUILD_SHARED_LIBS)
     # Enable PIC for all targets in shared configurations.

@@ -24,7 +24,7 @@ namespace {
 
 class MetadataTest : public ::testing::Test {
  protected:
-  MetadataTest() {}
+  MetadataTest() = default;
 
   draco::Metadata metadata;
   draco::GeometryMetadata geometry_metadata;
@@ -150,7 +150,7 @@ TEST_F(MetadataTest, TestGeometryMetadata) {
   ASSERT_NE(geometry_metadata.GetAttributeMetadataByUniqueId(10), nullptr);
   ASSERT_EQ(geometry_metadata.GetAttributeMetadataByUniqueId(1), nullptr);
 
-  const draco::AttributeMetadata *requested_att_metadata =
+  const draco::AttributeMetadata* requested_att_metadata =
       geometry_metadata.GetAttributeMetadataByStringEntry("name", "pos");
   ASSERT_NE(requested_att_metadata, nullptr);
   ASSERT_EQ(

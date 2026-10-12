@@ -57,12 +57,12 @@ class CornerTable {
 
   CornerTable();
   static std::unique_ptr<CornerTable> Create(
-      const IndexTypeVector<FaceIndex, FaceType> &faces);
+      const IndexTypeVector<FaceIndex, FaceType>& faces);
 
   // Initializes the CornerTable from provides set of indexed faces.
   // The input faces can represent a non-manifold topology, in which case the
   // non-manifold edges and vertices are going to be split.
-  bool Init(const IndexTypeVector<FaceIndex, FaceType> &faces);
+  bool Init(const IndexTypeVector<FaceIndex, FaceType>& faces);
 
   // Resets the corner table to the given number of invalid faces.
   bool Reset(int num_faces);
@@ -276,7 +276,7 @@ class CornerTable {
 
   // Adds a new face connected to three vertices. Note that connectivity is not
   // automatically updated and all opposite corners need to be set explicitly.
-  FaceIndex AddNewFace(const std::array<VertexIndex, 3> &vertices) {
+  FaceIndex AddNewFace(const std::array<VertexIndex, 3>& vertices) {
     // Add a new invalid face.
     const FaceIndex new_face_index(num_faces());
     for (int i = 0; i < 3; ++i) {
@@ -356,14 +356,14 @@ class CornerTable {
   // qualities.  If the mesh or table is modified the cache should be discarded
   // and not relied on as it does not automatically update or invalidate for
   // performance reasons.
-  const draco::ValenceCache<CornerTable> &GetValenceCache() const {
+  const draco::ValenceCache<CornerTable>& GetValenceCache() const {
     return valence_cache_;
   }
 
  private:
   // Computes opposite corners mapping from the data stored in
   // |corner_to_vertex_map_|.
-  bool ComputeOppositeCorners(int *num_vertices);
+  bool ComputeOppositeCorners(int* num_vertices);
 
   // Finds and breaks non-manifold edges in the 1-ring neighborhood around
   // vertices (vertices themselves will be split in the ComputeVertexCorners()

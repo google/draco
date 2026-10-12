@@ -28,15 +28,15 @@ class PredictionSchemeDeltaDecoder
   using CorrType =
       typename PredictionSchemeDecoder<DataTypeT, TransformT>::CorrType;
   // Initialized the prediction scheme.
-  explicit PredictionSchemeDeltaDecoder(const PointAttribute *attribute)
+  explicit PredictionSchemeDeltaDecoder(const PointAttribute* attribute)
       : PredictionSchemeDecoder<DataTypeT, TransformT>(attribute) {}
-  PredictionSchemeDeltaDecoder(const PointAttribute *attribute,
-                               const TransformT &transform)
+  PredictionSchemeDeltaDecoder(const PointAttribute* attribute,
+                               const TransformT& transform)
       : PredictionSchemeDecoder<DataTypeT, TransformT>(attribute, transform) {}
 
-  bool ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
+  bool ComputeOriginalValues(const CorrType* in_corr, DataTypeT* out_data,
                              int size, int num_components,
-                             const PointIndex *entry_to_point_id_map) override;
+                             const PointIndex* entry_to_point_id_map) override;
   PredictionSchemeMethod GetPredictionMethod() const override {
     return PREDICTION_DIFFERENCE;
   }
@@ -45,8 +45,8 @@ class PredictionSchemeDeltaDecoder
 
 template <typename DataTypeT, class TransformT>
 bool PredictionSchemeDeltaDecoder<DataTypeT, TransformT>::ComputeOriginalValues(
-    const CorrType *in_corr, DataTypeT *out_data, int size, int num_components,
-    const PointIndex *) {
+    const CorrType* in_corr, DataTypeT* out_data, int size, int num_components,
+    const PointIndex*) {
   this->transform().Init(num_components);
   // Decode the original value for the first element.
   std::unique_ptr<DataTypeT[]> zero_vals(new DataTypeT[num_components]());

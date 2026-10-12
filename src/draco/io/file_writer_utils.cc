@@ -13,9 +13,9 @@
 
 namespace draco {
 
-void SplitPathPrivate(const std::string &full_path,
-                      std::string *out_folder_path,
-                      std::string *out_file_name) {
+void SplitPathPrivate(const std::string& full_path,
+                      std::string* out_folder_path,
+                      std::string* out_file_name) {
   const auto pos = full_path.find_last_of("/\\");
   if (pos != std::string::npos) {
     if (out_folder_path) {
@@ -34,7 +34,7 @@ void SplitPathPrivate(const std::string &full_path,
   }
 }
 
-bool DirectoryExists(const std::string &path_arg) {
+bool DirectoryExists(const std::string& path_arg) {
   struct stat path_stat;
   std::string path = path_arg;
 
@@ -58,7 +58,7 @@ bool DirectoryExists(const std::string &path_arg) {
   return false;
 }
 
-bool CheckAndCreatePathForFile(const std::string &filename) {
+bool CheckAndCreatePathForFile(const std::string& filename) {
   std::string path;
   std::string basename;
   SplitPathPrivate(filename, &path, &basename);

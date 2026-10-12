@@ -1,0 +1,6 @@
+ply
+format binary_little_endian 1.0
+element face 1
+property list uchar int vertex_indices
+end_header
+ÿ

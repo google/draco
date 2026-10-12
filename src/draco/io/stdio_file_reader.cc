@@ -27,12 +27,12 @@ bool StdioFileReader::registered_in_factory_ =
 StdioFileReader::~StdioFileReader() { fclose(file_); }
 
 std::unique_ptr<FileReaderInterface> StdioFileReader::Open(
-    const std::string &file_name) {
+    const std::string& file_name) {
   if (file_name.empty()) {
     return nullptr;
   }
 
-  FILE *raw_file_ptr = fopen(file_name.c_str(), "rb");
+  FILE* raw_file_ptr = fopen(file_name.c_str(), "rb");
 
   if (raw_file_ptr == nullptr) {
     return nullptr;
@@ -49,7 +49,7 @@ std::unique_ptr<FileReaderInterface> StdioFileReader::Open(
   return file;
 }
 
-bool StdioFileReader::ReadFileToBuffer(std::vector<char> *buffer) {
+bool StdioFileReader::ReadFileToBuffer(std::vector<char>* buffer) {
   if (buffer == nullptr) {
     return false;
   }
@@ -65,7 +65,7 @@ bool StdioFileReader::ReadFileToBuffer(std::vector<char> *buffer) {
   return fread(buffer->data(), 1, file_size, file_) == file_size;
 }
 
-bool StdioFileReader::ReadFileToBuffer(std::vector<uint8_t> *buffer) {
+bool StdioFileReader::ReadFileToBuffer(std::vector<uint8_t>* buffer) {
   if (buffer == nullptr) {
     return false;
   }

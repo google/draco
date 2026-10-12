@@ -31,23 +31,23 @@ namespace draco {
 // Creates a CornerTable from the position attribute of |mesh|. Returns nullptr
 // on error.
 std::unique_ptr<CornerTable> CreateCornerTableFromPositionAttribute(
-    const Mesh *mesh);
+    const Mesh* mesh);
 
 // Creates a CornerTable from the first named attribute of |mesh| with a given
 // type. Returns nullptr on error.
 std::unique_ptr<CornerTable> CreateCornerTableFromAttribute(
-    const Mesh *mesh, GeometryAttribute::Type type);
+    const Mesh* mesh, GeometryAttribute::Type type);
 
 // Creates a CornerTable from all attributes of |mesh|. Boundaries are
 // automatically introduced on all attribute seams. Returns nullptr on error.
 std::unique_ptr<CornerTable> CreateCornerTableFromAllAttributes(
-    const Mesh *mesh);
+    const Mesh* mesh);
 
 // Returns true when the given corner lies opposite to an attribute seam.
 inline bool IsCornerOppositeToAttributeSeam(CornerIndex ci,
-                                            const PointAttribute &att,
-                                            const Mesh &mesh,
-                                            const CornerTable &ct) {
+                                            const PointAttribute& att,
+                                            const Mesh& mesh,
+                                            const CornerTable& ct) {
   const CornerIndex opp_ci = ct.Opposite(ci);
   if (opp_ci == kInvalidCornerIndex) {
     return false;  // No opposite corner == no attribute seam.
@@ -73,9 +73,9 @@ inline bool IsCornerOppositeToAttributeSeam(CornerIndex ci,
 // values stored in the attribute.
 template <typename InterpolatedVectorT>
 InterpolatedVectorT ComputeInterpolatedAttributeValueOnMeshFace(
-    const Mesh &mesh, const PointAttribute &attribute, FaceIndex fi,
-    const std::array<float, 3> &barycentric_coord) {
-  const Mesh::Face &face = mesh.face(fi);
+    const Mesh& mesh, const PointAttribute& attribute, FaceIndex fi,
+    const std::array<float, 3>& barycentric_coord) {
+  const Mesh::Face& face = mesh.face(fi);
   // Get values for all three corners of the face.
   InterpolatedVectorT val[3];
   for (int c = 0; c < 3; ++c) {

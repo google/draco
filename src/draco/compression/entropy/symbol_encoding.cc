@@ -30,11 +30,11 @@ constexpr int kDefaultSymbolCodingCompressionLevel = 7;
 
 typedef uint64_t TaggedBitLengthFrequencies[kMaxTagSymbolBitLength];
 
-void SetSymbolEncodingMethod(Options *options, SymbolCodingMethod method) {
+void SetSymbolEncodingMethod(Options* options, SymbolCodingMethod method) {
   options->SetInt("symbol_encoding_method", method);
 }
 
-bool SetSymbolEncodingCompressionLevel(Options *options,
+bool SetSymbolEncodingCompressionLevel(Options* options,
                                        int compression_level) {
   if (compression_level < 0 || compression_level > 10) {
     return false;
@@ -46,10 +46,10 @@ bool SetSymbolEncodingCompressionLevel(Options *options,
 // Computes bit lengths of the input values. If num_components > 1, the values
 // are processed in "num_components" sized chunks and the bit length is always
 // computed for the largest value from the chunk.
-static void ComputeBitLengths(const uint32_t *symbols, int num_values,
+static void ComputeBitLengths(const uint32_t* symbols, int num_values,
                               int num_components,
-                              std::vector<uint32_t> *out_bit_lengths,
-                              uint32_t *out_max_value) {
+                              std::vector<uint32_t>* out_bit_lengths,
+                              uint32_t* out_max_value) {
   out_bit_lengths->reserve(num_values);
   *out_max_value = 0;
   // Maximum integer value across all components.
@@ -90,9 +90,9 @@ static int64_t ApproximateTaggedSchemeBits(
   return tag_bits + tag_table_bits + total_bit_length * num_components;
 }
 
-static int64_t ApproximateRawSchemeBits(const uint32_t *symbols,
+static int64_t ApproximateRawSchemeBits(const uint32_t* symbols,
                                         int num_symbols, uint32_t max_value,
-                                        int *out_num_unique_symbols) {
+                                        int* out_num_unique_symbols) {
   int num_unique_symbols;
   const int64_t data_bits = ComputeShannonEntropy(
       symbols, num_symbols, max_value, &num_unique_symbols);
@@ -103,18 +103,18 @@ static int64_t ApproximateRawSchemeBits(const uint32_t *symbols,
 }
 
 template <template <int> class SymbolEncoderT>
-bool EncodeTaggedSymbols(const uint32_t *symbols, int num_values,
+bool EncodeTaggedSymbols(const uint32_t* symbols, int num_values,
                          int num_components,
-                         const std::vector<uint32_t> &bit_lengths,
-                         EncoderBuffer *target_buffer);
+                         const std::vector<uint32_t>& bit_lengths,
+                         EncoderBuffer* target_buffer);
 
 template <template <int> class SymbolEncoderT>
-bool EncodeRawSymbols(const uint32_t *symbols, int num_values,
+bool EncodeRawSymbols(const uint32_t* symbols, int num_values,
                       uint32_t max_entry_value, int32_t num_unique_symbols,
-                      const Options *options, EncoderBuffer *target_buffer);
+                      const Options* options, EncoderBuffer* target_buffer);
 
-bool EncodeSymbols(const uint32_t *symbols, int num_values, int num_components,
-                   const Options *options, EncoderBuffer *target_buffer) {
+bool EncodeSymbols(const uint32_t* symbols, int num_values, int num_components,
+                   const Options* options, EncoderBuffer* target_buffer) {
   if (num_values < 0) {
     return false;
   }
@@ -172,10 +172,10 @@ bool EncodeSymbols(const uint32_t *symbols, int num_values, int num_components,
 }
 
 template <template <int> class SymbolEncoderT>
-bool EncodeTaggedSymbols(const uint32_t *symbols, int num_values,
+bool EncodeTaggedSymbols(const uint32_t* symbols, int num_values,
                          int num_components,
-                         const std::vector<uint32_t> &bit_lengths,
-                         EncoderBuffer *target_buffer) {
+                         const std::vector<uint32_t>& bit_lengths,
+                         EncoderBuffer* target_buffer) {
   // Create entries for entropy coding. Each entry corresponds to a different
   // number of bits that are necessary to encode a given value. Every value
   // has at most 32 bits. Therefore, we need 32 different entries (for
@@ -243,9 +243,9 @@ bool EncodeTaggedSymbols(const uint32_t *symbols, int num_values,
 }
 
 template <class SymbolEncoderT>
-bool EncodeRawSymbolsInternal(const uint32_t *symbols, int num_values,
+bool EncodeRawSymbolsInternal(const uint32_t* symbols, int num_values,
                               uint32_t max_entry_value,
-                              EncoderBuffer *target_buffer) {
+                              EncoderBuffer* target_buffer) {
   // Count the frequency of each entry value.
   std::vector<uint64_t> frequencies(max_entry_value + 1, 0);
   for (int i = 0; i < num_values; ++i) {
@@ -271,9 +271,9 @@ bool EncodeRawSymbolsInternal(const uint32_t *symbols, int num_values,
 }
 
 template <template <int> class SymbolEncoderT>
-bool EncodeRawSymbols(const uint32_t *symbols, int num_values,
+bool EncodeRawSymbols(const uint32_t* symbols, int num_values,
                       uint32_t max_entry_value, int32_t num_unique_symbols,
-                      const Options *options, EncoderBuffer *target_buffer) {
+                      const Options* options, EncoderBuffer* target_buffer) {
   int symbol_bits = 0;
   if (num_unique_symbols > 0) {
     symbol_bits = MostSignificantBit(num_unique_symbols);

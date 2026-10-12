@@ -29,8 +29,8 @@ SequentialAttributeEncodersController::SequentialAttributeEncodersController(
     std::unique_ptr<PointsSequencer> sequencer, int point_attrib_id)
     : AttributesEncoder(point_attrib_id), sequencer_(std::move(sequencer)) {}
 
-bool SequentialAttributeEncodersController::Init(PointCloudEncoder *encoder,
-                                                 const PointCloud *pc) {
+bool SequentialAttributeEncodersController::Init(PointCloudEncoder* encoder,
+                                                 const PointCloud* pc) {
   if (!AttributesEncoder::Init(encoder, pc)) {
     return false;
   }
@@ -48,7 +48,7 @@ bool SequentialAttributeEncodersController::Init(PointCloudEncoder *encoder,
 }
 
 bool SequentialAttributeEncodersController::EncodeAttributesEncoderData(
-    EncoderBuffer *out_buffer) {
+    EncoderBuffer* out_buffer) {
   if (!AttributesEncoder::EncodeAttributesEncoderData(out_buffer)) {
     return false;
   }
@@ -60,7 +60,7 @@ bool SequentialAttributeEncodersController::EncodeAttributesEncoderData(
 }
 
 bool SequentialAttributeEncodersController::EncodeAttributes(
-    EncoderBuffer *buffer) {
+    EncoderBuffer* buffer) {
   if (!sequencer_ || !sequencer_->GenerateSequence(&point_ids_)) {
     return false;
   }
@@ -79,7 +79,7 @@ bool SequentialAttributeEncodersController::
 }
 
 bool SequentialAttributeEncodersController::EncodePortableAttributes(
-    EncoderBuffer *out_buffer) {
+    EncoderBuffer* out_buffer) {
   for (uint32_t i = 0; i < sequential_encoders_.size(); ++i) {
     if (!sequential_encoders_[i]->EncodePortableAttribute(point_ids_,
                                                           out_buffer)) {
@@ -90,7 +90,7 @@ bool SequentialAttributeEncodersController::EncodePortableAttributes(
 }
 
 bool SequentialAttributeEncodersController::
-    EncodeDataNeededByPortableTransforms(EncoderBuffer *out_buffer) {
+    EncodeDataNeededByPortableTransforms(EncoderBuffer* out_buffer) {
   for (uint32_t i = 0; i < sequential_encoders_.size(); ++i) {
     if (!sequential_encoders_[i]->EncodeDataNeededByPortableTransform(
             out_buffer)) {
@@ -119,7 +119,7 @@ bool SequentialAttributeEncodersController::CreateSequentialEncoders() {
 std::unique_ptr<SequentialAttributeEncoder>
 SequentialAttributeEncodersController::CreateSequentialEncoder(int i) {
   const int32_t att_id = GetAttributeId(i);
-  const PointAttribute *const att = encoder()->point_cloud()->attribute(att_id);
+  const PointAttribute* const att = encoder()->point_cloud()->attribute(att_id);
 
   switch (att->data_type()) {
     case DT_UINT8:

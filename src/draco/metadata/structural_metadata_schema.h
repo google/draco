@@ -44,27 +44,27 @@ struct StructuralMetadataSchema {
 
     // Constructors.
     Object();
-    explicit Object(const std::string &name);
-    Object(const std::string &name, const std::string &value);
-    Object(const std::string &name, const char *value);
-    Object(const std::string &name, int value);
-    Object(const std::string &name, bool value);
+    explicit Object(const std::string& name);
+    Object(const std::string& name, const std::string& value);
+    Object(const std::string& name, const char* value);
+    Object(const std::string& name, int value);
+    Object(const std::string& name, bool value);
 
     // Methods for comparing two objects.
-    bool operator==(const Object &other) const;
-    bool operator!=(const Object &other) const;
+    bool operator==(const Object& other) const;
+    bool operator!=(const Object& other) const;
 
     // Method for copying the object.
-    void Copy(const Object &src);
+    void Copy(const Object& src);
 
     // Methods for getting object name and type.
-    const std::string &GetName() const { return name_; }
+    const std::string& GetName() const { return name_; }
     Type GetType() const { return type_; }
 
     // Methods for getting object value.
-    const std::vector<Object> &GetObjects() const { return objects_; }
-    const std::vector<Object> &GetArray() const { return array_; }
-    const std::string &GetString() const { return string_; }
+    const std::vector<Object>& GetObjects() const { return objects_; }
+    const std::vector<Object>& GetArray() const { return array_; }
+    const std::string& GetString() const { return string_; }
     int GetInteger() const { return integer_; }
     bool GetBoolean() const { return boolean_; }
 
@@ -79,12 +79,12 @@ struct StructuralMetadataSchema {
     // GetObjectByName("level2") will return nullptr. Instead, the user should
     // use GetObjectByName("level1")->GetObjectByName("level2") to get the
     // nested child. Note that this follows the typical JSON semantics.
-    const Object *GetObjectByName(const std::string &name) const;
+    const Object* GetObjectByName(const std::string& name) const;
 
     // Methods for setting object value.
-    std::vector<Object> &SetObjects();
-    std::vector<Object> &SetArray();
-    void SetString(const std::string &value);
+    std::vector<Object>& SetObjects();
+    std::vector<Object>& SetArray();
+    void SetString(const std::string& value);
     void SetInteger(int value);
     void SetBoolean(bool value);
 
@@ -102,8 +102,8 @@ struct StructuralMetadataSchema {
   StructuralMetadataSchema() : json("schema") {}
 
   // Methods for comparing two schemas.
-  bool operator==(const StructuralMetadataSchema &other) const;
-  bool operator!=(const StructuralMetadataSchema &other) const;
+  bool operator==(const StructuralMetadataSchema& other) const;
+  bool operator!=(const StructuralMetadataSchema& other) const;
 
   // Valid schema top-level JSON object is required to have child objects.
   bool Empty() const { return json.GetObjects().empty(); }

@@ -46,7 +46,7 @@ struct AnimationSampler {
         interpolation_type(SamplerInterpolation::LINEAR),
         output_index(-1) {}
 
-  void Copy(const AnimationSampler &src) {
+  void Copy(const AnimationSampler& src) {
     input_index = src.input_index;
     interpolation_type = src.interpolation_type;
     output_index = src.output_index;
@@ -59,7 +59,13 @@ struct AnimationSampler {
 
 // Struct to hold information about an animation's channel.
 struct AnimationChannel {
-  enum class ChannelTransformation { TRANSLATION, ROTATION, SCALE, WEIGHTS };
+  enum class ChannelTransformation {
+    TRANSLATION,
+    ROTATION,
+    SCALE,
+    WEIGHTS,
+    POINTER
+  };
 
   static std::string TransformationToString(ChannelTransformation value) {
     switch (value) {
@@ -69,6 +75,8 @@ struct AnimationChannel {
         return "scale";
       case ChannelTransformation::WEIGHTS:
         return "weights";
+      case ChannelTransformation::POINTER:
+        return "pointer";
       default:
         return "translation";
     }
@@ -79,15 +87,17 @@ struct AnimationChannel {
         transformation_type(ChannelTransformation::TRANSLATION),
         sampler_index(-1) {}
 
-  void Copy(const AnimationChannel &src) {
+  void Copy(const AnimationChannel& src) {
     target_index = src.target_index;
     transformation_type = src.transformation_type;
     sampler_index = src.sampler_index;
+    pointer = src.pointer;
   }
 
   int target_index;
   ChannelTransformation transformation_type;
   int sampler_index;
+  std::string pointer;
 };
 
 // This class is used to hold data and information of glTF animations.
@@ -95,10 +105,10 @@ class Animation {
  public:
   Animation() {}
 
-  void Copy(const Animation &src);
+  void Copy(const Animation& src);
 
-  const std::string &GetName() const { return name_; }
-  void SetName(const std::string &name) { name_ = name; }
+  const std::string& GetName() const { return name_; }
+  void SetName(const std::string& name) { name_ = name; }
 
   // Returns the number of channels in an animation.
   int NumChannels() const { return channels_.size(); }
@@ -108,20 +118,20 @@ class Animation {
   int NumNodeAnimationData() const { return node_animation_data_.size(); }
 
   // Returns a channel in the animation.
-  AnimationChannel *GetChannel(int index) { return channels_[index].get(); }
-  const AnimationChannel *GetChannel(int index) const {
+  AnimationChannel* GetChannel(int index) { return channels_[index].get(); }
+  const AnimationChannel* GetChannel(int index) const {
     return channels_[index].get();
   }
   // Returns a sampler in the animation.
-  AnimationSampler *GetSampler(int index) { return samplers_[index].get(); }
-  const AnimationSampler *GetSampler(int index) const {
+  AnimationSampler* GetSampler(int index) { return samplers_[index].get(); }
+  const AnimationSampler* GetSampler(int index) const {
     return samplers_[index].get();
   }
   // Returns an accessor in the animation.
-  NodeAnimationData *GetNodeAnimationData(int index) {
+  NodeAnimationData* GetNodeAnimationData(int index) {
     return node_animation_data_[index].get();
   }
-  const NodeAnimationData *GetNodeAnimationData(int index) const {
+  const NodeAnimationData* GetNodeAnimationData(int index) const {
     return node_animation_data_[index].get();
   }
 
@@ -135,6 +145,7 @@ class Animation {
   void AddChannel(std::unique_ptr<AnimationChannel> channel) {
     channels_.push_back(std::move(channel));
   }
+  void RemoveChannel(int index) { channels_.erase(channels_.begin() + index); }
 
  private:
   std::string name_;

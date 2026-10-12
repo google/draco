@@ -30,13 +30,13 @@ class SequentialIntegerAttributeEncoder : public SequentialAttributeEncoder {
     return SEQUENTIAL_ATTRIBUTE_ENCODER_INTEGER;
   }
 
-  bool Init(PointCloudEncoder *encoder, int attribute_id) override;
+  bool Init(PointCloudEncoder* encoder, int attribute_id) override;
   bool TransformAttributeToPortableFormat(
-      const std::vector<PointIndex> &point_ids) override;
+      const std::vector<PointIndex>& point_ids) override;
 
  protected:
-  bool EncodeValues(const std::vector<PointIndex> &point_ids,
-                    EncoderBuffer *out_buffer) override;
+  bool EncodeValues(const std::vector<PointIndex>& point_ids,
+                    EncoderBuffer* out_buffer) override;
 
   // Returns a prediction scheme that should be used for encoding of the
   // integer values.
@@ -44,14 +44,14 @@ class SequentialIntegerAttributeEncoder : public SequentialAttributeEncoder {
   CreateIntPredictionScheme(PredictionSchemeMethod method);
 
   // Prepares the integer values that are going to be encoded.
-  virtual bool PrepareValues(const std::vector<PointIndex> &point_ids,
+  virtual bool PrepareValues(const std::vector<PointIndex>& point_ids,
                              int num_points);
 
   void PreparePortableAttribute(int num_entries, int num_components,
                                 int num_points);
 
-  int32_t *GetPortableAttributeData() {
-    return reinterpret_cast<int32_t *>(
+  int32_t* GetPortableAttributeData() {
+    return reinterpret_cast<int32_t*>(
         portable_attribute()->GetAddress(AttributeValueIndex(0)));
   }
 

@@ -32,16 +32,16 @@ class FloatPointsTreeDecoder {
 
   // Decodes a point cloud from |buffer|.
   template <class OutputIteratorT>
-  bool DecodePointCloud(DecoderBuffer *buffer, OutputIteratorT &out);
+  bool DecodePointCloud(DecoderBuffer* buffer, OutputIteratorT& out);
 
 #ifndef DRACO_OLD_GCC
   template <class OutputIteratorT>
-  bool DecodePointCloud(DecoderBuffer *buffer, OutputIteratorT &&out);
+  bool DecodePointCloud(DecoderBuffer* buffer, OutputIteratorT&& out);
 #endif  // DRACO_OLD_GCC
 
   // Initializes a DecoderBuffer from |data|, and calls function above.
   template <class OutputIteratorT>
-  bool DecodePointCloud(const char *data, size_t data_size,
+  bool DecodePointCloud(const char* data, size_t data_size,
                         OutputIteratorT out) {
     if (data == 0 || data_size <= 0) {
       return false;
@@ -71,8 +71,8 @@ class FloatPointsTreeDecoder {
   }
 
  private:
-  bool DecodePointCloudKdTreeInternal(DecoderBuffer *buffer,
-                                      std::vector<Point3ui> *qpoints);
+  bool DecodePointCloudKdTreeInternal(DecoderBuffer* buffer,
+                                      std::vector<Point3ui>* qpoints);
 
   static const uint32_t version_ = 3;
   QuantizationInfo qinfo_;
@@ -90,16 +90,16 @@ class FloatPointsTreeDecoder {
 // TODO(vytyaz): Reenable once USD migrates from GCC 4.8 to a higher version
 // that can disambiguate calls to overloaded methods taking rvalue reference.
 template <class OutputIteratorT>
-bool FloatPointsTreeDecoder::DecodePointCloud(DecoderBuffer *buffer,
-                                              OutputIteratorT &&out) {
+bool FloatPointsTreeDecoder::DecodePointCloud(DecoderBuffer* buffer,
+                                              OutputIteratorT&& out) {
   OutputIteratorT local = std::forward<OutputIteratorT>(out);
   return DecodePointCloud(buffer, local);
 }
 #endif  // DRACO_OLD_GCC
 
 template <class OutputIteratorT>
-bool FloatPointsTreeDecoder::DecodePointCloud(DecoderBuffer *buffer,
-                                              OutputIteratorT &out) {
+bool FloatPointsTreeDecoder::DecodePointCloud(DecoderBuffer* buffer,
+                                              OutputIteratorT& out) {
   std::vector<Point3ui> qpoints;
 
   uint32_t decoded_version;

@@ -30,7 +30,7 @@ class PointsSequencer {
   virtual ~PointsSequencer() = default;
 
   // Fills the |out_point_ids| with the generated sequence of point ids.
-  bool GenerateSequence(std::vector<PointIndex> *out_point_ids) {
+  bool GenerateSequence(std::vector<PointIndex>* out_point_ids) {
     out_point_ids_ = out_point_ids;
     return GenerateSequenceInternal();
   }
@@ -43,7 +43,7 @@ class PointsSequencer {
   // sufficient information to compute the inverse map, because not all point
   // ids are necessarily contained within the map.
   // Must be implemented for sequencers that are used by attribute decoders.
-  virtual bool UpdatePointToAttributeIndexMapping(PointAttribute * /* attr */) {
+  virtual bool UpdatePointToAttributeIndexMapping(PointAttribute* /* attr */) {
     return false;
   }
 
@@ -52,10 +52,10 @@ class PointsSequencer {
   // implementation is responsible for filling |out_point_ids_| with the valid
   // sequence of point ids.
   virtual bool GenerateSequenceInternal() = 0;
-  std::vector<PointIndex> *out_point_ids() const { return out_point_ids_; }
+  std::vector<PointIndex>* out_point_ids() const { return out_point_ids_; }
 
  private:
-  std::vector<PointIndex> *out_point_ids_;
+  std::vector<PointIndex>* out_point_ids_;
 };
 
 }  // namespace draco

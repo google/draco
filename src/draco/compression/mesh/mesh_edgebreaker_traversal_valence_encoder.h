@@ -42,7 +42,7 @@ class MeshEdgebreakerTraversalValenceEncoder
         min_valence_(2),
         max_valence_(7) {}
 
-  bool Init(MeshEdgebreakerEncoderImplInterface *encoder) {
+  bool Init(MeshEdgebreakerEncoderImplInterface* encoder) {
     if (!MeshEdgebreakerTraversalEncoder::Init(encoder)) {
       return false;
     }
@@ -204,7 +204,7 @@ class MeshEdgebreakerTraversalValenceEncoder
   int NumEncodedSymbols() const { return num_symbols_; }
 
  private:
-  const CornerTable *corner_table_;
+  const CornerTable* corner_table_;
   // Explicit map between corners and vertices. We cannot use the one stored
   // in the |corner_table_| because we may need to add additional vertices to
   // handle split symbols.

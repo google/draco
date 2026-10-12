@@ -36,28 +36,28 @@ struct DataBufferDescriptor {
 class DataBuffer {
  public:
   DataBuffer();
-  bool Update(const void *data, int64_t size);
-  bool Update(const void *data, int64_t size, int64_t offset);
+  bool Update(const void* data, int64_t size);
+  bool Update(const void* data, int64_t size, int64_t offset);
 
   // Reallocate the buffer storage to a new size keeping the data unchanged.
   void Resize(int64_t new_size);
-  void WriteDataToStream(std::ostream &stream);
+  void WriteDataToStream(std::ostream& stream);
   // Reads data from the buffer. Potentially unsafe, called needs to ensure
   // the accessed memory is valid.
-  void Read(int64_t byte_pos, void *out_data, size_t data_size) const {
+  void Read(int64_t byte_pos, void* out_data, size_t data_size) const {
     memcpy(out_data, data() + byte_pos, data_size);
   }
 
   // Writes data to the buffer. Unsafe, caller must ensure the accessed memory
   // is valid.
-  void Write(int64_t byte_pos, const void *in_data, size_t data_size) {
-    memcpy(const_cast<uint8_t *>(data()) + byte_pos, in_data, data_size);
+  void Write(int64_t byte_pos, const void* in_data, size_t data_size) {
+    memcpy(const_cast<uint8_t*>(data()) + byte_pos, in_data, data_size);
   }
 
   // Copies data from another buffer to this buffer.
-  void Copy(int64_t dst_offset, const DataBuffer *src_buf, int64_t src_offset,
+  void Copy(int64_t dst_offset, const DataBuffer* src_buf, int64_t src_offset,
             int64_t size) {
-    memcpy(const_cast<uint8_t *>(data()) + dst_offset,
+    memcpy(const_cast<uint8_t*>(data()) + dst_offset,
            src_buf->data() + src_offset, size);
   }
 
@@ -66,8 +66,8 @@ class DataBuffer {
   }
   int64_t update_count() const { return descriptor_.buffer_update_count; }
   size_t data_size() const { return data_.size(); }
-  const uint8_t *data() const { return data_.data(); }
-  uint8_t *data() { return data_.data(); }
+  const uint8_t* data() const { return data_.data(); }
+  uint8_t* data() { return data_.data(); }
   int64_t buffer_id() const { return descriptor_.buffer_id; }
   void set_buffer_id(int64_t buffer_id) { descriptor_.buffer_id = buffer_id; }
 

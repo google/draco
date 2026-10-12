@@ -20,7 +20,7 @@ namespace {
 
 class DecoderOptionsTest : public ::testing::Test {
  protected:
-  DecoderOptionsTest() {}
+  DecoderOptionsTest() = default;
 };
 
 TEST_F(DecoderOptionsTest, TestOptions) {

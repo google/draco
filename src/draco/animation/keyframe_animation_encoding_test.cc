@@ -22,7 +22,7 @@ namespace draco {
 
 class KeyframeAnimationEncodingTest : public ::testing::Test {
  protected:
-  KeyframeAnimationEncodingTest() {}
+  KeyframeAnimationEncodingTest() = default;
 
   bool CreateAndAddTimestamps(int32_t num_frames) {
     timestamps_.resize(num_frames);
@@ -44,8 +44,8 @@ class KeyframeAnimationEncodingTest : public ::testing::Test {
   }
 
   template <int num_components_t>
-  void CompareAnimationData(const KeyframeAnimation &animation0,
-                            const KeyframeAnimation &animation1,
+  void CompareAnimationData(const KeyframeAnimation& animation0,
+                            const KeyframeAnimation& animation1,
                             bool quantized) {
     ASSERT_EQ(animation0.num_frames(), animation1.num_frames());
     ASSERT_EQ(animation0.num_animations(), animation1.num_animations());

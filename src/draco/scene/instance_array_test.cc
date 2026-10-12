@@ -70,7 +70,7 @@ TEST(InstanceArrayTest, TestAddInstance) {
   ASSERT_EQ(array.NumInstances(), 2);
 
   // Check transformation of the first instance.
-  const draco::TrsMatrix &trs_0 = array.GetInstance(0).trs;
+  const draco::TrsMatrix& trs_0 = array.GetInstance(0).trs;
   ASSERT_TRUE(trs_0.TranslationSet());
   ASSERT_TRUE(trs_0.RotationSet());
   ASSERT_TRUE(trs_0.ScaleSet());
@@ -80,7 +80,7 @@ TEST(InstanceArrayTest, TestAddInstance) {
   ASSERT_EQ(trs_0.Scale().value(), scale_0);
 
   // Check transformation of the second instance.
-  const draco::TrsMatrix &trs_1 = array.GetInstance(1).trs;
+  const draco::TrsMatrix& trs_1 = array.GetInstance(1).trs;
   ASSERT_TRUE(trs_1.TranslationSet());
   ASSERT_TRUE(trs_1.RotationSet());
   ASSERT_TRUE(trs_1.ScaleSet());

@@ -19,7 +19,7 @@ namespace draco {
 SequentialAttributeDecoder::SequentialAttributeDecoder()
     : decoder_(nullptr), attribute_(nullptr), attribute_id_(-1) {}
 
-bool SequentialAttributeDecoder::Init(PointCloudDecoder *decoder,
+bool SequentialAttributeDecoder::Init(PointCloudDecoder* decoder,
                                       int attribute_id) {
   decoder_ = decoder;
   attribute_ = decoder->point_cloud()->attribute(attribute_id);
@@ -28,14 +28,14 @@ bool SequentialAttributeDecoder::Init(PointCloudDecoder *decoder,
 }
 
 bool SequentialAttributeDecoder::InitializeStandalone(
-    PointAttribute *attribute) {
+    PointAttribute* attribute) {
   attribute_ = attribute;
   attribute_id_ = -1;
   return true;
 }
 
 bool SequentialAttributeDecoder::DecodePortableAttribute(
-    const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
+    const std::vector<PointIndex>& point_ids, DecoderBuffer* in_buffer) {
   if (attribute_->num_components() <= 0 ||
       !attribute_->Reset(point_ids.size())) {
     return false;
@@ -47,18 +47,18 @@ bool SequentialAttributeDecoder::DecodePortableAttribute(
 }
 
 bool SequentialAttributeDecoder::DecodeDataNeededByPortableTransform(
-    const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
+    const std::vector<PointIndex>& point_ids, DecoderBuffer* in_buffer) {
   // Default implementation does not apply any transform.
   return true;
 }
 
 bool SequentialAttributeDecoder::TransformAttributeToOriginalFormat(
-    const std::vector<PointIndex> &point_ids) {
+    const std::vector<PointIndex>& point_ids) {
   // Default implementation does not apply any transform.
   return true;
 }
 
-const PointAttribute *SequentialAttributeDecoder::GetPortableAttribute() {
+const PointAttribute* SequentialAttributeDecoder::GetPortableAttribute() {
   // If needed, copy point to attribute value index mapping from the final
   // attribute to the portable attribute.
   if (!attribute_->is_mapping_identity() && portable_attribute_ &&
@@ -73,7 +73,7 @@ const PointAttribute *SequentialAttributeDecoder::GetPortableAttribute() {
 }
 
 bool SequentialAttributeDecoder::InitPredictionScheme(
-    PredictionSchemeInterface *ps) {
+    PredictionSchemeInterface* ps) {
   for (int i = 0; i < ps->GetNumParentAttributes(); ++i) {
     const int att_id = decoder_->point_cloud()->GetNamedAttributeId(
         ps->GetParentAttributeType(i));
@@ -88,7 +88,7 @@ bool SequentialAttributeDecoder::InitPredictionScheme(
     } else
 #endif
     {
-      const PointAttribute *const pa = decoder_->GetPortableAttribute(att_id);
+      const PointAttribute* const pa = decoder_->GetPortableAttribute(att_id);
       if (pa == nullptr || !ps->SetParentAttribute(pa)) {
         return false;
       }
@@ -98,11 +98,11 @@ bool SequentialAttributeDecoder::InitPredictionScheme(
 }
 
 bool SequentialAttributeDecoder::DecodeValues(
-    const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
+    const std::vector<PointIndex>& point_ids, DecoderBuffer* in_buffer) {
   const int32_t num_values = static_cast<uint32_t>(point_ids.size());
   const int entry_size = static_cast<int>(attribute_->byte_stride());
   std::unique_ptr<uint8_t[]> value_data_ptr(new uint8_t[entry_size]);
-  uint8_t *const value_data = value_data_ptr.get();
+  uint8_t* const value_data = value_data_ptr.get();
   int out_byte_pos = 0;
   // Decode raw attribute values in their original format.
   for (int i = 0; i < num_values; ++i) {

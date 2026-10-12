@@ -39,20 +39,20 @@ class PredictionSchemeDecoder : public PredictionSchemeTypedDecoderInterface<
   typedef TransformT Transform;
   // Correction type needs to be defined in the prediction transform class.
   typedef typename Transform::CorrType CorrType;
-  explicit PredictionSchemeDecoder(const PointAttribute *attribute)
+  explicit PredictionSchemeDecoder(const PointAttribute* attribute)
       : PredictionSchemeDecoder(attribute, Transform()) {}
-  PredictionSchemeDecoder(const PointAttribute *attribute,
-                          const Transform &transform)
+  PredictionSchemeDecoder(const PointAttribute* attribute,
+                          const Transform& transform)
       : attribute_(attribute), transform_(transform) {}
 
-  bool DecodePredictionData(DecoderBuffer *buffer) override {
+  bool DecodePredictionData(DecoderBuffer* buffer) override {
     if (!transform_.DecodeTransformData(buffer)) {
       return false;
     }
     return true;
   }
 
-  const PointAttribute *GetAttribute() const override { return attribute(); }
+  const PointAttribute* GetAttribute() const override { return attribute(); }
 
   // Returns the number of parent attributes that are needed for the prediction.
   int GetNumParentAttributes() const override { return 0; }
@@ -63,7 +63,7 @@ class PredictionSchemeDecoder : public PredictionSchemeTypedDecoderInterface<
   }
 
   // Sets the required parent attribute.
-  bool SetParentAttribute(const PointAttribute * /* att */) override {
+  bool SetParentAttribute(const PointAttribute* /* att */) override {
     return false;
   }
 
@@ -76,12 +76,12 @@ class PredictionSchemeDecoder : public PredictionSchemeTypedDecoderInterface<
   }
 
  protected:
-  inline const PointAttribute *attribute() const { return attribute_; }
-  inline const Transform &transform() const { return transform_; }
-  inline Transform &transform() { return transform_; }
+  inline const PointAttribute* attribute() const { return attribute_; }
+  inline const Transform& transform() const { return transform_; }
+  inline Transform& transform() { return transform_; }
 
  private:
-  const PointAttribute *attribute_;
+  const PointAttribute* attribute_;
   Transform transform_;
 };
 

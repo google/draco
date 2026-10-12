@@ -23,7 +23,7 @@ class SymbolBitEncoder {
   void EncodeLeastSignificantBits32(int nbits, uint32_t value);
 
   // Ends the bit encoding and stores the result into the target_buffer.
-  void EndEncoding(EncoderBuffer *target_buffer);
+  void EndEncoding(EncoderBuffer* target_buffer);
 
  private:
   void Clear();

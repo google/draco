@@ -24,9 +24,9 @@
 
 namespace draco {
 
-void MeshUtils::TransformMesh(const Eigen::Matrix4d &transform, Mesh *mesh) {
+void MeshUtils::TransformMesh(const Eigen::Matrix4d& transform, Mesh* mesh) {
   // Transform positions.
-  PointAttribute *pos_att =
+  PointAttribute* pos_att =
       mesh->attribute(mesh->GetNamedAttributeId(GeometryAttribute::POSITION));
   for (AttributeValueIndex avi(0); avi < pos_att->size(); ++avi) {
     Vector3f pos_val;
@@ -39,8 +39,8 @@ void MeshUtils::TransformMesh(const Eigen::Matrix4d &transform, Mesh *mesh) {
   }
 
   // Transform normals and tangents.
-  PointAttribute *normal_att = nullptr;
-  PointAttribute *tangent_att = nullptr;
+  PointAttribute* normal_att = nullptr;
+  PointAttribute* tangent_att = nullptr;
   if (mesh->NumNamedAttributes(GeometryAttribute::NORMAL) > 0) {
     normal_att =
         mesh->attribute(mesh->GetNamedAttributeId(GeometryAttribute::NORMAL));
@@ -69,11 +69,11 @@ namespace {
 
 // Merges entries from |src_metadata| to |dst_metadata|. Any metadata entries
 // with the same names are left unchanged.
-void MergeMetadataInternal(const Metadata &src_metadata,
-                           Metadata *dst_metadata) {
-  const auto &src_entries = src_metadata.entries();
-  const auto &dst_entries = dst_metadata->entries();
-  for (const auto &it : src_entries) {
+void MergeMetadataInternal(const Metadata& src_metadata,
+                           Metadata* dst_metadata) {
+  const auto& src_entries = src_metadata.entries();
+  const auto& dst_entries = dst_metadata->entries();
+  for (const auto& it : src_entries) {
     if (dst_entries.find(it.first) != dst_entries.end()) {
       // Source entry already exists in the target metadata.
       continue;
@@ -84,9 +84,9 @@ void MergeMetadataInternal(const Metadata &src_metadata,
   }
 
   // Merge any sub-metadata.
-  const auto &src_sub_metadata = src_metadata.sub_metadatas();
-  const auto &dst_sub_metadata = dst_metadata->sub_metadatas();
-  for (const auto &it : src_sub_metadata) {
+  const auto& src_sub_metadata = src_metadata.sub_metadatas();
+  const auto& dst_sub_metadata = dst_metadata->sub_metadatas();
+  for (const auto& it : src_sub_metadata) {
     if (dst_sub_metadata.find(it.first) == dst_sub_metadata.end()) {
       // Source sub-metadata doesn't exists in the target metadata, copy it
       // over.
@@ -101,8 +101,8 @@ void MergeMetadataInternal(const Metadata &src_metadata,
 
 }  // namespace
 
-void MeshUtils::MergeMetadata(const Mesh &src_mesh, Mesh *dst_mesh) {
-  const auto *src_metadata = src_mesh.GetMetadata();
+void MeshUtils::MergeMetadata(const Mesh& src_mesh, Mesh* dst_mesh) {
+  const auto* src_metadata = src_mesh.GetMetadata();
   if (src_metadata == nullptr) {
     return;  // Nothing to merge.
   }
@@ -115,7 +115,7 @@ void MeshUtils::MergeMetadata(const Mesh &src_mesh, Mesh *dst_mesh) {
     std::unique_ptr<GeometryMetadata> new_metadata(new GeometryMetadata());
     dst_mesh->AddMetadata(std::move(new_metadata));
   }
-  auto *dst_metadata = dst_mesh->metadata();
+  auto* dst_metadata = dst_mesh->metadata();
 
   // First go over all entries of the geometry part of |src_metadata|.
   MergeMetadataInternal(*src_metadata, dst_metadata);
@@ -135,9 +135,9 @@ void MeshUtils::MergeMetadata(const Mesh &src_mesh, Mesh *dst_mesh) {
     }
     for (int j = 0; j < src_mesh.NumNamedAttributes(att_type); ++j) {
       // First check if we have a metadata for this attribute.
-      const PointAttribute *const src_att =
+      const PointAttribute* const src_att =
           src_mesh.GetNamedAttribute(att_type, j);
-      const auto *src_metadata =
+      const auto* src_metadata =
           src_mesh.GetMetadata()->GetAttributeMetadataByUniqueId(
               src_att->unique_id());
       if (src_metadata == nullptr) {
@@ -145,13 +145,13 @@ void MeshUtils::MergeMetadata(const Mesh &src_mesh, Mesh *dst_mesh) {
         continue;
       }
       // Find target attribute corresponding to the source.
-      const PointAttribute *const dst_att =
+      const PointAttribute* const dst_att =
           dst_mesh->GetNamedAttribute(att_type, j);
       if (dst_att == nullptr) {
         // No corresponding attribute found, ignore the source metadata.
         continue;
       }
-      auto *dst_metadata =
+      auto* dst_metadata =
           dst_mesh->metadata()->attribute_metadata(dst_att->unique_id());
       if (dst_metadata == nullptr) {
         // Copy over the metadata (with remapped attribute unique id).
@@ -168,8 +168,8 @@ void MeshUtils::MergeMetadata(const Mesh &src_mesh, Mesh *dst_mesh) {
 }
 
 // Returns indices of all used materials on the |mesh|.
-std::unordered_set<int> FindUsedMaterials(const Mesh &mesh) {
-  const PointAttribute *const mat_att =
+std::unordered_set<int> FindUsedMaterials(const Mesh& mesh) {
+  const PointAttribute* const mat_att =
       mesh.GetNamedAttribute(GeometryAttribute::MATERIAL);
   std::unordered_set<int> used_materials;
   if (mat_att == nullptr) {
@@ -185,7 +185,7 @@ std::unordered_set<int> FindUsedMaterials(const Mesh &mesh) {
   return used_materials;
 }
 
-Status MeshUtils::RemoveUnusedMeshFeatures(Mesh *mesh) {
+void MeshUtils::RemoveUnusedMeshFeatures(Mesh* mesh) {
   // Unused mesh features are features that are not used by any face / vertex
   // of the |mesh|. Currently, each mesh feature can be "masked" for specific
   // materials, in which case we need to check whether the mask materials
@@ -219,44 +219,14 @@ Status MeshUtils::RemoveUnusedMeshFeatures(Mesh *mesh) {
     const MeshFeaturesIndex mfi = *it;
     mesh->RemoveMeshFeatures(mfi);
   }
-
-  // Remove all features textures that are not used anymore.
-
-  // First find which textures are referenced by the mesh features.
-  std::unordered_set<const Texture *> used_textures;
-  for (MeshFeaturesIndex mfi(0); mfi < mesh->NumMeshFeatures(); ++mfi) {
-    const Texture *const texture =
-        mesh->GetMeshFeatures(mfi).GetTextureMap().texture();
-    if (texture) {
-      used_textures.insert(texture);
-    }
-  }
-
-  if (!used_textures.empty() &&
-      mesh->GetNonMaterialTextureLibrary().NumTextures() == 0) {
-    return ErrorStatus(
-        "Trying to remove mesh features textures that are not owned by the "
-        "mesh.");
-  }
-
-  // Remove all unreferenced textures from the non-material texture library.
-  for (int ti = mesh->GetNonMaterialTextureLibrary().NumTextures() - 1; ti >= 0;
-       --ti) {
-    const Texture *const texture =
-        mesh->GetNonMaterialTextureLibrary().GetTexture(ti);
-    if (used_textures.count(texture) == 0) {
-      mesh->GetNonMaterialTextureLibrary().RemoveTexture(ti);
-    }
-  }
-  return OkStatus();
 }
 
-Status MeshUtils::RemoveUnusedPropertyAttributesIndices(Mesh *mesh) {
+void MeshUtils::RemoveUnusedPropertyAttributesIndices(Mesh* mesh) {
   // Unused property attributes indices are indices that are not used by any
   // face / vertex of the |mesh|. Currently, each property attributes index can
   // be "masked" for specific materials, in which case we need to check whether
   // the mask materials are present in the |mesh|. If not, we can remove the
-  // property attributes from the mesh.
+  // property attributes index from the mesh.
   const std::unordered_set<int> used_materials = FindUsedMaterials(*mesh);
   std::vector<int> unused_property_attributes_indices;
   for (int i = 0; i < mesh->NumPropertyAttributesIndices(); ++i) {
@@ -286,11 +256,113 @@ Status MeshUtils::RemoveUnusedPropertyAttributesIndices(Mesh *mesh) {
     const int i = *it;
     mesh->RemovePropertyAttributesIndex(i);
   }
-  return OkStatus();
+}
+
+void MeshUtils::RemoveUnusedPropertyTexturesIndices(Mesh* mesh) {
+  // Unused property textures indices are indices that are not used by any
+  // face / vertex of the |mesh|. Currently, each property textures index can
+  // be "masked" for specific materials, in which case we need to check whether
+  // the mask materials are present in the |mesh|. If not, we can remove the
+  // property textures index from the mesh.
+  const std::unordered_set<int> used_materials = FindUsedMaterials(*mesh);
+  std::vector<int> unused_property_textures_indices;
+  for (int i = 0; i < mesh->NumPropertyTexturesIndices(); ++i) {
+    bool is_used = false;
+    if (mesh->NumPropertyTexturesIndexMaterialMasks(i) == 0) {
+      is_used = true;
+    } else {
+      for (int mask_i = 0;
+           mask_i < mesh->NumPropertyTexturesIndexMaterialMasks(i); ++mask_i) {
+        const int material_index =
+            mesh->GetPropertyTexturesIndexMaterialMask(i, mask_i);
+        if (used_materials.count(material_index)) {
+          is_used = true;
+          break;
+        }
+      }
+    }
+    if (!is_used) {
+      unused_property_textures_indices.push_back(i);
+    }
+  }
+
+  // Remove the unused property textures indices (from back).
+  for (auto it = unused_property_textures_indices.rbegin();
+       it != unused_property_textures_indices.rend(); ++it) {
+    const int i = *it;
+    mesh->RemovePropertyTexturesIndex(i);
+  }
+}
+
+void MeshUtils::RemoveUnusedPropertyAttributes(Mesh* mesh) {
+  // Collect indices of used property attributes.
+  std::unordered_set<int> property_attribute_indices;
+  for (int i = 0; i < mesh->NumPropertyAttributesIndices(); ++i) {
+    property_attribute_indices.insert(mesh->GetPropertyAttributesIndex(i));
+  }
+
+  // Remove unused property attributes.
+  auto& structural_metadata = mesh->GetStructuralMetadata();
+  for (int i = structural_metadata.NumPropertyAttributes() - 1; i >= 0; i--) {
+    if (property_attribute_indices.count(i) == 0) {
+      structural_metadata.RemovePropertyAttribute(i);
+      mesh->UpdatePropertyAttributesIndicesAfterDeletedProperty(i);
+    }
+  }
+}
+
+void MeshUtils::RemoveUnusedPropertyTextures(Mesh* mesh) {
+  // Collect indices of used property textures.
+  std::unordered_set<int> property_texture_indices;
+  for (int i = 0; i < mesh->NumPropertyTexturesIndices(); ++i) {
+    property_texture_indices.insert(mesh->GetPropertyTexturesIndex(i));
+  }
+
+  // Remove unused property textures.
+  auto& structural_metadata = mesh->GetStructuralMetadata();
+  for (int i = structural_metadata.NumPropertyTextures() - 1; i >= 0; i--) {
+    if (property_texture_indices.count(i) == 0) {
+      structural_metadata.RemovePropertyTexture(i);
+      mesh->UpdatePropertyTexturesIndicesAfterDeletedProperty(i);
+    }
+  }
+}
+
+void MeshUtils::RemoveUnusedNonMaterialTextures(Mesh* mesh) {
+  // Find textures pointed to by the mesh feature ID textures.
+  std::unordered_set<const Texture*> used_textures;
+  for (MeshFeaturesIndex mfi(0); mfi < mesh->NumMeshFeatures(); ++mfi) {
+    const auto texture = mesh->GetMeshFeatures(mfi).GetTextureMap().texture();
+    if (texture) {
+      used_textures.insert(texture);
+    }
+  }
+
+  // Find textures pointed to by the structural metadata property textures.
+  const auto& structural_metadata = mesh->GetStructuralMetadata();
+  for (int i = 0; i < structural_metadata.NumPropertyTextures(); i++) {
+    const auto& property_texture = structural_metadata.GetPropertyTexture(i);
+    for (int j = 0; j < property_texture.NumProperties(); j++) {
+      const auto& property = property_texture.GetProperty(j);
+      const auto texture = property.GetTextureMap().texture();
+      if (texture) {
+        used_textures.insert(texture);
+      }
+    }
+  }
+
+  // Remove all unused textures from the non-material texture library.
+  auto& non_material_texture_library = mesh->GetNonMaterialTextureLibrary();
+  for (int ti = non_material_texture_library.NumTextures() - 1; ti >= 0; --ti) {
+    const Texture* const texture = non_material_texture_library.GetTexture(ti);
+    if (used_textures.count(texture) == 0) {
+      non_material_texture_library.RemoveTexture(ti);
+    }
+  }
 }
 
 bool MeshUtils::FlipTextureUvValues(bool flip_u, bool flip_v,
-                                    PointAttribute *att) {
+                                    PointAttribute* att) {
   if (att->attribute_type() != GeometryAttribute::TEX_COORD) {
     return false;
   }
@@ -318,8 +390,8 @@ bool MeshUtils::FlipTextureUvValues(bool flip_u, bool flip_v,
 }
 
 // TODO(fgalligan): Change att_id to be of type const PointAttribute &.
-int MeshUtils::CountDegenerateFaces(const Mesh &mesh, int att_id) {
-  const PointAttribute *const att = mesh.attribute(att_id);
+int MeshUtils::CountDegenerateFaces(const Mesh& mesh, int att_id) {
+  const PointAttribute* const att = mesh.attribute(att_id);
   if (att == nullptr) {
     return -1;
   }
@@ -337,9 +409,49 @@ int MeshUtils::CountDegenerateFaces(const Mesh &mesh, int att_id) {
   return -1;
 }
 
+bool MeshUtils::AreAllFacesFullyDegenerate(const Mesh& mesh) {
+  if (mesh.num_faces() == 0) {
+    // Empty mesh is not degenerate.
+    return false;
+  }
+  for (FaceIndex fi(0); fi < mesh.num_faces(); ++fi) {
+    const auto& face = mesh.face(fi);
+    if (face[0] != face[1] && face[0] != face[2] && face[1] != face[2]) {
+      // A non-degenerate face was found.
+      return false;
+    }
+  }
+  return true;
+}
+
+bool MeshUtils::AreAllFacePositionsDegenerate(const Mesh& mesh) {
+  if (mesh.num_faces() == 0) {
+    // Empty mesh is not degenerate.
+    return false;
+  }
+  const PointAttribute* const pos_att =
+      mesh.GetNamedAttribute(GeometryAttribute::POSITION);
+  if (pos_att == nullptr) {
+    return false;
+  }
+  std::array<Vector3f, 3> values;
+  for (FaceIndex fi(0); fi < mesh.num_faces(); ++fi) {
+    const auto& face = mesh.face(fi);
+    const std::array<AttributeValueIndex, 3> pos_indices = {
+        pos_att->mapped_index(face[0]), pos_att->mapped_index(face[1]),
+        pos_att->mapped_index(face[2])};
+    if (pos_indices[0] != pos_indices[1] && pos_indices[0] != pos_indices[2] &&
+        pos_indices[1] != pos_indices[2]) {
+      // A non-degenerate face was found.
+      return false;
+    }
+  }
+  return true;
+}
+
 StatusOr<int> MeshUtils::FindLowestTextureQuantization(
-    const Mesh &mesh, const PointAttribute &pos_att, int pos_quantization_bits,
-    const PointAttribute &tex_att, int tex_target_quantization_bits) {
+    const Mesh& mesh, const PointAttribute& pos_att, int pos_quantization_bits,
+    const PointAttribute& tex_att, int tex_target_quantization_bits) {
   if (tex_target_quantization_bits < 0 || tex_target_quantization_bits >= 30) {
     return Status(Status::DRACO_ERROR,
                   "Target texture quantization is out of range.");
@@ -414,8 +526,8 @@ StatusOr<int> MeshUtils::FindLowestTextureQuantization(
   return lowest_quantization_bits;
 }
 
-void MeshUtils::TransformNormalizedAttribute(const Eigen::Matrix3d &transform,
-                                             PointAttribute *att) {
+void MeshUtils::TransformNormalizedAttribute(const Eigen::Matrix3d& transform,
+                                             PointAttribute* att) {
   for (AttributeValueIndex avi(0); avi < att->size(); ++avi) {
     // Store up to 4 component values.
     Vector4f val(0, 0, 0, 1);
@@ -435,15 +547,15 @@ void MeshUtils::TransformNormalizedAttribute(const Eigen::Matrix3d &transform,
 }
 
 template <typename att_components_t>
-int MeshUtils::CountDegenerateFaces(const Mesh &mesh,
-                                    const PointAttribute &att) {
+int MeshUtils::CountDegenerateFaces(const Mesh& mesh,
+                                    const PointAttribute& att) {
   if (att.data_type() != DataType::DT_FLOAT32) {
     return -1;
   }
   std::array<att_components_t, 3> values;
   int degenerate_values = 0;
   for (FaceIndex fi(0); fi < mesh.num_faces(); ++fi) {
-    const auto &face = mesh.face(fi);
+    const auto& face = mesh.face(fi);
     for (int c = 0; c < 3; ++c) {
       att.GetMappedValue(face[c], &values[c][0]);
     }
@@ -456,7 +568,7 @@ int MeshUtils::CountDegenerateFaces(const Mesh &mesh,
 }
 
 std::vector<FaceIndex> MeshUtils::ListDegenerateQuantizedFaces(
-    const Mesh &mesh, const PointAttribute &att, float range,
+    const Mesh& mesh, const PointAttribute& att, float range,
     uint32_t max_quantized_value, bool quantized_degenerate_only) {
   const int num_components = att.num_components();
   switch (num_components) {
@@ -480,7 +592,7 @@ std::vector<FaceIndex> MeshUtils::ListDegenerateQuantizedFaces(
 
 template <typename att_components_t, typename quantized_components_t>
 std::vector<FaceIndex> MeshUtils::ListDegenerateQuantizedFaces(
-    const Mesh &mesh, const PointAttribute &att, float range,
+    const Mesh& mesh, const PointAttribute& att, float range,
     uint32_t max_quantized_value, bool quantized_degenerate_only) {
   std::array<att_components_t, 3> values;
   std::array<quantized_components_t, 3> quantized_values;
@@ -490,7 +602,7 @@ std::vector<FaceIndex> MeshUtils::ListDegenerateQuantizedFaces(
   std::vector<FaceIndex> degenerate_faces;
 
   for (FaceIndex fi(0); fi < mesh.num_faces(); ++fi) {
-    const auto &face = mesh.face(fi);
+    const auto& face = mesh.face(fi);
     for (int c = 0; c < 3; ++c) {
       att.GetMappedValue(face[c], &values[c][0]);
       for (int i = 0; i < att_components_t::dimension; ++i) {
@@ -512,7 +624,7 @@ std::vector<FaceIndex> MeshUtils::ListDegenerateQuantizedFaces(
   return degenerate_faces;
 }
 
-bool MeshUtils::HasAutoGeneratedTangents(const Mesh &mesh) {
+bool MeshUtils::HasAutoGeneratedTangents(const PointCloud& mesh) {
   const int tangent_att_id =
       mesh.GetNamedAttributeId(draco::GeometryAttribute::TANGENT);
   if (tangent_att_id == -1) {

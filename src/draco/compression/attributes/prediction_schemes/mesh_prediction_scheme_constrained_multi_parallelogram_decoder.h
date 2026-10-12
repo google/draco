@@ -22,7 +22,7 @@
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram_shared.h"
 #include "draco/compression/bit_coders/rans_bit_decoder.h"
-#include "draco/core/math_utils.h"
+#include "draco/core/int_utils.h"
 #include "draco/core/varint_decoding.h"
 #include "draco/draco_features.h"
 
@@ -40,22 +40,22 @@ class MeshPredictionSchemeConstrainedMultiParallelogramDecoder
   using CornerTable = typename MeshDataT::CornerTable;
 
   explicit MeshPredictionSchemeConstrainedMultiParallelogramDecoder(
-      const PointAttribute *attribute)
+      const PointAttribute* attribute)
       : MeshPredictionSchemeDecoder<DataTypeT, TransformT, MeshDataT>(
             attribute),
         selected_mode_(Mode::OPTIMAL_MULTI_PARALLELOGRAM) {}
   MeshPredictionSchemeConstrainedMultiParallelogramDecoder(
-      const PointAttribute *attribute, const TransformT &transform,
-      const MeshDataT &mesh_data)
+      const PointAttribute* attribute, const TransformT& transform,
+      const MeshDataT& mesh_data)
       : MeshPredictionSchemeDecoder<DataTypeT, TransformT, MeshDataT>(
             attribute, transform, mesh_data),
         selected_mode_(Mode::OPTIMAL_MULTI_PARALLELOGRAM) {}
 
-  bool ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
+  bool ComputeOriginalValues(const CorrType* in_corr, DataTypeT* out_data,
                              int size, int num_components,
-                             const PointIndex *entry_to_point_id_map) override;
+                             const PointIndex* entry_to_point_id_map) override;
 
-  bool DecodePredictionData(DecoderBuffer *buffer) override;
+  bool DecodePredictionData(DecoderBuffer* buffer) override;
 
   PredictionSchemeMethod GetPredictionMethod() const override {
     return MESH_PREDICTION_CONSTRAINED_MULTI_PARALLELOGRAM;
@@ -81,9 +81,9 @@ class MeshPredictionSchemeConstrainedMultiParallelogramDecoder
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
     DataTypeT, TransformT, MeshDataT>::
-    ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
+    ComputeOriginalValues(const CorrType* in_corr, DataTypeT* out_data,
                           int size, int num_components,
-                          const PointIndex * /* entry_to_point_id_map */) {
+                          const PointIndex* /* entry_to_point_id_map */) {
   this->transform().Init(num_components);
 
   // Predicted values for all simple parallelograms encountered at any given
@@ -95,8 +95,8 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
   this->transform().ComputeOriginalValue(pred_vals[0].data(), in_corr,
                                          out_data);
 
-  const CornerTable *const table = this->mesh_data().corner_table();
-  const std::vector<int32_t> *const vertex_to_data_map =
+  const CornerTable* const table = this->mesh_data().corner_table();
+  const std::vector<int32_t>* const vertex_to_data_map =
       this->mesh_data().vertex_to_data_map();
 
   // Current position in the |is_crease_edge_| array for each context.
@@ -192,8 +192,8 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeConstrainedMultiParallelogramDecoder<
-    DataTypeT, TransformT, MeshDataT>::DecodePredictionData(DecoderBuffer
-                                                                *buffer) {
+    DataTypeT, TransformT, MeshDataT>::DecodePredictionData(DecoderBuffer*
+                                                                buffer) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
     // Decode prediction mode.

@@ -33,34 +33,34 @@ class MeshDecoder : public PointCloudDecoder {
   }
 
   // The main entry point for mesh decoding.
-  Status Decode(const DecoderOptions &options, DecoderBuffer *in_buffer,
-                Mesh *out_mesh);
+  Status Decode(const DecoderOptions& options, DecoderBuffer* in_buffer,
+                Mesh* out_mesh);
 
   // Returns the base connectivity of the decoded mesh (or nullptr if it is not
   // initialized).
-  virtual const CornerTable *GetCornerTable() const { return nullptr; }
+  virtual const CornerTable* GetCornerTable() const { return nullptr; }
 
   // Returns the attribute connectivity data or nullptr if it does not exist.
-  virtual const MeshAttributeCornerTable *GetAttributeCornerTable(
+  virtual const MeshAttributeCornerTable* GetAttributeCornerTable(
       int /* att_id */) const {
     return nullptr;
   }
 
   // Returns the decoding data for a given attribute or nullptr when the data
   // does not exist.
-  virtual const MeshAttributeIndicesEncodingData *GetAttributeEncodingData(
+  virtual const MeshAttributeIndicesEncodingData* GetAttributeEncodingData(
       int /* att_id */) const {
     return nullptr;
   }
 
-  Mesh *mesh() const { return mesh_; }
+  Mesh* mesh() const { return mesh_; }
 
  protected:
   bool DecodeGeometryData() override;
   virtual bool DecodeConnectivity() = 0;
 
  private:
-  Mesh *mesh_;
+  Mesh* mesh_;
 };
 
 }  // namespace draco

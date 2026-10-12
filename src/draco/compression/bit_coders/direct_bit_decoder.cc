@@ -20,7 +20,7 @@ DirectBitDecoder::DirectBitDecoder() : pos_(bits_.end()), num_used_bits_(0) {}
 
 DirectBitDecoder::~DirectBitDecoder() { Clear(); }
 
-bool DirectBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
+bool DirectBitDecoder::StartDecoding(DecoderBuffer* source_buffer) {
   Clear();
   uint32_t size_in_bytes;
   if (!source_buffer->Decode(&size_in_bytes)) {

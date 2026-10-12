@@ -24,12 +24,12 @@
 
 namespace draco {
 
-Status MeshCleanup::Cleanup(Mesh *mesh, const MeshCleanupOptions &options) {
+Status MeshCleanup::Cleanup(Mesh* mesh, const MeshCleanupOptions& options) {
   if (!options.remove_degenerated_faces && !options.remove_unused_attributes &&
       !options.remove_duplicate_faces && !options.make_geometry_manifold) {
     return OkStatus();  // Nothing to cleanup.
   }
-  const PointAttribute *const pos_att =
+  const PointAttribute* const pos_att =
       mesh->GetNamedAttribute(GeometryAttribute::POSITION);
   if (pos_att == nullptr) {
     return Status(Status::DRACO_ERROR, "Missing position attribute.");
@@ -50,14 +50,14 @@ Status MeshCleanup::Cleanup(Mesh *mesh, const MeshCleanupOptions &options) {
   return OkStatus();
 }
 
-void MeshCleanup::RemoveDegeneratedFaces(Mesh *mesh) {
-  const PointAttribute *const pos_att =
+void MeshCleanup::RemoveDegeneratedFaces(Mesh* mesh) {
+  const PointAttribute* const pos_att =
       mesh->GetNamedAttribute(GeometryAttribute::POSITION);
   FaceIndex::ValueType num_degenerated_faces = 0;
   // Array for storing position indices on a face.
   std::array<AttributeValueIndex, 3> pos_indices;
   for (FaceIndex f(0); f < mesh->num_faces(); ++f) {
-    const Mesh::Face &face = mesh->face(f);
+    const Mesh::Face& face = mesh->face(f);
     for (int p = 0; p < 3; ++p) {
       pos_indices[p] = pos_att->mapped_index(face[p]);
     }
@@ -74,7 +74,7 @@ void MeshCleanup::RemoveDegeneratedFaces(Mesh *mesh) {
   }
 }
 
-void MeshCleanup::RemoveDuplicateFaces(Mesh *mesh) {
+void MeshCleanup::RemoveDuplicateFaces(Mesh* mesh) {
   std::unordered_set<Mesh::Face, HashArray<Mesh::Face>> is_face_used;
 
   uint32_t num_duplicate_faces = 0;
@@ -105,13 +105,13 @@ void MeshCleanup::RemoveDuplicateFaces(Mesh *mesh) {
   }
 }
 
-void MeshCleanup::RemoveUnusedAttributes(Mesh *mesh) {
+void MeshCleanup::RemoveUnusedAttributes(Mesh* mesh) {
   // Array that is going to store whether a corresponding point is used.
   std::vector<bool> is_point_used;
   PointIndex::ValueType num_new_points = 0;
   is_point_used.resize(mesh->num_points(), false);
   for (FaceIndex f(0); f < mesh->num_faces(); ++f) {
-    const Mesh::Face &face = mesh->face(f);
+    const Mesh::Face& face = mesh->face(f);
     for (int p = 0; p < 3; ++p) {
       if (!is_point_used[face[p].value()]) {
         is_point_used[face[p].value()] = true;
@@ -158,7 +158,7 @@ void MeshCleanup::RemoveUnusedAttributes(Mesh *mesh) {
   IndexTypeVector<AttributeValueIndex, uint8_t> is_att_index_used;
   IndexTypeVector<AttributeValueIndex, AttributeValueIndex> att_index_map;
   for (int a = 0; a < mesh->num_attributes(); ++a) {
-    PointAttribute *const att = mesh->attribute(a);
+    PointAttribute* const att = mesh->attribute(a);
     // First detect which attribute entries are used (included in a point).
     is_att_index_used.assign(att->size(), 0);
     att_index_map.clear();
@@ -183,7 +183,7 @@ void MeshCleanup::RemoveUnusedAttributes(Mesh *mesh) {
         if (is_att_index_used[i]) {
           att_index_map[i] = num_used_entries;
           if (i > num_used_entries) {
-            const uint8_t *const src_add = att->GetAddress(i);
+            const uint8_t* const src_add = att->GetAddress(i);
             att->buffer()->Write(
                 att->GetBytePos(AttributeValueIndex(num_used_entries)), src_add,
                 att->byte_stride());
@@ -241,7 +241,7 @@ void MeshCleanup::RemoveUnusedAttributes(Mesh *mesh) {
   }
 }
 
-Status MeshCleanup::MakeGeometryManifold(Mesh *mesh) {
+Status MeshCleanup::MakeGeometryManifold(Mesh* mesh) {
   return Status(Status::DRACO_ERROR, "Unsupported function.");
 }
 

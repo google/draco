@@ -17,6 +17,7 @@
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/core/draco_test_utils.h"
 #include "draco/io/texture_io.h"
+#include "gtest/gtest.h"
 
 namespace {
 
@@ -72,6 +73,10 @@ TEST(MaterialTest, TestMaterialAccess) {
   ASSERT_EQ(material.GetSpecularFactor(), 0.01f);
   material.SetSpecularColorFactor(draco::Vector3f(0.4f, 1.f, 1.f));
   ASSERT_EQ(material.GetSpecularColorFactor(), draco::Vector3f(0.4f, 1.f, 1.f));
+  material.SetHasEmissiveStrength(true);
+  ASSERT_TRUE(material.HasEmissiveStrength());
+  material.SetEmissiveStrength(5.0f);
+  ASSERT_EQ(material.GetEmissiveStrength(), 5.0f);
 
   ASSERT_EQ(material.GetTextureMapByType(draco::TextureMap::COLOR), nullptr);
   ASSERT_EQ(material.NumTextureMaps(), 0);
@@ -139,6 +144,7 @@ TEST(MaterialTest, TestMaterialAccess) {
   material.Clear();
   // Metallic factor should be reset to default.
   ASSERT_NE(material.GetMetallicFactor(), 0.3f);
+  ASSERT_FALSE(material.HasEmissiveStrength());
 
   ASSERT_EQ(material.GetDoubleSided(), false);
   material.SetDoubleSided(true);
@@ -176,6 +182,8 @@ TEST(MaterialTest, TestMaterialCopy) {
   material.SetHasSpecular(true);
   material.SetSpecularFactor(0.01f);
   material.SetSpecularColorFactor(draco::Vector3f(0.4f, 1.f, 1.f));
+  material.SetHasEmissiveStrength(true);
+  material.SetEmissiveStrength(5.0f);
 
   std::unique_ptr<draco::Texture> texture =
       draco::ReadTextureFromFile(draco::GetTestFileFullPath("test.png"))
@@ -221,6 +229,8 @@ TEST(MaterialTest, TestMaterialCopy) {
   ASSERT_EQ(material.GetSpecularFactor(), new_material.GetSpecularFactor());
   ASSERT_EQ(material.GetSpecularColorFactor(),
             new_material.GetSpecularColorFactor());
+  ASSERT_EQ(material.HasEmissiveStrength(), new_material.HasEmissiveStrength());
+  ASSERT_EQ(material.GetEmissiveStrength(), new_material.GetEmissiveStrength());
 
   for (int i = 0; i < draco::TextureMap::TEXTURE_TYPES_COUNT; ++i) {
     const draco::TextureMap::Type texture_map_type =
@@ -244,8 +254,8 @@ TEST(MaterialTest, TestMaterialCopy) {
 
   ASSERT_EQ(material.NumTextureMaps(), new_material.NumTextureMaps());
   for (int i = 0; i < material.NumTextureMaps(); ++i) {
-    const draco::TextureMap *const tm0 = material.GetTextureMapByIndex(i);
-    const draco::TextureMap *const tm1 = new_material.GetTextureMapByIndex(i);
+    const draco::TextureMap* const tm0 = material.GetTextureMapByIndex(i);
+    const draco::TextureMap* const tm1 = new_material.GetTextureMapByIndex(i);
     ASSERT_NE(tm0, nullptr);
     ASSERT_NE(tm1, nullptr);
     ASSERT_EQ(tm0->type(), tm1->type());
@@ -298,7 +308,7 @@ TEST(MaterialTest, SharedTexture) {
       draco::ReadTextureFromFile(draco::GetTestFileFullPath("test.png"))
           .value();
   ASSERT_NE(texture, nullptr);
-  draco::Texture *texture_raw = texture.get();
+  draco::Texture* texture_raw = texture.get();
   material.SetTextureMap(std::move(texture), draco::TextureMap::COLOR, 0);
 
   DRACO_ASSERT_OK(

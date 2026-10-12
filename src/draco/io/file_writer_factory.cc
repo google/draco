@@ -12,7 +12,7 @@ namespace {
             error_string);                                             \
   } while (false)
 
-std::vector<FileWriterFactory::OpenFunction> *GetFileWriterOpenFunctions() {
+std::vector<FileWriterFactory::OpenFunction>* GetFileWriterOpenFunctions() {
   static auto open_functions =
       new (std::nothrow) std::vector<FileWriterFactory::OpenFunction>();
   return open_functions;
@@ -31,7 +31,7 @@ bool FileWriterFactory::RegisterWriter(OpenFunction open_function) {
 }
 
 std::unique_ptr<FileWriterInterface> FileWriterFactory::OpenWriter(
-    const std::string &file_name) {
+    const std::string& file_name) {
   for (auto open_function : *GetFileWriterOpenFunctions()) {
     auto writer = open_function(file_name);
     if (writer == nullptr) {

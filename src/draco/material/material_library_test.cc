@@ -26,11 +26,11 @@ TEST(MaterialLibraryTest, TestMaterials) {
   ASSERT_EQ(library.NumMaterials(), 0);
 
   // Add a new material to the library.
-  const draco::Material *const new_mat = library.MutableMaterial(0);
+  const draco::Material* const new_mat = library.MutableMaterial(0);
   ASSERT_NE(new_mat, nullptr);
   ASSERT_EQ(library.NumMaterials(), 1);
 
-  const draco::Material *const new_mat2 = library.MutableMaterial(2);
+  const draco::Material* const new_mat2 = library.MutableMaterial(2);
   ASSERT_NE(new_mat2, nullptr);
   ASSERT_EQ(library.NumMaterials(), 3);
   ASSERT_EQ(library.GetMaterial(2), new_mat2);

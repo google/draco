@@ -18,7 +18,7 @@
 
 namespace draco {
 
-bool SequentialNormalAttributeEncoder::Init(PointCloudEncoder *encoder,
+bool SequentialNormalAttributeEncoder::Init(PointCloudEncoder* encoder,
                                             int attribute_id) {
   if (!SequentialIntegerAttributeEncoder::Init(encoder, attribute_id)) {
     return false;
@@ -39,12 +39,12 @@ bool SequentialNormalAttributeEncoder::Init(PointCloudEncoder *encoder,
 }
 
 bool SequentialNormalAttributeEncoder::EncodeDataNeededByPortableTransform(
-    EncoderBuffer *out_buffer) {
+    EncoderBuffer* out_buffer) {
   return attribute_octahedron_transform_.EncodeParameters(out_buffer);
 }
 
 bool SequentialNormalAttributeEncoder::PrepareValues(
-    const std::vector<PointIndex> &point_ids, int num_points) {
+    const std::vector<PointIndex>& point_ids, int num_points) {
   auto portable_att = attribute_octahedron_transform_.InitTransformedAttribute(
       *(attribute()), point_ids.size());
   if (!attribute_octahedron_transform_.TransformAttribute(

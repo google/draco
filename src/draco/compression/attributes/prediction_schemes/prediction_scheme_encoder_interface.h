@@ -28,7 +28,7 @@ class PredictionSchemeEncoderInterface : public PredictionSchemeInterface {
  public:
   // Method that can be used to encode any prediction scheme specific data
   // into the output buffer.
-  virtual bool EncodePredictionData(EncoderBuffer *buffer) = 0;
+  virtual bool EncodePredictionData(EncoderBuffer* buffer) = 0;
 };
 
 // A specialized version of the prediction scheme interface for specific
@@ -46,8 +46,8 @@ class PredictionSchemeTypedEncoderInterface
   // |in_data| contains value entries to be encoded.
   // |out_corr| is an output array containing the to be encoded corrections.
   virtual bool ComputeCorrectionValues(
-      const DataTypeT *in_data, CorrTypeT *out_corr, int size,
-      int num_components, const PointIndex *entry_to_point_id_map) = 0;
+      const DataTypeT* in_data, CorrTypeT* out_corr, int size,
+      int num_components, const PointIndex* entry_to_point_id_map) = 0;
 };
 
 }  // namespace draco

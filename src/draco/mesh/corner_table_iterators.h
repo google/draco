@@ -29,8 +29,8 @@ class VertexRingIterator {
   using iterator_category = std::forward_iterator_tag;
   using value_type = VertexIndex;
   using difference_type = std::ptrdiff_t;
-  using pointer = VertexIndex *;
-  using reference = VertexIndex &;
+  using pointer = VertexIndex*;
+  using reference = VertexIndex&;
 
   // std::iterator interface requires a default constructor.
   VertexRingIterator()
@@ -40,7 +40,7 @@ class VertexRingIterator {
         left_traversal_(true) {}
 
   // Create the iterator from the provided corner table and the central vertex.
-  VertexRingIterator(const CornerTableT *table, VertexIndex vert_id)
+  VertexRingIterator(const CornerTableT* table, VertexIndex vert_id)
       : corner_table_(table),
         start_corner_(table->LeftMostCorner(vert_id)),
         corner_(start_corner_),
@@ -84,7 +84,7 @@ class VertexRingIterator {
 
   // std::iterator interface.
   value_type operator*() const { return Vertex(); }
-  VertexRingIterator &operator++() {
+  VertexRingIterator& operator++() {
     Next();
     return *this;
   }
@@ -93,10 +93,10 @@ class VertexRingIterator {
     ++(*this);
     return result;
   }
-  bool operator!=(const VertexRingIterator &other) const {
+  bool operator!=(const VertexRingIterator& other) const {
     return corner_ != other.corner_ || start_corner_ != other.start_corner_;
   }
-  bool operator==(const VertexRingIterator &other) const {
+  bool operator==(const VertexRingIterator& other) const {
     return !this->operator!=(other);
   }
 
@@ -108,7 +108,7 @@ class VertexRingIterator {
   }
 
  private:
-  const CornerTableT *corner_table_;
+  const CornerTableT* corner_table_;
   // The first processed corner.
   CornerIndex start_corner_;
   // The last processed corner.
@@ -125,8 +125,8 @@ class FaceAdjacencyIterator {
   using iterator_category = std::forward_iterator_tag;
   using value_type = FaceIndex;
   using difference_type = std::ptrdiff_t;
-  using pointer = FaceIndex *;
-  using reference = FaceIndex &;
+  using pointer = FaceIndex*;
+  using reference = FaceIndex&;
 
   // std::iterator interface requires a default constructor.
   FaceAdjacencyIterator()
@@ -135,7 +135,7 @@ class FaceAdjacencyIterator {
         corner_(start_corner_) {}
 
   // Create the iterator from the provided corner table and the central vertex.
-  FaceAdjacencyIterator(const CornerTableT *table, FaceIndex face_id)
+  FaceAdjacencyIterator(const CornerTableT* table, FaceIndex face_id)
       : corner_table_(table),
         start_corner_(table->FirstCorner(face_id)),
         corner_(start_corner_) {
@@ -159,7 +159,7 @@ class FaceAdjacencyIterator {
 
   // std::iterator interface.
   value_type operator*() const { return Face(); }
-  FaceAdjacencyIterator &operator++() {
+  FaceAdjacencyIterator& operator++() {
     Next();
     return *this;
   }
@@ -168,10 +168,10 @@ class FaceAdjacencyIterator {
     ++(*this);
     return result;
   }
-  bool operator!=(const FaceAdjacencyIterator &other) const {
+  bool operator!=(const FaceAdjacencyIterator& other) const {
     return corner_ != other.corner_ || start_corner_ != other.start_corner_;
   }
-  bool operator==(const FaceAdjacencyIterator &other) const {
+  bool operator==(const FaceAdjacencyIterator& other) const {
     return !this->operator!=(other);
   }
 
@@ -198,7 +198,7 @@ class FaceAdjacencyIterator {
     }
   }
 
-  const CornerTableT *corner_table_;
+  const CornerTableT* corner_table_;
   // The first processed corner.
   CornerIndex start_corner_;
   // The last processed corner.
@@ -213,8 +213,8 @@ class VertexCornersIterator {
   using iterator_category = std::forward_iterator_tag;
   using value_type = CornerIndex;
   using difference_type = std::ptrdiff_t;
-  using pointer = CornerIndex *;
-  using reference = CornerIndex &;
+  using pointer = CornerIndex*;
+  using reference = CornerIndex&;
 
   // std::iterator interface requires a default constructor.
   VertexCornersIterator()
@@ -224,14 +224,14 @@ class VertexCornersIterator {
         left_traversal_(true) {}
 
   // Create the iterator from the provided corner table and the central vertex.
-  VertexCornersIterator(const CornerTableT *table, VertexIndex vert_id)
+  VertexCornersIterator(const CornerTableT* table, VertexIndex vert_id)
       : corner_table_(table),
         start_corner_(table->LeftMostCorner(vert_id)),
         corner_(start_corner_),
         left_traversal_(true) {}
 
   // Create the iterator from the provided corner table and the first corner.
-  VertexCornersIterator(const CornerTableT *table, CornerIndex corner_id)
+  VertexCornersIterator(const CornerTableT* table, CornerIndex corner_id)
       : corner_table_(table),
         start_corner_(corner_id),
         corner_(start_corner_),
@@ -264,7 +264,7 @@ class VertexCornersIterator {
 
   // std::iterator interface.
   CornerIndex operator*() const { return Corner(); }
-  VertexCornersIterator &operator++() {
+  VertexCornersIterator& operator++() {
     Next();
     return *this;
   }
@@ -273,10 +273,10 @@ class VertexCornersIterator {
     ++(*this);
     return result;
   }
-  bool operator!=(const VertexCornersIterator &other) const {
+  bool operator!=(const VertexCornersIterator& other) const {
     return corner_ != other.corner_ || start_corner_ != other.start_corner_;
   }
-  bool operator==(const VertexCornersIterator &other) const {
+  bool operator==(const VertexCornersIterator& other) const {
     return !this->operator!=(other);
   }
 
@@ -288,14 +288,14 @@ class VertexCornersIterator {
   }
 
  protected:
-  const CornerTableT *corner_table() const { return corner_table_; }
+  const CornerTableT* corner_table() const { return corner_table_; }
   CornerIndex start_corner() const { return start_corner_; }
-  CornerIndex &corner() { return corner_; }
+  CornerIndex& corner() { return corner_; }
   bool is_left_traversal() const { return left_traversal_; }
   void swap_traversal() { left_traversal_ = !left_traversal_; }
 
  private:
-  const CornerTableT *corner_table_;
+  const CornerTableT* corner_table_;
   // The first processed corner.
   CornerIndex start_corner_;
   // The last processed corner.

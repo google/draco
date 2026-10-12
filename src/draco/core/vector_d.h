@@ -21,7 +21,9 @@
 #include <array>
 #include <cmath>
 #include <limits>
+#include <type_traits>
 
+#include "draco/core/int_utils.h"
 #include "draco/core/macros.h"
 
 namespace draco {
@@ -49,43 +51,43 @@ class VectorD {
   // template <typename... Args>
   // explicit VectorD(Args... args) : v_({args...}) {}
 
-  VectorD(const Scalar &c0, const Scalar &c1) : v_({{c0, c1}}) {
+  VectorD(const Scalar& c0, const Scalar& c1) : v_({{c0, c1}}) {
     DRACO_DCHECK_EQ(dimension, 2);
     v_[0] = c0;
     v_[1] = c1;
   }
 
-  VectorD(const Scalar &c0, const Scalar &c1, const Scalar &c2)
+  VectorD(const Scalar& c0, const Scalar& c1, const Scalar& c2)
       : v_({{c0, c1, c2}}) {
     DRACO_DCHECK_EQ(dimension, 3);
   }
 
-  VectorD(const Scalar &c0, const Scalar &c1, const Scalar &c2,
-          const Scalar &c3)
+  VectorD(const Scalar& c0, const Scalar& c1, const Scalar& c2,
+          const Scalar& c3)
       : v_({{c0, c1, c2, c3}}) {
     DRACO_DCHECK_EQ(dimension, 4);
   }
 
-  VectorD(const Scalar &c0, const Scalar &c1, const Scalar &c2,
-          const Scalar &c3, const Scalar &c4)
+  VectorD(const Scalar& c0, const Scalar& c1, const Scalar& c2,
+          const Scalar& c3, const Scalar& c4)
       : v_({{c0, c1, c2, c3, c4}}) {
     DRACO_DCHECK_EQ(dimension, 5);
   }
 
-  VectorD(const Scalar &c0, const Scalar &c1, const Scalar &c2,
-          const Scalar &c3, const Scalar &c4, const Scalar &c5)
+  VectorD(const Scalar& c0, const Scalar& c1, const Scalar& c2,
+          const Scalar& c3, const Scalar& c4, const Scalar& c5)
       : v_({{c0, c1, c2, c3, c4, c5}}) {
     DRACO_DCHECK_EQ(dimension, 6);
   }
 
-  VectorD(const Scalar &c0, const Scalar &c1, const Scalar &c2,
-          const Scalar &c3, const Scalar &c4, const Scalar &c5,
-          const Scalar &c6)
+  VectorD(const Scalar& c0, const Scalar& c1, const Scalar& c2,
+          const Scalar& c3, const Scalar& c4, const Scalar& c5,
+          const Scalar& c6)
       : v_({{c0, c1, c2, c3, c4, c5, c6}}) {
     DRACO_DCHECK_EQ(dimension, 7);
   }
 
-  VectorD(const Self &o) {
+  VectorD(const Self& o) {
     for (int i = 0; i < dimension; ++i) {
       (*this)[i] = o[i];
     }
@@ -99,7 +101,7 @@ class VectorD {
   // Note that the constructor is intentionally explicit to avoid accidental
   // conversions between different vector types.
   template <class OtherScalarT, int other_dimension_t>
-  explicit VectorD(const VectorD<OtherScalarT, other_dimension_t> &src_vector) {
+  explicit VectorD(const VectorD<OtherScalarT, other_dimension_t>& src_vector) {
     for (int i = 0; i < dimension; ++i) {
       if (i < other_dimension_t) {
         v_[i] = Scalar(src_vector[i]);
@@ -109,12 +111,12 @@ class VectorD {
     }
   }
 
-  Scalar &operator[](int i) { return v_[i]; }
-  const Scalar &operator[](int i) const { return v_[i]; }
+  Scalar& operator[](int i) { return v_[i]; }
+  const Scalar& operator[](int i) const { return v_[i]; }
   // TODO(b/199760123): Remove.
   // Similar to interface of Eigen library.
-  Scalar &operator()(int i) { return v_[i]; }
-  const Scalar &operator()(int i) const { return v_[i]; }
+  Scalar& operator()(int i) { return v_[i]; }
+  const Scalar& operator()(int i) const { return v_[i]; }
 
   // Unary operators.
   Self operator-() const {
@@ -126,7 +128,7 @@ class VectorD {
   }
 
   // Binary operators.
-  Self operator+(const Self &o) const {
+  Self operator+(const Self& o) const {
     Self ret;
     for (int i = 0; i < dimension; ++i) {
       ret[i] = (*this)[i] + o[i];
@@ -134,7 +136,7 @@ class VectorD {
     return ret;
   }
 
-  Self operator-(const Self &o) const {
+  Self operator-(const Self& o) const {
     Self ret;
     for (int i = 0; i < dimension; ++i) {
       ret[i] = (*this)[i] - o[i];
@@ -142,7 +144,7 @@ class VectorD {
     return ret;
   }
 
-  Self operator*(const Self &o) const {
+  Self operator*(const Self& o) const {
     Self ret;
     for (int i = 0; i < dimension; ++i) {
       ret[i] = (*this)[i] * o[i];
@@ -150,28 +152,28 @@ class VectorD {
     return ret;
   }
 
-  Self &operator+=(const Self &o) {
+  Self& operator+=(const Self& o) {
     for (int i = 0; i < dimension; ++i) {
       (*this)[i] += o[i];
     }
     return *this;
   }
 
-  Self &operator-=(const Self &o) {
+  Self& operator-=(const Self& o) {
     for (int i = 0; i < dimension; ++i) {
       (*this)[i] -= o[i];
     }
     return *this;
   }
 
-  Self &operator*=(const Self &o) {
+  Self& operator*=(const Self& o) {
     for (int i = 0; i < dimension; ++i) {
       (*this)[i] *= o[i];
     }
     return *this;
   }
 
-  Self operator*(const Scalar &o) const {
+  Self operator*(const Scalar& o) const {
     Self ret;
     for (int i = 0; i < dimension; ++i) {
       ret[i] = (*this)[i] * o;
@@ -179,7 +181,7 @@ class VectorD {
     return ret;
   }
 
-  Self operator/(const Scalar &o) const {
+  Self operator/(const Scalar& o) const {
     Self ret;
     for (int i = 0; i < dimension; ++i) {
       ret[i] = (*this)[i] / o;
@@ -187,7 +189,7 @@ class VectorD {
     return ret;
   }
 
-  Self operator+(const Scalar &o) const {
+  Self operator+(const Scalar& o) const {
     Self ret;
     for (int i = 0; i < dimension; ++i) {
       ret[i] = (*this)[i] + o;
@@ -195,7 +197,7 @@ class VectorD {
     return ret;
   }
 
-  Self operator-(const Scalar &o) const {
+  Self operator-(const Scalar& o) const {
     Self ret;
     for (int i = 0; i < dimension; ++i) {
       ret[i] = (*this)[i] - o;
@@ -203,7 +205,7 @@ class VectorD {
     return ret;
   }
 
-  bool operator==(const Self &o) const {
+  bool operator==(const Self& o) const {
     for (int i = 0; i < dimension; ++i) {
       if ((*this)[i] != o[i]) {
         return false;
@@ -212,9 +214,9 @@ class VectorD {
     return true;
   }
 
-  bool operator!=(const Self &x) const { return !((*this) == x); }
+  bool operator!=(const Self& x) const { return !((*this) == x); }
 
-  bool operator<(const Self &x) const {
+  bool operator<(const Self& x) const {
     for (int i = 0; i < dimension - 1; ++i) {
       if (v_[i] < x.v_[i]) {
         return true;
@@ -247,7 +249,7 @@ class VectorD {
     return result;
   }
 
-  Scalar Dot(const Self &o) const {
+  Scalar Dot(const Self& o) const {
     Scalar ret(0);
     for (int i = 0; i < dimension; ++i) {
       ret += (*this)[i] * o[i];
@@ -271,16 +273,16 @@ class VectorD {
     return ret;
   }
 
-  const Scalar &MaxCoeff() const {
+  const Scalar& MaxCoeff() const {
     return *std::max_element(v_.begin(), v_.end());
   }
 
-  const Scalar &MinCoeff() const {
+  const Scalar& MinCoeff() const {
     return *std::min_element(v_.begin(), v_.end());
   }
 
-  Scalar *data() { return &(v_[0]); }
-  const Scalar *data() const { return &(v_[0]); }
+  Scalar* data() { return &(v_[0]); }
+  const Scalar* data() const { return &(v_[0]); }
 
  private:
   std::array<Scalar, dimension> v_;
@@ -289,14 +291,14 @@ class VectorD {
 // Scalar multiplication from the other side too.
 template <class ScalarT, int dimension_t>
 VectorD<ScalarT, dimension_t> operator*(
-    const ScalarT &o, const VectorD<ScalarT, dimension_t> &v) {
+    const ScalarT& o, const VectorD<ScalarT, dimension_t>& v) {
   return v * o;
 }
 
 // Calculates the squared distance between two points.
 template <class ScalarT, int dimension_t>
-ScalarT SquaredDistance(const VectorD<ScalarT, dimension_t> &v1,
-                        const VectorD<ScalarT, dimension_t> &v2) {
+ScalarT SquaredDistance(const VectorD<ScalarT, dimension_t>& v1,
+                        const VectorD<ScalarT, dimension_t>& v2) {
   ScalarT difference;
   ScalarT squared_distance = 0;
   // Check each index separately so difference is never negative and underflow
@@ -312,10 +314,39 @@ ScalarT SquaredDistance(const VectorD<ScalarT, dimension_t> &v1,
   return squared_distance;
 }
 
-// Global function computing the cross product of two 3D vectors.
-template <class ScalarT>
-VectorD<ScalarT, 3> CrossProduct(const VectorD<ScalarT, 3> &u,
-                                 const VectorD<ScalarT, 3> &v) {
+// Global function computing the cross product of two 3D vectors in unsigned
+// type to avoid signed integer overflow. Note that the result will be the same
+// (for non-overflowing values).
+template <
+    typename ScalarT,
+    typename std::enable_if<std::is_integral<ScalarT>::value &&
+                            std::is_signed<ScalarT>::value>::type* = nullptr>
+VectorD<ScalarT, 3> CrossProduct(const VectorD<ScalarT, 3>& u,
+                                 const VectorD<ScalarT, 3>& v) {
+  // Preventing accidental use with uint32_t and the like.
+  static_assert(std::is_signed<ScalarT>::value,
+                "ScalarT must be a signed type. ");
+  VectorD<ScalarT, 3> r;
+  typedef typename std::make_unsigned<ScalarT>::type ScalarUT;
+  const ScalarUT u0 = static_cast<ScalarUT>(u[0]);
+  const ScalarUT u1 = static_cast<ScalarUT>(u[1]);
+  const ScalarUT u2 = static_cast<ScalarUT>(u[2]);
+  const ScalarUT v0 = static_cast<ScalarUT>(v[0]);
+  const ScalarUT v1 = static_cast<ScalarUT>(v[1]);
+  const ScalarUT v2 = static_cast<ScalarUT>(v[2]);
+  r[0] = static_cast<ScalarT>((u1 * v2) - (u2 * v1));
+  r[1] = static_cast<ScalarT>((u2 * v0) - (u0 * v2));
+  r[2] = static_cast<ScalarT>((u0 * v1) - (u1 * v0));
+  return r;
+}
+
+// Fallback for types that are not signed integers (floats, etc).
+template <
+    typename ScalarT,
+    typename std::enable_if<!std::is_integral<ScalarT>::value ||
+                            !std::is_signed<ScalarT>::value>::type* = nullptr>
+VectorD<ScalarT, 3> CrossProduct(const VectorD<ScalarT, 3>& u,
+                                 const VectorD<ScalarT, 3>& v) {
   // Preventing accidental use with uint32_t and the like.
   static_assert(std::is_signed<ScalarT>::value,
                 "ScalarT must be a signed type. ");
@@ -327,8 +358,8 @@ VectorD<ScalarT, 3> CrossProduct(const VectorD<ScalarT, 3> &u,
 }
 
 template <class ScalarT, int dimension_t>
-inline std::ostream &operator<<(
-    std::ostream &out, const draco::VectorD<ScalarT, dimension_t> &vec) {
+inline std::ostream& operator<<(
+    std::ostream& out, const draco::VectorD<ScalarT, dimension_t>& vec) {
   for (int i = 0; i < dimension_t - 1; ++i) {
     out << vec[i] << " ";
   }

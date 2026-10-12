@@ -18,16 +18,16 @@
 
 namespace draco {
 
-Encoder::Encoder() {}
+Encoder::Encoder() = default;
 
-Status Encoder::EncodePointCloudToBuffer(const PointCloud &pc,
-                                         EncoderBuffer *out_buffer) {
+Status Encoder::EncodePointCloudToBuffer(const PointCloud& pc,
+                                         EncoderBuffer* out_buffer) {
   ExpertEncoder encoder(pc);
   encoder.Reset(CreateExpertEncoderOptions(pc));
   return encoder.EncodeToBuffer(out_buffer);
 }
 
-Status Encoder::EncodeMeshToBuffer(const Mesh &m, EncoderBuffer *out_buffer) {
+Status Encoder::EncodeMeshToBuffer(const Mesh& m, EncoderBuffer* out_buffer) {
   ExpertEncoder encoder(m);
   encoder.Reset(CreateExpertEncoderOptions(m));
   DRACO_RETURN_IF_ERROR(encoder.EncodeToBuffer(out_buffer));
@@ -36,14 +36,14 @@ Status Encoder::EncodeMeshToBuffer(const Mesh &m, EncoderBuffer *out_buffer) {
   return OkStatus();
 }
 
-EncoderOptions Encoder::CreateExpertEncoderOptions(const PointCloud &pc) const {
+EncoderOptions Encoder::CreateExpertEncoderOptions(const PointCloud& pc) const {
   EncoderOptions ret_options = EncoderOptions::CreateEmptyOptions();
   ret_options.SetGlobalOptions(options().GetGlobalOptions());
   ret_options.SetFeatureOptions(options().GetFeaturelOptions());
   // Convert type-based attribute options to specific attributes in the provided
   // point cloud.
   for (int i = 0; i < pc.num_attributes(); ++i) {
-    const Options *att_options =
+    const Options* att_options =
         options().FindAttributeOptions(pc.attribute(i)->attribute_type());
     if (att_options) {
       ret_options.SetAttributeOptions(i, *att_options);
@@ -53,7 +53,7 @@ EncoderOptions Encoder::CreateExpertEncoderOptions(const PointCloud &pc) const {
 }
 
 void Encoder::Reset(
-    const EncoderOptionsBase<GeometryAttribute::Type> &options) {
+    const EncoderOptionsBase<GeometryAttribute::Type>& options) {
   Base::Reset(options);
 }
 
@@ -71,7 +71,7 @@ void Encoder::SetAttributeQuantization(GeometryAttribute::Type type,
 void Encoder::SetAttributeExplicitQuantization(GeometryAttribute::Type type,
                                                int quantization_bits,
                                                int num_dims,
-                                               const float *origin,
+                                               const float* origin,
                                                float range) {
   options().SetAttributeInt(type, "quantization_bits", quantization_bits);
   options().SetAttributeVector(type, "quantization_origin", num_dims, origin);

@@ -37,14 +37,14 @@ class RAnsSymbolEncoder {
 
   // Creates a probability table needed by the rANS library and encode it into
   // the provided buffer.
-  bool Create(const uint64_t *frequencies, int num_symbols,
-              EncoderBuffer *buffer);
+  bool Create(const uint64_t* frequencies, int num_symbols,
+              EncoderBuffer* buffer);
 
-  void StartEncoding(EncoderBuffer *buffer);
+  void StartEncoding(EncoderBuffer* buffer);
   void EncodeSymbol(uint32_t symbol) {
     ans_.rans_write(&probability_table_[symbol]);
   }
-  void EndEncoding(EncoderBuffer *buffer);
+  void EndEncoding(EncoderBuffer* buffer);
 
   // rANS requires to encode the input symbols in the reverse order.
   static constexpr bool needs_reverse_encoding() { return true; }
@@ -56,16 +56,16 @@ class RAnsSymbolEncoder {
   // directly, because that would require an additional indirection during the
   // EncodeSymbol() function.
   struct ProbabilityLess {
-    explicit ProbabilityLess(const std::vector<rans_sym> *probs)
+    explicit ProbabilityLess(const std::vector<rans_sym>* probs)
         : probabilities(probs) {}
     bool operator()(int i, int j) const {
       return probabilities->at(i).prob < probabilities->at(j).prob;
     }
-    const std::vector<rans_sym> *probabilities;
+    const std::vector<rans_sym>* probabilities;
   };
 
   // Encodes the probability table into the output buffer.
-  bool EncodeTable(EncoderBuffer *buffer);
+  bool EncodeTable(EncoderBuffer* buffer);
 
   static constexpr int rans_precision_bits_ =
       ComputeRAnsPrecisionFromUniqueSymbolsBitLength(
@@ -85,7 +85,7 @@ class RAnsSymbolEncoder {
 
 template <int unique_symbols_bit_length_t>
 bool RAnsSymbolEncoder<unique_symbols_bit_length_t>::Create(
-    const uint64_t *frequencies, int num_symbols, EncoderBuffer *buffer) {
+    const uint64_t* frequencies, int num_symbols, EncoderBuffer* buffer) {
   // Compute the total of the input frequencies.
   uint64_t total_freq = 0;
   int max_valid_symbol = 0;
@@ -204,7 +204,7 @@ bool RAnsSymbolEncoder<unique_symbols_bit_length_t>::Create(
 
 template <int unique_symbols_bit_length_t>
 bool RAnsSymbolEncoder<unique_symbols_bit_length_t>::EncodeTable(
-    EncoderBuffer *buffer) {
+    EncoderBuffer* buffer) {
   EncodeVarint(num_symbols_, buffer);
   // Use varint encoding for the probabilities (first two bits represent the
   // number of bytes used - 1).
@@ -252,22 +252,22 @@ bool RAnsSymbolEncoder<unique_symbols_bit_length_t>::EncodeTable(
 
 template <int unique_symbols_bit_length_t>
 void RAnsSymbolEncoder<unique_symbols_bit_length_t>::StartEncoding(
-    EncoderBuffer *buffer) {
+    EncoderBuffer* buffer) {
   // Allocate extra storage just in case.
   const uint64_t required_bits = 2 * num_expected_bits_ + 32;
 
   buffer_offset_ = buffer->size();
   const int64_t required_bytes = (required_bits + 7) / 8;
   buffer->Resize(buffer_offset_ + required_bytes + sizeof(buffer_offset_));
-  uint8_t *const data =
-      reinterpret_cast<uint8_t *>(const_cast<char *>(buffer->data()));
+  uint8_t* const data =
+      reinterpret_cast<uint8_t*>(const_cast<char*>(buffer->data()));
   ans_.write_init(data + buffer_offset_);
 }
 
 template <int unique_symbols_bit_length_t>
 void RAnsSymbolEncoder<unique_symbols_bit_length_t>::EndEncoding(
-    EncoderBuffer *buffer) {
-  char *const src = const_cast<char *>(buffer->data()) + buffer_offset_;
+    EncoderBuffer* buffer) {
+  char* const src = const_cast<char*>(buffer->data()) + buffer_offset_;
 
   // TODO(fgalligan): Look into changing this to uint32_t as write_end()
   // returns an int.
@@ -275,7 +275,7 @@ void RAnsSymbolEncoder<unique_symbols_bit_length_t>::EndEncoding(
   EncoderBuffer var_size_buffer;
   EncodeVarint(bytes_written, &var_size_buffer);
   const uint32_t size_len = static_cast<uint32_t>(var_size_buffer.size());
-  char *const dst = src + size_len;
+  char* const dst = src + size_len;
   memmove(dst, src, bytes_written);
 
   // Store the size of the encoded data.

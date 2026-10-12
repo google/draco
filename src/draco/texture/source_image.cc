@@ -18,7 +18,7 @@
 
 namespace draco {
 
-void SourceImage::Copy(const SourceImage &src) {
+void SourceImage::Copy(const SourceImage& src) {
   mime_type_ = src.mime_type_;
   filename_ = src.filename_;
   encoded_data_ = src.encoded_data_;

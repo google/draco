@@ -96,12 +96,12 @@ void Usage() {
       "\nUse negative quantization values to skip the specified attribute\n");
 }
 
-int StringToInt(const std::string &s) {
-  char *end;
+int StringToInt(const std::string& s) {
+  char* end;
   return strtol(s.c_str(), &end, 10);  // NOLINT
 }
 
-void PrintOptions(const draco::PointCloud &pc, const Options &options) {
+void PrintOptions(const draco::PointCloud& pc, const Options& options) {
   printf("Encoder options:\n");
   printf("  Compression level = %d\n", options.compression_level);
   if (options.pos_quantization_bits == 0) {
@@ -146,8 +146,8 @@ void PrintOptions(const draco::PointCloud &pc, const Options &options) {
   printf("\n");
 }
 
-int EncodePointCloudToFile(const draco::PointCloud &pc, const std::string &file,
-                           draco::ExpertEncoder *encoder) {
+int EncodePointCloudToFile(const draco::PointCloud& pc, const std::string& file,
+                           draco::ExpertEncoder* encoder) {
   draco::CycleTimer timer;
   // Encode the geometry.
   draco::EncoderBuffer buffer;
@@ -170,8 +170,8 @@ int EncodePointCloudToFile(const draco::PointCloud &pc, const std::string &file,
   return 0;
 }
 
-int EncodeMeshToFile(const draco::Mesh &mesh, const std::string &file,
-                     draco::ExpertEncoder *encoder) {
+int EncodeMeshToFile(const draco::Mesh& mesh, const std::string& file,
+                     draco::ExpertEncoder* encoder) {
   draco::CycleTimer timer;
   // Encode the geometry.
   draco::EncoderBuffer buffer;
@@ -196,7 +196,7 @@ int EncodeMeshToFile(const draco::Mesh &mesh, const std::string &file,
 
 }  // anonymous namespace
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   Options options;
   const int argc_check = argc - 1;
 
@@ -268,7 +268,7 @@ int main(int argc, char **argv) {
   }
 
   std::unique_ptr<draco::PointCloud> pc;
-  draco::Mesh *mesh = nullptr;
+  draco::Mesh* mesh = nullptr;
   if (!options.is_point_cloud) {
     draco::Options load_options;
     load_options.SetBool("use_metadata", options.use_metadata);

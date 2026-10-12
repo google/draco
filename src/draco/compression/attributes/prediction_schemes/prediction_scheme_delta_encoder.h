@@ -30,15 +30,15 @@ class PredictionSchemeDeltaEncoder
   using CorrType =
       typename PredictionSchemeEncoder<DataTypeT, TransformT>::CorrType;
   // Initialized the prediction scheme.
-  explicit PredictionSchemeDeltaEncoder(const PointAttribute *attribute)
+  explicit PredictionSchemeDeltaEncoder(const PointAttribute* attribute)
       : PredictionSchemeEncoder<DataTypeT, TransformT>(attribute) {}
-  PredictionSchemeDeltaEncoder(const PointAttribute *attribute,
-                               const TransformT &transform)
+  PredictionSchemeDeltaEncoder(const PointAttribute* attribute,
+                               const TransformT& transform)
       : PredictionSchemeEncoder<DataTypeT, TransformT>(attribute, transform) {}
 
   bool ComputeCorrectionValues(
-      const DataTypeT *in_data, CorrType *out_corr, int size,
-      int num_components, const PointIndex *entry_to_point_id_map) override;
+      const DataTypeT* in_data, CorrType* out_corr, int size,
+      int num_components, const PointIndex* entry_to_point_id_map) override;
   PredictionSchemeMethod GetPredictionMethod() const override {
     return PREDICTION_DIFFERENCE;
   }
@@ -47,11 +47,11 @@ class PredictionSchemeDeltaEncoder
 
 template <typename DataTypeT, class TransformT>
 bool PredictionSchemeDeltaEncoder<
-    DataTypeT, TransformT>::ComputeCorrectionValues(const DataTypeT *in_data,
-                                                    CorrType *out_corr,
+    DataTypeT, TransformT>::ComputeCorrectionValues(const DataTypeT* in_data,
+                                                    CorrType* out_corr,
                                                     int size,
                                                     int num_components,
-                                                    const PointIndex *) {
+                                                    const PointIndex*) {
   this->transform().Init(in_data, size, num_components);
   // Encode data from the back using D(i) = D(i) - D(i - 1).
   for (int i = size - num_components; i > 0; i -= num_components) {

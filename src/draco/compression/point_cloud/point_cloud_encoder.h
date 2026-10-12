@@ -33,10 +33,10 @@ class PointCloudEncoder {
 
   // Sets the point cloud that is going be encoded. Must be called before the
   // Encode() method.
-  void SetPointCloud(const PointCloud &pc);
+  void SetPointCloud(const PointCloud& pc);
 
   // The main entry point that encodes provided point cloud.
-  Status Encode(const EncoderOptions &options, EncoderBuffer *out_buffer);
+  Status Encode(const EncoderOptions& options, EncoderBuffer* out_buffer);
 
   virtual EncodedGeometryType GetGeometryType() const { return POINT_CLOUD; }
 
@@ -52,7 +52,7 @@ class PointCloudEncoder {
   int num_attributes_encoders() const {
     return static_cast<int>(attributes_encoders_.size());
   }
-  AttributesEncoder *attributes_encoder(int i) {
+  AttributesEncoder* attributes_encoder(int i) {
     return attributes_encoders_[i].get();
   }
 
@@ -70,11 +70,11 @@ class PointCloudEncoder {
   // Returns an attribute containing portable version of the attribute data that
   // is guaranteed to be encoded losslessly. This attribute can be used safely
   // as predictor for other attributes.
-  const PointAttribute *GetPortableAttribute(int32_t point_attribute_id);
+  const PointAttribute* GetPortableAttribute(int32_t point_attribute_id);
 
-  EncoderBuffer *buffer() { return buffer_; }
-  const EncoderOptions *options() const { return options_; }
-  const PointCloud *point_cloud() const { return point_cloud_; }
+  EncoderBuffer* buffer() { return buffer_; }
+  const EncoderOptions* options() const { return options_; }
+  const PointCloud* point_cloud() const { return point_cloud_; }
 
  protected:
   // Can be implemented by derived classes to perform any custom initialization
@@ -134,7 +134,7 @@ class PointCloudEncoder {
   // encoded in the correct order (parent attributes before their children).
   bool RearrangeAttributesEncoders();
 
-  const PointCloud *point_cloud_;
+  const PointCloud* point_cloud_;
   std::vector<std::unique_ptr<AttributesEncoder>> attributes_encoders_;
 
   // Map between attribute id and encoder id.
@@ -146,9 +146,9 @@ class PointCloudEncoder {
   std::vector<int32_t> attributes_encoder_ids_order_;
 
   // This buffer holds the final encoded data.
-  EncoderBuffer *buffer_;
+  EncoderBuffer* buffer_;
 
-  const EncoderOptions *options_;
+  const EncoderOptions* options_;
 
   size_t num_encoded_points_;
 };

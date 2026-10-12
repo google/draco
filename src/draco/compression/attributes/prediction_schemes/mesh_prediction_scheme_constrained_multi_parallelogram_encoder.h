@@ -47,22 +47,22 @@ class MeshPredictionSchemeConstrainedMultiParallelogramEncoder
   using CornerTable = typename MeshDataT::CornerTable;
 
   explicit MeshPredictionSchemeConstrainedMultiParallelogramEncoder(
-      const PointAttribute *attribute)
+      const PointAttribute* attribute)
       : MeshPredictionSchemeEncoder<DataTypeT, TransformT, MeshDataT>(
             attribute),
         selected_mode_(Mode::OPTIMAL_MULTI_PARALLELOGRAM) {}
   MeshPredictionSchemeConstrainedMultiParallelogramEncoder(
-      const PointAttribute *attribute, const TransformT &transform,
-      const MeshDataT &mesh_data)
+      const PointAttribute* attribute, const TransformT& transform,
+      const MeshDataT& mesh_data)
       : MeshPredictionSchemeEncoder<DataTypeT, TransformT, MeshDataT>(
             attribute, transform, mesh_data),
         selected_mode_(Mode::OPTIMAL_MULTI_PARALLELOGRAM) {}
 
   bool ComputeCorrectionValues(
-      const DataTypeT *in_data, CorrType *out_corr, int size,
-      int num_components, const PointIndex *entry_to_point_id_map) override;
+      const DataTypeT* in_data, CorrType* out_corr, int size,
+      int num_components, const PointIndex* entry_to_point_id_map) override;
 
-  bool EncodePredictionData(EncoderBuffer *buffer) override;
+  bool EncodePredictionData(EncoderBuffer* buffer) override;
 
   PredictionSchemeMethod GetPredictionMethod() const override {
     return MESH_PREDICTION_CONSTRAINED_MULTI_PARALLELOGRAM;
@@ -107,7 +107,7 @@ class MeshPredictionSchemeConstrainedMultiParallelogramEncoder
     // configuration.
     int residual_error;
 
-    bool operator<(const Error &e) const {
+    bool operator<(const Error& e) const {
       if (num_bits < e.num_bits) {
         return true;
       }
@@ -121,8 +121,8 @@ class MeshPredictionSchemeConstrainedMultiParallelogramEncoder
   // Computes error for predicting |predicted_val| instead of |actual_val|.
   // Error is computed as the number of bits needed to encode the difference
   // between the values.
-  Error ComputeError(const DataTypeT *predicted_val,
-                     const DataTypeT *actual_val, int *out_residuals,
+  Error ComputeError(const DataTypeT* predicted_val,
+                     const DataTypeT* actual_val, int* out_residuals,
                      int num_components) {
     Error error;
 
@@ -167,12 +167,12 @@ class MeshPredictionSchemeConstrainedMultiParallelogramEncoder
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
     DataTypeT, TransformT, MeshDataT>::
-    ComputeCorrectionValues(const DataTypeT *in_data, CorrType *out_corr,
+    ComputeCorrectionValues(const DataTypeT* in_data, CorrType* out_corr,
                             int size, int num_components,
-                            const PointIndex * /* entry_to_point_id_map */) {
+                            const PointIndex* /* entry_to_point_id_map */) {
   this->transform().Init(in_data, size, num_components);
-  const CornerTable *const table = this->mesh_data().corner_table();
-  const std::vector<int32_t> *const vertex_to_data_map =
+  const CornerTable* const table = this->mesh_data().corner_table();
+  const std::vector<int32_t>* const vertex_to_data_map =
       this->mesh_data().vertex_to_data_map();
 
   // Predicted values for all simple parallelograms encountered at any given
@@ -379,8 +379,8 @@ bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeConstrainedMultiParallelogramEncoder<
-    DataTypeT, TransformT, MeshDataT>::EncodePredictionData(EncoderBuffer
-                                                                *buffer) {
+    DataTypeT, TransformT, MeshDataT>::EncodePredictionData(EncoderBuffer*
+                                                                buffer) {
   // Encode selected edges using separate rans bit coder for each context.
   for (int i = 0; i < kMaxNumParallelograms; ++i) {
     // |i| is the context based on the number of available parallelograms, which

@@ -22,7 +22,7 @@ namespace draco {
 
 class PointCloudSequentialEncodingTest : public ::testing::Test {
  protected:
-  std::unique_ptr<PointCloud> EncodeAndDecodePointCloud(const PointCloud *pc) {
+  std::unique_ptr<PointCloud> EncodeAndDecodePointCloud(const PointCloud* pc) {
     EncoderBuffer buffer;
     PointCloudSequentialEncoder encoder;
     EncoderOptions options = EncoderOptions::CreateDefaultOptions();
@@ -43,7 +43,7 @@ class PointCloudSequentialEncodingTest : public ::testing::Test {
     return out_pc;
   }
 
-  void TestEncoding(const std::string &file_name) {
+  void TestEncoding(const std::string& file_name) {
     std::unique_ptr<PointCloud> pc = ReadPointCloudFromTestFile(file_name);
     ASSERT_NE(pc, nullptr);
 
@@ -74,12 +74,12 @@ TEST_F(PointCloudSequentialEncodingTest, EncodingPointCloudWithMetadata) {
   std::unique_ptr<PointCloud> decoded_pc = EncodeAndDecodePointCloud(pc.get());
   ASSERT_NE(decoded_pc.get(), nullptr);
 
-  const GeometryMetadata *const pc_metadata = decoded_pc->GetMetadata();
+  const GeometryMetadata* const pc_metadata = decoded_pc->GetMetadata();
   ASSERT_NE(pc_metadata, nullptr);
   // Test getting attribute metadata by id.
   ASSERT_NE(pc->GetAttributeMetadataByAttributeId(pos_att_id), nullptr);
   // Test getting attribute metadata by entry name value pair.
-  const AttributeMetadata *const requested_att_metadata =
+  const AttributeMetadata* const requested_att_metadata =
       pc_metadata->GetAttributeMetadataByStringEntry("name", "position");
   ASSERT_NE(requested_att_metadata, nullptr);
   ASSERT_EQ(requested_att_metadata->att_unique_id(),

@@ -35,27 +35,27 @@ class TextureTransform {
 
   // Copies texture transform data from the |src| texture transform to this
   // texture transform.
-  void Copy(const TextureTransform &src);
+  void Copy(const TextureTransform& src);
 
   // Returns true if |tt| contains all default values.
-  static bool IsDefault(const TextureTransform &tt);
+  static bool IsDefault(const TextureTransform& tt);
 
   bool IsOffsetSet() const;
   bool IsRotationSet() const;
   bool IsScaleSet() const;
   bool IsTexCoordSet() const;
 
-  void set_offset(const std::array<double, 2> &offset) { offset_ = offset; }
-  const std::array<double, 2> &offset() const { return offset_; }
-  void set_scale(const std::array<double, 2> &scale) { scale_ = scale; }
-  const std::array<double, 2> &scale() const { return scale_; }
+  void set_offset(const std::array<double, 2>& offset) { offset_ = offset; }
+  const std::array<double, 2>& offset() const { return offset_; }
+  void set_scale(const std::array<double, 2>& scale) { scale_ = scale; }
+  const std::array<double, 2>& scale() const { return scale_; }
 
   void set_rotation(double rotation) { rotation_ = rotation; }
   double rotation() const { return rotation_; }
   void set_tex_coord(int tex_coord) { tex_coord_ = tex_coord; }
   int tex_coord() const { return tex_coord_; }
 
-  bool operator==(const TextureTransform &tt) const;
+  bool operator==(const TextureTransform& tt) const;
 
  private:
   static std::array<double, 2> GetDefaultOffset() { return {0.0, 0.0}; }

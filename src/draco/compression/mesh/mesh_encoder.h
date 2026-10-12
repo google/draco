@@ -30,7 +30,7 @@ class MeshEncoder : public PointCloudEncoder {
 
   // Sets the mesh that is going be encoded. Must be called before the Encode()
   // method.
-  void SetMesh(const Mesh &m);
+  void SetMesh(const Mesh& m);
 
   EncodedGeometryType GetGeometryType() const override {
     return TRIANGULAR_MESH;
@@ -43,22 +43,22 @@ class MeshEncoder : public PointCloudEncoder {
 
   // Returns the base connectivity of the encoded mesh (or nullptr if it is not
   // initialized).
-  virtual const CornerTable *GetCornerTable() const { return nullptr; }
+  virtual const CornerTable* GetCornerTable() const { return nullptr; }
 
   // Returns the attribute connectivity data or nullptr if it does not exist.
-  virtual const MeshAttributeCornerTable *GetAttributeCornerTable(
+  virtual const MeshAttributeCornerTable* GetAttributeCornerTable(
       int /* att_id */) const {
     return nullptr;
   }
 
   // Returns the encoding data for a given attribute or nullptr when the data
   // does not exist.
-  virtual const MeshAttributeIndicesEncodingData *GetAttributeEncodingData(
+  virtual const MeshAttributeIndicesEncodingData* GetAttributeEncodingData(
       int /* att_id */) const {
     return nullptr;
   }
 
-  const Mesh *mesh() const { return mesh_; }
+  const Mesh* mesh() const { return mesh_; }
 
  protected:
   Status EncodeGeometryData() override;
@@ -69,13 +69,13 @@ class MeshEncoder : public PointCloudEncoder {
   // Computes and sets the num_encoded_faces_ for the encoder.
   virtual void ComputeNumberOfEncodedFaces() = 0;
 
-  void set_mesh(const Mesh *mesh) { mesh_ = mesh; }
+  void set_mesh(const Mesh* mesh) { mesh_ = mesh; }
   void set_num_encoded_faces(size_t num_faces) {
     num_encoded_faces_ = num_faces;
   }
 
  private:
-  const Mesh *mesh_;
+  const Mesh* mesh_;
   size_t num_encoded_faces_;
 };
 

@@ -22,7 +22,7 @@ namespace draco {
 class PlyDecoderTest : public ::testing::Test {
  protected:
   template <class Geometry>
-  std::unique_ptr<Geometry> DecodePly(const std::string &file_name) const {
+  std::unique_ptr<Geometry> DecodePly(const std::string& file_name) const {
     const std::string path = GetTestFileFullPath(file_name);
     PlyDecoder decoder;
     std::unique_ptr<Geometry> geometry(new Geometry());
@@ -34,8 +34,8 @@ class PlyDecoderTest : public ::testing::Test {
     return geometry;
   }
 
-  void test_decoding(const std::string &file_name, int num_faces,
-                     uint32_t num_points, std::unique_ptr<Mesh> *out_mesh) {
+  void test_decoding(const std::string& file_name, int num_faces,
+                     uint32_t num_points, std::unique_ptr<Mesh>* out_mesh) {
     std::unique_ptr<Mesh> mesh(DecodePly<Mesh>(file_name));
     ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
     ASSERT_EQ(mesh->num_faces(), num_faces);
@@ -47,7 +47,7 @@ class PlyDecoderTest : public ::testing::Test {
     ASSERT_NE(pc, nullptr) << "Failed to load test model " << file_name;
     ASSERT_EQ(pc->num_points(), num_points);
   }
-  void test_decoding(const std::string &file_name) {
+  void test_decoding(const std::string& file_name) {
     const std::unique_ptr<Mesh> mesh(DecodePly<Mesh>(file_name));
     ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
     ASSERT_GT(mesh->num_faces(), 0);
@@ -70,7 +70,7 @@ TEST_F(PlyDecoderTest, TestPlyNormals) {
   ASSERT_NE(mesh, nullptr);
   const int att_id = mesh->GetNamedAttributeId(GeometryAttribute::NORMAL);
   ASSERT_GE(att_id, 0);
-  const PointAttribute *const att = mesh->attribute(att_id);
+  const PointAttribute* const att = mesh->attribute(att_id);
   ASSERT_EQ(att->size(), 6);  // 6 unique normal values.
 }
 

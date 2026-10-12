@@ -20,14 +20,14 @@
 
 namespace draco {
 
-void InstanceArray::Copy(const InstanceArray &other) {
+void InstanceArray::Copy(const InstanceArray& other) {
   instances_.resize(other.instances_.size());
   for (int i = 0; i < instances_.size(); i++) {
     instances_[i].trs.Copy(other.instances_[i].trs);
   }
 }
 
-Status InstanceArray::AddInstance(const Instance &instance) {
+Status InstanceArray::AddInstance(const Instance& instance) {
   // Check that the |instance.trs| does not have the transformation matrix set,
   // because the EXT_mesh_gpu_instancing glTF extension dictates that only the
   // individual TRS vectors are stored.

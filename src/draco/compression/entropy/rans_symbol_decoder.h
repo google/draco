@@ -33,13 +33,13 @@ class RAnsSymbolDecoder {
   RAnsSymbolDecoder() : num_symbols_(0) {}
 
   // Initialize the decoder and decode the probability table.
-  bool Create(DecoderBuffer *buffer);
+  bool Create(DecoderBuffer* buffer);
 
   uint32_t num_symbols() const { return num_symbols_; }
 
   // Starts decoding from the buffer. The buffer will be advanced past the
   // encoded data after this call.
-  bool StartDecoding(DecoderBuffer *buffer);
+  bool StartDecoding(DecoderBuffer* buffer);
   uint32_t DecodeSymbol() { return ans_.rans_read(); }
   void EndDecoding();
 
@@ -56,7 +56,7 @@ class RAnsSymbolDecoder {
 
 template <int unique_symbols_bit_length_t>
 bool RAnsSymbolDecoder<unique_symbols_bit_length_t>::Create(
-    DecoderBuffer *buffer) {
+    DecoderBuffer* buffer) {
   // Check that the DecoderBuffer version is set.
   if (buffer->bitstream_version() == 0) {
     return false;
@@ -132,7 +132,7 @@ bool RAnsSymbolDecoder<unique_symbols_bit_length_t>::Create(
 
 template <int unique_symbols_bit_length_t>
 bool RAnsSymbolDecoder<unique_symbols_bit_length_t>::StartDecoding(
-    DecoderBuffer *buffer) {
+    DecoderBuffer* buffer) {
   uint64_t bytes_encoded;
   // Decode the number of bytes encoded by the encoder.
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
@@ -151,8 +151,8 @@ bool RAnsSymbolDecoder<unique_symbols_bit_length_t>::StartDecoding(
   if (bytes_encoded > static_cast<uint64_t>(buffer->remaining_size())) {
     return false;
   }
-  const uint8_t *const data_head =
-      reinterpret_cast<const uint8_t *>(buffer->data_head());
+  const uint8_t* const data_head =
+      reinterpret_cast<const uint8_t*>(buffer->data_head());
   // Advance the buffer past the rANS data.
   buffer->Advance(bytes_encoded);
   if (ans_.read_init(data_head, static_cast<int>(bytes_encoded)) != 0) {

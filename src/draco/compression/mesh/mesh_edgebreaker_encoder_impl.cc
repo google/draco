@@ -44,7 +44,7 @@ MeshEdgebreakerEncoderImpl<TraversalEncoder>::MeshEdgebreakerEncoderImpl()
 
 template <class TraversalEncoder>
 bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::Init(
-    MeshEdgebreakerEncoder *encoder) {
+    MeshEdgebreakerEncoder* encoder) {
   encoder_ = encoder;
   mesh_ = encoder->mesh();
   attribute_encoder_to_data_id_map_.clear();
@@ -62,7 +62,7 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::Init(
 }
 
 template <class TraversalEncoder>
-const MeshAttributeCornerTable *
+const MeshAttributeCornerTable*
 MeshEdgebreakerEncoderImpl<TraversalEncoder>::GetAttributeCornerTable(
     int att_id) const {
   for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
@@ -77,7 +77,7 @@ MeshEdgebreakerEncoderImpl<TraversalEncoder>::GetAttributeCornerTable(
 }
 
 template <class TraversalEncoder>
-const MeshAttributeIndicesEncodingData *
+const MeshAttributeIndicesEncodingData*
 MeshEdgebreakerEncoderImpl<TraversalEncoder>::GetAttributeEncodingData(
     int att_id) const {
   for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
@@ -92,7 +92,7 @@ template <class TraversalEncoder>
 template <class TraverserT>
 std::unique_ptr<PointsSequencer>
 MeshEdgebreakerEncoderImpl<TraversalEncoder>::CreateVertexTraversalSequencer(
-    MeshAttributeIndicesEncodingData *encoding_data) {
+    MeshAttributeIndicesEncodingData* encoding_data) {
   typedef typename TraverserT::TraversalObserver AttObserver;
   typedef typename TraverserT::CornerTable CornerTable;
 
@@ -126,7 +126,7 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
   }
   const int32_t element_type =
       GetEncoder()->mesh()->GetAttributeElementType(att_id);
-  const PointAttribute *const att =
+  const PointAttribute* const att =
       GetEncoder()->point_cloud()->attribute(att_id);
   int32_t att_data_id = -1;
   for (uint32_t i = 0; i < attribute_data_.size(); ++i) {
@@ -144,7 +144,7 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
        attribute_data_[att_data_id].connectivity_data.no_interior_seams())) {
     // Per-vertex attribute reached, use the basic corner table to traverse the
     // mesh.
-    MeshAttributeIndicesEncodingData *encoding_data;
+    MeshAttributeIndicesEncodingData* encoding_data;
     if (use_single_connectivity_ ||
         att->attribute_type() == GeometryAttribute::POSITION) {
       encoding_data = &pos_encoding_data_;
@@ -189,9 +189,9 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::GenerateAttributesEncoder(
     typedef DepthFirstTraverser<MeshAttributeCornerTable, AttObserver>
         AttTraverser;
 
-    MeshAttributeIndicesEncodingData *const encoding_data =
+    MeshAttributeIndicesEncodingData* const encoding_data =
         &attribute_data_[att_data_id].encoding_data;
-    const MeshAttributeCornerTable *const corner_table =
+    const MeshAttributeCornerTable* const corner_table =
         &attribute_data_[att_data_id].connectivity_data;
 
     // Ensure we use the correct number of vertices in the encoding data.
@@ -445,7 +445,7 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeSplitData() {
     // encoded using direct bit coding.
     int last_source_symbol_id = 0;  // Used for delta coding.
     for (uint32_t i = 0; i < num_events; ++i) {
-      const TopologySplitEventData &event_data = topology_split_event_data_[i];
+      const TopologySplitEventData& event_data = topology_split_event_data_[i];
       // Encode source symbol id as delta from the previous source symbol id.
       // Source symbol ids are always stored in increasing order so the delta is
       // going to be positive.
@@ -462,7 +462,7 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeSplitData() {
     }
     encoder_->buffer()->StartBitEncoding(num_events, false);
     for (uint32_t i = 0; i < num_events; ++i) {
-      const TopologySplitEventData &event_data = topology_split_event_data_[i];
+      const TopologySplitEventData& event_data = topology_split_event_data_[i];
       encoder_->buffer()->EncodeLeastSignificantBits32(1,
                                                        event_data.source_edge);
     }
@@ -473,7 +473,7 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::EncodeSplitData() {
 
 template <class TraversalEncoder>
 bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::FindInitFaceConfiguration(
-    FaceIndex face_id, CornerIndex *out_corner) const {
+    FaceIndex face_id, CornerIndex* out_corner) const {
   CornerIndex corner_index = CornerIndex(3 * face_id.value());
   for (int i = 0; i < 3; ++i) {
     if (corner_table_->Opposite(corner_index) == kInvalidCornerIndex) {
@@ -793,7 +793,7 @@ bool MeshEdgebreakerEncoderImpl<TraversalEncoder>::InitAttributeData() {
         GeometryAttribute::POSITION) {
       continue;
     }
-    const PointAttribute *const att = mesh_->attribute(att_index);
+    const PointAttribute* const att = mesh_->attribute(att_index);
     attribute_data_[data_index].attribute_index = att_index;
     attribute_data_[data_index]
         .encoding_data.encoded_attribute_value_index_to_corner_map.clear();

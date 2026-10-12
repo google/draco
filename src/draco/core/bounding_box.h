@@ -15,37 +15,58 @@
 #ifndef DRACO_CORE_BOUNDING_BOX_H_
 #define DRACO_CORE_BOUNDING_BOX_H_
 
+#include <limits>
+
 #include "draco/core/vector_d.h"
 
 namespace draco {
 
-// Class for computing the bounding box of points in 3D space.
-class BoundingBox {
+// Class for computing the bounding box of points.
+template <typename DataTypeT, int dimension_t>
+class BoundingBoxD {
  public:
+  using Point = VectorD<DataTypeT, dimension_t>;
+
   // Creates bounding box object with minimum and maximum points initialized to
   // the largest positive and the smallest negative values, respectively. The
   // resulting abstract bounding box effectively has no points and can be
   // updated by providing any point to Update() method.
-  BoundingBox();
+  BoundingBoxD() {
+    for (int i = 0; i < dimension_t; i++) {
+      min_point_[i] = std::numeric_limits<DataTypeT>::max();
+      max_point_[i] = std::numeric_limits<DataTypeT>::lowest();
+    }
+  }
 
   // Creates bounding box object with minimum and maximum points initialized to
   // |min_point| and |max_point|, respectively.
-  BoundingBox(const Vector3f &min_point, const Vector3f &max_point);
+  BoundingBoxD(const Point& min_point, const Point& max_point)
+      : min_point_(min_point), max_point_(max_point) {}
 
   // Returns the minimum point of the bounding box.
-  inline const Vector3f &GetMinPoint() const { return min_point_; }
+  inline const Point& GetMinPoint() const { return min_point_; }
 
   // Returns the maximum point of the bounding box.
-  inline const Vector3f &GetMaxPoint() const { return max_point_; }
+  inline const Point& GetMaxPoint() const { return max_point_; }
 
   // Checks if the bounding box object was created with the default constructor
   // then never updated. Internally, checks if the bounding box minimum and
   // maximum points hold the largest positive and smallest negative values.
-  bool IsValid() const;
+  bool IsValid() const {
+    for (int i = 0; i < dimension_t; i++) {
+      if (min_point_[i] == std::numeric_limits<DataTypeT>::max()) {
+        return false;
+      }
+      if (max_point_[i] == std::numeric_limits<DataTypeT>::lowest()) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   // Conditionally updates the bounding box with a given |new_point|.
-  void Update(const Vector3f &new_point) {
-    for (int i = 0; i < 3; i++) {
+  void Update(const Point& new_point) {
+    for (int i = 0; i < dimension_t; i++) {
       if (new_point[i] < min_point_[i]) {
         min_point_[i] = new_point[i];
       }
@@ -57,21 +78,23 @@ class BoundingBox {
 
   // Updates bounding box with minimum and maximum points of the |other|
   // bounding box.
-  void Update(const BoundingBox &other) {
+  void Update(const BoundingBoxD<DataTypeT, dimension_t>& other) {
     Update(other.GetMinPoint());
     Update(other.GetMaxPoint());
   }
 
   // Returns the size of the bounding box along each axis.
-  Vector3f Size() const { return max_point_ - min_point_; }
+  Point Size() const { return max_point_ - min_point_; }
 
   // Returns the center of the bounding box.
-  Vector3f Center() const { return (min_point_ + max_point_) / 2; }
+  Point Center() const { return (min_point_ + max_point_) / 2; }
 
  private:
-  Vector3f min_point_;
-  Vector3f max_point_;
+  Point min_point_;
+  Point max_point_;
 };
+
+using BoundingBox = BoundingBoxD<float, 3>;
 }  // namespace draco
 
 #endif  //  DRACO_CORE_BOUNDING_BOX_H_

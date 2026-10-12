@@ -23,7 +23,7 @@
 
 namespace draco {
 
-MeshSequentialEncoder::MeshSequentialEncoder() {}
+MeshSequentialEncoder::MeshSequentialEncoder() = default;
 
 Status MeshSequentialEncoder::EncodeConnectivity() {
   // Serialize indices.
@@ -45,7 +45,7 @@ Status MeshSequentialEncoder::EncodeConnectivity() {
     if (mesh()->num_points() < 256) {
       // Serialize indices as uint8_t.
       for (FaceIndex i(0); i < num_faces; ++i) {
-        const auto &face = mesh()->face(i);
+        const auto& face = mesh()->face(i);
         buffer()->Encode(static_cast<uint8_t>(face[0].value()));
         buffer()->Encode(static_cast<uint8_t>(face[1].value()));
         buffer()->Encode(static_cast<uint8_t>(face[2].value()));
@@ -53,7 +53,7 @@ Status MeshSequentialEncoder::EncodeConnectivity() {
     } else if (mesh()->num_points() < (1 << 16)) {
       // Serialize indices as uint16_t.
       for (FaceIndex i(0); i < num_faces; ++i) {
-        const auto &face = mesh()->face(i);
+        const auto& face = mesh()->face(i);
         buffer()->Encode(static_cast<uint16_t>(face[0].value()));
         buffer()->Encode(static_cast<uint16_t>(face[1].value()));
         buffer()->Encode(static_cast<uint16_t>(face[2].value()));
@@ -61,7 +61,7 @@ Status MeshSequentialEncoder::EncodeConnectivity() {
     } else if (mesh()->num_points() < (1 << 21)) {
       // Serialize indices as varint.
       for (FaceIndex i(0); i < num_faces; ++i) {
-        const auto &face = mesh()->face(i);
+        const auto& face = mesh()->face(i);
         EncodeVarint(static_cast<uint32_t>(face[0].value()), buffer());
         EncodeVarint(static_cast<uint32_t>(face[1].value()), buffer());
         EncodeVarint(static_cast<uint32_t>(face[2].value()), buffer());
@@ -69,7 +69,7 @@ Status MeshSequentialEncoder::EncodeConnectivity() {
     } else {
       // Serialize faces as uint32_t (default).
       for (FaceIndex i(0); i < num_faces; ++i) {
-        const auto &face = mesh()->face(i);
+        const auto& face = mesh()->face(i);
         buffer()->Encode(face);
       }
     }
@@ -101,7 +101,7 @@ bool MeshSequentialEncoder::CompressAndEncodeIndices() {
   int32_t last_index_value = 0;
   const int num_faces = mesh()->num_faces();
   for (FaceIndex i(0); i < num_faces; ++i) {
-    const auto &face = mesh()->face(i);
+    const auto& face = mesh()->face(i);
     for (int j = 0; j < 3; ++j) {
       const int32_t index_value = face[j].value();
       const int32_t index_diff = index_value - last_index_value;

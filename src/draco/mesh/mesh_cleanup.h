@@ -47,13 +47,13 @@ struct MeshCleanupOptions {
 class MeshCleanup {
  public:
   // Performs in-place cleanup of the input mesh according to the input options.
-  static Status Cleanup(Mesh *mesh, const MeshCleanupOptions &options);
+  static Status Cleanup(Mesh* mesh, const MeshCleanupOptions& options);
 
  private:
-  static void RemoveDegeneratedFaces(Mesh *mesh);
-  static void RemoveDuplicateFaces(Mesh *mesh);
-  static void RemoveUnusedAttributes(Mesh *mesh);
-  static Status MakeGeometryManifold(Mesh *mesh);
+  static void RemoveDegeneratedFaces(Mesh* mesh);
+  static void RemoveDuplicateFaces(Mesh* mesh);
+  static void RemoveUnusedAttributes(Mesh* mesh);
+  static Status MakeGeometryManifold(Mesh* mesh);
 };
 
 }  // namespace draco

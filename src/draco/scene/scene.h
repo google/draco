@@ -18,13 +18,19 @@
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <map>
 #include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 #include "draco/animation/animation.h"
 #include "draco/animation/skin.h"
 #include "draco/mesh/mesh.h"
+#include "draco/metadata/json_entity.h"
 #include "draco/metadata/metadata.h"
 #include "draco/metadata/structural_metadata.h"
+#include "draco/scene/audio.h"
 #include "draco/scene/instance_array.h"
 #include "draco/scene/light.h"
 #include "draco/scene/mesh_group.h"
@@ -44,7 +50,7 @@ class Scene {
  public:
   Scene();
 
-  void Copy(const Scene &s);
+  void Copy(const Scene& s);
 
   // Adds a Draco |mesh| to the scene. Returns the index to the stored mesh or
   // |kInvalidMeshIndex| if the mesh is a nullptr.
@@ -66,8 +72,8 @@ class Scene {
 
   // Returns a mesh in the scene before instancing is applied. The mesh
   // coordinates are local to the mesh.
-  Mesh &GetMesh(MeshIndex index) { return *meshes_[index]; }
-  const Mesh &GetMesh(MeshIndex index) const { return *meshes_[index]; }
+  Mesh& GetMesh(MeshIndex index) { return *meshes_[index]; }
+  const Mesh& GetMesh(MeshIndex index) const { return *meshes_[index]; }
 
   // Creates a mesh group and returns the index to the mesh group.
   MeshGroupIndex AddMeshGroup() {
@@ -90,10 +96,10 @@ class Scene {
   int NumMeshGroups() const { return mesh_groups_.size(); }
 
   // Returns a mesh group in the scene.
-  MeshGroup *GetMeshGroup(MeshGroupIndex index) {
+  MeshGroup* GetMeshGroup(MeshGroupIndex index) {
     return mesh_groups_[index].get();
   }
-  const MeshGroup *GetMeshGroup(MeshGroupIndex index) const {
+  const MeshGroup* GetMeshGroup(MeshGroupIndex index) const {
     return mesh_groups_[index].get();
   }
 
@@ -108,8 +114,8 @@ class Scene {
   int NumNodes() const { return nodes_.size(); }
 
   // Returns a node in the scene.
-  SceneNode *GetNode(SceneNodeIndex index) { return nodes_[index].get(); }
-  const SceneNode *GetNode(SceneNodeIndex index) const {
+  SceneNode* GetNode(SceneNodeIndex index) { return nodes_[index].get(); }
+  const SceneNode* GetNode(SceneNodeIndex index) const {
     return nodes_[index].get();
   }
 
@@ -126,7 +132,7 @@ class Scene {
   // Returns the number of root node indices in a scene.
   int NumRootNodes() const { return root_node_indices_.size(); }
   SceneNodeIndex GetRootNodeIndex(int i) const { return root_node_indices_[i]; }
-  const std::vector<SceneNodeIndex> &GetRootNodeIndices() const {
+  const std::vector<SceneNodeIndex>& GetRootNodeIndices() const {
     return root_node_indices_;
   }
   void AddRootNodeIndex(SceneNodeIndex index) {
@@ -137,24 +143,32 @@ class Scene {
   }
   void RemoveAllRootNodeIndices() { root_node_indices_.clear(); }
 
-  const MaterialLibrary &GetMaterialLibrary() const {
+  const MaterialLibrary& GetMaterialLibrary() const {
     return material_library_;
   }
-  MaterialLibrary &GetMaterialLibrary() { return material_library_; }
+  MaterialLibrary& GetMaterialLibrary() { return material_library_; }
 
   // Library that contains non-material textures.
-  const TextureLibrary &GetNonMaterialTextureLibrary() const {
+  const TextureLibrary& GetNonMaterialTextureLibrary() const {
     return non_material_texture_library_;
   }
-  TextureLibrary &GetNonMaterialTextureLibrary() {
+  TextureLibrary& GetNonMaterialTextureLibrary() {
     return non_material_texture_library_;
   }
 
   // Structural metadata.
-  const StructuralMetadata &GetStructuralMetadata() const {
+  const StructuralMetadata& GetStructuralMetadata() const {
     return structural_metadata_;
   }
-  StructuralMetadata &GetStructuralMetadata() { return structural_metadata_; }
+  StructuralMetadata& GetStructuralMetadata() { return structural_metadata_; }
+
+  // Return the contents of top-level pass-through glTF extensions.
+  std::map<std::string, JsonEntity>& GetPassThroughExtensions() {
+    return pass_through_extensions_;
+  }
+  const std::map<std::string, JsonEntity>& GetPassThroughExtensions() const {
+    return pass_through_extensions_;
+  }
 
   // Creates an animation and returns the index to the animation.
   AnimationIndex AddAnimation() {
@@ -167,10 +181,10 @@ class Scene {
   int NumAnimations() const { return animations_.size(); }
 
   // Returns an animation in the scene.
-  Animation *GetAnimation(AnimationIndex index) {
+  Animation* GetAnimation(AnimationIndex index) {
     return animations_[index].get();
   }
-  const Animation *GetAnimation(AnimationIndex index) const {
+  const Animation* GetAnimation(AnimationIndex index) const {
     return animations_[index].get();
   }
 
@@ -185,8 +199,8 @@ class Scene {
   int NumSkins() const { return skins_.size(); }
 
   // Returns a skin in the scene.
-  Skin *GetSkin(SkinIndex index) { return skins_[index].get(); }
-  const Skin *GetSkin(SkinIndex index) const { return skins_[index].get(); }
+  Skin* GetSkin(SkinIndex index) { return skins_[index].get(); }
+  const Skin* GetSkin(SkinIndex index) const { return skins_[index].get(); }
 
   // Creates a light and returns the index to the light.
   LightIndex AddLight() {
@@ -199,8 +213,18 @@ class Scene {
   int NumLights() const { return lights_.size(); }
 
   // Returns a light in the scene.
-  Light *GetLight(LightIndex index) { return lights_[index].get(); }
-  const Light *GetLight(LightIndex index) const { return lights_[index].get(); }
+  Light* GetLight(LightIndex index) { return lights_[index].get(); }
+  const Light* GetLight(LightIndex index) const { return lights_[index].get(); }
+
+  // Audio data defined in ADBE_audio_emitter glTF extension.
+  const std::optional<Audio>& GetAudio() const { return audio_; }
+  std::optional<Audio>& GetAudio() { return audio_; }
+  const std::vector<AudioEmitterIndex>& GetAudioEmitterIndices() const {
+    return audio_emitter_indices_;
+  }
+  std::vector<AudioEmitterIndex>& GetAudioEmitterIndices() {
+    return audio_emitter_indices_;
+  }
 
   // Creates a mesh group instance array and returns the index to it. This array
   // is used for storing the attributes of the EXT_mesh_gpu_instancing glTF
@@ -215,18 +239,18 @@ class Scene {
   int NumInstanceArrays() const { return instance_arrays_.size(); }
 
   // Returns a mesh group instance array in the scene.
-  InstanceArray *GetInstanceArray(InstanceArrayIndex index) {
+  InstanceArray* GetInstanceArray(InstanceArrayIndex index) {
     return instance_arrays_[index].get();
   }
-  const InstanceArray *GetInstanceArray(InstanceArrayIndex index) const {
+  const InstanceArray* GetInstanceArray(InstanceArrayIndex index) const {
     return instance_arrays_[index].get();
   }
 
-  const Metadata &GetMetadata() const { return *metadata_; }
-  Metadata &GetMetadata() { return *metadata_; }
+  const Metadata& GetMetadata() const { return *metadata_; }
+  Metadata& GetMetadata() { return *metadata_; }
 
-  const std::vector<double> &GetCesiumRtc() const { return cesium_rtc_; }
-  void SetCesiumRtc(const std::vector<double> &cesium_rtc) {
+  const std::vector<double>& GetCesiumRtc() const { return cesium_rtc_; }
+  void SetCesiumRtc(const std::vector<double>& cesium_rtc) {
     cesium_rtc_ = cesium_rtc;
   }
 
@@ -241,6 +265,10 @@ class Scene {
   // The lights will be written to the output scene but not used for internal
   // rendering in Draco, e.g, while computing distortion metric.
   IndexTypeVector<LightIndex, std::unique_ptr<Light>> lights_;
+
+  // The audio data defined in ADBE_audio_emitter glTF extension.
+  std::optional<Audio> audio_;
+  std::vector<AudioEmitterIndex> audio_emitter_indices_;
 
   // The mesh group instance array information will be written to the output
   // scene but not processed by Draco simplifier modules.
@@ -263,6 +291,9 @@ class Scene {
   // General metadata associated with the scene (not related to the
   // EXT_structural_metadata extension).
   std::unique_ptr<Metadata> metadata_;
+
+  // The contents of top-level pass-through glTF extensions.
+  std::map<std::string, JsonEntity> pass_through_extensions_;
 
   // Cesium "Relative to Center" extension
   std::vector<double> cesium_rtc_;

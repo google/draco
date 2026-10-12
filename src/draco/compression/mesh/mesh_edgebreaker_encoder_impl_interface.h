@@ -33,23 +33,23 @@ class MeshEdgebreakerEncoder;
 class MeshEdgebreakerEncoderImplInterface {
  public:
   virtual ~MeshEdgebreakerEncoderImplInterface() = default;
-  virtual bool Init(MeshEdgebreakerEncoder *encoder) = 0;
+  virtual bool Init(MeshEdgebreakerEncoder* encoder) = 0;
 
-  virtual const MeshAttributeCornerTable *GetAttributeCornerTable(
+  virtual const MeshAttributeCornerTable* GetAttributeCornerTable(
       int att_id) const = 0;
-  virtual const MeshAttributeIndicesEncodingData *GetAttributeEncodingData(
+  virtual const MeshAttributeIndicesEncodingData* GetAttributeEncodingData(
       int att_id) const = 0;
   virtual bool GenerateAttributesEncoder(int32_t att_id) = 0;
   virtual bool EncodeAttributesEncoderIdentifier(int32_t att_encoder_id) = 0;
   virtual Status EncodeConnectivity() = 0;
 
   // Returns corner table of the encoded mesh.
-  virtual const CornerTable *GetCornerTable() const = 0;
+  virtual const CornerTable* GetCornerTable() const = 0;
 
   // Returns true if a given face has been already encoded.
   virtual bool IsFaceEncoded(FaceIndex fi) const = 0;
 
-  virtual MeshEdgebreakerEncoder *GetEncoder() const = 0;
+  virtual MeshEdgebreakerEncoder* GetEncoder() const = 0;
 };
 
 }  // namespace draco

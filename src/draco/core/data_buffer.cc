@@ -18,14 +18,14 @@
 
 namespace draco {
 
-DataBuffer::DataBuffer() {}
+DataBuffer::DataBuffer() = default;
 
-bool DataBuffer::Update(const void *data, int64_t size) {
+bool DataBuffer::Update(const void* data, int64_t size) {
   const int64_t offset = 0;
   return this->Update(data, size, offset);
 }
 
-bool DataBuffer::Update(const void *data, int64_t size, int64_t offset) {
+bool DataBuffer::Update(const void* data, int64_t size, int64_t offset) {
   if (data == nullptr) {
     if (size + offset < 0) {
       return false;
@@ -39,7 +39,7 @@ bool DataBuffer::Update(const void *data, int64_t size, int64_t offset) {
     if (size + offset > static_cast<int64_t>(data_.size())) {
       data_.resize(size + offset);
     }
-    const uint8_t *const byte_data = static_cast<const uint8_t *>(data);
+    const uint8_t* const byte_data = static_cast<const uint8_t*>(data);
     std::copy(byte_data, byte_data + size, data_.data() + offset);
   }
   descriptor_.buffer_update_count++;
@@ -51,11 +51,11 @@ void DataBuffer::Resize(int64_t size) {
   descriptor_.buffer_update_count++;
 }
 
-void DataBuffer::WriteDataToStream(std::ostream &stream) {
+void DataBuffer::WriteDataToStream(std::ostream& stream) {
   if (data_.empty()) {
     return;
   }
-  stream.write(reinterpret_cast<char *>(data_.data()), data_.size());
+  stream.write(reinterpret_cast<char*>(data_.data()), data_.size());
 }
 
 }  // namespace draco

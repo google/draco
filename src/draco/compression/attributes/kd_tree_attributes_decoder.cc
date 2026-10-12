@@ -25,7 +25,7 @@ namespace draco {
 
 // attribute, offset_dimensionality, data_type, data_size, num_components
 using AttributeTuple =
-    std::tuple<PointAttribute *, uint32_t, DataType, uint32_t, uint32_t>;
+    std::tuple<PointAttribute*, uint32_t, DataType, uint32_t, uint32_t>;
 
 // Output iterator that is used to decode values directly into the data buffer
 // of the modified PointAttribute.
@@ -41,15 +41,15 @@ class PointAttributeVectorOutputIterator {
 
  public:
   PointAttributeVectorOutputIterator(
-      PointAttributeVectorOutputIterator &&that) = default;
+      PointAttributeVectorOutputIterator&& that) = default;
 
   explicit PointAttributeVectorOutputIterator(
-      const std::vector<AttributeTuple> &atts)
+      const std::vector<AttributeTuple>& atts)
       : attributes_(atts), point_id_(0) {
     DRACO_DCHECK_GE(atts.size(), 1);
     uint32_t required_decode_bytes = 0;
     for (auto index = 0; index < attributes_.size(); index++) {
-      const AttributeTuple &att = attributes_[index];
+      const AttributeTuple& att = attributes_[index];
       required_decode_bytes = (std::max)(required_decode_bytes,
                                          std::get<3>(att) * std::get<4>(att));
     }
@@ -57,7 +57,7 @@ class PointAttributeVectorOutputIterator {
     data_ = memory_.data();
   }
 
-  const Self &operator++() {
+  const Self& operator++() {
     ++point_id_;
     return *this;
   }
@@ -70,45 +70,45 @@ class PointAttributeVectorOutputIterator {
   //   return copy;
   // }
 
-  Self &operator*() { return *this; }
+  Self& operator*() { return *this; }
   // Still needed in some cases.
   // TODO(b/199760123): Remove.
   // hardcoded to 3 based on legacy usage.
-  const Self &operator=(const VectorD<CoeffT, 3> &val) {
+  const Self& operator=(const VectorD<CoeffT, 3>& val) {
     DRACO_DCHECK_EQ(attributes_.size(), 1);  // Expect only ONE attribute.
-    AttributeTuple &att = attributes_[0];
-    PointAttribute *attribute = std::get<0>(att);
+    AttributeTuple& att = attributes_[0];
+    PointAttribute* attribute = std::get<0>(att);
     const AttributeValueIndex avi = attribute->mapped_index(point_id_);
     if (avi >= static_cast<uint32_t>(attribute->size())) {
       return *this;
     }
-    const uint32_t &offset = std::get<1>(att);
+    const uint32_t& offset = std::get<1>(att);
     DRACO_DCHECK_EQ(offset, 0);  // expected to be zero
     attribute->SetAttributeValue(avi, &val[0] + offset);
     return *this;
   }
   // Additional operator taking std::vector as argument.
-  const Self &operator=(const std::vector<CoeffT> &val) {
+  const Self& operator=(const std::vector<CoeffT>& val) {
     for (auto index = 0; index < attributes_.size(); index++) {
-      AttributeTuple &att = attributes_[index];
-      PointAttribute *attribute = std::get<0>(att);
+      AttributeTuple& att = attributes_[index];
+      PointAttribute* attribute = std::get<0>(att);
       const AttributeValueIndex avi = attribute->mapped_index(point_id_);
       if (avi >= static_cast<uint32_t>(attribute->size())) {
         return *this;
       }
-      const uint32_t &offset = std::get<1>(att);
-      const uint32_t &data_size = std::get<3>(att);
-      const uint32_t &num_components = std::get<4>(att);
-      const uint32_t *data_source = val.data() + offset;
+      const uint32_t& offset = std::get<1>(att);
+      const uint32_t& data_size = std::get<3>(att);
+      const uint32_t& num_components = std::get<4>(att);
+      const uint32_t* data_source = val.data() + offset;
       if (data_size < 4) {  // handle uint16_t, uint8_t
         // selectively copy data bytes
-        uint8_t *data_counter = data_;
+        uint8_t* data_counter = data_;
         for (uint32_t index = 0; index < num_components;
              index += 1, data_counter += data_size) {
           std::memcpy(data_counter, data_source + index, data_size);
         }
         // redirect to copied data
-        data_source = reinterpret_cast<uint32_t *>(data_);
+        data_source = reinterpret_cast<uint32_t*>(data_);
       }
       attribute->SetAttributeValue(avi, data_source);
     }
@@ -118,21 +118,21 @@ class PointAttributeVectorOutputIterator {
  private:
   // preallocated memory for buffering different data sizes.  Never reallocated.
   std::vector<uint8_t> memory_;
-  uint8_t *data_;
+  uint8_t* data_;
   std::vector<AttributeTuple> attributes_;
   PointIndex point_id_;
 
   // NO COPY
   PointAttributeVectorOutputIterator(
-      const PointAttributeVectorOutputIterator &that) = delete;
-  PointAttributeVectorOutputIterator &operator=(
-      PointAttributeVectorOutputIterator const &) = delete;
+      const PointAttributeVectorOutputIterator& that) = delete;
+  PointAttributeVectorOutputIterator& operator=(
+      PointAttributeVectorOutputIterator const&) = delete;
 };
 
-KdTreeAttributesDecoder::KdTreeAttributesDecoder() {}
+KdTreeAttributesDecoder::KdTreeAttributesDecoder() = default;
 
 bool KdTreeAttributesDecoder::DecodePortableAttributes(
-    DecoderBuffer *in_buffer) {
+    DecoderBuffer* in_buffer) {
   if (in_buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 3)) {
     // Old bitstream does everything in the
     // DecodeDataNeededByPortableTransforms() method.
@@ -155,13 +155,13 @@ bool KdTreeAttributesDecoder::DecodePortableAttributes(
 
   for (int i = 0; i < GetNumAttributes(); ++i) {
     const int att_id = GetAttributeId(i);
-    PointAttribute *const att = GetDecoder()->point_cloud()->attribute(att_id);
+    PointAttribute* const att = GetDecoder()->point_cloud()->attribute(att_id);
     // All attributes have the same number of values and identity mapping
     // between PointIndex and AttributeValueIndex.
     att->Reset(num_points);
     att->SetIdentityMapping();
 
-    PointAttribute *target_att = nullptr;
+    PointAttribute* target_att = nullptr;
     if (att->data_type() == DT_UINT32 || att->data_type() == DT_UINT16 ||
         att->data_type() == DT_UINT8) {
       // We can decode to these attributes directly.
@@ -260,8 +260,8 @@ bool KdTreeAttributesDecoder::DecodePortableAttributes(
 template <int level_t, typename OutIteratorT>
 bool KdTreeAttributesDecoder::DecodePoints(int total_dimensionality,
                                            uint32_t num_expected_points,
-                                           DecoderBuffer *in_buffer,
-                                           OutIteratorT *out_iterator) {
+                                           DecoderBuffer* in_buffer,
+                                           OutIteratorT* out_iterator) {
   DynamicIntegerPointsKdTreeDecoder<level_t> decoder(total_dimensionality);
   if (!decoder.DecodePoints(in_buffer, *out_iterator, num_expected_points) ||
       decoder.num_decoded_points() != num_expected_points) {
@@ -271,14 +271,14 @@ bool KdTreeAttributesDecoder::DecodePoints(int total_dimensionality,
 }
 
 bool KdTreeAttributesDecoder::DecodeDataNeededByPortableTransforms(
-    DecoderBuffer *in_buffer) {
+    DecoderBuffer* in_buffer) {
   if (in_buffer->bitstream_version() >= DRACO_BITSTREAM_VERSION(2, 3)) {
     // Decode quantization data for each attribute that need it.
     // TODO(ostava): This should be moved to AttributeQuantizationTransform.
     std::vector<float> min_value;
     for (int i = 0; i < GetNumAttributes(); ++i) {
       const int att_id = GetAttributeId(i);
-      const PointAttribute *const att =
+      const PointAttribute* const att =
           GetDecoder()->point_cloud()->attribute(att_id);
       if (att->data_type() == DT_FLOAT32) {
         const int num_components = att->num_components();
@@ -330,7 +330,7 @@ bool KdTreeAttributesDecoder::DecodeDataNeededByPortableTransforms(
        attribute_index += 1)  // increment the dimensionality as needed...
   {
     const int att_id = GetAttributeId(attribute_index);
-    PointAttribute *const att = GetDecoder()->point_cloud()->attribute(att_id);
+    PointAttribute* const att = GetDecoder()->point_cloud()->attribute(att_id);
     const DataType data_type = att->data_type();
     const uint32_t data_size = (std::max)(0, DataTypeLength(data_type));
     const uint32_t num_components = att->num_components();
@@ -345,7 +345,7 @@ bool KdTreeAttributesDecoder::DecodeDataNeededByPortableTransforms(
   }
 
   const int att_id = GetAttributeId(0);
-  PointAttribute *const att = GetDecoder()->point_cloud()->attribute(att_id);
+  PointAttribute* const att = GetDecoder()->point_cloud()->attribute(att_id);
   att->SetIdentityMapping();
   // Decode method
   uint8_t method;
@@ -393,7 +393,7 @@ bool KdTreeAttributesDecoder::DecodeDataNeededByPortableTransforms(
          static_cast<uint32_t>(attribute_index) < attribute_count;
          attribute_index += 1) {
       const int att_id = GetAttributeId(attribute_index);
-      PointAttribute *const attr =
+      PointAttribute* const attr =
           GetDecoder()->point_cloud()->attribute(att_id);
       attr->Reset(num_points);
       attr->SetIdentityMapping();
@@ -467,7 +467,7 @@ bool KdTreeAttributesDecoder::DecodeDataNeededByPortableTransforms(
 
 template <typename SignedDataTypeT>
 bool KdTreeAttributesDecoder::TransformAttributeBackToSignedType(
-    PointAttribute *att, int num_processed_signed_components) {
+    PointAttribute* att, int num_processed_signed_components) {
   typedef typename std::make_unsigned<SignedDataTypeT>::type UnsignedType;
   std::vector<UnsignedType> unsigned_val(att->num_components());
   std::vector<SignedDataTypeT> signed_val(att->num_components());
@@ -500,7 +500,7 @@ bool KdTreeAttributesDecoder::TransformAttributesToOriginalFormat() {
   // Dequantize attributes that needed it.
   for (int i = 0; i < GetNumAttributes(); ++i) {
     const int att_id = GetAttributeId(i);
-    PointAttribute *const att = GetDecoder()->point_cloud()->attribute(att_id);
+    PointAttribute* const att = GetDecoder()->point_cloud()->attribute(att_id);
     if (att->data_type() == DT_INT32 || att->data_type() == DT_INT16 ||
         att->data_type() == DT_INT8) {
       std::vector<uint32_t> unsigned_val(att->num_components());
@@ -527,11 +527,11 @@ bool KdTreeAttributesDecoder::TransformAttributesToOriginalFormat() {
       // TODO(ostava): This code should be probably moved out to attribute
       // transform and shared with the SequentialQuantizationAttributeDecoder.
 
-      const PointAttribute *const src_att =
+      const PointAttribute* const src_att =
           quantized_portable_attributes_[num_processed_quantized_attributes]
               .get();
 
-      const AttributeQuantizationTransform &transform =
+      const AttributeQuantizationTransform& transform =
           attribute_quantization_transforms_
               [num_processed_quantized_attributes];
 
@@ -560,8 +560,8 @@ bool KdTreeAttributesDecoder::TransformAttributesToOriginalFormat() {
       if (!dequantizer.Init(transform.range(), max_quantized_value)) {
         return false;
       }
-      const uint32_t *const portable_attribute_data =
-          reinterpret_cast<const uint32_t *>(
+      const uint32_t* const portable_attribute_data =
+          reinterpret_cast<const uint32_t*>(
               src_att->GetAddress(AttributeValueIndex(0)));
       for (uint32_t i = 0; i < src_att->size(); ++i) {
         for (int c = 0; c < num_components; ++c) {

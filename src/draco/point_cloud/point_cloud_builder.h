@@ -17,7 +17,13 @@
 
 #include <utility>
 
+#include "draco/attributes/geometry_indices.h"
+#include "draco/attributes/point_attribute.h"
 #include "draco/point_cloud/point_cloud.h"
+
+#ifdef DRACO_TRANSCODER_SUPPORTED
+#include "draco/core/status.h"
+#endif
 
 namespace draco {
 
@@ -57,14 +63,14 @@ class PointCloudBuilder {
   // |attribute_value| must contain data in the format specified by the
   // AddAttribute method.
   void SetAttributeValueForPoint(int att_id, PointIndex point_index,
-                                 const void *attribute_value);
+                                 const void* attribute_value);
 
   // Sets attribute values for all points. All the values must be stored in the
   // input |attribute_values| buffer. |stride| can be used to define the byte
   // offset between two consecutive attribute values. If |stride| is set to 0,
   // the stride is automatically computed based on the format of the given
   // attribute.
-  void SetAttributeValuesForAllPoints(int att_id, const void *attribute_values,
+  void SetAttributeValuesForAllPoints(int att_id, const void* attribute_values,
                                       int stride);
 
   // Sets the unique ID for an attribute created with AddAttribute().
@@ -72,7 +78,16 @@ class PointCloudBuilder {
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Sets attribute name.
-  void SetAttributeName(int att_id, const std::string &name);
+  void SetAttributeName(int att_id, const std::string& name);
+
+  template <typename InputT>
+  Status ConvertAndSetAttributeValueForPoint(int att_id, PointIndex point_index,
+                                             int input_num_components,
+                                             const InputT* attribute_value) {
+    PointAttribute* const att = point_cloud_->attribute(att_id);
+    return att->ConvertAndSetAttributeValue(
+        att->mapped_index(point_index), input_num_components, attribute_value);
+  }
 #endif  // DRACO_TRANSCODER_SUPPORTED
 
   // Finalizes the PointCloud or returns nullptr on error.

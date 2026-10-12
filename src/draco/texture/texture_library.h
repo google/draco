@@ -31,11 +31,11 @@ class TextureLibrary {
  public:
   // Copies textures from the source library to this library. Order of the
   // copied textures is preserved.
-  void Copy(const TextureLibrary &src);
+  void Copy(const TextureLibrary& src);
 
   // Appends all textures from the source library to this library. All textures
   // are copied over.
-  void Append(const TextureLibrary &src);
+  void Append(const TextureLibrary& src);
 
   // Removes all textures from the library.
   void Clear();
@@ -46,11 +46,11 @@ class TextureLibrary {
 
   size_t NumTextures() const { return textures_.size(); }
 
-  Texture *GetTexture(int index) { return textures_[index].get(); }
-  const Texture *GetTexture(int index) const { return textures_[index].get(); }
+  Texture* GetTexture(int index) { return textures_[index].get(); }
+  const Texture* GetTexture(int index) const { return textures_[index].get(); }
 
   // Returns a map from texture pointer to texture index for all textures.
-  std::unordered_map<const Texture *, int> ComputeTextureToIndexMap() const;
+  std::unordered_map<const Texture*, int> ComputeTextureToIndexMap() const;
 
   // Removes and returns a texture from the library. The returned texture can be
   // either used by the caller or ignored in which case it would be

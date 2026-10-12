@@ -27,14 +27,14 @@ class MetadataEncoder {
  public:
   MetadataEncoder() {}
 
-  bool EncodeGeometryMetadata(EncoderBuffer *out_buffer,
-                              const GeometryMetadata *metadata);
-  bool EncodeMetadata(EncoderBuffer *out_buffer, const Metadata *metadata);
+  bool EncodeGeometryMetadata(EncoderBuffer* out_buffer,
+                              const GeometryMetadata* metadata);
+  bool EncodeMetadata(EncoderBuffer* out_buffer, const Metadata* metadata);
 
  private:
-  bool EncodeAttributeMetadata(EncoderBuffer *out_buffer,
-                               const AttributeMetadata *metadata);
-  bool EncodeString(EncoderBuffer *out_buffer, const std::string &str);
+  bool EncodeAttributeMetadata(EncoderBuffer* out_buffer,
+                               const AttributeMetadata* metadata);
+  bool EncodeString(EncoderBuffer* out_buffer, const std::string& str);
 };
 }  // namespace draco
 

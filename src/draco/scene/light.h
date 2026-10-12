@@ -31,15 +31,15 @@ class Light {
 
   Light();
 
-  void Copy(const Light &light);
+  void Copy(const Light& light);
 
   // Name.
-  void SetName(const std::string &name) { name_ = name; }
-  const std::string &GetName() const { return name_; }
+  void SetName(const std::string& name) { name_ = name; }
+  const std::string& GetName() const { return name_; }
 
   // Color.
-  void SetColor(const Vector3f &color) { color_ = color; }
-  const Vector3f &GetColor() const { return color_; }
+  void SetColor(const Vector3f& color) { color_ = color; }
+  const Vector3f& GetColor() const { return color_; }
 
   // Intensity.
   void SetIntensity(double intensity) { intensity_ = intensity; }

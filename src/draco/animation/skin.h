@@ -31,10 +31,10 @@ class Skin {
  public:
   Skin() : joint_root_index_(-1) {}
 
-  void Copy(const Skin &s);
+  void Copy(const Skin& s);
 
-  NodeAnimationData &GetInverseBindMatrices() { return inverse_bind_matrices_; }
-  const NodeAnimationData &GetInverseBindMatrices() const {
+  NodeAnimationData& GetInverseBindMatrices() { return inverse_bind_matrices_; }
+  const NodeAnimationData& GetInverseBindMatrices() const {
     return inverse_bind_matrices_;
   }
 
@@ -44,8 +44,8 @@ class Skin {
   }
   int NumJoints() const { return joints_.size(); }
   SceneNodeIndex GetJoint(int index) const { return joints_[index]; }
-  SceneNodeIndex &GetJoint(int index) { return joints_[index]; }
-  const std::vector<SceneNodeIndex> &GetJoints() const { return joints_; }
+  SceneNodeIndex& GetJoint(int index) { return joints_[index]; }
+  const std::vector<SceneNodeIndex>& GetJoints() const { return joints_; }
 
   void SetJointRoot(SceneNodeIndex index) { joint_root_index_ = index; }
   SceneNodeIndex GetJointRoot() const { return joint_root_index_; }

@@ -260,7 +260,7 @@ TEST_F(TriangleSoupMeshBuilderTest, NormalizedColor) {
   EXPECT_EQ(mesh->num_points(), 4) << "Unexpected number of vertices.";
   EXPECT_EQ(mesh->num_faces(), 2) << "Unexpected number of faces.";
 
-  const auto *col_att =
+  const auto* col_att =
       mesh->GetNamedAttribute(draco::GeometryAttribute::COLOR);
   ASSERT_NE(col_att, nullptr) << "Missing color attribute.";
   ASSERT_EQ(col_att->size(), 4);

@@ -33,13 +33,13 @@ class MeshEdgebreakerTraversalPredictiveDecoder
         num_vertices_(0),
         last_symbol_(-1),
         predicted_symbol_(-1) {}
-  void Init(MeshEdgebreakerDecoderImplInterface *decoder) {
+  void Init(MeshEdgebreakerDecoderImplInterface* decoder) {
     MeshEdgebreakerTraversalDecoder::Init(decoder);
     corner_table_ = decoder->GetCornerTable();
   }
   void SetNumEncodedVertices(int num_vertices) { num_vertices_ = num_vertices; }
 
-  bool Start(DecoderBuffer *out_buffer) {
+  bool Start(DecoderBuffer* out_buffer) {
     if (!MeshEdgebreakerTraversalDecoder::Start(out_buffer)) {
       return false;
     }
@@ -120,7 +120,7 @@ class MeshEdgebreakerTraversalPredictiveDecoder
   }
 
  private:
-  const CornerTable *corner_table_;
+  const CornerTable* corner_table_;
   int num_vertices_;
   std::vector<int> vertex_valences_;
   BinaryDecoder prediction_decoder_;

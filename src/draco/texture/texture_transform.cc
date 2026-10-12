@@ -27,14 +27,14 @@ void TextureTransform::Clear() {
   tex_coord_ = TextureTransform::GetDefaultTexCoord();
 }
 
-void TextureTransform::Copy(const TextureTransform &src) {
+void TextureTransform::Copy(const TextureTransform& src) {
   offset_ = src.offset_;
   rotation_ = src.rotation_;
   scale_ = src.scale_;
   tex_coord_ = src.tex_coord_;
 }
 
-bool TextureTransform::IsDefault(const TextureTransform &tt) {
+bool TextureTransform::IsDefault(const TextureTransform& tt) {
   const TextureTransform defaults;
   if (tt == defaults) {
     return true;
@@ -58,7 +58,7 @@ bool TextureTransform::IsTexCoordSet() const {
   return tex_coord_ != TextureTransform::GetDefaultTexCoord();
 }
 
-bool TextureTransform::operator==(const TextureTransform &tt) const {
+bool TextureTransform::operator==(const TextureTransform& tt) const {
   if (tex_coord_ != tt.tex_coord_) {
     return false;
   }

@@ -18,8 +18,11 @@
 #include <string>
 #include <utility>
 
-#include "draco/core/draco_test_base.h"
-#include "draco/core/draco_test_utils.h"
+#include "draco/attributes/geometry_indices.h"
+#include "draco/core/data_buffer.h"
+#include "draco/core/draco_test_base.h"   // NOLINT(misc-include-cleaner)
+#include "draco/core/draco_test_utils.h"  // NOLINT(misc-include-cleaner)
+#include "draco/core/draco_types.h"
 #include "draco/io/file_reader_factory.h"
 #include "draco/io/file_reader_interface.h"
 #include "draco/io/stl_decoder.h"
@@ -28,7 +31,7 @@ namespace draco {
 
 class StlEncoderTest : public ::testing::Test {
  protected:
-  void CompareMeshes(const Mesh *mesh0, const Mesh *mesh1) {
+  void CompareMeshes(const Mesh* mesh0, const Mesh* mesh1) {
     ASSERT_EQ(mesh0->num_faces(), mesh1->num_faces());
     ASSERT_EQ(mesh0->num_attributes(), mesh1->num_attributes());
     for (size_t att_id = 0; att_id < mesh0->num_attributes(); ++att_id) {
@@ -45,7 +48,7 @@ class StlEncoderTest : public ::testing::Test {
   }
 
   // Encode a mesh using the StlEncoder and then decode to verify the encoding.
-  std::unique_ptr<Mesh> EncodeAndDecodeMesh(const Mesh *mesh) {
+  std::unique_ptr<Mesh> EncodeAndDecodeMesh(const Mesh* mesh) {
     EncoderBuffer encoder_buffer;
     StlEncoder encoder;
     Status status = encoder.EncodeToBuffer(*mesh, &encoder_buffer);
@@ -65,7 +68,7 @@ class StlEncoderTest : public ::testing::Test {
     return decoded_mesh;
   }
 
-  void test_encoding(const std::string &file_name) {
+  void test_encoding(const std::string& file_name) {
     const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name, true));
 
     ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
@@ -80,6 +83,43 @@ TEST_F(StlEncoderTest, TestStlEncoding) {
   // Test decoded mesh from encoded stl file stays the same.
   test_encoding("STL/bunny.stl");
   test_encoding("STL/test_sphere.stl");
+}
+
+TEST_F(StlEncoderTest, TestMalformedAttribute) {
+  // Test that encoding fails gracefully if an attribute has an invalid
+  // buffer.
+  Mesh mesh;
+  mesh.set_num_points(1);
+  mesh.SetNumFaces(1);
+
+  std::unique_ptr<DataBuffer> empty_buffer(new DataBuffer());
+  GeometryAttribute ga;
+  ga.Init(GeometryAttribute::POSITION, empty_buffer.get(), 3, DT_FLOAT32, false,
+          12, 0);
+  std::unique_ptr<PointAttribute> pa(new PointAttribute(ga));
+
+  // Explicitly don't allocate data for the point attribute,
+  // but map it so that it will be traversed by the encoder.
+  pa->SetExplicitMapping(1);
+  pa->SetPointMapEntry(PointIndex(0),
+                       AttributeValueIndex(0));  // NOLINT(misc-include-cleaner)
+
+  // Add attribute and get named ID
+  mesh.AddAttribute(std::move(pa));
+
+  // Set the face
+  Mesh::Face face;
+  face[0] = 0;
+  face[1] = 0;
+  face[2] = 0;
+  mesh.SetFace(FaceIndex(0), face);  // NOLINT(misc-include-cleaner)
+
+  StlEncoder encoder;
+  EncoderBuffer buffer;
+  Status status = encoder.EncodeToBuffer(mesh, &buffer);
+  ASSERT_FALSE(status.ok());  // NOLINT(misc-include-cleaner)
+  EXPECT_EQ(status.code(),
+            draco::Status::DRACO_ERROR);  // NOLINT(misc-include-cleaner)
 }
 
 }  // namespace draco

@@ -21,7 +21,7 @@
 namespace draco {
 
 // Will never return 1 or 0.
-uint64_t FingerprintString(const char *s, size_t len) {
+uint64_t FingerprintString(const char* s, size_t len) {
   const uint64_t seed = 0x87654321;
   const int hash_loop_count = static_cast<int>(len / 8) + 1;
   uint64_t hash = seed;

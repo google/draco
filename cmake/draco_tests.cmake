@@ -89,8 +89,10 @@ if(DRACO_TRANSCODER_SUPPORTED)
            "${draco_src_root}/io/texture_io_test.cc"
            "${draco_src_root}/material/material_library_test.cc"
            "${draco_src_root}/material/material_test.cc"
+           "${draco_src_root}/metadata/json_entity_test.cc"
            "${draco_src_root}/metadata/property_attribute_test.cc"
            "${draco_src_root}/metadata/property_table_test.cc"
+           "${draco_src_root}/metadata/property_texture_test.cc"
            "${draco_src_root}/metadata/structural_metadata_test.cc"
            "${draco_src_root}/metadata/structural_metadata_schema_test.cc"
            "${draco_src_root}/scene/instance_array_test.cc"
@@ -103,6 +105,13 @@ if(DRACO_TRANSCODER_SUPPORTED)
            "${draco_src_root}/texture/texture_library_test.cc"
            "${draco_src_root}/texture/texture_map_test.cc"
            "${draco_src_root}/texture/texture_transform_test.cc")
+
+  if(DRACO_PMC_SUPPORTED)
+    list(
+      APPEND draco_test_sources
+             "${draco_src_root}/compression/pmc/pmc_draco_mesh_codec_test.cc"
+             "${draco_src_root}/compression/pmc/pmc_utils_test.cc")
+  endif()
 
 endif()
 

@@ -19,7 +19,7 @@
 
 namespace draco {
 
-bool SceneAreEquivalent::operator()(const Scene &scene0, const Scene &scene1) {
+bool SceneAreEquivalent::operator()(const Scene& scene0, const Scene& scene1) {
   // Check scene component sizes.
   if (scene0.NumAnimations() != scene1.NumAnimations()) {
     return false;
@@ -61,13 +61,13 @@ bool SceneAreEquivalent::operator()(const Scene &scene0, const Scene &scene1) {
   return true;
 }
 
-bool SceneAreEquivalent::AreEquivalent(const Mesh &mesh0, const Mesh &mesh1) {
+bool SceneAreEquivalent::AreEquivalent(const Mesh& mesh0, const Mesh& mesh1) {
   MeshAreEquivalent eq;
   return eq(mesh0, mesh1);
 }
 
-bool SceneAreEquivalent::AreEquivalent(const SceneNode &node0,
-                                       const SceneNode &node1) {
+bool SceneAreEquivalent::AreEquivalent(const SceneNode& node0,
+                                       const SceneNode& node1) {
   // Check equivalence of node indices.
   if (node0.GetMeshGroupIndex() != node1.GetMeshGroupIndex()) {
     return false;

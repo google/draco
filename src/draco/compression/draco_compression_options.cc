@@ -31,14 +31,14 @@ bool SpatialQuantizationOptions::AreQuantizationBitsDefined() const {
   return mode_ == LOCAL_QUANTIZATION_BITS;
 }
 
-SpatialQuantizationOptions &SpatialQuantizationOptions::SetGrid(float spacing) {
+SpatialQuantizationOptions& SpatialQuantizationOptions::SetGrid(float spacing) {
   mode_ = GLOBAL_GRID;
   spacing_ = spacing;
   return *this;
 }
 
 bool SpatialQuantizationOptions::operator==(
-    const SpatialQuantizationOptions &other) const {
+    const SpatialQuantizationOptions& other) const {
   if (mode_ != other.mode_) {
     return false;
   }

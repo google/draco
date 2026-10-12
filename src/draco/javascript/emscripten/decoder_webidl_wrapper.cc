@@ -27,58 +27,58 @@ using draco::Status;
 
 MetadataQuerier::MetadataQuerier() : entry_names_metadata_(nullptr) {}
 
-bool MetadataQuerier::HasEntry(const Metadata &metadata,
-                               const char *entry_name) const {
+bool MetadataQuerier::HasEntry(const Metadata& metadata,
+                               const char* entry_name) const {
   return metadata.entries().count(entry_name) > 0;
 }
 
-long MetadataQuerier::GetIntEntry(const Metadata &metadata,
-                                  const char *entry_name) const {
+long MetadataQuerier::GetIntEntry(const Metadata& metadata,
+                                  const char* entry_name) const {
   int32_t value = 0;
   const std::string name(entry_name);
   metadata.GetEntryInt(name, &value);
   return value;
 }
 
-void MetadataQuerier::GetIntEntryArray(const draco::Metadata &metadata,
-                                       const char *entry_name,
-                                       DracoInt32Array *out_values) const {
+void MetadataQuerier::GetIntEntryArray(const draco::Metadata& metadata,
+                                       const char* entry_name,
+                                       DracoInt32Array* out_values) const {
   const std::string name(entry_name);
   std::vector<int32_t> values;
   metadata.GetEntryIntArray(name, &values);
   out_values->MoveData(std::move(values));
 }
 
-double MetadataQuerier::GetDoubleEntry(const Metadata &metadata,
-                                       const char *entry_name) const {
+double MetadataQuerier::GetDoubleEntry(const Metadata& metadata,
+                                       const char* entry_name) const {
   double value = 0;
   const std::string name(entry_name);
   metadata.GetEntryDouble(name, &value);
   return value;
 }
 
-const char *MetadataQuerier::GetStringEntry(const Metadata &metadata,
-                                            const char *entry_name) {
+const char* MetadataQuerier::GetStringEntry(const Metadata& metadata,
+                                            const char* entry_name) {
   const std::string name(entry_name);
   if (!metadata.GetEntryString(name, &last_string_returned_)) {
     return nullptr;
   }
 
-  const char *value = last_string_returned_.c_str();
+  const char* value = last_string_returned_.c_str();
   return value;
 }
 
-long MetadataQuerier::NumEntries(const Metadata &metadata) const {
+long MetadataQuerier::NumEntries(const Metadata& metadata) const {
   return metadata.num_entries();
 }
 
-const char *MetadataQuerier::GetEntryName(const Metadata &metadata,
+const char* MetadataQuerier::GetEntryName(const Metadata& metadata,
                                           int entry_id) {
   if (entry_names_metadata_ != &metadata) {
     entry_names_.clear();
     entry_names_metadata_ = &metadata;
     // Initialize the list of entry names.
-    for (auto &&entry : metadata.entries()) {
+    for (auto&& entry : metadata.entries()) {
       entry_names_.push_back(entry.first);
     }
   }
@@ -91,76 +91,76 @@ const char *MetadataQuerier::GetEntryName(const Metadata &metadata,
 Decoder::Decoder() {}
 
 draco_EncodedGeometryType Decoder::GetEncodedGeometryType_Deprecated(
-    DecoderBuffer *in_buffer) {
+    DecoderBuffer* in_buffer) {
   return draco::Decoder::GetEncodedGeometryType(in_buffer).value();
 }
 
-const Status *Decoder::DecodeBufferToPointCloud(DecoderBuffer *in_buffer,
-                                                PointCloud *out_point_cloud) {
+const Status* Decoder::DecodeBufferToPointCloud(DecoderBuffer* in_buffer,
+                                                PointCloud* out_point_cloud) {
   last_status_ = decoder_.DecodeBufferToGeometry(in_buffer, out_point_cloud);
   return &last_status_;
 }
 
-const draco::Status *Decoder::DecodeArrayToPointCloud(
-    const char *data, size_t data_size, PointCloud *out_point_cloud) {
+const draco::Status* Decoder::DecodeArrayToPointCloud(
+    const char* data, size_t data_size, PointCloud* out_point_cloud) {
   DecoderBuffer buffer;
   buffer.Init(data, data_size);
   return DecodeBufferToPointCloud(&buffer, out_point_cloud);
 }
 
-const Status *Decoder::DecodeBufferToMesh(DecoderBuffer *in_buffer,
-                                          Mesh *out_mesh) {
+const Status* Decoder::DecodeBufferToMesh(DecoderBuffer* in_buffer,
+                                          Mesh* out_mesh) {
   last_status_ = decoder_.DecodeBufferToGeometry(in_buffer, out_mesh);
   return &last_status_;
 }
 
-const draco::Status *Decoder::DecodeArrayToMesh(const char *data,
+const draco::Status* Decoder::DecodeArrayToMesh(const char* data,
                                                 size_t data_size,
-                                                Mesh *out_mesh) {
+                                                Mesh* out_mesh) {
   DecoderBuffer buffer;
   buffer.Init(data, data_size);
   return DecodeBufferToMesh(&buffer, out_mesh);
 }
 
-long Decoder::GetAttributeId(const PointCloud &pc,
+long Decoder::GetAttributeId(const PointCloud& pc,
                              draco_GeometryAttribute_Type type) const {
   return pc.GetNamedAttributeId(type);
 }
 
-const PointAttribute *Decoder::GetAttribute(const PointCloud &pc, long att_id) {
+const PointAttribute* Decoder::GetAttribute(const PointCloud& pc, long att_id) {
   return pc.attribute(att_id);
 }
 
-const PointAttribute *Decoder::GetAttributeByUniqueId(const PointCloud &pc,
+const PointAttribute* Decoder::GetAttributeByUniqueId(const PointCloud& pc,
                                                       long unique_id) {
   return pc.GetAttributeByUniqueId(unique_id);
 }
 
-long Decoder::GetAttributeIdByName(const PointCloud &pc,
-                                   const char *attribute_name) {
+long Decoder::GetAttributeIdByName(const PointCloud& pc,
+                                   const char* attribute_name) {
   const std::string entry_value(attribute_name);
   return pc.GetAttributeIdByMetadataEntry("name", entry_value);
 }
 
-long Decoder::GetAttributeIdByMetadataEntry(const PointCloud &pc,
-                                            const char *metadata_name,
-                                            const char *metadata_value) {
+long Decoder::GetAttributeIdByMetadataEntry(const PointCloud& pc,
+                                            const char* metadata_name,
+                                            const char* metadata_value) {
   const std::string entry_name(metadata_name);
   const std::string entry_value(metadata_value);
   return pc.GetAttributeIdByMetadataEntry(entry_name, entry_value);
 }
 
-bool Decoder::GetFaceFromMesh(const Mesh &m,
+bool Decoder::GetFaceFromMesh(const Mesh& m,
                               draco::FaceIndex::ValueType face_id,
-                              DracoInt32Array *out_values) {
-  const Mesh::Face &face = m.face(draco::FaceIndex(face_id));
-  const auto ptr = reinterpret_cast<const int32_t *>(face.data());
+                              DracoInt32Array* out_values) {
+  const Mesh::Face& face = m.face(draco::FaceIndex(face_id));
+  const auto ptr = reinterpret_cast<const int32_t*>(face.data());
   out_values->MoveData(std::vector<int32_t>({ptr, ptr + face.size()}));
   return true;
 }
 
-long Decoder::GetTriangleStripsFromMesh(const Mesh &m,
-                                        DracoInt32Array *strip_values) {
+long Decoder::GetTriangleStripsFromMesh(const Mesh& m,
+                                        DracoInt32Array* strip_values) {
   draco::MeshStripifier stripifier;
   std::vector<int32_t> strip_indices;
   if (!stripifier.GenerateTriangleStripsWithDegenerateTriangles(
@@ -172,15 +172,15 @@ long Decoder::GetTriangleStripsFromMesh(const Mesh &m,
 }
 
 template <typename T>
-bool GetTrianglesArray(const draco::Mesh &m, const int out_size,
-                       T *out_values) {
+bool GetTrianglesArray(const draco::Mesh& m, const int out_size,
+                       T* out_values) {
   const uint32_t num_faces = m.num_faces();
   if (num_faces * 3 * sizeof(T) != out_size) {
     return false;
   }
 
   for (uint32_t face_id = 0; face_id < num_faces; ++face_id) {
-    const Mesh::Face &face = m.face(draco::FaceIndex(face_id));
+    const Mesh::Face& face = m.face(draco::FaceIndex(face_id));
     out_values[face_id * 3 + 0] = static_cast<T>(face[0].value());
     out_values[face_id * 3 + 1] = static_cast<T>(face[1].value());
     out_values[face_id * 3 + 2] = static_cast<T>(face[2].value());
@@ -188,24 +188,24 @@ bool GetTrianglesArray(const draco::Mesh &m, const int out_size,
   return true;
 }
 
-bool Decoder::GetTrianglesUInt16Array(const draco::Mesh &m, int out_size,
-                                      void *out_values) {
+bool Decoder::GetTrianglesUInt16Array(const draco::Mesh& m, int out_size,
+                                      void* out_values) {
   if (m.num_points() > std::numeric_limits<uint16_t>::max()) {
     return false;
   }
   return GetTrianglesArray<uint16_t>(m, out_size,
-                                     reinterpret_cast<uint16_t *>(out_values));
+                                     reinterpret_cast<uint16_t*>(out_values));
 }
 
-bool Decoder::GetTrianglesUInt32Array(const draco::Mesh &m, int out_size,
-                                      void *out_values) {
+bool Decoder::GetTrianglesUInt32Array(const draco::Mesh& m, int out_size,
+                                      void* out_values) {
   return GetTrianglesArray<uint32_t>(m, out_size,
-                                     reinterpret_cast<uint32_t *>(out_values));
+                                     reinterpret_cast<uint32_t*>(out_values));
 }
 
-bool Decoder::GetAttributeFloat(const PointAttribute &pa,
+bool Decoder::GetAttributeFloat(const PointAttribute& pa,
                                 draco::AttributeValueIndex::ValueType val_index,
-                                DracoFloat32Array *out_values) {
+                                DracoFloat32Array* out_values) {
   const int kMaxAttributeFloatValues = 4;
   const int components = pa.num_components();
   float values[kMaxAttributeFloatValues] = {-2.0, -2.0, -2.0, -2.0};
@@ -215,9 +215,9 @@ bool Decoder::GetAttributeFloat(const PointAttribute &pa,
   return true;
 }
 
-bool Decoder::GetAttributeFloatForAllPoints(const PointCloud &pc,
-                                            const PointAttribute &pa,
-                                            DracoFloat32Array *out_values) {
+bool Decoder::GetAttributeFloatForAllPoints(const PointCloud& pc,
+                                            const PointAttribute& pa,
+                                            DracoFloat32Array* out_values) {
   const int components = pa.num_components();
   const int num_points = pc.num_points();
   const int num_entries = num_points * components;
@@ -237,10 +237,10 @@ bool Decoder::GetAttributeFloatForAllPoints(const PointCloud &pc,
   return true;
 }
 
-bool Decoder::GetAttributeFloatArrayForAllPoints(const PointCloud &pc,
-                                                 const PointAttribute &pa,
+bool Decoder::GetAttributeFloatArrayForAllPoints(const PointCloud& pc,
+                                                 const PointAttribute& pa,
                                                  int out_size,
-                                                 void *out_values) {
+                                                 void* out_values) {
   const int components = pa.num_components();
   const int num_points = pc.num_points();
   const int data_size = num_points * components * sizeof(float);
@@ -250,7 +250,7 @@ bool Decoder::GetAttributeFloatArrayForAllPoints(const PointCloud &pc,
   const bool requested_type_is_float = pa.data_type() == draco::DT_FLOAT32;
   std::vector<float> values(components, -2.f);
   int entry_id = 0;
-  float *const floats = reinterpret_cast<float *>(out_values);
+  float* const floats = reinterpret_cast<float*>(out_values);
 
   for (draco::PointIndex i(0); i < num_points; ++i) {
     const draco::AttributeValueIndex val_index = pa.mapped_index(i);
@@ -268,59 +268,59 @@ bool Decoder::GetAttributeFloatArrayForAllPoints(const PointCloud &pc,
   return true;
 }
 
-bool Decoder::GetAttributeInt8ForAllPoints(const PointCloud &pc,
-                                           const PointAttribute &pa,
-                                           DracoInt8Array *out_values) {
+bool Decoder::GetAttributeInt8ForAllPoints(const PointCloud& pc,
+                                           const PointAttribute& pa,
+                                           DracoInt8Array* out_values) {
   return GetAttributeDataForAllPoints<DracoInt8Array, int8_t>(
       pc, pa, draco::DT_INT8, draco::DT_UINT8, out_values);
 }
 
-bool Decoder::GetAttributeUInt8ForAllPoints(const PointCloud &pc,
-                                            const PointAttribute &pa,
-                                            DracoUInt8Array *out_values) {
+bool Decoder::GetAttributeUInt8ForAllPoints(const PointCloud& pc,
+                                            const PointAttribute& pa,
+                                            DracoUInt8Array* out_values) {
   return GetAttributeDataForAllPoints<DracoUInt8Array, uint8_t>(
       pc, pa, draco::DT_INT8, draco::DT_UINT8, out_values);
 }
 
-bool Decoder::GetAttributeInt16ForAllPoints(const PointCloud &pc,
-                                            const PointAttribute &pa,
-                                            DracoInt16Array *out_values) {
+bool Decoder::GetAttributeInt16ForAllPoints(const PointCloud& pc,
+                                            const PointAttribute& pa,
+                                            DracoInt16Array* out_values) {
   return GetAttributeDataForAllPoints<DracoInt16Array, int16_t>(
       pc, pa, draco::DT_INT16, draco::DT_UINT16, out_values);
 }
 
-bool Decoder::GetAttributeUInt16ForAllPoints(const PointCloud &pc,
-                                             const PointAttribute &pa,
-                                             DracoUInt16Array *out_values) {
+bool Decoder::GetAttributeUInt16ForAllPoints(const PointCloud& pc,
+                                             const PointAttribute& pa,
+                                             DracoUInt16Array* out_values) {
   return GetAttributeDataForAllPoints<DracoUInt16Array, uint16_t>(
       pc, pa, draco::DT_INT16, draco::DT_UINT16, out_values);
 }
 
-bool Decoder::GetAttributeInt32ForAllPoints(const PointCloud &pc,
-                                            const PointAttribute &pa,
-                                            DracoInt32Array *out_values) {
+bool Decoder::GetAttributeInt32ForAllPoints(const PointCloud& pc,
+                                            const PointAttribute& pa,
+                                            DracoInt32Array* out_values) {
   return GetAttributeDataForAllPoints<DracoInt32Array, int32_t>(
       pc, pa, draco::DT_INT32, draco::DT_UINT32, out_values);
 }
 
-bool Decoder::GetAttributeIntForAllPoints(const PointCloud &pc,
-                                          const PointAttribute &pa,
-                                          DracoInt32Array *out_values) {
+bool Decoder::GetAttributeIntForAllPoints(const PointCloud& pc,
+                                          const PointAttribute& pa,
+                                          DracoInt32Array* out_values) {
   return GetAttributeInt32ForAllPoints(pc, pa, out_values);
 }
 
-bool Decoder::GetAttributeUInt32ForAllPoints(const PointCloud &pc,
-                                             const PointAttribute &pa,
-                                             DracoUInt32Array *out_values) {
+bool Decoder::GetAttributeUInt32ForAllPoints(const PointCloud& pc,
+                                             const PointAttribute& pa,
+                                             DracoUInt32Array* out_values) {
   return GetAttributeDataForAllPoints<DracoUInt32Array, uint32_t>(
       pc, pa, draco::DT_INT32, draco::DT_UINT32, out_values);
 }
 
-bool Decoder::GetAttributeDataArrayForAllPoints(const draco::PointCloud &pc,
-                                                const draco::PointAttribute &pa,
+bool Decoder::GetAttributeDataArrayForAllPoints(const draco::PointCloud& pc,
+                                                const draco::PointAttribute& pa,
                                                 draco_DataType data_type,
                                                 int out_size,
-                                                void *out_values) {
+                                                void* out_values) {
   switch (data_type) {
     case draco::DT_INT8:
       return GetAttributeDataArrayForAllPoints<int8_t>(pc, pa, draco::DT_INT8,
@@ -351,11 +351,11 @@ void Decoder::SkipAttributeTransform(draco_GeometryAttribute_Type att_type) {
   decoder_.SetSkipAttributeTransform(att_type);
 }
 
-const Metadata *Decoder::GetMetadata(const PointCloud &pc) const {
+const Metadata* Decoder::GetMetadata(const PointCloud& pc) const {
   return pc.GetMetadata();
 }
 
-const Metadata *Decoder::GetAttributeMetadata(const PointCloud &pc,
+const Metadata* Decoder::GetAttributeMetadata(const PointCloud& pc,
                                               long att_id) const {
   return pc.GetAttributeMetadataByAttributeId(att_id);
 }

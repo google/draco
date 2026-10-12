@@ -22,8 +22,8 @@ namespace draco {
 
 MetadataDecoder::MetadataDecoder() : buffer_(nullptr) {}
 
-bool MetadataDecoder::DecodeMetadata(DecoderBuffer *in_buffer,
-                                     Metadata *metadata) {
+bool MetadataDecoder::DecodeMetadata(DecoderBuffer* in_buffer,
+                                     Metadata* metadata) {
   if (!metadata) {
     return false;
   }
@@ -31,8 +31,8 @@ bool MetadataDecoder::DecodeMetadata(DecoderBuffer *in_buffer,
   return DecodeMetadata(metadata);
 }
 
-bool MetadataDecoder::DecodeGeometryMetadata(DecoderBuffer *in_buffer,
-                                             GeometryMetadata *metadata) {
+bool MetadataDecoder::DecodeGeometryMetadata(DecoderBuffer* in_buffer,
+                                             GeometryMetadata* metadata) {
   if (!metadata) {
     return false;
   }
@@ -50,21 +50,21 @@ bool MetadataDecoder::DecodeGeometryMetadata(DecoderBuffer *in_buffer,
     std::unique_ptr<AttributeMetadata> att_metadata =
         std::unique_ptr<AttributeMetadata>(new AttributeMetadata());
     att_metadata->set_att_unique_id(att_unique_id);
-    if (!DecodeMetadata(static_cast<Metadata *>(att_metadata.get()))) {
+    if (!DecodeMetadata(static_cast<Metadata*>(att_metadata.get()))) {
       return false;
     }
     metadata->AddAttributeMetadata(std::move(att_metadata));
   }
-  return DecodeMetadata(static_cast<Metadata *>(metadata));
+  return DecodeMetadata(static_cast<Metadata*>(metadata));
 }
 
-bool MetadataDecoder::DecodeMetadata(Metadata *metadata) {
+bool MetadataDecoder::DecodeMetadata(Metadata* metadata) {
   // Limit metadata nesting depth to avoid stack overflow in destructor.
   constexpr int kMaxSubmetadataLevel = 1000;
 
   struct MetadataTuple {
-    Metadata *parent_metadata;
-    Metadata *decoded_metadata;
+    Metadata* parent_metadata;
+    Metadata* decoded_metadata;
     int level;
   };
   std::vector<MetadataTuple> metadata_stack;
@@ -119,7 +119,7 @@ bool MetadataDecoder::DecodeMetadata(Metadata *metadata) {
   return true;
 }
 
-bool MetadataDecoder::DecodeEntry(Metadata *metadata) {
+bool MetadataDecoder::DecodeEntry(Metadata* metadata) {
   std::string entry_name;
   if (!DecodeName(&entry_name)) {
     return false;
@@ -142,7 +142,7 @@ bool MetadataDecoder::DecodeEntry(Metadata *metadata) {
   return true;
 }
 
-bool MetadataDecoder::DecodeName(std::string *name) {
+bool MetadataDecoder::DecodeName(std::string* name) {
   uint8_t name_len = 0;
   if (!buffer_->Decode(&name_len)) {
     return false;

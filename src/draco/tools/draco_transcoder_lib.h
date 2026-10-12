@@ -15,6 +15,8 @@
 #ifndef DRACO_TOOLS_DRACO_TRANSCODER_LIB_H_
 #define DRACO_TOOLS_DRACO_TRANSCODER_LIB_H_
 
+#include <memory>
+
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
@@ -65,24 +67,24 @@ class DracoTranscoder {
   // Creates a DracoTranscoder object. |options| sets the compression options
   // used in the Encode function.
   static StatusOr<std::unique_ptr<DracoTranscoder>> Create(
-      const DracoTranscodingOptions &options);
+      const DracoTranscodingOptions& options);
 
   // Deprecated.
   // TODO(fgalligan): Remove when function is not being used anymore.
   static StatusOr<std::unique_ptr<DracoTranscoder>> Create(
-      const DracoCompressionOptions &options);
+      const DracoCompressionOptions& options);
 
   // Encodes the input with Draco compression using the compression options
   // passed in the Create function. The recommended use case is to create a
   // transcoder once and call Transcode for multiple files.
-  Status Transcode(const FileOptions &file_options);
+  Status Transcode(const FileOptions& file_options);
 
  private:
   // Read scene from file.
-  Status ReadScene(const FileOptions &file_options);
+  Status ReadScene(const FileOptions& file_options);
 
   // Write scene to file.
-  Status WriteScene(const FileOptions &file_options);
+  Status WriteScene(const FileOptions& file_options);
 
   // Apply compression settings to the scene.
   Status CompressScene();
@@ -97,6 +99,11 @@ class DracoTranscoder {
   DracoTranscodingOptions transcoding_options_;
 };
 
+// Encodes the input with Draco compression using the default compression
+// options. Also allows to specify the output format for the textures.
+void TranscodeGeometryAndTextures(std::string input_file,
+                                  std::string output_file,
+                                  std::string format_name);
 }  // namespace draco
 
 #endif  // DRACO_TRANSCODER_SUPPORTED

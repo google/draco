@@ -20,7 +20,7 @@ namespace {
 
 class PointAttributeTest : public ::testing::Test {
  protected:
-  PointAttributeTest() {}
+  PointAttributeTest() = default;
 };
 
 TEST_F(PointAttributeTest, TestCopy) {

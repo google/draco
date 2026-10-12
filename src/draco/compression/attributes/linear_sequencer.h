@@ -25,7 +25,7 @@ class LinearSequencer : public PointsSequencer {
  public:
   explicit LinearSequencer(int32_t num_points) : num_points_(num_points) {}
 
-  bool UpdatePointToAttributeIndexMapping(PointAttribute *attribute) override {
+  bool UpdatePointToAttributeIndexMapping(PointAttribute* attribute) override {
     attribute->SetIdentityMapping();
     return true;
   }

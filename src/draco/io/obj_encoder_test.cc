@@ -28,7 +28,7 @@ namespace draco {
 
 class ObjEncoderTest : public ::testing::Test {
  protected:
-  void CompareMeshes(const Mesh *mesh0, const Mesh *mesh1) {
+  void CompareMeshes(const Mesh* mesh0, const Mesh* mesh1) {
     ASSERT_NE(mesh0, nullptr);
     ASSERT_NE(mesh1, nullptr);
     ASSERT_EQ(mesh0->num_faces(), mesh1->num_faces());
@@ -40,7 +40,7 @@ class ObjEncoderTest : public ::testing::Test {
   }
 
   // Encode a mesh using the ObjEncoder and then decode to verify the encoding.
-  std::unique_ptr<Mesh> EncodeAndDecodeMesh(const Mesh *mesh) {
+  std::unique_ptr<Mesh> EncodeAndDecodeMesh(const Mesh* mesh) {
     EncoderBuffer encoder_buffer;
     ObjEncoder encoder;
     if (!encoder.EncodeToBuffer(*mesh, &encoder_buffer)) {
@@ -58,7 +58,7 @@ class ObjEncoderTest : public ::testing::Test {
     return decoded_mesh;
   }
 
-  void test_encoding(const std::string &file_name) {
+  void test_encoding(const std::string& file_name) {
     const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name, true));
 
     ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
@@ -80,7 +80,7 @@ TEST_F(ObjEncoderTest, HasMaterial) {
   ASSERT_EQ(mesh0->num_attributes(), mesh1->num_attributes());
   // Position attribute should be the same.
   ASSERT_EQ(mesh0->attribute(0)->size(), mesh1->attribute(0)->size());
-  // Since |mesh1| is decoded from buffer, it has not material file. So the
+  // Since |mesh1| is decoded from buffer, it has no material file. So the
   // size of material attribute is the number of materials used in the obj
   // file which is 7. The size of material attribute of |mesh0| decoded from
   // the obj file will be the number of materials defined in the .mtl file.

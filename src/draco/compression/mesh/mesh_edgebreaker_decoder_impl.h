@@ -52,18 +52,18 @@ template <class TraversalDecoderT>
 class MeshEdgebreakerDecoderImpl : public MeshEdgebreakerDecoderImplInterface {
  public:
   MeshEdgebreakerDecoderImpl();
-  bool Init(MeshEdgebreakerDecoder *decoder) override;
+  bool Init(MeshEdgebreakerDecoder* decoder) override;
 
-  const MeshAttributeCornerTable *GetAttributeCornerTable(
+  const MeshAttributeCornerTable* GetAttributeCornerTable(
       int att_id) const override;
-  const MeshAttributeIndicesEncodingData *GetAttributeEncodingData(
+  const MeshAttributeIndicesEncodingData* GetAttributeEncodingData(
       int att_id) const override;
 
   bool CreateAttributesDecoder(int32_t att_decoder_id) override;
   bool DecodeConnectivity() override;
   bool OnAttributesDecoded() override;
-  MeshEdgebreakerDecoder *GetDecoder() const override { return decoder_; }
-  const CornerTable *GetCornerTable() const override {
+  MeshEdgebreakerDecoder* GetDecoder() const override { return decoder_; }
+  const CornerTable* GetCornerTable() const override {
     return corner_table_.get();
   }
 
@@ -71,7 +71,7 @@ class MeshEdgebreakerDecoderImpl : public MeshEdgebreakerDecoderImplInterface {
   // Creates a vertex traversal sequencer for the specified |TraverserT| type.
   template <class TraverserT>
   std::unique_ptr<PointsSequencer> CreateVertexTraversalSequencer(
-      MeshAttributeIndicesEncodingData *encoding_data);
+      MeshAttributeIndicesEncodingData* encoding_data);
 
   // Decodes connectivity between vertices (vertex indices).
   // Returns the number of vertices created by the decoder or -1 on error.
@@ -82,8 +82,8 @@ class MeshEdgebreakerDecoderImpl : public MeshEdgebreakerDecoderImplInterface {
   // encoded with the TOPOLOGY_S symbol. |out_symbol_edge| can be used to
   // identify which edge of the source symbol was connected to the TOPOLOGY_S
   // symbol.
-  bool IsTopologySplit(int encoder_symbol_id, EdgeFaceName *out_face_edge,
-                       int *out_encoder_split_symbol_id) {
+  bool IsTopologySplit(int encoder_symbol_id, EdgeFaceName* out_face_edge,
+                       int* out_encoder_split_symbol_id) {
     if (topology_split_data_.size() == 0) {
       return false;
     }
@@ -111,7 +111,7 @@ class MeshEdgebreakerDecoderImpl : public MeshEdgebreakerDecoderImplInterface {
   // Decodes event data for hole and topology split events and stores them for
   // future use.
   // Returns the number of parsed bytes, or -1 on error.
-  int32_t DecodeHoleAndTopologySplitEvents(DecoderBuffer *decoder_buffer);
+  int32_t DecodeHoleAndTopologySplitEvents(DecoderBuffer* decoder_buffer);
 
   // Decodes all non-position attribute connectivity on the currently
   // processed face.
@@ -135,7 +135,7 @@ class MeshEdgebreakerDecoderImpl : public MeshEdgebreakerDecoderImplInterface {
     corner_table_->SetOppositeCorner(corner_1, corner_0);
   }
 
-  MeshEdgebreakerDecoder *decoder_;
+  MeshEdgebreakerDecoder* decoder_;
 
   std::unique_ptr<CornerTable> corner_table_;
 

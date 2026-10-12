@@ -38,7 +38,7 @@ class PredictionSchemeEncodingTransform {
   // Performs any custom initialization of the transform for the encoder.
   // |size| = total number of values in |orig_data| (i.e., number of entries *
   // number of components).
-  void Init(const DataTypeT * /* orig_data */, int /* size */,
+  void Init(const DataTypeT* /* orig_data */, int /* size */,
             int num_components) {
     num_components_ = num_components;
   }
@@ -48,9 +48,9 @@ class PredictionSchemeEncodingTransform {
   // of the input element. |val_id| is the id of the input value
   // (i.e., element_id * num_components). The default implementation is equal to
   // std::minus.
-  inline void ComputeCorrection(const DataTypeT *original_vals,
-                                const DataTypeT *predicted_vals,
-                                CorrTypeT *out_corr_vals) {
+  inline void ComputeCorrection(const DataTypeT* original_vals,
+                                const DataTypeT* predicted_vals,
+                                CorrTypeT* out_corr_vals) {
     static_assert(std::is_same<DataTypeT, CorrTypeT>::value,
                   "For the default prediction transform, correction and input "
                   "data must be of the same type.");
@@ -60,7 +60,7 @@ class PredictionSchemeEncodingTransform {
   }
 
   // Encode any transform specific data.
-  bool EncodeTransformData(EncoderBuffer * /* buffer */) { return true; }
+  bool EncodeTransformData(EncoderBuffer* /* buffer */) { return true; }
 
   // Should return true if all corrected values are guaranteed to be positive.
   bool AreCorrectionsPositive() const { return false; }

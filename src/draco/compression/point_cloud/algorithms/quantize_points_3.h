@@ -29,8 +29,8 @@ struct QuantizationInfo {
 };
 
 template <class PointIterator, class OutputIterator>
-OutputIterator QuantizePoints3(const PointIterator &begin,
-                               const PointIterator &end, QuantizationInfo *info,
+OutputIterator QuantizePoints3(const PointIterator& begin,
+                               const PointIterator& end, QuantizationInfo* info,
                                OutputIterator oit) {
   DRACO_DCHECK_GE(info->quantization_bits, 0);
 
@@ -59,8 +59,8 @@ OutputIterator QuantizePoints3(const PointIterator &begin,
 }
 
 template <class QPointIterator, class OutputIterator>
-void DequantizePoints3(const QPointIterator &begin, const QPointIterator &end,
-                       const QuantizationInfo &info, OutputIterator &oit) {
+void DequantizePoints3(const QPointIterator& begin, const QPointIterator& end,
+                       const QuantizationInfo& info, OutputIterator& oit) {
   DRACO_DCHECK_GE(info.quantization_bits, 0);
   DRACO_DCHECK_GE(info.range, 0);
 

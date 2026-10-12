@@ -35,9 +35,9 @@ class SequentialAttributeEncodersController : public AttributesEncoder {
   SequentialAttributeEncodersController(
       std::unique_ptr<PointsSequencer> sequencer, int point_attrib_id);
 
-  bool Init(PointCloudEncoder *encoder, const PointCloud *pc) override;
-  bool EncodeAttributesEncoderData(EncoderBuffer *out_buffer) override;
-  bool EncodeAttributes(EncoderBuffer *buffer) override;
+  bool Init(PointCloudEncoder* encoder, const PointCloud* pc) override;
+  bool EncodeAttributesEncoderData(EncoderBuffer* out_buffer) override;
+  bool EncodeAttributes(EncoderBuffer* buffer) override;
   uint8_t GetUniqueId() const override { return BASIC_ATTRIBUTE_ENCODER; }
 
   int NumParentAttributes(int32_t point_attribute_id) const override {
@@ -76,7 +76,7 @@ class SequentialAttributeEncodersController : public AttributesEncoder {
     return true;
   }
 
-  const PointAttribute *GetPortableAttribute(
+  const PointAttribute* GetPortableAttribute(
       int32_t point_attribute_id) override {
     const int32_t loc_id = GetLocalIdForPointAttribute(point_attribute_id);
     if (loc_id < 0) {
@@ -87,8 +87,8 @@ class SequentialAttributeEncodersController : public AttributesEncoder {
 
  protected:
   bool TransformAttributesToPortableFormat() override;
-  bool EncodePortableAttributes(EncoderBuffer *out_buffer) override;
-  bool EncodeDataNeededByPortableTransforms(EncoderBuffer *out_buffer) override;
+  bool EncodePortableAttributes(EncoderBuffer* out_buffer) override;
+  bool EncodeDataNeededByPortableTransforms(EncoderBuffer* out_buffer) override;
 
   // Creates all sequential encoders (one for each attribute associated with the
   // encoder).

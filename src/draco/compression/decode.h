@@ -34,29 +34,29 @@ class Decoder {
   // The decoded geometry type can be used to choose an appropriate decoding
   // function for a given geometry type (see below).
   static StatusOr<EncodedGeometryType> GetEncodedGeometryType(
-      DecoderBuffer *in_buffer);
+      DecoderBuffer* in_buffer);
 
   // Decodes point cloud from the provided buffer. The buffer must be filled
   // with data that was encoded with either the EncodePointCloudToBuffer or
   // EncodeMeshToBuffer methods in encode.h. In case the input buffer contains
   // mesh, the returned instance can be down-casted to Mesh.
   StatusOr<std::unique_ptr<PointCloud>> DecodePointCloudFromBuffer(
-      DecoderBuffer *in_buffer);
+      DecoderBuffer* in_buffer);
 
   // Decodes a triangular mesh from the provided buffer. The mesh must be filled
   // with data that was encoded using the EncodeMeshToBuffer method in encode.h.
   // The function will return nullptr in case the input is invalid or if it was
   // encoded with the EncodePointCloudToBuffer method.
   StatusOr<std::unique_ptr<Mesh>> DecodeMeshFromBuffer(
-      DecoderBuffer *in_buffer);
+      DecoderBuffer* in_buffer);
 
   // Decodes the buffer into a provided geometry. If the geometry is
   // incompatible with the encoded data. For example, when |out_geometry| is
   // draco::Mesh while the data contains a point cloud, the function will return
   // an error status.
-  Status DecodeBufferToGeometry(DecoderBuffer *in_buffer,
-                                PointCloud *out_geometry);
-  Status DecodeBufferToGeometry(DecoderBuffer *in_buffer, Mesh *out_geometry);
+  Status DecodeBufferToGeometry(DecoderBuffer* in_buffer,
+                                PointCloud* out_geometry);
+  Status DecodeBufferToGeometry(DecoderBuffer* in_buffer, Mesh* out_geometry);
 
   // When set, the decoder is going to skip attribute transform for a given
   // attribute type. For example for quantized attributes, the decoder would
@@ -69,7 +69,7 @@ class Decoder {
 
   // Returns the options instance used by the decoder that can be used by users
   // to control the decoding process.
-  DecoderOptions *options() { return &options_; }
+  DecoderOptions* options() { return &options_; }
 
  private:
   DecoderOptions options_;

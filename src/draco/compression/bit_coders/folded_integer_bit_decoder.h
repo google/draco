@@ -30,7 +30,7 @@ class FoldedBit32Decoder {
   ~FoldedBit32Decoder() {}
 
   // Sets |source_buffer| as the buffer to decode bits from.
-  bool StartDecoding(DecoderBuffer *source_buffer) {
+  bool StartDecoding(DecoderBuffer* source_buffer) {
     for (int i = 0; i < 32; i++) {
       if (!folded_number_decoders_[i].StartDecoding(source_buffer)) {
         return false;
@@ -44,7 +44,7 @@ class FoldedBit32Decoder {
 
   // Decode the next |nbits| and return the sequence in |value|. |nbits| must be
   // > 0 and <= 32.
-  void DecodeLeastSignificantBits32(int nbits, uint32_t *value) {
+  void DecodeLeastSignificantBits32(int nbits, uint32_t* value) {
     uint32_t result = 0;
     for (int i = 0; i < nbits; ++i) {
       const bool bit = folded_number_decoders_[i].DecodeNextBit();

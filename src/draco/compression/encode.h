@@ -41,16 +41,16 @@ class Encoder
   virtual ~Encoder() {}
 
   // Encodes a point cloud to the provided buffer.
-  virtual Status EncodePointCloudToBuffer(const PointCloud &pc,
-                                          EncoderBuffer *out_buffer);
+  virtual Status EncodePointCloudToBuffer(const PointCloud& pc,
+                                          EncoderBuffer* out_buffer);
 
   // Encodes a mesh to the provided buffer.
-  virtual Status EncodeMeshToBuffer(const Mesh &m, EncoderBuffer *out_buffer);
+  virtual Status EncodeMeshToBuffer(const Mesh& m, EncoderBuffer* out_buffer);
 
   // Set encoder options used during the geometry encoding. Note that this call
   // overwrites any modifications to the options done with the functions below,
   // i.e., it resets the encoder.
-  void Reset(const EncoderOptionsBase<GeometryAttribute::Type> &options);
+  void Reset(const EncoderOptionsBase<GeometryAttribute::Type>& options);
   void Reset();
 
   // Sets the desired encoding and decoding speed for the given options.
@@ -82,7 +82,7 @@ class Encoder
   // <origin, origin + range>).
   void SetAttributeExplicitQuantization(GeometryAttribute::Type type,
                                         int quantization_bits, int num_dims,
-                                        const float *origin, float range);
+                                        const float* origin, float range);
 
   // Sets the desired prediction method for a given attribute. By default,
   // prediction scheme is selected automatically by the encoder using other
@@ -131,7 +131,7 @@ class Encoder
 
   // Creates encoder options for the expert encoder used during the actual
   // encoding.
-  EncoderOptions CreateExpertEncoderOptions(const PointCloud &pc) const;
+  EncoderOptions CreateExpertEncoderOptions(const PointCloud& pc) const;
 };
 
 }  // namespace draco

@@ -348,7 +348,6 @@ list(
   APPEND draco_core_sources
          "${draco_src_root}/core/bit_utils.cc"
          "${draco_src_root}/core/bit_utils.h"
-         "${draco_src_root}/core/bounding_box.cc"
          "${draco_src_root}/core/bounding_box.h"
          "${draco_src_root}/core/constants.h"
          "${draco_src_root}/core/cycle_timer.cc"
@@ -368,6 +367,7 @@ list(
          "${draco_src_root}/core/encoder_buffer.h"
          "${draco_src_root}/core/hash_utils.cc"
          "${draco_src_root}/core/hash_utils.h"
+         "${draco_src_root}/core/int_utils.h"
          "${draco_src_root}/core/macros.h"
          "${draco_src_root}/core/math_utils.h"
          "${draco_src_root}/core/options.cc"
@@ -480,12 +480,16 @@ list(
   APPEND draco_metadata_sources
          "${draco_src_root}/metadata/geometry_metadata.cc"
          "${draco_src_root}/metadata/geometry_metadata.h"
+         "${draco_src_root}/metadata/json_entity.cc"
+         "${draco_src_root}/metadata/json_entity.h"
          "${draco_src_root}/metadata/metadata.cc"
          "${draco_src_root}/metadata/metadata.h"
          "${draco_src_root}/metadata/property_attribute.cc"
          "${draco_src_root}/metadata/property_attribute.h"
          "${draco_src_root}/metadata/property_table.cc"
          "${draco_src_root}/metadata/property_table.h"
+         "${draco_src_root}/metadata/property_texture.cc"
+         "${draco_src_root}/metadata/property_texture.h"
          "${draco_src_root}/metadata/structural_metadata.cc"
          "${draco_src_root}/metadata/structural_metadata.h"
          "${draco_src_root}/metadata/structural_metadata_schema.cc"
@@ -521,20 +525,6 @@ list(
   APPEND draco_js_enc_sources
          "${draco_src_root}/javascript/emscripten/draco_encoder_glue_wrapper.cc"
          "${draco_src_root}/javascript/emscripten/encoder_webidl_wrapper.cc")
-
-list(
-  APPEND
-    draco_animation_js_dec_sources
-    "${draco_src_root}/javascript/emscripten/animation_decoder_webidl_wrapper.cc"
-    "${draco_src_root}/javascript/emscripten/draco_animation_decoder_glue_wrapper.cc"
-)
-
-list(
-  APPEND
-    draco_animation_js_enc_sources
-    "${draco_src_root}/javascript/emscripten/animation_encoder_webidl_wrapper.cc"
-    "${draco_src_root}/javascript/emscripten/draco_animation_encoder_glue_wrapper.cc"
-)
 
 list(APPEND draco_unity_plug_sources
             "${draco_src_root}/unity/draco_unity_plugin.cc"
@@ -586,6 +576,7 @@ if(DRACO_TRANSCODER_SUPPORTED)
 
   list(
     APPEND draco_scene_sources
+           "${draco_src_root}/scene/audio.h"
            "${draco_src_root}/scene/instance_array.cc"
            "${draco_src_root}/scene/instance_array.h"
            "${draco_src_root}/scene/light.cc"
@@ -676,14 +667,6 @@ if(EMSCRIPTEN AND DRACO_JS_GLUE)
               "${draco_src_root}/javascript/emscripten/draco_web_decoder.idl")
   list(APPEND draco_js_enc_idl
               "${draco_src_root}/javascript/emscripten/draco_web_encoder.idl")
-  list(
-    APPEND
-      draco_animation_js_dec_idl
-      "${draco_src_root}/javascript/emscripten/draco_animation_web_decoder.idl")
-  list(
-    APPEND
-      draco_animation_js_enc_idl
-      "${draco_src_root}/javascript/emscripten/draco_animation_web_encoder.idl")
   list(APPEND draco_pre_link_js_sources
               "${draco_src_root}/javascript/emscripten/prepareCallbacks.js"
               "${draco_src_root}/javascript/emscripten/version.js")
@@ -727,38 +710,6 @@ if(EMSCRIPTEN AND DRACO_JS_GLUE)
       INCLUDES ${draco_include_paths}
       LINK_FLAGS "-sEXPORT_NAME=\"DracoEncoderModule\""
       GLUE_PATH ${draco_encoder_glue_path}
-      PRE_LINK_JS_SOURCES ${draco_pre_link_js_sources}
-      POST_LINK_JS_SOURCES ${draco_post_link_js_sources})
-  endif()
-
-  if(DRACO_ANIMATION_ENCODING)
-    set(draco_anim_decoder_glue_path "${draco_build}/glue_animation_decoder")
-    set(draco_anim_encoder_glue_path "${draco_build}/glue_animation_encoder")
-
-    draco_generate_emscripten_glue(INPUT_IDL ${draco_animation_js_dec_idl}
-                                   OUTPUT_PATH ${draco_anim_decoder_glue_path})
-    draco_generate_emscripten_glue(INPUT_IDL ${draco_animation_js_enc_idl}
-                                   OUTPUT_PATH ${draco_anim_encoder_glue_path})
-
-    draco_add_emscripten_executable(
-      NAME draco_animation_decoder
-      SOURCES ${draco_animation_dec_sources} ${draco_animation_js_dec_sources}
-              ${draco_animation_sources} ${draco_decoder_src}
-      DEFINES ${draco_defines}
-      INCLUDES ${draco_include_paths}
-      LINK_FLAGS "-sEXPORT_NAME=\"DracoAnimationDecoderModule\""
-      GLUE_PATH ${draco_anim_decoder_glue_path}
-      PRE_LINK_JS_SOURCES ${draco_pre_link_js_sources}
-      POST_LINK_JS_SOURCES ${draco_post_link_js_decoder_sources})
-
-    draco_add_emscripten_executable(
-      NAME draco_animation_encoder
-      SOURCES ${draco_animation_enc_sources} ${draco_animation_js_enc_sources}
-              ${draco_animation_sources} ${draco_encoder_src}
-      DEFINES ${draco_defines}
-      INCLUDES ${draco_include_paths}
-      LINK_FLAGS "-sEXPORT_NAME=\"DracoAnimationEncoderModule\""
-      GLUE_PATH ${draco_anim_encoder_glue_path}
       PRE_LINK_JS_SOURCES ${draco_pre_link_js_sources}
       POST_LINK_JS_SOURCES ${draco_post_link_js_sources})
   endif()
@@ -967,6 +918,24 @@ else()
       DEFINES ${draco_defines}
       INCLUDES ${draco_include_paths})
 
+    if(DRACO_PMC_SUPPORTED)
+      list(
+        APPEND draco_pmc_sources
+               "${draco_src_root}/compression/pmc/pmc_draco_mesh_decoder.cc"
+               "${draco_src_root}/compression/pmc/pmc_draco_mesh_decoder.h"
+               "${draco_src_root}/compression/pmc/pmc_draco_mesh_encoder.cc"
+               "${draco_src_root}/compression/pmc/pmc_draco_mesh_encoder.h"
+               "${draco_src_root}/compression/pmc/pmc_utils.cc"
+               "${draco_src_root}/compression/pmc/pmc_utils.h")
+
+      draco_add_library(
+        NAME draco_pmc
+        TYPE OBJECT
+        SOURCES ${draco_pmc_sources}
+        DEFINES ${draco_defines}
+        INCLUDES ${draco_include_paths})
+    endif()
+
   endif()
 
   list(
@@ -1004,6 +973,10 @@ else()
     list(APPEND draco_object_library_deps draco_material draco_scene
                 draco_texture)
 
+  endif()
+
+  if(DRACO_PMC_SUPPORTED)
+    list(APPEND draco_object_library_deps draco_pmc)
   endif()
 
   # Library targets that consume the object collections.

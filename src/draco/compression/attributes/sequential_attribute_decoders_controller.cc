@@ -26,7 +26,7 @@ SequentialAttributeDecodersController::SequentialAttributeDecodersController(
     : sequencer_(std::move(sequencer)) {}
 
 bool SequentialAttributeDecodersController::DecodeAttributesDecoderData(
-    DecoderBuffer *buffer) {
+    DecoderBuffer* buffer) {
   if (!AttributesDecoder::DecodeAttributesDecoderData(buffer)) {
     return false;
   }
@@ -51,14 +51,14 @@ bool SequentialAttributeDecodersController::DecodeAttributesDecoderData(
 }
 
 bool SequentialAttributeDecodersController::DecodeAttributes(
-    DecoderBuffer *buffer) {
+    DecoderBuffer* buffer) {
   if (!sequencer_ || !sequencer_->GenerateSequence(&point_ids_)) {
     return false;
   }
   // Initialize point to attribute value mapping for all decoded attributes.
   const int32_t num_attributes = GetNumAttributes();
   for (int i = 0; i < num_attributes; ++i) {
-    PointAttribute *const pa =
+    PointAttribute* const pa =
         GetDecoder()->point_cloud()->attribute(GetAttributeId(i));
     if (!sequencer_->UpdatePointToAttributeIndexMapping(pa)) {
       return false;
@@ -68,7 +68,7 @@ bool SequentialAttributeDecodersController::DecodeAttributes(
 }
 
 bool SequentialAttributeDecodersController::DecodePortableAttributes(
-    DecoderBuffer *in_buffer) {
+    DecoderBuffer* in_buffer) {
   const int32_t num_attributes = GetNumAttributes();
   for (int i = 0; i < num_attributes; ++i) {
     if (!sequential_decoders_[i]->DecodePortableAttribute(point_ids_,
@@ -80,7 +80,7 @@ bool SequentialAttributeDecodersController::DecodePortableAttributes(
 }
 
 bool SequentialAttributeDecodersController::
-    DecodeDataNeededByPortableTransforms(DecoderBuffer *in_buffer) {
+    DecodeDataNeededByPortableTransforms(DecoderBuffer* in_buffer) {
   const int32_t num_attributes = GetNumAttributes();
   for (int i = 0; i < num_attributes; ++i) {
     if (!sequential_decoders_[i]->DecodeDataNeededByPortableTransform(
@@ -97,9 +97,9 @@ bool SequentialAttributeDecodersController::
   for (int i = 0; i < num_attributes; ++i) {
     // Check whether the attribute transform should be skipped.
     if (GetDecoder()->options()) {
-      const PointAttribute *const attribute =
+      const PointAttribute* const attribute =
           sequential_decoders_[i]->attribute();
-      const PointAttribute *const portable_attribute =
+      const PointAttribute* const portable_attribute =
           sequential_decoders_[i]->GetPortableAttribute();
       if (portable_attribute &&
           GetDecoder()->options()->GetAttributeBool(

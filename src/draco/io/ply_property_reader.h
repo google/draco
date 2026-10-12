@@ -26,7 +26,7 @@ namespace draco {
 template <typename ReadTypeT>
 class PlyPropertyReader {
  public:
-  explicit PlyPropertyReader(const PlyProperty *property)
+  explicit PlyPropertyReader(const PlyProperty* property)
       : property_(property) {
     // Find the suitable function for converting values.
     switch (property->data_type()) {
@@ -82,12 +82,12 @@ class PlyPropertyReader {
  private:
   template <typename SourceTypeT>
   ReadTypeT ConvertValue(int value_id) const {
-    const void *const address = property_->GetDataEntryAddress(value_id);
-    const SourceTypeT src_val = *reinterpret_cast<const SourceTypeT *>(address);
+    const void* const address = property_->GetDataEntryAddress(value_id);
+    const SourceTypeT src_val = *reinterpret_cast<const SourceTypeT*>(address);
     return static_cast<ReadTypeT>(src_val);
   }
 
-  const PlyProperty *property_;
+  const PlyProperty* property_;
   std::function<ReadTypeT(int)> convert_value_func_;
 };
 

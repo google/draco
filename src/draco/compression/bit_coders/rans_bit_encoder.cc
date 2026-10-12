@@ -70,7 +70,7 @@ void RAnsBitEncoder::EncodeLeastSignificantBits32(int nbits, uint32_t value) {
   }
 }
 
-void RAnsBitEncoder::EndEncoding(EncoderBuffer *target_buffer) {
+void RAnsBitEncoder::EndEncoding(EncoderBuffer* target_buffer) {
   uint64_t total = bit_counts_[1] + bit_counts_[0];
   if (total == 0) {
     total++;

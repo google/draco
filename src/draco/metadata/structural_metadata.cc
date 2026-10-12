@@ -16,6 +16,12 @@
 
 #include <memory>
 #include <utility>
+#include <vector>
+
+#include "draco/metadata/property_attribute.h"
+#include "draco/metadata/property_table.h"
+#include "draco/metadata/property_texture.h"
+#include "draco/metadata/structural_metadata_schema.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 
@@ -24,8 +30,8 @@ namespace draco {
 // Returns true if vectors |a| and |b| have the same size and their entries
 // (unique pointers) point to objects that compare equally.
 template <typename T>
-bool VectorsAreEqual(const std::vector<std::unique_ptr<T>> &a,
-                     const std::vector<std::unique_ptr<T>> &b) {
+bool VectorsAreEqual(const std::vector<std::unique_ptr<T>>& a,
+                     const std::vector<std::unique_ptr<T>>& b) {
   if (a.size() != b.size()) {
     return false;
   }
@@ -37,13 +43,14 @@ bool VectorsAreEqual(const std::vector<std::unique_ptr<T>> &a,
   return true;
 }
 
-bool StructuralMetadata::operator==(const StructuralMetadata &other) const {
+bool StructuralMetadata::operator==(const StructuralMetadata& other) const {
   return schema_ == other.schema_ &&
          VectorsAreEqual(property_tables_, other.property_tables_) &&
-         VectorsAreEqual(property_attributes_, other.property_attributes_);
+         VectorsAreEqual(property_attributes_, other.property_attributes_) &&
+         VectorsAreEqual(property_textures_, other.property_textures_);
 }
 
-void StructuralMetadata::Copy(const StructuralMetadata &src) {
+void StructuralMetadata::Copy(const StructuralMetadata& src) {
   // Copy schema.
   schema_.json.Copy(src.schema_.json);
 
@@ -61,13 +68,21 @@ void StructuralMetadata::Copy(const StructuralMetadata &src) {
         std::unique_ptr<PropertyAttribute>(new PropertyAttribute());
     property_attributes_[i]->Copy(*src.property_attributes_[i]);
   }
+
+  // Copy property textures.
+  property_textures_.resize(src.property_textures_.size());
+  for (int i = 0; i < property_textures_.size(); ++i) {
+    property_textures_[i] =
+        std::unique_ptr<PropertyTexture>(new PropertyTexture());
+    property_textures_[i]->Copy(*src.property_textures_[i]);
+  }
 }
 
-void StructuralMetadata::SetSchema(const StructuralMetadataSchema &schema) {
+void StructuralMetadata::SetSchema(const StructuralMetadataSchema& schema) {
   schema_ = schema;
 }
 
-const StructuralMetadataSchema &StructuralMetadata::GetSchema() const {
+const StructuralMetadataSchema& StructuralMetadata::GetSchema() const {
   return schema_;
 }
 
@@ -81,11 +96,11 @@ int StructuralMetadata::NumPropertyTables() const {
   return property_tables_.size();
 }
 
-const PropertyTable &StructuralMetadata::GetPropertyTable(int index) const {
+const PropertyTable& StructuralMetadata::GetPropertyTable(int index) const {
   return *property_tables_[index];
 }
 
-PropertyTable &StructuralMetadata::GetPropertyTable(int index) {
+PropertyTable& StructuralMetadata::GetPropertyTable(int index) {
   return *property_tables_[index];
 }
 
@@ -103,17 +118,39 @@ int StructuralMetadata::NumPropertyAttributes() const {
   return property_attributes_.size();
 }
 
-const PropertyAttribute &StructuralMetadata::GetPropertyAttribute(
+const PropertyAttribute& StructuralMetadata::GetPropertyAttribute(
     int index) const {
   return *property_attributes_[index];
 }
 
-PropertyAttribute &StructuralMetadata::GetPropertyAttribute(int index) {
+PropertyAttribute& StructuralMetadata::GetPropertyAttribute(int index) {
   return *property_attributes_[index];
 }
 
 void StructuralMetadata::RemovePropertyAttribute(int index) {
   property_attributes_.erase(property_attributes_.begin() + index);
+}
+
+int StructuralMetadata::AddPropertyTexture(
+    std::unique_ptr<PropertyTexture> property_texture) {
+  property_textures_.push_back(std::move(property_texture));
+  return property_textures_.size() - 1;
+}
+
+int StructuralMetadata::NumPropertyTextures() const {
+  return property_textures_.size();
+}
+
+const PropertyTexture& StructuralMetadata::GetPropertyTexture(int index) const {
+  return *property_textures_[index];
+}
+
+PropertyTexture& StructuralMetadata::GetPropertyTexture(int index) {
+  return *property_textures_[index];
+}
+
+void StructuralMetadata::RemovePropertyTexture(int index) {
+  property_textures_.erase(property_textures_.begin() + index);
 }
 
 }  // namespace draco

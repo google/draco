@@ -33,12 +33,12 @@ namespace draco {
 class PointAttribute : public GeometryAttribute {
  public:
   PointAttribute();
-  explicit PointAttribute(const GeometryAttribute &att);
+  explicit PointAttribute(const GeometryAttribute& att);
 
   // Make sure the move constructor is defined (needed for better performance
   // when new attributes are added to PointCloud).
-  PointAttribute(PointAttribute &&attribute) = default;
-  PointAttribute &operator=(PointAttribute &&attribute) = default;
+  PointAttribute(PointAttribute&& attribute) = default;
+  PointAttribute& operator=(PointAttribute&& attribute) = default;
 
   // Initializes a point attribute. By default the attribute will be set to
   // identity mapping between point indices and attribute values. To set custom
@@ -47,7 +47,7 @@ class PointAttribute : public GeometryAttribute {
             bool normalized, size_t num_attribute_values);
 
   // Copies attribute data from the provided |src_att| attribute.
-  void CopyFrom(const PointAttribute &src_att);
+  void CopyFrom(const PointAttribute& src_att);
 
   // Prepares the attribute storage for the specified number of entries.
   bool Reset(size_t num_attribute_values);
@@ -59,7 +59,7 @@ class PointAttribute : public GeometryAttribute {
     }
     return indices_map_[point_index];
   }
-  DataBuffer *buffer() const { return attribute_buffer_.get(); }
+  DataBuffer* buffer() const { return attribute_buffer_.get(); }
   bool is_mapping_identity() const { return identity_mapping_; }
   size_t indices_map_size() const {
     if (is_mapping_identity()) {
@@ -68,7 +68,7 @@ class PointAttribute : public GeometryAttribute {
     return indices_map_.size();
   }
 
-  const uint8_t *GetAddressOfMappedIndex(PointIndex point_index) const {
+  const uint8_t* GetAddressOfMappedIndex(PointIndex point_index) const {
     return GetAddress(mapped_index(point_index));
   }
 
@@ -105,7 +105,7 @@ class PointAttribute : public GeometryAttribute {
 
   // Same as GeometryAttribute::GetValue(), but using point id as the input.
   // Mapping to attribute value index is performed automatically.
-  void GetMappedValue(PointIndex point_index, void *out_data) const {
+  void GetMappedValue(PointIndex point_index, void* out_data) const {
     return GetValue(mapped_index(point_index), out_data);
   }
 
@@ -114,12 +114,12 @@ class PointAttribute : public GeometryAttribute {
   // to |this|.
   // Returns -1 if the deduplication failed.
   AttributeValueIndex::ValueType DeduplicateValues(
-      const GeometryAttribute &in_att);
+      const GeometryAttribute& in_att);
 
   // Same as above but the values read from |in_att| are sampled with the
   // provided offset |in_att_offset|.
   AttributeValueIndex::ValueType DeduplicateValues(
-      const GeometryAttribute &in_att, AttributeValueIndex in_att_offset);
+      const GeometryAttribute& in_att, AttributeValueIndex in_att_offset);
 #endif
 
   // Set attribute transform data for the attribute. The data is used to store
@@ -129,7 +129,7 @@ class PointAttribute : public GeometryAttribute {
       std::unique_ptr<AttributeTransformData> transform_data) {
     attribute_transform_data_ = std::move(transform_data);
   }
-  const AttributeTransformData *GetAttributeTransformData() const {
+  const AttributeTransformData* GetAttributeTransformData() const {
     return attribute_transform_data_.get();
   }
 
@@ -143,10 +143,10 @@ class PointAttribute : public GeometryAttribute {
 #ifdef DRACO_ATTRIBUTE_VALUES_DEDUPLICATION_SUPPORTED
   template <typename T>
   AttributeValueIndex::ValueType DeduplicateTypedValues(
-      const GeometryAttribute &in_att, AttributeValueIndex in_att_offset);
+      const GeometryAttribute& in_att, AttributeValueIndex in_att_offset);
   template <typename T, int COMPONENTS_COUNT>
   AttributeValueIndex::ValueType DeduplicateFormattedValues(
-      const GeometryAttribute &in_att, AttributeValueIndex in_att_offset);
+      const GeometryAttribute& in_att, AttributeValueIndex in_att_offset);
 #endif
 
   // Data storage for attribute values. GeometryAttribute itself doesn't own its
@@ -169,7 +169,7 @@ class PointAttribute : public GeometryAttribute {
 
 // Hash functor for the PointAttribute class.
 struct PointAttributeHasher {
-  size_t operator()(const PointAttribute &attribute) const {
+  size_t operator()(const PointAttribute& attribute) const {
     GeometryAttributeHasher base_hasher;
     size_t hash = base_hasher(attribute);
     hash = HashCombine(attribute.identity_mapping_, hash);
@@ -177,13 +177,13 @@ struct PointAttributeHasher {
     hash = HashCombine(attribute.indices_map_.size(), hash);
     if (!attribute.indices_map_.empty()) {
       const uint64_t indices_hash = FingerprintString(
-          reinterpret_cast<const char *>(attribute.indices_map_.data()),
+          reinterpret_cast<const char*>(attribute.indices_map_.data()),
           attribute.indices_map_.size());
       hash = HashCombine(indices_hash, hash);
     }
     if (attribute.attribute_buffer_ != nullptr) {
       const uint64_t buffer_hash = FingerprintString(
-          reinterpret_cast<const char *>(attribute.attribute_buffer_->data()),
+          reinterpret_cast<const char*>(attribute.attribute_buffer_->data()),
           attribute.attribute_buffer_->data_size());
       hash = HashCombine(buffer_hash, hash);
     }

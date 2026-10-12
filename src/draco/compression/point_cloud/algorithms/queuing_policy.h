@@ -29,8 +29,8 @@ class Queue {
   bool empty() const { return q_.empty(); }
   typename std::queue<T>::size_type size() const { return q_.size(); }
   void clear() { return q_.clear(); }
-  void push(const T &value) { q_.push(value); }
-  void push(T &&value) { q_.push(std::move(value)); }
+  void push(const T& value) { q_.push(value); }
+  void push(T&& value) { q_.push(std::move(value)); }
   void pop() { q_.pop(); }
   typename std::queue<T>::const_reference front() const { return q_.front(); }
 
@@ -44,8 +44,8 @@ class Stack {
   bool empty() const { return s_.empty(); }
   typename std::stack<T>::size_type size() const { return s_.size(); }
   void clear() { return s_.clear(); }
-  void push(const T &value) { s_.push(value); }
-  void push(T &&value) { s_.push(std::move(value)); }
+  void push(const T& value) { s_.push(value); }
+  void push(T&& value) { s_.push(std::move(value)); }
   void pop() { s_.pop(); }
   typename std::stack<T>::const_reference front() const { return s_.top(); }
 
@@ -61,8 +61,8 @@ class PriorityQueue {
   bool empty() const { return s_.empty(); }
   typename QType::size_type size() const { return s_.size(); }
   void clear() { return s_.clear(); }
-  void push(const T &value) { s_.push(value); }
-  void push(T &&value) { s_.push(std::move(value)); }
+  void push(const T& value) { s_.push(value); }
+  void push(T&& value) { s_.push(std::move(value)); }
   void pop() { s_.pop(); }
   typename QType::const_reference front() const { return s_.top(); }
 

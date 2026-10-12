@@ -31,17 +31,17 @@ namespace draco {
 template <typename DataTypeT, class TransformT, class MeshDataT>
 class MeshPredictionSchemeGeometricNormalPredictorBase {
  protected:
-  explicit MeshPredictionSchemeGeometricNormalPredictorBase(const MeshDataT &md)
+  explicit MeshPredictionSchemeGeometricNormalPredictorBase(const MeshDataT& md)
       : pos_attribute_(nullptr),
         entry_to_point_id_map_(nullptr),
         mesh_data_(md) {}
   virtual ~MeshPredictionSchemeGeometricNormalPredictorBase() {}
 
  public:
-  void SetPositionAttribute(const PointAttribute &position_attribute) {
+  void SetPositionAttribute(const PointAttribute& position_attribute) {
     pos_attribute_ = &position_attribute;
   }
-  void SetEntryToPointIdMap(const PointIndex *map) {
+  void SetEntryToPointIdMap(const PointIndex* map) {
     entry_to_point_id_map_ = map;
   }
   bool IsInitialized() const {
@@ -76,17 +76,17 @@ class MeshPredictionSchemeGeometricNormalPredictorBase {
     return GetPositionForDataId(data_id);
   }
   VectorD<int32_t, 2> GetOctahedralCoordForDataId(int data_id,
-                                                  const DataTypeT *data) const {
+                                                  const DataTypeT* data) const {
     DRACO_DCHECK(this->IsInitialized());
     const int data_offset = data_id * 2;
     return VectorD<int32_t, 2>(data[data_offset], data[data_offset + 1]);
   }
   // Computes predicted octahedral coordinates on a given corner.
   virtual void ComputePredictedValue(CornerIndex corner_id,
-                                     DataTypeT *prediction) = 0;
+                                     DataTypeT* prediction) = 0;
 
-  const PointAttribute *pos_attribute_;
-  const PointIndex *entry_to_point_id_map_;
+  const PointAttribute* pos_attribute_;
+  const PointIndex* entry_to_point_id_map_;
   MeshDataT mesh_data_;
   NormalPredictionMode normal_prediction_mode_;
 };

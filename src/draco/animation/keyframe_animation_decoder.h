@@ -23,10 +23,10 @@ namespace draco {
 // Class for decoding keyframe animation.
 class KeyframeAnimationDecoder : private PointCloudSequentialDecoder {
  public:
-  KeyframeAnimationDecoder(){};
+  KeyframeAnimationDecoder() {};
 
-  Status Decode(const DecoderOptions &options, DecoderBuffer *in_buffer,
-                KeyframeAnimation *animation);
+  Status Decode(const DecoderOptions& options, DecoderBuffer* in_buffer,
+                KeyframeAnimation* animation);
 };
 
 }  // namespace draco

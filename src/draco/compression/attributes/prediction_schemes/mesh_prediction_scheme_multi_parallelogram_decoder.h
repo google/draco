@@ -18,7 +18,7 @@
 
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_parallelogram_shared.h"
-#include "draco/core/math_utils.h"
+#include "draco/core/int_utils.h"
 #include "draco/draco_features.h"
 
 namespace draco {
@@ -34,18 +34,18 @@ class MeshPredictionSchemeMultiParallelogramDecoder
   using CornerTable = typename MeshDataT::CornerTable;
 
   explicit MeshPredictionSchemeMultiParallelogramDecoder(
-      const PointAttribute *attribute)
+      const PointAttribute* attribute)
       : MeshPredictionSchemeDecoder<DataTypeT, TransformT, MeshDataT>(
             attribute) {}
-  MeshPredictionSchemeMultiParallelogramDecoder(const PointAttribute *attribute,
-                                                const TransformT &transform,
-                                                const MeshDataT &mesh_data)
+  MeshPredictionSchemeMultiParallelogramDecoder(const PointAttribute* attribute,
+                                                const TransformT& transform,
+                                                const MeshDataT& mesh_data)
       : MeshPredictionSchemeDecoder<DataTypeT, TransformT, MeshDataT>(
             attribute, transform, mesh_data) {}
 
-  bool ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
+  bool ComputeOriginalValues(const CorrType* in_corr, DataTypeT* out_data,
                              int size, int num_components,
-                             const PointIndex *entry_to_point_id_map) override;
+                             const PointIndex* entry_to_point_id_map) override;
   PredictionSchemeMethod GetPredictionMethod() const override {
     return MESH_PREDICTION_MULTI_PARALLELOGRAM;
   }
@@ -58,9 +58,9 @@ class MeshPredictionSchemeMultiParallelogramDecoder
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeMultiParallelogramDecoder<DataTypeT, TransformT,
                                                    MeshDataT>::
-    ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
+    ComputeOriginalValues(const CorrType* in_corr, DataTypeT* out_data,
                           int size, int num_components,
-                          const PointIndex * /* entry_to_point_id_map */) {
+                          const PointIndex* /* entry_to_point_id_map */) {
   this->transform().Init(num_components);
 
   // For storage of prediction values (already initialized to zero).
@@ -70,8 +70,8 @@ bool MeshPredictionSchemeMultiParallelogramDecoder<DataTypeT, TransformT,
 
   this->transform().ComputeOriginalValue(pred_vals.get(), in_corr, out_data);
 
-  const CornerTable *const table = this->mesh_data().corner_table();
-  const std::vector<int32_t> *const vertex_to_data_map =
+  const CornerTable* const table = this->mesh_data().corner_table();
+  const std::vector<int32_t>* const vertex_to_data_map =
       this->mesh_data().vertex_to_data_map();
 
   const int corner_map_size =

@@ -25,8 +25,8 @@ PointCloudDecoder::PointCloudDecoder()
       version_minor_(0),
       options_(nullptr) {}
 
-Status PointCloudDecoder::DecodeHeader(DecoderBuffer *buffer,
-                                       DracoHeader *out_header) {
+Status PointCloudDecoder::DecodeHeader(DecoderBuffer* buffer,
+                                       DracoHeader* out_header) {
   constexpr char kIoErrorMsg[] = "Failed to parse Draco header.";
   if (!buffer->Decode(out_header->draco_string, 5)) {
     return Status(Status::IO_ERROR, kIoErrorMsg);
@@ -63,9 +63,9 @@ Status PointCloudDecoder::DecodeMetadata() {
   return OkStatus();
 }
 
-Status PointCloudDecoder::Decode(const DecoderOptions &options,
-                                 DecoderBuffer *in_buffer,
-                                 PointCloud *out_point_cloud) {
+Status PointCloudDecoder::Decode(const DecoderOptions& options,
+                                 DecoderBuffer* in_buffer,
+                                 PointCloud* out_point_cloud) {
   options_ = &options;
   buffer_ = in_buffer;
   point_cloud_ = out_point_cloud;
@@ -140,7 +140,7 @@ bool PointCloudDecoder::DecodePointAttributes() {
   }
 
   // Initialize all attributes decoders. No data is decoded here.
-  for (auto &att_dec : attributes_decoders_) {
+  for (auto& att_dec : attributes_decoders_) {
     if (!att_dec->Init(this, point_cloud_)) {
       return false;
     }
@@ -177,7 +177,7 @@ bool PointCloudDecoder::DecodePointAttributes() {
 }
 
 bool PointCloudDecoder::DecodeAllAttributes() {
-  for (auto &att_dec : attributes_decoders_) {
+  for (auto& att_dec : attributes_decoders_) {
     if (!att_dec->DecodeAttributes(buffer_)) {
       return false;
     }
@@ -185,7 +185,7 @@ bool PointCloudDecoder::DecodeAllAttributes() {
   return true;
 }
 
-const PointAttribute *PointCloudDecoder::GetPortableAttribute(
+const PointAttribute* PointCloudDecoder::GetPortableAttribute(
     int32_t parent_att_id) {
   if (parent_att_id < 0 || parent_att_id >= point_cloud_->num_attributes()) {
     return nullptr;

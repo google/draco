@@ -30,23 +30,23 @@ namespace draco {
 class DecoderBuffer {
  public:
   DecoderBuffer();
-  DecoderBuffer(const DecoderBuffer &buf) = default;
+  DecoderBuffer(const DecoderBuffer& buf) = default;
 
-  DecoderBuffer &operator=(const DecoderBuffer &buf) = default;
+  DecoderBuffer& operator=(const DecoderBuffer& buf) = default;
 
   // Sets the buffer's internal data. Note that no copy of the input data is
   // made so the data owner needs to keep the data valid and unchanged for
   // runtime of the decoder.
-  void Init(const char *data, size_t data_size);
+  void Init(const char* data, size_t data_size);
 
   // Sets the buffer's internal data. |version| is the Draco bitstream version.
-  void Init(const char *data, size_t data_size, uint16_t version);
+  void Init(const char* data, size_t data_size, uint16_t version);
 
   // Starts decoding a bit sequence.
   // decode_size must be true if the size of the encoded bit data was included,
   // during encoding. The size is then returned to out_size.
   // Returns false on error.
-  bool StartBitDecoding(bool decode_size, uint64_t *out_size);
+  bool StartBitDecoding(bool decode_size, uint64_t* out_size);
 
   // Ends the decoding of the bit sequence and return to the default
   // byte-aligned decoding.
@@ -54,7 +54,7 @@ class DecoderBuffer {
 
   // Decodes up to 32 bits into out_val. Can be called only in between
   // StartBitDecoding and EndBitDecoding. Otherwise returns false.
-  bool DecodeLeastSignificantBits32(uint32_t nbits, uint32_t *out_value) {
+  bool DecodeLeastSignificantBits32(uint32_t nbits, uint32_t* out_value) {
     if (!bit_decoder_active()) {
       return false;
     }
@@ -65,7 +65,7 @@ class DecoderBuffer {
   // Can be used only when we are not decoding a bit-sequence.
   // Returns false on error.
   template <typename T>
-  bool Decode(T *out_val) {
+  bool Decode(T* out_val) {
     if (!Peek(out_val)) {
       return false;
     }
@@ -73,7 +73,7 @@ class DecoderBuffer {
     return true;
   }
 
-  bool Decode(void *out_data, size_t size_to_decode) {
+  bool Decode(void* out_data, size_t size_to_decode) {
     if (data_size_ < static_cast<int64_t>(pos_ + size_to_decode)) {
       return false;  // Buffer overflow.
     }
@@ -84,7 +84,7 @@ class DecoderBuffer {
 
   // Decodes an arbitrary data, but does not advance the reading position.
   template <typename T>
-  bool Peek(T *out_val) {
+  bool Peek(T* out_val) {
     const size_t size_to_decode = sizeof(T);
     if (data_size_ < static_cast<int64_t>(pos_ + size_to_decode)) {
       return false;  // Buffer overflow.
@@ -93,7 +93,7 @@ class DecoderBuffer {
     return true;
   }
 
-  bool Peek(void *out_data, size_t size_to_peek) {
+  bool Peek(void* out_data, size_t size_to_peek) {
     if (data_size_ < static_cast<int64_t>(pos_ + size_to_peek)) {
       return false;  // Buffer overflow.
     }
@@ -111,7 +111,7 @@ class DecoderBuffer {
   void set_bitstream_version(uint16_t version) { bitstream_version_ = version; }
 
   // Returns the data array at the current decoder position.
-  const char *data_head() const { return data_ + pos_; }
+  const char* data_head() const { return data_ + pos_; }
   int64_t remaining_size() const { return data_size_ - pos_; }
   int64_t decoded_size() const { return pos_; }
   bool bit_decoder_active() const { return bit_mode_; }
@@ -127,23 +127,21 @@ class DecoderBuffer {
     ~BitDecoder();
 
     // Sets the bit buffer to |b|. |s| is the size of |b| in bytes.
-    inline void reset(const void *b, size_t s) {
+    void reset(const void* b, size_t s) {
       bit_offset_ = 0;
-      bit_buffer_ = static_cast<const uint8_t *>(b);
+      bit_buffer_ = static_cast<const uint8_t*>(b);
       bit_buffer_end_ = bit_buffer_ + s;
     }
 
     // Returns number of bits decoded so far.
-    inline uint64_t BitsDecoded() const {
-      return static_cast<uint64_t>(bit_offset_);
-    }
+    uint64_t BitsDecoded() const { return static_cast<uint64_t>(bit_offset_); }
 
     // Return number of bits available for decoding
-    inline uint64_t AvailBits() const {
+    uint64_t AvailBits() const {
       return ((bit_buffer_end_ - bit_buffer_) * 8) - bit_offset_;
     }
 
-    inline uint32_t EnsureBits(int k) {
+    uint32_t EnsureBits(int k) {
       DRACO_DCHECK_LE(k, 24);
       DRACO_DCHECK_LE(static_cast<uint64_t>(k), AvailBits());
 
@@ -154,10 +152,10 @@ class DecoderBuffer {
       return buf;  // Okay to return extra bits
     }
 
-    inline void ConsumeBits(int k) { bit_offset_ += k; }
+    void ConsumeBits(int k) { bit_offset_ += k; }
 
     // Returns |nbits| bits in |x|.
-    inline bool GetBits(uint32_t nbits, uint32_t *x) {
+    bool GetBits(uint32_t nbits, uint32_t* x) {
       if (nbits > 32) {
         return false;
       }
@@ -172,7 +170,7 @@ class DecoderBuffer {
    private:
     // TODO(fgalligan): Add support for error reporting on range check.
     // Returns one bit from the bit buffer.
-    inline int GetBit() {
+    int GetBit() {
       const size_t off = bit_offset_;
       const size_t byte_offset = off >> 3;
       const int bit_shift = static_cast<int>(off & 0x7);
@@ -184,7 +182,7 @@ class DecoderBuffer {
       return 0;
     }
 
-    inline int PeekBit(int offset) {
+    int PeekBit(int offset) {
       const size_t off = bit_offset_ + offset;
       const size_t byte_offset = off >> 3;
       const int bit_shift = static_cast<int>(off & 0x7);
@@ -195,13 +193,13 @@ class DecoderBuffer {
       return 0;
     }
 
-    const uint8_t *bit_buffer_;
-    const uint8_t *bit_buffer_end_;
+    const uint8_t* bit_buffer_;
+    const uint8_t* bit_buffer_end_;
     size_t bit_offset_;
   };
   friend class BufferBitCodingTest;
 
-  const char *data_;
+  const char* data_;
   int64_t data_size_;
 
   // Current parsing position of the decoder.

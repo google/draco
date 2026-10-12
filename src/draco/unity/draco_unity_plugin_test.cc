@@ -24,7 +24,7 @@
 
 namespace {
 
-draco::DracoMesh *DecodeToDracoMesh(const std::string &file_name) {
+draco::DracoMesh* DecodeToDracoMesh(const std::string& file_name) {
   std::ifstream input_file(draco::GetTestFileFullPath(file_name),
                            std::ios::binary);
   if (!input_file) {
@@ -41,32 +41,32 @@ draco::DracoMesh *DecodeToDracoMesh(const std::string &file_name) {
     return nullptr;
   }
 
-  draco::DracoMesh *draco_mesh = nullptr;
+  draco::DracoMesh* draco_mesh = nullptr;
   draco::DecodeDracoMesh(data.data(), data.size(), &draco_mesh);
   return draco_mesh;
 }
 
 TEST(DracoUnityPluginTest, TestDecode) {
-  draco::DracoMesh *draco_mesh =
+  draco::DracoMesh* draco_mesh =
       DecodeToDracoMesh("test_nm.obj.edgebreaker.cl4.2.2.drc");
   ASSERT_NE(draco_mesh, nullptr);
   ASSERT_EQ(draco_mesh->num_faces, 170);
   ASSERT_EQ(draco_mesh->num_vertices, 99);
   ASSERT_NE(draco_mesh->private_mesh, nullptr);
 
-  draco::DracoData *indices = nullptr;
+  draco::DracoData* indices = nullptr;
   ASSERT_TRUE(GetMeshIndices(draco_mesh, &indices));
   ASSERT_EQ(indices->data_type, draco::DT_INT32);
   draco::ReleaseDracoData(&indices);
 
   for (int i = 0; i < draco_mesh->num_attributes; ++i) {
-    draco::DracoAttribute *draco_attribute = nullptr;
+    draco::DracoAttribute* draco_attribute = nullptr;
     ASSERT_TRUE(draco::GetAttribute(draco_mesh, i, &draco_attribute));
     ASSERT_NE(draco_attribute->data_type, draco::DT_INVALID);
     ASSERT_GT(draco_attribute->num_components, 0);
     ASSERT_NE(draco_attribute->private_attribute, nullptr);
 
-    draco::DracoData *attribute_data = nullptr;
+    draco::DracoData* attribute_data = nullptr;
     ASSERT_TRUE(
         draco::GetAttributeData(draco_mesh, draco_attribute, &attribute_data));
     draco::ReleaseDracoData(&attribute_data);
@@ -76,10 +76,10 @@ TEST(DracoUnityPluginTest, TestDecode) {
 }
 
 TEST(DracoUnityPluginTest, TestAttributeTypes) {
-  draco::DracoMesh *draco_mesh = DecodeToDracoMesh("color_attr.drc");
+  draco::DracoMesh* draco_mesh = DecodeToDracoMesh("color_attr.drc");
   ASSERT_NE(draco_mesh, nullptr);
 
-  draco::DracoAttribute *pos_attribute = nullptr;
+  draco::DracoAttribute* pos_attribute = nullptr;
   ASSERT_TRUE(draco::GetAttributeByType(
       draco_mesh, draco::GeometryAttribute::POSITION, 0, &pos_attribute));
   ASSERT_EQ(pos_attribute->attribute_type, draco::GeometryAttribute::POSITION);
@@ -89,7 +89,7 @@ TEST(DracoUnityPluginTest, TestAttributeTypes) {
   ASSERT_NE(pos_attribute->private_attribute, nullptr);
   draco::ReleaseDracoAttribute(&pos_attribute);
 
-  draco::DracoAttribute *color_attribute = nullptr;
+  draco::DracoAttribute* color_attribute = nullptr;
   ASSERT_TRUE(draco::GetAttributeByType(
       draco_mesh, draco::GeometryAttribute::COLOR, 0, &color_attribute));
   ASSERT_EQ(color_attribute->attribute_type, draco::GeometryAttribute::COLOR);
@@ -99,7 +99,7 @@ TEST(DracoUnityPluginTest, TestAttributeTypes) {
   ASSERT_NE(color_attribute->private_attribute, nullptr);
   draco::ReleaseDracoAttribute(&color_attribute);
 
-  draco::DracoAttribute *bad_attribute = nullptr;
+  draco::DracoAttribute* bad_attribute = nullptr;
   ASSERT_FALSE(draco::GetAttributeByType(
       draco_mesh, draco::GeometryAttribute::NORMAL, 0, &bad_attribute));
   ASSERT_FALSE(draco::GetAttributeByType(
@@ -112,7 +112,7 @@ TEST(DracoUnityPluginTest, TestAttributeTypes) {
   draco_mesh = DecodeToDracoMesh("cube_att_sub_o_2.drc");
   ASSERT_NE(draco_mesh, nullptr);
 
-  draco::DracoAttribute *norm_attribute = nullptr;
+  draco::DracoAttribute* norm_attribute = nullptr;
   ASSERT_TRUE(draco::GetAttributeByType(
       draco_mesh, draco::GeometryAttribute::NORMAL, 0, &norm_attribute));
   ASSERT_EQ(norm_attribute->attribute_type, draco::GeometryAttribute::NORMAL);
@@ -122,7 +122,7 @@ TEST(DracoUnityPluginTest, TestAttributeTypes) {
   ASSERT_NE(norm_attribute->private_attribute, nullptr);
   draco::ReleaseDracoAttribute(&norm_attribute);
 
-  draco::DracoAttribute *texcoord_attribute = nullptr;
+  draco::DracoAttribute* texcoord_attribute = nullptr;
   ASSERT_TRUE(draco::GetAttributeByType(
       draco_mesh, draco::GeometryAttribute::TEX_COORD, 0, &texcoord_attribute));
   ASSERT_EQ(texcoord_attribute->attribute_type,
@@ -133,7 +133,7 @@ TEST(DracoUnityPluginTest, TestAttributeTypes) {
   ASSERT_NE(texcoord_attribute->private_attribute, nullptr);
   draco::ReleaseDracoAttribute(&texcoord_attribute);
 
-  draco::DracoAttribute *generic_attribute = nullptr;
+  draco::DracoAttribute* generic_attribute = nullptr;
   ASSERT_TRUE(draco::GetAttributeByType(
       draco_mesh, draco::GeometryAttribute::GENERIC, 0, &generic_attribute));
   ASSERT_EQ(generic_attribute->attribute_type,
@@ -151,10 +151,10 @@ TEST(DracoUnityPluginTest, TestAttributeTypes) {
 }
 
 TEST(DracoUnityPluginTest, TestAttributeUniqueId) {
-  draco::DracoMesh *draco_mesh = DecodeToDracoMesh("cube_att_sub_o_2.drc");
+  draco::DracoMesh* draco_mesh = DecodeToDracoMesh("cube_att_sub_o_2.drc");
   ASSERT_NE(draco_mesh, nullptr);
 
-  draco::DracoAttribute *pos_attribute = nullptr;
+  draco::DracoAttribute* pos_attribute = nullptr;
   ASSERT_TRUE(draco::GetAttributeByUniqueId(draco_mesh, 0, &pos_attribute));
   ASSERT_EQ(pos_attribute->attribute_type, draco::GeometryAttribute::POSITION);
   ASSERT_EQ(pos_attribute->data_type, draco::DT_FLOAT32);
@@ -163,7 +163,7 @@ TEST(DracoUnityPluginTest, TestAttributeUniqueId) {
   ASSERT_NE(pos_attribute->private_attribute, nullptr);
   draco::ReleaseDracoAttribute(&pos_attribute);
 
-  draco::DracoAttribute *norm_attribute = nullptr;
+  draco::DracoAttribute* norm_attribute = nullptr;
   ASSERT_TRUE(draco::GetAttributeByUniqueId(draco_mesh, 2, &norm_attribute));
   ASSERT_EQ(norm_attribute->attribute_type, draco::GeometryAttribute::NORMAL);
   ASSERT_EQ(norm_attribute->data_type, draco::DT_FLOAT32);
@@ -172,7 +172,7 @@ TEST(DracoUnityPluginTest, TestAttributeUniqueId) {
   ASSERT_NE(norm_attribute->private_attribute, nullptr);
   draco::ReleaseDracoAttribute(&norm_attribute);
 
-  draco::DracoAttribute *texcoord_attribute = nullptr;
+  draco::DracoAttribute* texcoord_attribute = nullptr;
   ASSERT_TRUE(
       draco::GetAttributeByUniqueId(draco_mesh, 1, &texcoord_attribute));
   ASSERT_EQ(texcoord_attribute->attribute_type,
@@ -183,7 +183,7 @@ TEST(DracoUnityPluginTest, TestAttributeUniqueId) {
   ASSERT_NE(texcoord_attribute->private_attribute, nullptr);
   draco::ReleaseDracoAttribute(&texcoord_attribute);
 
-  draco::DracoAttribute *generic_attribute = nullptr;
+  draco::DracoAttribute* generic_attribute = nullptr;
   ASSERT_TRUE(draco::GetAttributeByUniqueId(draco_mesh, 3, &generic_attribute));
   ASSERT_EQ(generic_attribute->attribute_type,
             draco::GeometryAttribute::GENERIC);
@@ -193,7 +193,7 @@ TEST(DracoUnityPluginTest, TestAttributeUniqueId) {
   ASSERT_NE(generic_attribute->private_attribute, nullptr);
   draco::ReleaseDracoAttribute(&generic_attribute);
 
-  draco::DracoAttribute *bad_attribute = nullptr;
+  draco::DracoAttribute* bad_attribute = nullptr;
   ASSERT_FALSE(draco::GetAttributeByUniqueId(draco_mesh, 4, &bad_attribute));
 
   draco::ReleaseDracoMesh(&draco_mesh);
@@ -203,7 +203,7 @@ class DeprecatedDracoUnityPluginTest : public ::testing::Test {
  protected:
   DeprecatedDracoUnityPluginTest() : unity_mesh_(nullptr) {}
 
-  void TestDecodingToDracoUnityMesh(const std::string &file_name,
+  void TestDecodingToDracoUnityMesh(const std::string& file_name,
                                     int expected_num_faces,
                                     int expected_num_vertices) {
     // Tests that decoders can successfully skip attribute transform.
@@ -234,7 +234,7 @@ class DeprecatedDracoUnityPluginTest : public ::testing::Test {
     draco::ReleaseUnityMesh(&unity_mesh_);
   }
 
-  draco::DracoToUnityMesh *unity_mesh_;
+  draco::DracoToUnityMesh* unity_mesh_;
 };
 
 TEST_F(DeprecatedDracoUnityPluginTest, DeprecatedDecodingToDracoUnityMesh) {

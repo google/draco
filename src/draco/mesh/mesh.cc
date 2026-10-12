@@ -15,21 +15,25 @@
 #include "draco/mesh/mesh.h"
 
 #include <array>
-#include <memory>
-#include <unordered_map>
-#include <utility>
+#include <cstdint>
+#include <type_traits>
 #include <vector>
+
+#include "draco/attributes/geometry_indices.h"
+#include "draco/core/draco_index_type_vector.h"
+#include "draco/point_cloud/point_cloud.h"
 
 namespace draco {
 
 // Shortcut for typed conditionals.
 template <bool B, class T, class F>
+// Keep this definition for open-source C++11 compatibility.
 using conditional_t = typename std::conditional<B, T, F>::type;
 
 Mesh::Mesh() {}
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
-void Mesh::Copy(const Mesh &src) {
+void Mesh::Copy(const Mesh& src) {
   PointCloud::Copy(src);
   name_ = src.name_;
   faces_ = src.faces_;
@@ -45,24 +49,29 @@ void Mesh::Copy(const Mesh &src) {
   }
   mesh_features_material_mask_ = src.mesh_features_material_mask_;
 
+  // Copy structural metadata.
+  structural_metadata_.Copy(src.structural_metadata_);
+
+  // Copy gaussian splatting info
+  gaussian_splatting_ = src.gaussian_splatting_;
+
+  property_attributes_ = src.property_attributes_;
+  property_attributes_material_mask_ = src.property_attributes_material_mask_;
+  property_textures_ = src.property_textures_;
+  property_textures_material_mask_ = src.property_textures_material_mask_;
+
   // Copy non-material textures.
   non_material_texture_library_.Copy(src.non_material_texture_library_);
 
-  // Update pointers to non-material textures in mesh feature ID sets.
+  // Update pointers to non-material textures in mesh feature ID textures and in
+  // property textures of mesh structural metadata.
   if (non_material_texture_library_.NumTextures() != 0) {
     const auto texture_to_index_map =
         src.non_material_texture_library_.ComputeTextureToIndexMap();
-    for (MeshFeaturesIndex j(0); j < NumMeshFeatures(); ++j) {
-      Mesh::UpdateMeshFeaturesTexturePointer(texture_to_index_map,
-                                             &non_material_texture_library_,
-                                             &GetMeshFeatures(j));
-    }
+    Mesh::UpdateNonMaterialTexturePointers(texture_to_index_map,
+                                           &non_material_texture_library_, this,
+                                           &GetStructuralMetadata());
   }
-
-  // Copy structural metadata.
-  structural_metadata_.Copy(src.structural_metadata_);
-  property_attributes_ = src.property_attributes_;
-  property_attributes_material_mask_ = src.property_attributes_material_mask_;
 }
 
 namespace {
@@ -73,7 +82,7 @@ namespace {
 struct AugmentedPointData {
   PointIndex point_index;
   AttributeValueIndex attribute_value_index;
-  bool operator<(const AugmentedPointData &pd) const {
+  bool operator<(const AugmentedPointData& pd) const {
     if (point_index < pd.point_index) {
       return true;
     }
@@ -87,7 +96,7 @@ struct AugmentedPointData {
 
 int32_t Mesh::AddAttributeWithConnectivity(
     std::unique_ptr<PointAttribute> att,
-    const IndexTypeVector<CornerIndex, AttributeValueIndex> &corner_to_value) {
+    const IndexTypeVector<CornerIndex, AttributeValueIndex>& corner_to_value) {
   // Map between augmented point and new point indices (one augmented point
   // corresponds to one PointIndex).
   std::map<AugmentedPointData, PointIndex> old_to_new_point_map;
@@ -179,7 +188,7 @@ int32_t Mesh::AddAttributeWithConnectivity(
 }
 
 int32_t Mesh::AddPerVertexAttribute(std::unique_ptr<PointAttribute> att) {
-  const PointAttribute *const pos_att =
+  const PointAttribute* const pos_att =
       GetNamedAttribute(GeometryAttribute::POSITION);
   if (pos_att == nullptr) {
     return -1;
@@ -207,7 +216,7 @@ void Mesh::RemoveIsolatedPoints() {
   IndexTypeVector<PointIndex, bool> is_point_used(num_points(), false);
   int num_used_points = 0;
   for (FaceIndex fi(0); fi < num_faces(); ++fi) {
-    const auto &f = face(fi);
+    const auto& f = face(fi);
     for (int c = 0; c < 3; ++c) {
       if (!is_point_used[f[c]]) {
         num_used_points++;
@@ -231,7 +240,7 @@ void Mesh::RemoveIsolatedPoints() {
 
   // Update point to attribute value index map for all attributes.
   for (int ai = 0; ai < num_attributes(); ++ai) {
-    PointAttribute *att = attribute(ai);
+    PointAttribute* att = attribute(ai);
     if (att->is_mapping_identity()) {
       // When the attribute uses identity mapping we need to reorder to the
       // attribute values to match the new point indices.
@@ -264,7 +273,7 @@ void Mesh::RemoveIsolatedPoints() {
 
   // Update the mapping between faces and point indices.
   for (FaceIndex fi(0); fi < num_faces(); ++fi) {
-    auto &f = faces_[fi];
+    auto& f = faces_[fi];
     for (int c = 0; c < 3; ++c) {
       f[c] = old_to_new_point_map[f[c]];
     }
@@ -350,6 +359,19 @@ void Mesh::RemoveUnusedMaterials(bool remove_unused_material_indices) {
     }
   }
 
+  // Check if any of the (unused) materials is used by property textures
+  // indices. If so, user should remove unused property textures indices first.
+  for (int i = 0; i < NumPropertyTexturesIndices(); ++i) {
+    for (int mask_index = 0;
+         mask_index < NumPropertyTexturesIndexMaterialMasks(i); ++mask_index) {
+      const int mat_index = GetPropertyTexturesIndexMaterialMask(i, mask_index);
+      if (mat_index < num_materials && !is_material_used[mat_index]) {
+        is_material_used[mat_index] = true;
+        num_used_materials++;
+      }
+    }
+  }
+
   if (num_used_materials == num_materials) {
     return;  // All materials are used, don't do anything.
   }
@@ -421,7 +443,7 @@ void Mesh::RemoveUnusedMaterials(bool remove_unused_material_indices) {
     }
   }
 
-  // Update material indices on property attributes incices.
+  // Update material indices on property attributes indices.
   for (int i = 0; i < NumPropertyAttributesIndices(); ++i) {
     for (int mask_index = 0;
          mask_index < NumPropertyAttributesIndexMaterialMasks(i);
@@ -434,11 +456,24 @@ void Mesh::RemoveUnusedMaterials(bool remove_unused_material_indices) {
       }
     }
   }
+
+  // Update material indices on property textures indices.
+  for (int i = 0; i < NumPropertyTexturesIndices(); ++i) {
+    for (int mask_index = 0;
+         mask_index < NumPropertyTexturesIndexMaterialMasks(i); ++mask_index) {
+      const int old_mat_index =
+          GetPropertyTexturesIndexMaterialMask(i, mask_index);
+      if (old_mat_index < num_materials && is_material_used[old_mat_index]) {
+        property_textures_material_mask_[i][mask_index] =
+            old_to_new_material_index_map[old_mat_index];
+      }
+    }
+  }
 }
 
 bool Mesh::IsAttributeUsedByMeshFeatures(int att_id) const {
   for (MeshFeaturesIndex mfi(0); mfi < NumMeshFeatures(); ++mfi) {
-    const auto &mf = GetMeshFeatures(mfi);
+    const auto& mf = GetMeshFeatures(mfi);
     if (mf.GetAttributeIndex() == att_id) {
       return true;
     }
@@ -447,9 +482,9 @@ bool Mesh::IsAttributeUsedByMeshFeatures(int att_id) const {
 }
 
 void Mesh::UpdateMeshFeaturesTexturePointer(
-    const std::unordered_map<const Texture *, int> &texture_to_index_map,
-    TextureLibrary *texture_library, MeshFeatures *mesh_features) {
-  TextureMap &texture_map = mesh_features->GetTextureMap();
+    const std::unordered_map<const Texture*, int>& texture_to_index_map,
+    TextureLibrary* texture_library, MeshFeatures* mesh_features) {
+  TextureMap& texture_map = mesh_features->GetTextureMap();
   if (texture_map.texture() == nullptr) {
     return;
   }
@@ -460,57 +495,9 @@ void Mesh::UpdateMeshFeaturesTexturePointer(
   texture_map.SetTexture(texture_library->GetTexture(texture_index));
 }
 
-void Mesh::CopyMeshFeaturesForMaterial(const Mesh &source_mesh,
-                                       Mesh *target_mesh, int material_index) {
-  for (MeshFeaturesIndex mfi(0); mfi < source_mesh.NumMeshFeatures(); ++mfi) {
-    // Mesh features is used if it doesn't have any material mask or if one
-    // of the material masks matches |material_index|.
-    bool is_used = source_mesh.NumMeshFeaturesMaterialMasks(mfi) == 0;
-    for (int mask_index = 0;
-         !is_used && mask_index < source_mesh.NumMeshFeaturesMaterialMasks(mfi);
-         ++mask_index) {
-      if (source_mesh.GetMeshFeaturesMaterialMask(mfi, mask_index) ==
-          material_index) {
-        is_used = true;
-      }
-    }
-    if (is_used) {
-      // Copy over the mesh features to the target mesh. Note that texture
-      // pointers are not updated at this step.
-      std::unique_ptr<MeshFeatures> new_mf(new MeshFeatures());
-      new_mf->Copy(source_mesh.GetMeshFeatures(mfi));
-      target_mesh->AddMeshFeatures(std::move(new_mf));
-    }
-  }
-}
-
-void Mesh::CopyPropertyAttributesIndicesForMaterial(const Mesh &source_mesh,
-                                                    Mesh *target_mesh,
-                                                    int material_index) {
-  for (int i = 0; i < source_mesh.NumPropertyAttributesIndices(); ++i) {
-    // Property attributes index is used if it doesn't have any material mask or
-    // if one of the material masks matches |material_index|.
-    bool is_used = source_mesh.NumPropertyAttributesIndexMaterialMasks(i) == 0;
-    for (int mask_index = 0;
-         !is_used &&
-         mask_index < source_mesh.NumPropertyAttributesIndexMaterialMasks(i);
-         ++mask_index) {
-      if (source_mesh.GetPropertyAttributesIndexMaterialMask(i, mask_index) ==
-          material_index) {
-        is_used = true;
-      }
-    }
-    if (is_used) {
-      // Copy over the property attributes index to the target mesh.
-      target_mesh->AddPropertyAttributesIndex(
-          source_mesh.GetPropertyAttributesIndex(i));
-    }
-  }
-}
-
 void Mesh::UpdateMeshFeaturesAfterDeletedAttribute(int att_id) {
   for (MeshFeaturesIndex mfi(0); mfi < NumMeshFeatures(); ++mfi) {
-    auto &mf = GetMeshFeatures(mfi);
+    auto& mf = GetMeshFeatures(mfi);
     if (mf.GetAttributeIndex() == att_id) {
       // Mesh features is no longer associated with a vertex attribute.
       mf.SetAttributeIndex(-1);
@@ -519,6 +506,59 @@ void Mesh::UpdateMeshFeaturesAfterDeletedAttribute(int att_id) {
       mf.SetAttributeIndex(mf.GetAttributeIndex() - 1);
     }
   }
+}
+
+void Mesh::UpdateNonMaterialTexturePointers(
+    const std::unordered_map<const Texture*, int>& texture_to_index_map,
+    TextureLibrary* new_texture_library, Mesh* mesh,
+    StructuralMetadata* structural_metadata) {
+  // Update texture pointers in |mesh| feature ID textures.
+  if (mesh != nullptr) {
+    for (MeshFeaturesIndex mfi(0); mfi < mesh->NumMeshFeatures(); ++mfi) {
+      Mesh::UpdateMeshFeaturesTexturePointer(texture_to_index_map,
+                                             new_texture_library,
+                                             &mesh->GetMeshFeatures(mfi));
+    }
+  }
+
+  // Update texture pointers in property textures of |structural_metadata|.
+  if (structural_metadata != nullptr) {
+    for (int i = 0; i < structural_metadata->NumPropertyTextures(); i++) {
+      PropertyTexture& property_texture =
+          structural_metadata->GetPropertyTexture(i);
+      for (int j = 0; j < property_texture.NumProperties(); j++) {
+        PropertyTexture::Property& property = property_texture.GetProperty(j);
+        property.UpdateTexturePointer(texture_to_index_map,
+                                      new_texture_library);
+      }
+    }
+  }
+}
+
+void Mesh::UpdatePropertyIndicesAndMasksAfterDeletedProperty(
+    int deleted_property_index, std::vector<int>& property_indices,
+    std::vector<std::vector<int>>& property_masks) {
+  // Compute new property indices and material masks.
+  std::vector<int> new_indices;
+  std::vector<std::vector<int>> new_masks;
+  for (int i = 0; i < property_indices.size(); i++) {
+    const int old_index = property_indices[i];
+    if (old_index == deleted_property_index) {
+      // This property is deleted.
+      continue;
+    } else if (old_index < deleted_property_index) {
+      // Property remains at the same index.
+      new_indices.push_back(old_index);
+    } else if (old_index > deleted_property_index) {
+      // Property at the previous index.
+      new_indices.push_back(old_index - 1);
+    }
+    new_masks.push_back(property_masks[i]);
+  }
+
+  // Replace the original indices and material masks with the new ones.
+  property_indices = new_indices;
+  property_masks = new_masks;
 }
 
 int32_t Mesh::AddPerFaceAttribute(std::unique_ptr<PointAttribute> att) {
@@ -532,8 +572,8 @@ int32_t Mesh::AddPerFaceAttribute(std::unique_ptr<PointAttribute> att) {
 
 #ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
 void Mesh::ApplyPointIdDeduplication(
-    const IndexTypeVector<PointIndex, PointIndex> &id_map,
-    const std::vector<PointIndex> &unique_point_ids) {
+    const IndexTypeVector<PointIndex, PointIndex>& id_map,
+    const std::vector<PointIndex>& unique_point_ids) {
   PointCloud::ApplyPointIdDeduplication(id_map, unique_point_ids);
   for (FaceIndex f(0); f < num_faces(); ++f) {
     for (int32_t c = 0; c < 3; ++c) {

@@ -103,28 +103,28 @@ class IntegerPointsKdTreeDecoder {
 
   // Decodes a integer point cloud from |buffer|.
   template <class OutputIteratorT>
-  bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT oit);
+  bool DecodePoints(DecoderBuffer* buffer, OutputIteratorT oit);
 
  private:
   // For the sake of readability of code, we decided to make this exception
   // from the naming scheme.
   static constexpr int D = PointTraits<PointDiT>::Dimension();
 
-  uint32_t GetAxis(uint32_t num_remaining_points, const PointDiT &base,
+  uint32_t GetAxis(uint32_t num_remaining_points, const PointDiT& base,
                    std::array<uint32_t, D> levels, uint32_t last_axis);
 
   template <class OutputIteratorT>
-  void DecodeInternal(uint32_t num_remaining_points, PointDiT base,
+  bool DecodeInternal(uint32_t num_remaining_points, PointDiT base,
                       std::array<uint32_t, D> levels, uint32_t last_axis,
                       OutputIteratorT oit);
 
-  void DecodeNumber(int nbits, uint32_t *value) {
+  void DecodeNumber(int nbits, uint32_t* value) {
     numbers_decoder_.DecodeLeastSignificantBits32(nbits, value);
   }
 
   struct DecodingStatus {
     DecodingStatus(
-        uint32_t num_remaining_points_, const PointDiT &old_base_,
+        uint32_t num_remaining_points_, const PointDiT& old_base_,
         std::array<uint32_t, PointTraits<PointDiT>::Dimension()> levels_,
         uint32_t last_axis_)
         : num_remaining_points(num_remaining_points_),
@@ -136,7 +136,7 @@ class IntegerPointsKdTreeDecoder {
     PointDiT old_base;
     std::array<uint32_t, D> levels;
     uint32_t last_axis;
-    friend bool operator<(const DecodingStatus &l, const DecodingStatus &r) {
+    friend bool operator<(const DecodingStatus& l, const DecodingStatus& r) {
       return l.num_remaining_points < r.num_remaining_points;
     }
   };
@@ -153,7 +153,7 @@ class IntegerPointsKdTreeDecoder {
 template <class PointDiT, int compression_level_t>
 template <class OutputIteratorT>
 bool IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodePoints(
-    DecoderBuffer *buffer, OutputIteratorT oit) {
+    DecoderBuffer* buffer, OutputIteratorT oit) {
   if (!buffer->Decode(&bit_length_)) {
     return false;
   }
@@ -177,8 +177,10 @@ bool IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodePoints(
     return false;
   }
 
-  DecodeInternal(num_points_, PointTraits<PointDiT>::Origin(),
-                 PointTraits<PointDiT>::ZeroArray(), 0, oit);
+  if (!DecodeInternal(num_points_, PointTraits<PointDiT>::Origin(),
+                      PointTraits<PointDiT>::ZeroArray(), 0, oit)) {
+    return false;
+  }
 
   numbers_decoder_.EndDecoding();
   remaining_bits_decoder_.EndDecoding();
@@ -190,7 +192,7 @@ bool IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodePoints(
 
 template <class PointDiT, int compression_level_t>
 uint32_t IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::GetAxis(
-    uint32_t num_remaining_points, const PointDiT & /* base */,
+    uint32_t num_remaining_points, const PointDiT& /* base */,
     std::array<uint32_t, D> levels, uint32_t last_axis) {
   if (!Policy::select_axis) {
     return DRACO_INCREMENT_MOD(last_axis, D);
@@ -212,7 +214,7 @@ uint32_t IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::GetAxis(
 
 template <class PointDiT, int compression_level_t>
 template <class OutputIteratorT>
-void IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodeInternal(
+bool IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodeInternal(
     uint32_t num_remaining_points, PointDiT old_base,
     std::array<uint32_t, D> levels, uint32_t last_axis, OutputIteratorT oit) {
   DecodingStatus init_status(num_remaining_points, old_base, levels, last_axis);
@@ -230,6 +232,10 @@ void IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodeInternal(
 
     const uint32_t axis =
         GetAxis(num_remaining_points, old_base, levels, last_axis);
+
+    if (axis >= D) {
+      return false;
+    }
 
     const uint32_t level = levels[axis];
 
@@ -296,6 +302,7 @@ void IntegerPointsKdTreeDecoder<PointDiT, compression_level_t>::DecodeInternal(
       status_q.push(DecodingStatus(second_half, new_base, levels, axis));
     }
   }
+  return true;
 }
 
 extern template class IntegerPointsKdTreeDecoder<Point3ui, 0>;

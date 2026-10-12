@@ -61,8 +61,8 @@ TEST_F(SceneAreEquivalentTest, TestMeshFeatures) {
   ASSERT_NE(scene1, nullptr);
 
   // Add identical mesh feature ID sets to mesh at index 0.
-  Mesh &mesh0 = scene0->GetMesh(MeshIndex(0));
-  Mesh &mesh1 = scene1->GetMesh(MeshIndex(0));
+  Mesh& mesh0 = scene0->GetMesh(MeshIndex(0));
+  Mesh& mesh1 = scene1->GetMesh(MeshIndex(0));
   mesh0.AddMeshFeatures(std::unique_ptr<MeshFeatures>(new MeshFeatures()));
   mesh1.AddMeshFeatures(std::unique_ptr<MeshFeatures>(new MeshFeatures()));
 

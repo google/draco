@@ -37,8 +37,8 @@ ObjEncoder::ObjEncoder()
       current_sub_obj_id_(-1),
       current_material_id_(-1) {}
 
-bool ObjEncoder::EncodeToFile(const PointCloud &pc,
-                              const std::string &file_name) {
+bool ObjEncoder::EncodeToFile(const PointCloud& pc,
+                              const std::string& file_name) {
   std::unique_ptr<FileWriterInterface> file =
       FileWriterFactory::OpenWriter(file_name);
   if (!file) {
@@ -55,13 +55,13 @@ bool ObjEncoder::EncodeToFile(const PointCloud &pc,
   return true;
 }
 
-bool ObjEncoder::EncodeToFile(const Mesh &mesh, const std::string &file_name) {
+bool ObjEncoder::EncodeToFile(const Mesh& mesh, const std::string& file_name) {
   in_mesh_ = &mesh;
-  return EncodeToFile(static_cast<const PointCloud &>(mesh), file_name);
+  return EncodeToFile(static_cast<const PointCloud&>(mesh), file_name);
 }
 
-bool ObjEncoder::EncodeToBuffer(const PointCloud &pc,
-                                EncoderBuffer *out_buffer) {
+bool ObjEncoder::EncodeToBuffer(const PointCloud& pc,
+                                EncoderBuffer* out_buffer) {
   in_point_cloud_ = &pc;
   out_buffer_ = out_buffer;
   if (!EncodeInternal()) {
@@ -70,9 +70,9 @@ bool ObjEncoder::EncodeToBuffer(const PointCloud &pc,
   return ExitAndCleanup(true);
 }
 
-bool ObjEncoder::EncodeToBuffer(const Mesh &mesh, EncoderBuffer *out_buffer) {
+bool ObjEncoder::EncodeToBuffer(const Mesh& mesh, EncoderBuffer* out_buffer) {
   in_mesh_ = &mesh;
-  return EncodeToBuffer(static_cast<const PointCloud &>(mesh), out_buffer);
+  return EncodeToBuffer(static_cast<const PointCloud&>(mesh), out_buffer);
 }
 
 bool ObjEncoder::EncodeInternal() {
@@ -125,14 +125,14 @@ bool ObjEncoder::ExitAndCleanup(bool return_value) {
 }
 
 bool ObjEncoder::GetAddedEdges() {
-  const GeometryMetadata *mesh_metadata = in_mesh_->GetMetadata();
+  const GeometryMetadata* mesh_metadata = in_mesh_->GetMetadata();
   if (!mesh_metadata) {
     return true;
   }
 
   // Try to get a per-corner attribute describing added edges.
   {
-    const AttributeMetadata *att_metadata =
+    const AttributeMetadata* att_metadata =
         mesh_metadata->GetAttributeMetadataByStringEntry("name", "added_edges");
     if (att_metadata) {
       const auto att =
@@ -150,17 +150,17 @@ bool ObjEncoder::GetAddedEdges() {
 }
 
 bool ObjEncoder::GetSubObjects() {
-  const GeometryMetadata *pc_metadata = in_point_cloud_->GetMetadata();
+  const GeometryMetadata* pc_metadata = in_point_cloud_->GetMetadata();
   if (!pc_metadata) {
     return true;
   }
-  const AttributeMetadata *sub_obj_metadata =
+  const AttributeMetadata* sub_obj_metadata =
       pc_metadata->GetAttributeMetadataByStringEntry("name", "sub_obj");
   if (!sub_obj_metadata) {
     return true;
   }
   sub_obj_id_to_name_.clear();
-  for (const auto &entry : sub_obj_metadata->entries()) {
+  for (const auto& entry : sub_obj_metadata->entries()) {
     // Sub-object id must be int.
     int value = 0;
     if (!entry.second.GetValue(&value)) {
@@ -178,8 +178,8 @@ bool ObjEncoder::GetSubObjects() {
 }
 
 bool ObjEncoder::EncodeMaterialFileName() {
-  const GeometryMetadata *pc_metadata = in_point_cloud_->GetMetadata();
-  const AttributeMetadata *material_metadata = nullptr;
+  const GeometryMetadata* pc_metadata = in_point_cloud_->GetMetadata();
+  const AttributeMetadata* material_metadata = nullptr;
   if (pc_metadata) {
     material_metadata =
         pc_metadata->GetAttributeMetadataByStringEntry("name", "material");
@@ -195,7 +195,7 @@ bool ObjEncoder::EncodeMaterialFileName() {
   buffer()->Encode(material_file_name.c_str(), material_file_name.size());
   buffer()->Encode("\n", 1);
   material_id_to_name_.clear();
-  for (const auto &entry : material_metadata->entries()) {
+  for (const auto& entry : material_metadata->entries()) {
     // Material id must be int.
     int value = 0;
     // Found entry that are not material id, e.g. file name as a string.
@@ -213,7 +213,7 @@ bool ObjEncoder::EncodeMaterialFileName() {
 }
 
 bool ObjEncoder::EncodePositions() {
-  const PointAttribute *const att =
+  const PointAttribute* const att =
       in_point_cloud_->GetNamedAttribute(GeometryAttribute::POSITION);
   if (att == nullptr || att->size() == 0) {
     return false;  // Position attribute must be valid.
@@ -232,7 +232,7 @@ bool ObjEncoder::EncodePositions() {
 }
 
 bool ObjEncoder::EncodeTextureCoordinates() {
-  const PointAttribute *const att =
+  const PointAttribute* const att =
       in_point_cloud_->GetNamedAttribute(GeometryAttribute::TEX_COORD);
   if (att == nullptr || att->size() == 0) {
     return true;  // It's OK if we don't have texture coordinates.
@@ -251,7 +251,7 @@ bool ObjEncoder::EncodeTextureCoordinates() {
 }
 
 bool ObjEncoder::EncodeNormals() {
-  const PointAttribute *const att =
+  const PointAttribute* const att =
       in_point_cloud_->GetNamedAttribute(GeometryAttribute::NORMAL);
   if (att == nullptr || att->size() == 0) {
     return true;  // It's OK if we don't have normals.
@@ -412,7 +412,7 @@ void ObjEncoder::EncodeFloat(float val) {
   buffer()->Encode(num_buffer_, strlen(num_buffer_));
 }
 
-void ObjEncoder::EncodeFloatList(float *vals, int num_vals) {
+void ObjEncoder::EncodeFloatList(float* vals, int num_vals) {
   for (int i = 0; i < num_vals; ++i) {
     if (i > 0) {
       buffer()->Encode(' ');
@@ -426,7 +426,7 @@ void ObjEncoder::EncodeInt(int32_t val) {
   buffer()->Encode(num_buffer_, strlen(num_buffer_));
 }
 
-bool ObjEncoder::IsNewEdge(const CornerTable &ct, CornerIndex ci) const {
+bool ObjEncoder::IsNewEdge(const CornerTable& ct, CornerIndex ci) const {
   const PointIndex pi = in_mesh_->CornerToPointId(ci);
   if (added_edges_att_ != nullptr) {
     uint8_t value;
@@ -437,15 +437,15 @@ bool ObjEncoder::IsNewEdge(const CornerTable &ct, CornerIndex ci) const {
 }
 
 void ObjEncoder::FindOriginalFaceEdges(FaceIndex face_index,
-                                       const CornerTable &corner_table,
-                                       std::vector<bool> *triangle_visited,
-                                       PolygonEdges *polygon_edges) {
+                                       const CornerTable& corner_table,
+                                       std::vector<bool>* triangle_visited,
+                                       PolygonEdges* polygon_edges) {
   // Do not add any edges if this triangular face has already been visited.
   if ((*triangle_visited)[face_index.value()]) {
     return;
   }
   (*triangle_visited)[face_index.value()] = true;
-  const Mesh::Face &face = in_mesh_->face(face_index);
+  const Mesh::Face& face = in_mesh_->face(face_index);
   for (size_t c = 0; c < 3; c++) {
     // Check for added edge using this corner.
     const CornerIndex ci = corner_table.FirstCorner(face_index) + c;

@@ -36,7 +36,7 @@ class KeyframeAnimation : public PointCloud {
   // Animation must have only one timestamp attribute.
   // This function must be called before adding any animation data.
   // Returns false if timestamp already exists.
-  bool SetTimestamps(const std::vector<TimestampType> &timestamp);
+  bool SetTimestamps(const std::vector<TimestampType>& timestamp);
 
   // Returns an id for the added animation data. This id will be used to
   // identify this animation.
@@ -46,12 +46,12 @@ class KeyframeAnimation : public PointCloud {
   //    int32_t - DT_INT32, ...
   template <typename T>
   int32_t AddKeyframes(DataType data_type, uint32_t num_components,
-                       const std::vector<T> &data);
+                       const std::vector<T>& data);
 
-  const PointAttribute *timestamps() const {
+  const PointAttribute* timestamps() const {
     return GetAttributeByUniqueId(kTimestampId);
   }
-  const PointAttribute *keyframes(int32_t animation_id) const {
+  const PointAttribute* keyframes(int32_t animation_id) const {
     return GetAttributeByUniqueId(animation_id);
   }
 
@@ -69,7 +69,7 @@ class KeyframeAnimation : public PointCloud {
 template <typename T>
 int32_t KeyframeAnimation::AddKeyframes(DataType data_type,
                                         uint32_t num_components,
-                                        const std::vector<T> &data) {
+                                        const std::vector<T>& data) {
   // TODO(draco-eng): Verify T is consistent with |data_type|.
   if (num_components == 0) {
     return -1;

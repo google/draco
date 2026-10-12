@@ -37,8 +37,7 @@ macro(draco_setup_install_target)
 
     list(REMOVE_DUPLICATES draco_api_includes)
 
-    # Use file(RELATIVE_PATH) — not list(TRANSFORM REPLACE) — because the
-    # REPLACE pattern is a regex, and ${draco_src_root} may contain regex
+    # Use file(RELATIVE_PATH) because ${draco_src_root} may contain regex
     # metacharacters (e.g. '+', '.') in package-manager and sandboxed paths.
     foreach(draco_api_include ${draco_api_includes})
       file(RELATIVE_PATH rel_include "${draco_src_root}" "${draco_api_include}")

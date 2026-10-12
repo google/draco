@@ -4,7 +4,7 @@
 
 namespace draco {
 
-bool SymbolBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
+bool SymbolBitDecoder::StartDecoding(DecoderBuffer* source_buffer) {
   uint32_t size;
   if (!source_buffer->Decode(&size)) {
     return false;
@@ -26,7 +26,7 @@ bool SymbolBitDecoder::DecodeNextBit() {
 }
 
 void SymbolBitDecoder::DecodeLeastSignificantBits32(int nbits,
-                                                    uint32_t *value) {
+                                                    uint32_t* value) {
   DRACO_DCHECK_LE(1, nbits);
   DRACO_DCHECK_LE(nbits, 32);
   DRACO_DCHECK_NE(value, nullptr);

@@ -32,7 +32,7 @@ class TraverserBase {
   TraverserBase() : corner_table_(nullptr) {}
   virtual ~TraverserBase() = default;
 
-  virtual void Init(const CornerTable *corner_table,
+  virtual void Init(const CornerTable* corner_table,
                     TraversalObserver traversal_observer) {
     corner_table_ = corner_table;
     is_face_visited_.assign(corner_table->num_faces(), false);
@@ -40,7 +40,7 @@ class TraverserBase {
     traversal_observer_ = traversal_observer;
   }
 
-  const CornerTable &GetCornerTable() const { return *corner_table_; }
+  const CornerTable& GetCornerTable() const { return *corner_table_; }
 
   inline bool IsFaceVisited(FaceIndex face_id) const {
     if (face_id == kInvalidFaceIndex) {
@@ -67,16 +67,16 @@ class TraverserBase {
     is_vertex_visited_[vert_id.value()] = true;
   }
 
-  inline const CornerTable *corner_table() const { return corner_table_; }
-  inline const TraversalObserverT &traversal_observer() const {
+  inline const CornerTable* corner_table() const { return corner_table_; }
+  inline const TraversalObserverT& traversal_observer() const {
     return traversal_observer_;
   }
-  inline TraversalObserverT &traversal_observer() {
+  inline TraversalObserverT& traversal_observer() {
     return traversal_observer_;
   }
 
  private:
-  const CornerTable *corner_table_;
+  const CornerTable* corner_table_;
   TraversalObserverT traversal_observer_;
   std::vector<bool> is_face_visited_;
   std::vector<bool> is_vertex_visited_;

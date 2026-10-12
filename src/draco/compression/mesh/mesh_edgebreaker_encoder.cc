@@ -20,7 +20,7 @@
 
 namespace draco {
 
-MeshEdgebreakerEncoder::MeshEdgebreakerEncoder() {}
+MeshEdgebreakerEncoder::MeshEdgebreakerEncoder() = default;
 
 bool MeshEdgebreakerEncoder::InitializeEncoder() {
   const bool is_standard_edgebreaker_available =
@@ -90,7 +90,7 @@ void MeshEdgebreakerEncoder::ComputeNumberOfEncodedPoints() {
   if (!impl_) {
     return;
   }
-  const CornerTable *const corner_table = impl_->GetCornerTable();
+  const CornerTable* const corner_table = impl_->GetCornerTable();
   if (!corner_table) {
     return;
   }
@@ -99,13 +99,13 @@ void MeshEdgebreakerEncoder::ComputeNumberOfEncodedPoints() {
 
   if (mesh()->num_attributes() > 1) {
     // Gather all corner tables for all non-position attributes.
-    std::vector<const MeshAttributeCornerTable *> attribute_corner_tables;
+    std::vector<const MeshAttributeCornerTable*> attribute_corner_tables;
     for (int i = 0; i < mesh()->num_attributes(); ++i) {
       if (mesh()->attribute(i)->attribute_type() ==
           GeometryAttribute::POSITION) {
         continue;
       }
-      const MeshAttributeCornerTable *const att_corner_table =
+      const MeshAttributeCornerTable* const att_corner_table =
           GetAttributeCornerTable(i);
       // Attribute corner table may not be used in some configurations. For
       // these cases we can assume the attribute connectivity to be the same as
@@ -183,7 +183,7 @@ void MeshEdgebreakerEncoder::ComputeNumberOfEncodedFaces() {
   if (!impl_) {
     return;
   }
-  const CornerTable *const corner_table = impl_->GetCornerTable();
+  const CornerTable* const corner_table = impl_->GetCornerTable();
   if (!corner_table) {
     return;
   }

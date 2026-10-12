@@ -48,8 +48,8 @@ class GltfEncoder {
   // Encodes the geometry and saves it into a file. Returns false when either
   // the encoding failed or when the file couldn't be opened.
   template <typename T>
-  bool EncodeToFile(const T &geometry, const std::string &file_name,
-                    const std::string &base_dir);
+  bool EncodeToFile(const T& geometry, const std::string& file_name,
+                    const std::string& base_dir);
 
   // Saves |geometry| into glTF 2.0 format. |filename| is the name of the
   // glTF file. The glTF bin file (if needed) will be named stem(|filename|) +
@@ -58,33 +58,33 @@ class GltfEncoder {
   // glTF-Binary file. Otherwise |filename| will be written as non-binary glTF
   // file.
   template <typename T>
-  Status EncodeFile(const T &geometry, const std::string &filename);
+  Status EncodeFile(const T& geometry, const std::string& filename);
 
   // Saves |geometry| into glTF 2.0 format. |filename| is the name of the
   // glTF file. |bin_filename| is the name of the glTF bin file. The other
   // files (if needed) will be saved to basedir(|filename|). |bin_filename| will
   // be ignored if output is glTF-Binary.
   template <typename T>
-  Status EncodeFile(const T &geometry, const std::string &filename,
-                    const std::string &bin_filename);
+  Status EncodeFile(const T& geometry, const std::string& filename,
+                    const std::string& bin_filename);
 
   // Saves |geometry| into glTF 2.0 format. |filename| is the name of the
   // glTF file. |bin_filename| is the name of the glTF bin file. The other
   // files will be saved to |resource_dir|. |bin_filename| and |resource_dir|
   // will be ignored if output is glTF-Binary.
   template <typename T>
-  Status EncodeFile(const T &geometry, const std::string &filename,
-                    const std::string &bin_filename,
-                    const std::string &resource_dir);
+  Status EncodeFile(const T& geometry, const std::string& filename,
+                    const std::string& bin_filename,
+                    const std::string& resource_dir);
 
   // Encodes |geometry| to |out_buffer| in glTF 2.0 GLB format.
   template <typename T>
-  Status EncodeToBuffer(const T &geometry, EncoderBuffer *out_buffer);
+  Status EncodeToBuffer(const T& geometry, EncoderBuffer* out_buffer);
 
   void set_output_type(OutputType type) { output_type_ = type; }
   OutputType output_type() const { return output_type_; }
 
-  void set_copyright(const std::string &copyright) { copyright_ = copyright; }
+  void set_copyright(const std::string& copyright) { copyright_ = copyright; }
   std::string copyright() const { return copyright_; }
 
   // The name of the attribute metadata that contains the glTF attribute
@@ -95,39 +95,39 @@ class GltfEncoder {
 
  private:
   // Encodes the mesh or the point cloud into a buffer.
-  Status EncodeToBuffer(const Mesh &mesh, class GltfAsset *gltf_asset,
-                        EncoderBuffer *out_buffer);
-  Status EncodeToBuffer(const Scene &scene, class GltfAsset *gltf_asset,
-                        EncoderBuffer *out_buffer);
+  Status EncodeToBuffer(const Mesh& mesh, class GltfAsset* gltf_asset,
+                        EncoderBuffer* out_buffer);
+  Status EncodeToBuffer(const Scene& scene, class GltfAsset* gltf_asset,
+                        EncoderBuffer* out_buffer);
 
   // Sets appropriate Json writer mode based on the provided |gltf_asset|
   // options.
-  static void SetJsonWriterMode(class GltfAsset *gltf_asset);
+  static void SetJsonWriterMode(class GltfAsset* gltf_asset);
 
   // Writes the ".gltf" and associted files. |gltf_asset| holds the glTF data.
   // |buffer| is the encoded glTF json data. |filename| is the name of the
   // ".gltf" file. |bin_filename| is the name of the glTF bin file. The other
   // files will be saved to |resource_dir|.
-  Status WriteGltfFiles(const class GltfAsset &gltf_asset,
-                        const EncoderBuffer &buffer,
-                        const std::string &filename,
-                        const std::string &bin_filename,
-                        const std::string &resource_dir);
+  Status WriteGltfFiles(const class GltfAsset& gltf_asset,
+                        const EncoderBuffer& buffer,
+                        const std::string& filename,
+                        const std::string& bin_filename,
+                        const std::string& resource_dir);
 
   // Writes the ".glb" file. |gltf_asset| holds the glTF data. |json_data| is
   // the encoded glTF json data. |filename| is the name of the ".glb" file.
-  Status WriteGlbFile(const class GltfAsset &gltf_asset,
-                      const EncoderBuffer &json_data,
-                      const std::string &filename);
+  Status WriteGlbFile(const class GltfAsset& gltf_asset,
+                      const EncoderBuffer& json_data,
+                      const std::string& filename);
 
   // Creates GLB file chunks and passes them to |process_chunk| function for
   // processing. |gltf_asset| holds the glTF data. |json_data| is the encoded
   // glTF json data.
   Status ProcessGlbFileChunks(
-      const class GltfAsset &gltf_asset, const EncoderBuffer &json_data,
-      const std::function<Status(const EncoderBuffer &)> &process_chunk) const;
+      const class GltfAsset& gltf_asset, const EncoderBuffer& json_data,
+      const std::function<Status(const EncoderBuffer&)>& process_chunk) const;
 
-  EncoderBuffer *out_buffer_;
+  EncoderBuffer* out_buffer_;
   OutputType output_type_;
   std::string copyright_;
 };

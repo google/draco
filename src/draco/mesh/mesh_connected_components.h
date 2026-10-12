@@ -31,7 +31,7 @@ class MeshConnectedComponents {
   // Initializes the class with the component data of the input mesh. No other
   // method should be called before this one.
   template <class CornerTableT = CornerTable>
-  void FindConnectedComponents(const CornerTableT *corner_table);
+  void FindConnectedComponents(const CornerTableT* corner_table);
   int NumConnectedComponents() const { return components_.size(); }
 
   struct ConnectedComponent {
@@ -40,7 +40,7 @@ class MeshConnectedComponents {
     std::vector<int> boundary_edges;
   };
 
-  const ConnectedComponent &GetConnectedComponent(int index) const {
+  const ConnectedComponent& GetConnectedComponent(int index) const {
     return components_[index];
   }
 
@@ -95,7 +95,7 @@ class MeshConnectedComponents {
 
 template <class CornerTableT>
 void MeshConnectedComponents::FindConnectedComponents(
-    const CornerTableT *corner_table) {
+    const CornerTableT* corner_table) {
   components_.clear();
   vertex_to_component_map_.assign(corner_table->num_vertices(), -1);
   face_to_component_map_.assign(corner_table->num_faces(), -1);

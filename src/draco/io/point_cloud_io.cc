@@ -22,7 +22,7 @@
 namespace draco {
 
 StatusOr<std::unique_ptr<PointCloud>> ReadPointCloudFromFile(
-    const std::string &file_name) {
+    const std::string& file_name) {
   std::unique_ptr<PointCloud> pc(new PointCloud());
   // Analyze file extension.
   const std::string extension = parser::ToLower(

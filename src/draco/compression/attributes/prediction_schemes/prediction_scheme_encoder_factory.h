@@ -36,19 +36,19 @@ namespace draco {
 // Selects a prediction method based on the input geometry type and based on the
 // encoder options.
 PredictionSchemeMethod SelectPredictionMethod(int att_id,
-                                              const PointCloudEncoder *encoder);
+                                              const PointCloudEncoder* encoder);
 
 PredictionSchemeMethod SelectPredictionMethod(int att_id,
-                                              const EncoderOptions &options,
-                                              const PointCloudEncoder *encoder);
+                                              const EncoderOptions& options,
+                                              const PointCloudEncoder* encoder);
 
 // Factory class for creating mesh prediction schemes.
 template <typename DataTypeT>
 struct MeshPredictionSchemeEncoderFactory {
   template <class TransformT, class MeshDataT>
   std::unique_ptr<PredictionSchemeEncoder<DataTypeT, TransformT>> operator()(
-      PredictionSchemeMethod method, const PointAttribute *attribute,
-      const TransformT &transform, const MeshDataT &mesh_data,
+      PredictionSchemeMethod method, const PointAttribute* attribute,
+      const TransformT& transform, const MeshDataT& mesh_data,
       uint16_t bitstream_version) {
     if (method == MESH_PREDICTION_PARALLELOGRAM) {
       return std::unique_ptr<PredictionSchemeEncoder<DataTypeT, TransformT>>(
@@ -92,9 +92,9 @@ struct MeshPredictionSchemeEncoderFactory {
 template <typename DataTypeT, class TransformT>
 std::unique_ptr<PredictionSchemeEncoder<DataTypeT, TransformT>>
 CreatePredictionSchemeForEncoder(PredictionSchemeMethod method, int att_id,
-                                 const PointCloudEncoder *encoder,
-                                 const TransformT &transform) {
-  const PointAttribute *const att = encoder->point_cloud()->attribute(att_id);
+                                 const PointCloudEncoder* encoder,
+                                 const TransformT& transform) {
+  const PointAttribute* const att = encoder->point_cloud()->attribute(att_id);
   if (method == PREDICTION_UNDEFINED) {
     method = SelectPredictionMethod(att_id, encoder);
   }
@@ -107,8 +107,8 @@ CreatePredictionSchemeForEncoder(PredictionSchemeMethod method, int att_id,
     // but unfortunately there is not nice work around for this without using
     // RTTI (double dispatch and similar concepts will not work because of the
     // template nature of the prediction schemes).
-    const MeshEncoder *const mesh_encoder =
-        static_cast<const MeshEncoder *>(encoder);
+    const MeshEncoder* const mesh_encoder =
+        static_cast<const MeshEncoder*>(encoder);
     const uint16_t bitstream_version = kDracoMeshBitstreamVersion;
     auto ret = CreateMeshPredictionScheme<
         MeshEncoder, PredictionSchemeEncoder<DataTypeT, TransformT>,
@@ -128,14 +128,14 @@ CreatePredictionSchemeForEncoder(PredictionSchemeMethod method, int att_id,
 template <typename DataTypeT, class TransformT>
 std::unique_ptr<PredictionSchemeEncoder<DataTypeT, TransformT>>
 CreatePredictionSchemeForEncoder(PredictionSchemeMethod method, int att_id,
-                                 const PointCloudEncoder *encoder) {
+                                 const PointCloudEncoder* encoder) {
   return CreatePredictionSchemeForEncoder<DataTypeT, TransformT>(
       method, att_id, encoder, TransformT());
 }
 
 // Returns the preferred prediction scheme based on the encoder options.
 PredictionSchemeMethod GetPredictionMethodFromOptions(
-    int att_id, const EncoderOptions &options);
+    int att_id, const EncoderOptions& options);
 
 }  // namespace draco
 

@@ -18,10 +18,10 @@
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <cstdint>
 #include <string>
 #include <vector>
 
-#include "draco/texture/texture_library.h"
 #include "draco/texture/texture_map.h"
 
 namespace draco {
@@ -38,11 +38,11 @@ class MeshFeatures {
   MeshFeatures();
 
   // Copies all data from |src| mesh feature ID set.
-  void Copy(const MeshFeatures &src);
+  void Copy(const MeshFeatures& src);
 
   // Label assigned to this feature ID set.
-  void SetLabel(const std::string &label);
-  const std::string &GetLabel() const;
+  void SetLabel(const std::string& label);
+  const std::string& GetLabel() const;
 
   // The number of unique features in this feature ID set.
   void SetFeatureCount(int feature_count);
@@ -62,13 +62,13 @@ class MeshFeatures {
   // associated with texture pixels. Only used when |attribute_index_| is -1.
   // The RGBA channels are numbered from 0 to 3. See the glTF extension
   // documentation for reconstruction of feature ID from the channel values.
-  void SetTextureMap(const TextureMap &texture_map);
-  void SetTextureMap(Texture *texture, int tex_coord_index);
-  const TextureMap &GetTextureMap() const;
-  TextureMap &GetTextureMap();
-  void SetTextureChannels(const std::vector<int> &texture_channels);
-  const std::vector<int> &GetTextureChannels() const;
-  std::vector<int> &GetTextureChannels();
+  void SetTextureMap(const TextureMap& texture_map);
+  void SetTextureMap(Texture* texture, int tex_coord_index);
+  const TextureMap& GetTextureMap() const;
+  TextureMap& GetTextureMap();
+  void SetTextureChannels(const std::vector<int>& texture_channels);
+  const std::vector<int>& GetTextureChannels() const;
+  std::vector<int>& GetTextureChannels();
 
   // Non-negative index of the property table this feature ID set is associated
   // with. Property tables are defined in the EXT_structural_metadata glTF

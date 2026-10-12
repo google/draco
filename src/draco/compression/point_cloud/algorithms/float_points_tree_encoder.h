@@ -15,6 +15,7 @@
 #ifndef DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_TREE_ENCODER_H_
 #define DRACO_COMPRESSION_POINT_CLOUD_ALGORITHMS_FLOAT_POINTS_TREE_ENCODER_H_
 
+#include <iterator>
 #include <memory>
 #include <vector>
 
@@ -54,13 +55,13 @@ class FloatPointsTreeEncoder {
 
   template <class InputIteratorT>
   bool EncodePointCloud(InputIteratorT points_begin, InputIteratorT points_end);
-  EncoderBuffer *buffer() { return &buffer_; }
+  EncoderBuffer* buffer() { return &buffer_; }
 
   uint32_t version() const { return version_; }
   uint32_t quantization_bits() const { return qinfo_.quantization_bits; }
-  uint32_t &quantization_bits() { return qinfo_.quantization_bits; }
+  uint32_t& quantization_bits() { return qinfo_.quantization_bits; }
   uint32_t compression_level() const { return compression_level_; }
-  uint32_t &compression_level() { return compression_level_; }
+  uint32_t& compression_level() { return compression_level_; }
   float range() const { return qinfo_.range; }
   uint32_t num_points() const { return num_points_; }
   std::string identification_string() const {
@@ -73,7 +74,7 @@ class FloatPointsTreeEncoder {
 
  private:
   void Clear() { buffer_.Clear(); }
-  bool EncodePointCloudKdTreeInternal(std::vector<Point3ui> *qpoints);
+  bool EncodePointCloudKdTreeInternal(std::vector<Point3ui>* qpoints);
 
   static const uint32_t version_;
   QuantizationInfo qinfo_;

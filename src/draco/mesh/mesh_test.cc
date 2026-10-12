@@ -20,6 +20,8 @@
 
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
+#include "draco/metadata/structural_metadata_schema.h"
+#include "draco/texture/texture_library.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/compression/draco_compression_options.h"
@@ -33,6 +35,7 @@
 namespace {
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+
 // Tests naming of a mesh.
 TEST(MeshTest, MeshName) {
   draco::Mesh mesh;
@@ -76,7 +79,7 @@ TEST(MeshTest, RemoveUnusedMaterials) {
       draco::ReadMeshFromTestFile("mat_test.obj");
   ASSERT_NE(mesh, nullptr);
 
-  const draco::PointAttribute *const mat_att =
+  const draco::PointAttribute* const mat_att =
       mesh->GetNamedAttribute(draco::GeometryAttribute::MATERIAL);
   ASSERT_NE(mat_att, nullptr);
   ASSERT_EQ(mat_att->size(), 29);
@@ -84,8 +87,8 @@ TEST(MeshTest, RemoveUnusedMaterials) {
   ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), mat_att->size());
 
   // Get materials on all faces.
-  std::vector<const draco::Material *> face_materials(mesh->num_faces(),
-                                                      nullptr);
+  std::vector<const draco::Material*> face_materials(mesh->num_faces(),
+                                                     nullptr);
   for (draco::FaceIndex fi(0); fi < mesh->num_faces(); ++fi) {
     uint32_t mat_index = 0;
     mat_att->GetMappedValue(mesh->face(fi)[0], &mat_index);
@@ -124,7 +127,7 @@ TEST(MeshTest, RemoveUnusedMaterialsOnPointClud) {
   // Make it a point cloud.
   mesh->SetNumFaces(0);
 
-  const draco::PointAttribute *const mat_att =
+  const draco::PointAttribute* const mat_att =
       mesh->GetNamedAttribute(draco::GeometryAttribute::MATERIAL);
   ASSERT_NE(mat_att, nullptr);
   ASSERT_EQ(mat_att->size(), 29);
@@ -132,8 +135,8 @@ TEST(MeshTest, RemoveUnusedMaterialsOnPointClud) {
   ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), mat_att->size());
 
   // Get materials on all points.
-  std::vector<const draco::Material *> point_materials(mesh->num_points(),
-                                                       nullptr);
+  std::vector<const draco::Material*> point_materials(mesh->num_points(),
+                                                      nullptr);
   for (draco::PointIndex pi(0); pi < mesh->num_points(); ++pi) {
     uint32_t mat_index = 0;
     mat_att->GetMappedValue(pi, &mat_index);
@@ -169,7 +172,7 @@ TEST(MeshTest, RemoveUnusedMaterialsNoIndices) {
       draco::ReadMeshFromTestFile("mat_test.obj");
   ASSERT_NE(mesh, nullptr);
 
-  const draco::PointAttribute *const mat_att =
+  const draco::PointAttribute* const mat_att =
       mesh->GetNamedAttribute(draco::GeometryAttribute::MATERIAL);
   ASSERT_NE(mat_att, nullptr);
   ASSERT_EQ(mat_att->size(), 29);
@@ -247,7 +250,7 @@ TEST(MeshTest, TestAddNewAttributeWithConnectivity) {
   ASSERT_EQ(mesh->num_attributes(), 2);
   ASSERT_EQ(mesh->num_points(), 4);
 
-  const draco::PointAttribute *const new_att_0 = mesh->attribute(new_att_id_0);
+  const draco::PointAttribute* const new_att_0 = mesh->attribute(new_att_id_0);
   ASSERT_NE(new_att_0, nullptr);
 
   // All points of the mesh should be mapped to the same attribute value.
@@ -280,7 +283,7 @@ TEST(MeshTest, TestAddNewAttributeWithConnectivity) {
   // One new point should have been created by adding the new attribute.
   ASSERT_EQ(mesh->num_points(), 5);
 
-  const draco::PointAttribute *const new_att_1 = mesh->attribute(new_att_id_1);
+  const draco::PointAttribute* const new_att_1 = mesh->attribute(new_att_id_1);
   ASSERT_NE(new_att_1, nullptr);
   ASSERT_TRUE(mesh->CornerToPointId(1) == draco::PointIndex(4) ||
               mesh->CornerToPointId(4) == draco::PointIndex(4));
@@ -312,7 +315,7 @@ TEST(MeshTest, TestAddNewAttributeWithConnectivityWithIsolatedVertices) {
   const std::unique_ptr<draco::Mesh> mesh =
       draco::ReadMeshFromTestFile("isolated_vertices.ply");
   ASSERT_NE(mesh, nullptr);
-  const draco::PointAttribute *const pos_att =
+  const draco::PointAttribute* const pos_att =
       mesh->GetNamedAttribute(draco::GeometryAttribute::POSITION);
   ASSERT_NE(pos_att, nullptr);
   ASSERT_TRUE(pos_att->is_mapping_identity());
@@ -336,7 +339,7 @@ TEST(MeshTest, TestAddNewAttributeWithConnectivityWithIsolatedVertices) {
     corner_to_point[ci] = draco::AttributeValueIndex(1);
   }
 
-  const draco::PointAttribute *const pa_raw = pa.get();
+  const draco::PointAttribute* const pa_raw = pa.get();
   mesh->AddAttributeWithConnectivity(std::move(pa), corner_to_point);
 
   // Two new point should have been added.
@@ -353,7 +356,7 @@ TEST(MeshTest, TestAddPerVertexAttribute) {
       draco::ReadMeshFromTestFile("cube_att.obj");
 
   ASSERT_NE(mesh, nullptr);
-  const draco::PointAttribute *const pos_att =
+  const draco::PointAttribute* const pos_att =
       mesh->GetNamedAttribute(draco::GeometryAttribute::POSITION);
   ASSERT_NE(pos_att, nullptr);
 
@@ -483,7 +486,7 @@ TEST(MeshTest, MeshCopyWithMeshFeatures) {
   texture1->Resize(256, 256);
   texture0->FillImage(draco::RGBA(100, 0, 0, 0));
   texture1->FillImage(draco::RGBA(200, 0, 0, 0));
-  draco::TextureLibrary &library = mesh->GetNonMaterialTextureLibrary();
+  draco::TextureLibrary& library = mesh->GetNonMaterialTextureLibrary();
   library.PushTexture(std::move(texture0));
   library.PushTexture(std::move(texture1));
 
@@ -528,7 +531,7 @@ TEST(MeshTest, MeshCopyWithMeshFeatures) {
   ASSERT_TRUE(eq(*mesh, mesh_copy));
 
   // Also check that the texture pointers have been updated correctly.
-  const draco::TextureLibrary &library_copy =
+  const draco::TextureLibrary& library_copy =
       mesh_copy.GetNonMaterialTextureLibrary();
   ASSERT_EQ(library_copy.NumTextures(), 2);
   ASSERT_EQ(mesh_copy.NumMeshFeatures(), 3);
@@ -591,37 +594,189 @@ TEST(MeshTest, TestAttributeUsedByMeshFeatures) {
   ASSERT_FALSE(mesh->IsAttributeUsedByMeshFeatures(1));
 }
 
+TEST(MeshTest, TestUpdatePropertyAttributesIndices) {
+  // Create mesh with the property attribute indices and material masks.
+  //    i     index     mask
+  //   [0]     [4]     [4, 5]
+  //   [1]     [2]     [2, 3]  <-- To be deleted.
+  //   [2]     [0]     [0, 1]
+  //   [3]     [3]     [3, 4]
+  //   [4]     [1]     [1, 2]
+  draco::Mesh mesh;
+  mesh.AddPropertyAttributesIndex(4);
+  mesh.AddPropertyAttributesIndex(2);
+  mesh.AddPropertyAttributesIndex(0);
+  mesh.AddPropertyAttributesIndex(3);
+  mesh.AddPropertyAttributesIndex(1);
+  mesh.AddPropertyAttributesIndexMaterialMask(0, 4);
+  mesh.AddPropertyAttributesIndexMaterialMask(0, 5);
+  mesh.AddPropertyAttributesIndexMaterialMask(1, 2);
+  mesh.AddPropertyAttributesIndexMaterialMask(1, 3);
+  mesh.AddPropertyAttributesIndexMaterialMask(2, 0);
+  mesh.AddPropertyAttributesIndexMaterialMask(2, 1);
+  mesh.AddPropertyAttributesIndexMaterialMask(3, 3);
+  mesh.AddPropertyAttributesIndexMaterialMask(3, 4);
+  mesh.AddPropertyAttributesIndexMaterialMask(4, 1);
+  mesh.AddPropertyAttributesIndexMaterialMask(4, 2);
+
+  // Update indices to accommodate for the deletion of property at index 2.
+  //    i     index     mask
+  //   [0]     [3]     [4, 5]
+  //   [1]     [0]     [0, 1]
+  //   [2]     [2]     [3, 4]
+  //   [3]     [1]     [1, 2]
+  mesh.UpdatePropertyAttributesIndicesAfterDeletedProperty(2);
+  ASSERT_EQ(mesh.NumPropertyAttributesIndices(), 4);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndex(0), 3);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndex(1), 0);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndex(2), 2);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndex(3), 1);
+  ASSERT_EQ(mesh.NumPropertyAttributesIndexMaterialMasks(0), 2);
+  ASSERT_EQ(mesh.NumPropertyAttributesIndexMaterialMasks(1), 2);
+  ASSERT_EQ(mesh.NumPropertyAttributesIndexMaterialMasks(2), 2);
+  ASSERT_EQ(mesh.NumPropertyAttributesIndexMaterialMasks(3), 2);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndexMaterialMask(0, 0), 4);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndexMaterialMask(0, 1), 5);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndexMaterialMask(1, 0), 0);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndexMaterialMask(1, 1), 1);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndexMaterialMask(2, 0), 3);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndexMaterialMask(2, 1), 4);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndexMaterialMask(3, 0), 1);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndexMaterialMask(3, 1), 2);
+}
+
+TEST(MeshTest, TestUpdatePropertyTexturesIndices) {
+  // Create mesh with the property texture indices and material masks.
+  //    i     index     mask
+  //   [0]     [4]     [4, 5]
+  //   [1]     [2]     [2, 3]  <-- To be deleted.
+  //   [2]     [0]     [0, 1]
+  //   [3]     [3]     [3, 4]
+  //   [4]     [1]     [1, 2]
+  draco::Mesh mesh;
+  mesh.AddPropertyTexturesIndex(4);
+  mesh.AddPropertyTexturesIndex(2);
+  mesh.AddPropertyTexturesIndex(0);
+  mesh.AddPropertyTexturesIndex(3);
+  mesh.AddPropertyTexturesIndex(1);
+  mesh.AddPropertyTexturesIndexMaterialMask(0, 4);
+  mesh.AddPropertyTexturesIndexMaterialMask(0, 5);
+  mesh.AddPropertyTexturesIndexMaterialMask(1, 2);
+  mesh.AddPropertyTexturesIndexMaterialMask(1, 3);
+  mesh.AddPropertyTexturesIndexMaterialMask(2, 0);
+  mesh.AddPropertyTexturesIndexMaterialMask(2, 1);
+  mesh.AddPropertyTexturesIndexMaterialMask(3, 3);
+  mesh.AddPropertyTexturesIndexMaterialMask(3, 4);
+  mesh.AddPropertyTexturesIndexMaterialMask(4, 1);
+  mesh.AddPropertyTexturesIndexMaterialMask(4, 2);
+
+  // Update indices to accommodate for the deletion of property at index 2.
+  //    i     index     mask
+  //   [0]     [3]     [4, 5]
+  //   [1]     [0]     [0, 1]
+  //   [2]     [2]     [3, 4]
+  //   [3]     [1]     [1, 2]
+  mesh.UpdatePropertyTexturesIndicesAfterDeletedProperty(2);
+  ASSERT_EQ(mesh.NumPropertyTexturesIndices(), 4);
+  ASSERT_EQ(mesh.GetPropertyTexturesIndex(0), 3);
+  ASSERT_EQ(mesh.GetPropertyTexturesIndex(1), 0);
+  ASSERT_EQ(mesh.GetPropertyTexturesIndex(2), 2);
+  ASSERT_EQ(mesh.GetPropertyTexturesIndex(3), 1);
+  ASSERT_EQ(mesh.NumPropertyTexturesIndexMaterialMasks(0), 2);
+  ASSERT_EQ(mesh.NumPropertyTexturesIndexMaterialMasks(1), 2);
+  ASSERT_EQ(mesh.NumPropertyTexturesIndexMaterialMasks(2), 2);
+  ASSERT_EQ(mesh.NumPropertyTexturesIndexMaterialMasks(3), 2);
+  ASSERT_EQ(mesh.GetPropertyTexturesIndexMaterialMask(0, 0), 4);
+  ASSERT_EQ(mesh.GetPropertyTexturesIndexMaterialMask(0, 1), 5);
+  ASSERT_EQ(mesh.GetPropertyTexturesIndexMaterialMask(1, 0), 0);
+  ASSERT_EQ(mesh.GetPropertyTexturesIndexMaterialMask(1, 1), 1);
+  ASSERT_EQ(mesh.GetPropertyTexturesIndexMaterialMask(2, 0), 3);
+  ASSERT_EQ(mesh.GetPropertyTexturesIndexMaterialMask(2, 1), 4);
+  ASSERT_EQ(mesh.GetPropertyTexturesIndexMaterialMask(3, 0), 1);
+  ASSERT_EQ(mesh.GetPropertyTexturesIndexMaterialMask(3, 1), 2);
+}
+
 // Tests copying of a mesh with structural metadata.
 TEST(MeshTest, TestCopyWithStructuralMetadata) {
   const std::unique_ptr<draco::Mesh> mesh =
       draco::ReadMeshFromTestFile("cube_att.obj");
   ASSERT_NE(mesh, nullptr);
 
-  // Add structural metadata to the mesh.
+  // Add structural metadata schema to the mesh.
   draco::StructuralMetadataSchema schema;
   schema.json.SetString("Data");
   mesh->GetStructuralMetadata().SetSchema(schema);
+
+  // Add structural metadata property attribute to the mesh.
   mesh->AddPropertyAttributesIndex(0);
   mesh->AddPropertyAttributesIndex(1);
+
+  // Add structural metadata property texture to the mesh.
+  draco::TextureLibrary& library = mesh->GetNonMaterialTextureLibrary();
+  auto texture = std::make_unique<draco::Texture>();
+  texture->Resize(8, 16);
+  texture->FillImage(draco::RGBA(100, 200, 0, 0));
+  library.PushTexture(std::move(texture));
+  auto property_texture = std::make_unique<draco::PropertyTexture>();
+  property_texture->SetClass("Motion");
+  property_texture->SetName("Brownian");
+  auto property = std::make_unique<draco::PropertyTexture::Property>();
+  property->SetName("Magnitude");
+  const std::vector<int> channels = {0, 1};
+  property->SetTextureChannels(channels);
+  property->SetTextureMap(library.GetTexture(0), 0);
+  property_texture->AddProperty(std::move(property));
+  mesh->GetStructuralMetadata().AddPropertyTexture(std::move(property_texture));
+  mesh->AddPropertyTexturesIndex(0);
 
   // Copy the mesh.
   draco::Mesh copy;
   copy.Copy(*mesh);
 
   // Check that the structural metadata has been copied.
-  ASSERT_EQ(copy.GetStructuralMetadata().GetSchema().json.GetString(), "Data");
   ASSERT_EQ(copy.NumPropertyAttributesIndices(), 2);
   ASSERT_EQ(copy.GetPropertyAttributesIndex(0), 0);
   ASSERT_EQ(copy.GetPropertyAttributesIndex(1), 1);
+  const auto& library_copy = copy.GetNonMaterialTextureLibrary();
+  const auto& structural_metadata_copy = copy.GetStructuralMetadata();
+  ASSERT_EQ(structural_metadata_copy.GetSchema().json.GetString(), "Data");
+  ASSERT_EQ(copy.NumPropertyTexturesIndices(), 1);
+  ASSERT_EQ(copy.GetPropertyTexturesIndex(0), 0);
+  ASSERT_EQ(structural_metadata_copy.NumPropertyTextures(), 1);
+  const auto& property_texture_copy =
+      structural_metadata_copy.GetPropertyTexture(0);
+  ASSERT_EQ(property_texture_copy.GetClass(), "Motion");
+  ASSERT_EQ(property_texture_copy.GetName(), "Brownian");
+  ASSERT_EQ(property_texture_copy.NumProperties(), 1);
+  const auto& property_copy = property_texture_copy.GetProperty(0);
+  ASSERT_EQ(property_copy.GetName(), "Magnitude");
+  ASSERT_EQ(property_copy.GetTextureChannels(), channels);
+  ASSERT_NE(property_copy.GetTextureMap().texture(), nullptr);
+  ASSERT_EQ(property_copy.GetTextureMap().tex_coord_index(), 0);
+  const auto& texture_copy = *property_copy.GetTextureMap().texture();
+  ASSERT_EQ(library_copy.NumTextures(), 1);
+  ASSERT_EQ(library_copy.GetTexture(0), &texture_copy);
+  ASSERT_EQ(texture_copy.height(), 16);
+  ASSERT_EQ(texture_copy.width(), 8);
+  for (auto px : {texture_copy.GetPixel(0, 0), texture_copy.GetPixel(7, 15)}) {
+    ASSERT_EQ(px.r, 100);
+    ASSERT_EQ(px.g, 200);
+    ASSERT_EQ(px.b, 0);
+    ASSERT_EQ(px.a, 0);
+  }
 
   // Check that property attributes index can be removed.
   copy.RemovePropertyAttributesIndex(0);
   ASSERT_EQ(copy.NumPropertyAttributesIndices(), 1);
   ASSERT_EQ(copy.GetPropertyAttributesIndex(0), 1);
+
+  // Check that property textures index can be removed.
+  copy.RemovePropertyTexturesIndex(0);
+  ASSERT_EQ(copy.NumPropertyTexturesIndices(), 0);
 }
 
-// Tests removing of unused materials for a mesh with mesh features and property
-// attributes indices.
+// Tests removing of unused materials for a mesh with mesh features, property
+// attributes, and property textures.
 TEST(MeshTest,
      RemoveUnusedMaterialsWithMeshFeaturesAndPropertyAttributesIndices) {
   const std::unique_ptr<draco::Mesh> mesh =
@@ -631,25 +786,24 @@ TEST(MeshTest,
   // Input has five mesh features, two associated with material 0 and three with
   // material 1.
   ASSERT_EQ(mesh->NumMeshFeatures(), 5);
-  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(0), 0),
-            0);
-  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(1), 0),
-            0);
-  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(2), 0),
-            1);
-  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(3), 0),
-            1);
-  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(4), 0),
-            1);
+  typedef draco::MeshFeaturesIndex MeshFeaturesIndex;
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(MeshFeaturesIndex(0), 0), 0);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(MeshFeaturesIndex(1), 0), 0);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(MeshFeaturesIndex(2), 0), 1);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(MeshFeaturesIndex(3), 0), 1);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(MeshFeaturesIndex(4), 0), 1);
 
-  // Input has two property attributes, one associated with each of the two
-  // materials.
+  // Input has two property attributes, and two property textures, one of each
+  // associated with each of the two materials.
   ASSERT_EQ(mesh->NumPropertyAttributesIndices(), 2);
   ASSERT_EQ(mesh->GetPropertyAttributesIndexMaterialMask(0, 0), 0);
   ASSERT_EQ(mesh->GetPropertyAttributesIndexMaterialMask(1, 0), 1);
+  ASSERT_EQ(mesh->NumPropertyTexturesIndices(), 2);
+  ASSERT_EQ(mesh->GetPropertyTexturesIndexMaterialMask(0, 0), 0);
+  ASSERT_EQ(mesh->GetPropertyTexturesIndexMaterialMask(1, 0), 1);
 
   // Remove material 0.
-  draco::PointAttribute *mat_att = mesh->attribute(
+  draco::PointAttribute* mat_att = mesh->attribute(
       mesh->GetNamedAttributeId(draco::GeometryAttribute::MATERIAL));
   // Map mat value 0 to 1.
   uint32_t new_mat_index = 1;
@@ -662,25 +816,26 @@ TEST(MeshTest,
   ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), 2);
   ASSERT_EQ(mesh->NumMeshFeatures(), 5);
   ASSERT_EQ(mesh->NumPropertyAttributesIndices(), 2);
+  ASSERT_EQ(mesh->NumPropertyTexturesIndices(), 2);
 
   // Now remove unused mesh features (should be 0 and 1) and property attributes
   // indices (should be 0).
-  DRACO_ASSERT_OK(draco::MeshUtils::RemoveUnusedMeshFeatures(mesh.get()));
-  DRACO_ASSERT_OK(
-      draco::MeshUtils::RemoveUnusedPropertyAttributesIndices(mesh.get()));
+  draco::MeshUtils::RemoveUnusedMeshFeatures(mesh.get());
+  draco::MeshUtils::RemoveUnusedPropertyAttributesIndices(mesh.get());
+  draco::MeshUtils::RemoveUnusedPropertyTexturesIndices(mesh.get());
 
   // All remaining mesh features should be still mapped to material 1.
   ASSERT_EQ(mesh->NumMeshFeatures(), 3);
-  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(0), 0),
-            1);
-  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(1), 0),
-            1);
-  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(2), 0),
-            1);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(MeshFeaturesIndex(0), 0), 1);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(MeshFeaturesIndex(1), 0), 1);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(MeshFeaturesIndex(2), 0), 1);
 
-  // Remaining property attributes index should be still mapped to material 1.
+  // Remaining property attributes and property textures index should be still
+  // mapped to material 1.
   ASSERT_EQ(mesh->NumPropertyAttributesIndices(), 1);
   ASSERT_EQ(mesh->GetPropertyAttributesIndexMaterialMask(0, 0), 1);
+  ASSERT_EQ(mesh->NumPropertyTexturesIndices(), 1);
+  ASSERT_EQ(mesh->GetPropertyTexturesIndexMaterialMask(0, 0), 1);
 
   // Now remove the unused materials (0).
   mesh->RemoveUnusedMaterials();
@@ -689,15 +844,14 @@ TEST(MeshTest,
   ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), 1);
 
   // All the mesh features should now be mapped to material 0.
-  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(0), 0),
-            0);
-  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(1), 0),
-            0);
-  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(draco::MeshFeaturesIndex(2), 0),
-            0);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(MeshFeaturesIndex(0), 0), 0);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(MeshFeaturesIndex(1), 0), 0);
+  ASSERT_EQ(mesh->GetMeshFeaturesMaterialMask(MeshFeaturesIndex(2), 0), 0);
 
-  // Property attributes index should now be mapped to material 0.
+  // Property attributes and property textures index should now be mapped to
+  // material 0.
   ASSERT_EQ(mesh->GetPropertyAttributesIndexMaterialMask(0, 0), 0);
+  ASSERT_EQ(mesh->GetPropertyTexturesIndexMaterialMask(0, 0), 0);
 }
 
 // Tests that when we remove mesh features from a mesh, the associated vertex
@@ -723,6 +877,72 @@ TEST(MeshTest, TestDeleteMeshFeatures) {
   ASSERT_EQ(mesh_copy.GetNonMaterialTextureLibrary().NumTextures(),
             mesh->GetNonMaterialTextureLibrary().NumTextures());
 }
+
+// Tests that we can set and clear Gaussian splatting on a mesh.
+TEST(MeshTest, TestGaussianSplatting) {
+  draco::Mesh mesh;
+  ASSERT_FALSE(mesh.GetGaussianSplatting().has_value());
+
+  draco::Mesh::GaussianSplatting gaussian_splatting = {
+      .kernel = "test_kernel",
+      .color_space = "test_color_space",
+      .projection = "test_projection",
+      .sorting_method = "test_sorting_method",
+  };
+
+  mesh.SetGaussianSplatting(gaussian_splatting);
+  ASSERT_TRUE(mesh.GetGaussianSplatting().has_value());
+  const draco::Mesh::GaussianSplatting& gs =
+      mesh.GetGaussianSplatting().value();
+  ASSERT_EQ(gs.kernel, "test_kernel");
+  ASSERT_EQ(gs.color_space, "test_color_space");
+  ASSERT_EQ(gs.projection, "test_projection");
+  ASSERT_EQ(gs.sorting_method, "test_sorting_method");
+
+  // Copies should preserve gaussian splatting info
+  draco::Mesh mesh_copy;
+  mesh_copy.Copy(mesh);
+  ASSERT_TRUE(mesh_copy.GetGaussianSplatting().has_value());
+  const draco::Mesh::GaussianSplatting& copy_gs =
+      mesh_copy.GetGaussianSplatting().value();
+  ASSERT_EQ(copy_gs.kernel, "test_kernel");
+  ASSERT_EQ(copy_gs.color_space, "test_color_space");
+  ASSERT_EQ(copy_gs.projection, "test_projection");
+  ASSERT_EQ(copy_gs.sorting_method, "test_sorting_method");
+
+  mesh.ClearGaussianSplatting();
+  ASSERT_FALSE(mesh.GetGaussianSplatting().has_value());
+}
+
+TEST(MeshTest, TestRemoveMaterialMask) {
+  draco::Mesh mesh;
+  auto mesh_features = std::make_unique<draco::MeshFeatures>();
+  draco::MeshFeaturesIndex mfi = mesh.AddMeshFeatures(std::move(mesh_features));
+
+  mesh.AddMeshFeaturesMaterialMask(mfi, 10);
+  mesh.AddMeshFeaturesMaterialMask(mfi, 20);
+  ASSERT_EQ(mesh.NumMeshFeaturesMaterialMasks(mfi), 2);
+  mesh.RemoveMeshFeaturesMaterialMask(mfi, 10);
+  ASSERT_EQ(mesh.NumMeshFeaturesMaterialMasks(mfi), 1);
+  ASSERT_EQ(mesh.GetMeshFeaturesMaterialMask(mfi, 0), 20);
+
+  int p_attr = mesh.AddPropertyAttributesIndex(0);
+  mesh.AddPropertyAttributesIndexMaterialMask(p_attr, 10);
+  mesh.AddPropertyAttributesIndexMaterialMask(p_attr, 20);
+  ASSERT_EQ(mesh.NumPropertyAttributesIndexMaterialMasks(p_attr), 2);
+  mesh.RemovePropertyAttributesIndexMaterialMask(p_attr, 10);
+  ASSERT_EQ(mesh.NumPropertyAttributesIndexMaterialMasks(p_attr), 1);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndexMaterialMask(p_attr, 0), 20);
+
+  int p_tex = mesh.AddPropertyTexturesIndex(0);
+  mesh.AddPropertyTexturesIndexMaterialMask(p_tex, 10);
+  mesh.AddPropertyTexturesIndexMaterialMask(p_tex, 20);
+  ASSERT_EQ(mesh.NumPropertyTexturesIndexMaterialMasks(p_tex), 2);
+  mesh.RemovePropertyTexturesIndexMaterialMask(p_tex, 10);
+  ASSERT_EQ(mesh.NumPropertyTexturesIndexMaterialMasks(p_tex), 1);
+  ASSERT_EQ(mesh.GetPropertyTexturesIndexMaterialMask(p_tex, 0), 20);
+}
+
 #endif  // DRACO_TRANSCODER_SUPPORTED
 
 // Test bounding box.

@@ -70,7 +70,7 @@ class PredictionSchemeNormalOctahedronTransformBase {
   bool IsInDiamond(DataTypeT s, DataTypeT t) const {
     return octahedron_tool_box_.IsInDiamond(s, t);
   }
-  void InvertDiamond(DataTypeT *s, DataTypeT *t) const {
+  void InvertDiamond(DataTypeT* s, DataTypeT* t) const {
     return octahedron_tool_box_.InvertDiamond(s, t);
   }
 

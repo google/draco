@@ -26,7 +26,7 @@ namespace draco {
 struct Converter {
   typedef std::vector<uint32_t> SourceType;
   typedef Point3ui TargetType;
-  Point3ui operator()(const std::vector<uint32_t> &v) {
+  Point3ui operator()(const std::vector<uint32_t>& v) {
     return Point3ui(v[0], v[1], v[2]);
   }
 };
@@ -42,7 +42,7 @@ class ConversionOutputIterator {
  public:
   explicit ConversionOutputIterator(OutputIterator oit) : oit_(oit) {}
 
-  const Self &operator++() {
+  const Self& operator++() {
     ++oit_;
     return *this;
   }
@@ -51,8 +51,8 @@ class ConversionOutputIterator {
     ++oit_;
     return copy;
   }
-  Self &operator*() { return *this; }
-  const Self &operator=(const SourceType &source) {
+  Self& operator*() { return *this; }
+  const Self& operator=(const SourceType& source) {
     *oit_ = Converter()(source);
     return *this;
   }
@@ -68,7 +68,7 @@ FloatPointsTreeDecoder::FloatPointsTreeDecoder()
 }
 
 bool FloatPointsTreeDecoder::DecodePointCloudKdTreeInternal(
-    DecoderBuffer *buffer, std::vector<Point3ui> *qpoints) {
+    DecoderBuffer* buffer, std::vector<Point3ui>* qpoints) {
   if (!buffer->Decode(&qinfo_.quantization_bits)) {
     return false;
   }

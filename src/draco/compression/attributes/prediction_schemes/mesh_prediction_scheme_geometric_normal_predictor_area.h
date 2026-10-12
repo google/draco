@@ -30,7 +30,7 @@ class MeshPredictionSchemeGeometricNormalPredictorArea
       Base;
 
  public:
-  explicit MeshPredictionSchemeGeometricNormalPredictorArea(const MeshDataT &md)
+  explicit MeshPredictionSchemeGeometricNormalPredictorArea(const MeshDataT& md)
       : Base(md) {
     this->SetNormalPredictionMode(TRIANGLE_AREA);
   };
@@ -38,10 +38,10 @@ class MeshPredictionSchemeGeometricNormalPredictorArea
 
   // Computes predicted octahedral coordinates on a given corner.
   void ComputePredictedValue(CornerIndex corner_id,
-                             DataTypeT *prediction) override {
+                             DataTypeT* prediction) override {
     DRACO_DCHECK(this->IsInitialized());
     typedef typename MeshDataT::CornerTable CornerTable;
-    const CornerTable *const corner_table = this->mesh_data_.corner_table();
+    const CornerTable* const corner_table = this->mesh_data_.corner_table();
     // Going to compute the predicted normal from the surrounding triangles
     // according to the connectivity of the given corner table.
     VertexCornersIterator<CornerTable> cit(corner_table, corner_id);
@@ -71,8 +71,8 @@ class MeshPredictionSchemeGeometricNormalPredictorArea
       const VectorD<int64_t, 3> cross = CrossProduct(delta_next, delta_prev);
 
       // Prevent signed integer overflows by doing math as unsigned.
-      auto normal_data = reinterpret_cast<uint64_t *>(normal.data());
-      auto cross_data = reinterpret_cast<const uint64_t *>(cross.data());
+      auto normal_data = reinterpret_cast<uint64_t*>(normal.data());
+      auto cross_data = reinterpret_cast<const uint64_t*>(cross.data());
       normal_data[0] = normal_data[0] + cross_data[0];
       normal_data[1] = normal_data[1] + cross_data[1];
       normal_data[2] = normal_data[2] + cross_data[2];

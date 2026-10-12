@@ -31,14 +31,14 @@ class AdaptiveRAnsBitDecoder {
   ~AdaptiveRAnsBitDecoder();
 
   // Sets |source_buffer| as the buffer to decode bits from.
-  bool StartDecoding(DecoderBuffer *source_buffer);
+  bool StartDecoding(DecoderBuffer* source_buffer);
 
   // Decode one bit. Returns true if the bit is a 1, otherwise false.
   bool DecodeNextBit();
 
   // Decode the next |nbits| and return the sequence in |value|. |nbits| must be
   // > 0 and <= 32.
-  void DecodeLeastSignificantBits32(int nbits, uint32_t *value);
+  void DecodeLeastSignificantBits32(int nbits, uint32_t* value);
 
   void EndDecoding() {}
 

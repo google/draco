@@ -14,18 +14,23 @@
 //
 #include "draco/scene/scene.h"
 
+#include <cstddef>
 #include <memory>
+#include <string>
 #include <utility>
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include "draco/animation/animation.h"
 #include "draco/core/macros.h"
+#include "draco/mesh/mesh.h"
+#include "draco/mesh/mesh_utils.h"
 #include "draco/scene/scene_indices.h"
 
 namespace draco {
 
 Scene::Scene() { metadata_.reset(new Metadata()); }
 
-void Scene::Copy(const Scene &s) {
+void Scene::Copy(const Scene& s) {
   meshes_.resize(s.meshes_.size());
   for (MeshIndex i(0); i < meshes_.size(); ++i) {
     meshes_[i] = std::unique_ptr<Mesh>(new Mesh());
@@ -64,38 +69,49 @@ void Scene::Copy(const Scene &s) {
     lights_[i]->Copy(*s.lights_[i]);
   }
 
+  audio_ = s.audio_;
+  audio_emitter_indices_ = s.audio_emitter_indices_;
+
   instance_arrays_.resize(s.instance_arrays_.size());
   for (InstanceArrayIndex i(0); i < instance_arrays_.size(); ++i) {
     instance_arrays_[i] = std::unique_ptr<InstanceArray>(new InstanceArray());
     instance_arrays_[i]->Copy(*s.instance_arrays_[i]);
   }
 
+  // Copy structural metadata.
+  structural_metadata_.Copy(s.structural_metadata_);
+
+  // Copy non-material textures.
   material_library_.Copy(s.material_library_);
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Copy non-material textures.
   non_material_texture_library_.Copy(s.non_material_texture_library_);
 
-  // Update pointers to non-material textures in mesh feature ID sets of all
-  // scene meshes.
+  // Update pointers to non-material textures.
   if (non_material_texture_library_.NumTextures() != 0) {
     const auto texture_to_index_map =
         s.non_material_texture_library_.ComputeTextureToIndexMap();
+
+    // Update texture pointers in mesh feature ID textures of all scene meshes.
     for (MeshIndex i(0); i < NumMeshes(); ++i) {
-      for (MeshFeaturesIndex j(0); j < GetMesh(i).NumMeshFeatures(); ++j) {
-        Mesh::UpdateMeshFeaturesTexturePointer(texture_to_index_map,
-                                               &non_material_texture_library_,
-                                               &GetMesh(i).GetMeshFeatures(j));
-      }
+      Mesh::UpdateNonMaterialTexturePointers(texture_to_index_map,
+                                             &non_material_texture_library_,
+                                             &GetMesh(i), nullptr);
     }
+
+    // Update texture pointers in scene structural metadata property textures.
+    Mesh::UpdateNonMaterialTexturePointers(texture_to_index_map,
+                                           &non_material_texture_library_,
+                                           nullptr, &structural_metadata_);
   }
 #endif  // DRACO_TRANSCODER_SUPPORTED
 
-  // Copy structural metadata.
-  structural_metadata_.Copy(s.structural_metadata_);
-
   // Copy general metadata.
   metadata_.reset(new Metadata(*s.metadata_));
+
+  // Copy pass-through glTF extensions.
+  pass_through_extensions_ = s.pass_through_extensions_;
 }
 
 Status Scene::RemoveMesh(MeshIndex index) {
@@ -110,13 +126,13 @@ Status Scene::RemoveMesh(MeshIndex index) {
   // Remove references to removed base mesh and corresponding materials from
   // mesh groups, and update references to remaining base meshes in mesh groups.
   for (MeshGroupIndex mgi(0); mgi < NumMeshGroups(); ++mgi) {
-    MeshGroup *const mesh_group = GetMeshGroup(mgi);
+    MeshGroup* const mesh_group = GetMeshGroup(mgi);
     if (!mesh_group) {
       return Status(Status::DRACO_ERROR, "MeshGroup is null.");
     }
     mesh_group->RemoveMeshInstances(index);
     for (int i = 0; i < mesh_group->NumMeshInstances(); ++i) {
-      MeshGroup::MeshInstance &mesh_instance = mesh_group->GetMeshInstance(i);
+      MeshGroup::MeshInstance& mesh_instance = mesh_group->GetMeshInstance(i);
       if (mesh_instance.mesh_index > index &&
           mesh_instance.mesh_index != kInvalidMeshIndex) {
         mesh_instance.mesh_index--;
@@ -137,7 +153,7 @@ Status Scene::RemoveMeshGroup(MeshGroupIndex index) {
   // Invalidate references to removed mesh group in scene nodes, and update
   // references to remaining mesh groups in scene nodes.
   for (SceneNodeIndex sni(0); sni < NumNodes(); ++sni) {
-    SceneNode *node = GetNode(sni);
+    SceneNode* node = GetNode(sni);
     if (!node) {
       return Status(Status::DRACO_ERROR, "Node is null.");
     }
@@ -145,7 +161,7 @@ Status Scene::RemoveMeshGroup(MeshGroupIndex index) {
     if (mgi == index) {
       // TODO(vytyaz): Remove the node if possible, e.g., when node has no
       // geometry, no child nodes, no skins, no lights, and no mesh group
-      // instance arrays.
+      // instance arrays, etc.
       node->SetMeshGroupIndex(kInvalidMeshGroupIndex);
     } else if (mgi > index && mgi != kInvalidMeshGroupIndex) {
       node->SetMeshGroupIndex(mgi - 1);
@@ -162,9 +178,9 @@ Status Scene::RemoveMaterial(int index) {
 
   // Update material indices of mesh instances.
   for (MeshGroupIndex mgi(0); mgi < NumMeshGroups(); ++mgi) {
-    MeshGroup *const mesh_group = GetMeshGroup(mgi);
+    MeshGroup* const mesh_group = GetMeshGroup(mgi);
     for (int i = 0; i < mesh_group->NumMeshInstances(); i++) {
-      MeshGroup::MeshInstance &mesh_instance = mesh_group->GetMeshInstance(i);
+      MeshGroup::MeshInstance& mesh_instance = mesh_group->GetMeshInstance(i);
       if (mesh_instance.material_index > index) {
         mesh_instance.material_index--;
       } else if (mesh_instance.material_index == index) {
@@ -172,6 +188,41 @@ Status Scene::RemoveMaterial(int index) {
       }
     }
   }
+
+  // Update animation pointers.
+  for (AnimationIndex ai(0); ai < NumAnimations(); ++ai) {
+    Animation* const animation = GetAnimation(ai);
+    for (int ci = 0; ci < animation->NumChannels();) {
+      AnimationChannel* const channel = animation->GetChannel(ci);
+      bool channel_removed = false;
+      if (channel->transformation_type ==
+          AnimationChannel::ChannelTransformation::POINTER) {
+        if (channel->pointer.find("/materials/") == 0) {
+          constexpr size_t kPos = 11;  // strlen("/materials/")
+          const size_t end_pos = channel->pointer.find('/', kPos);
+          std::string rest;
+          std::string index_str;
+          if (end_pos != std::string::npos) {
+            index_str = channel->pointer.substr(kPos, end_pos - kPos);
+            rest = channel->pointer.substr(end_pos);
+          } else {
+            index_str = channel->pointer.substr(kPos);
+          }
+          int const n = std::stoi(index_str);
+          if (n == index) {
+            animation->RemoveChannel(ci);
+            channel_removed = true;
+          } else if (n > index) {
+            channel->pointer = "/materials/" + std::to_string(n - 1) + rest;
+          }
+        }
+      }
+      if (!channel_removed) {
+        ci++;
+      }
+    }
+  }
+
   return OkStatus();
 }
 

@@ -14,9 +14,12 @@
 //
 #include "draco/io/ply_encoder.h"
 
+#include <cstdint>
 #include <memory>
 #include <sstream>
 
+#include "draco/attributes/geometry_indices.h"
+#include "draco/core/draco_types.h"
 #include "draco/io/file_writer_factory.h"
 #include "draco/io/file_writer_interface.h"
 
@@ -25,8 +28,8 @@ namespace draco {
 PlyEncoder::PlyEncoder()
     : out_buffer_(nullptr), in_point_cloud_(nullptr), in_mesh_(nullptr) {}
 
-bool PlyEncoder::EncodeToFile(const PointCloud &pc,
-                              const std::string &file_name) {
+bool PlyEncoder::EncodeToFile(const PointCloud& pc,
+                              const std::string& file_name) {
   std::unique_ptr<FileWriterInterface> file =
       FileWriterFactory::OpenWriter(file_name);
   if (!file) {
@@ -42,13 +45,13 @@ bool PlyEncoder::EncodeToFile(const PointCloud &pc,
   return true;
 }
 
-bool PlyEncoder::EncodeToFile(const Mesh &mesh, const std::string &file_name) {
+bool PlyEncoder::EncodeToFile(const Mesh& mesh, const std::string& file_name) {
   in_mesh_ = &mesh;
-  return EncodeToFile(static_cast<const PointCloud &>(mesh), file_name);
+  return EncodeToFile(static_cast<const PointCloud&>(mesh), file_name);
 }
 
-bool PlyEncoder::EncodeToBuffer(const PointCloud &pc,
-                                EncoderBuffer *out_buffer) {
+bool PlyEncoder::EncodeToBuffer(const PointCloud& pc,
+                                EncoderBuffer* out_buffer) {
   in_point_cloud_ = &pc;
   out_buffer_ = out_buffer;
   if (!EncodeInternal()) {
@@ -57,9 +60,9 @@ bool PlyEncoder::EncodeToBuffer(const PointCloud &pc,
   return ExitAndCleanup(true);
 }
 
-bool PlyEncoder::EncodeToBuffer(const Mesh &mesh, EncoderBuffer *out_buffer) {
+bool PlyEncoder::EncodeToBuffer(const Mesh& mesh, EncoderBuffer* out_buffer) {
   in_mesh_ = &mesh;
-  return EncodeToBuffer(static_cast<const PointCloud &>(mesh), out_buffer);
+  return EncodeToBuffer(static_cast<const PointCloud&>(mesh), out_buffer);
 }
 bool PlyEncoder::EncodeInternal() {
   // Write PLY header.
@@ -107,7 +110,7 @@ bool PlyEncoder::EncodeInternal() {
         << std::endl;
   }
   if (color_att_id >= 0) {
-    const auto *const attribute = in_point_cloud_->attribute(color_att_id);
+    const auto* const attribute = in_point_cloud_->attribute(color_att_id);
     if (attribute->num_components() > 0) {
       out << "property " << GetAttributeDataType(color_att_id) << " red"
           << std::endl;
@@ -144,29 +147,58 @@ bool PlyEncoder::EncodeInternal() {
 
   // Store point attributes.
   const int num_points = in_point_cloud_->num_points();
-  for (PointIndex v(0); v < num_points; ++v) {
-    const auto *const pos_att = in_point_cloud_->attribute(pos_att_id);
-    buffer()->Encode(pos_att->GetAddress(pos_att->mapped_index(v)),
-                     pos_att->byte_stride());
+  if (num_points > 0) {
+    const auto* const pos_att = in_point_cloud_->attribute(pos_att_id);
+    if (pos_att->GetAddress(AttributeValueIndex(0)) == nullptr) {
+      return false;
+    }
     if (normal_att_id >= 0) {
-      const auto *const normal_att = in_point_cloud_->attribute(normal_att_id);
-      buffer()->Encode(normal_att->GetAddress(normal_att->mapped_index(v)),
-                       normal_att->byte_stride());
+      const auto* const normal_att = in_point_cloud_->attribute(normal_att_id);
+      if (normal_att->GetAddress(AttributeValueIndex(0)) == nullptr) {
+        return false;
+      }
     }
     if (color_att_id >= 0) {
-      const auto *const color_att = in_point_cloud_->attribute(color_att_id);
-      buffer()->Encode(color_att->GetAddress(color_att->mapped_index(v)),
-                       color_att->byte_stride());
+      const auto* const color_att = in_point_cloud_->attribute(color_att_id);
+      if (color_att->GetAddress(AttributeValueIndex(0)) == nullptr) {
+        return false;
+      }
+    }
+  }
+
+  for (PointIndex v(0); v < num_points; ++v) {
+    const auto* const pos_att = in_point_cloud_->attribute(pos_att_id);
+    const uint8_t* const pos_address =
+        pos_att->GetAddress(pos_att->mapped_index(v));
+    buffer()->Encode(pos_address, pos_att->byte_stride());
+    if (normal_att_id >= 0) {
+      const auto* const normal_att = in_point_cloud_->attribute(normal_att_id);
+      const uint8_t* const normal_address =
+          normal_att->GetAddress(normal_att->mapped_index(v));
+      buffer()->Encode(normal_address, normal_att->byte_stride());
+    }
+    if (color_att_id >= 0) {
+      const auto* const color_att = in_point_cloud_->attribute(color_att_id);
+      const uint8_t* const color_address =
+          color_att->GetAddress(color_att->mapped_index(v));
+      buffer()->Encode(color_address, color_att->byte_stride());
     }
   }
 
   if (in_mesh_) {
+    if (tex_coord_att_id >= 0 && in_mesh_->num_faces() > 0) {
+      const auto* const tex_att = in_point_cloud_->attribute(tex_coord_att_id);
+      if (tex_att->GetAddress(AttributeValueIndex(0)) == nullptr) {
+        return false;
+      }
+    }
+
     // Write face data.
     for (FaceIndex i(0); i < in_mesh_->num_faces(); ++i) {
       // Write the number of face indices (always 3).
       buffer()->Encode(static_cast<uint8_t>(3));
 
-      const auto &f = in_mesh_->face(i);
+      const auto& f = in_mesh_->face(i);
       for (int c = 0; c < 3; ++c) {
         if (f[c] >= num_points) {
           // Invalid point stored on the |in_mesh_| face.
@@ -179,11 +211,12 @@ bool PlyEncoder::EncodeInternal() {
         // Two coordinates for every corner -> 6.
         buffer()->Encode(static_cast<uint8_t>(6));
 
-        const auto *const tex_att =
+        const auto* const tex_att =
             in_point_cloud_->attribute(tex_coord_att_id);
         for (int c = 0; c < 3; ++c) {
-          buffer()->Encode(tex_att->GetAddress(tex_att->mapped_index(f[c])),
-                           tex_att->byte_stride());
+          const uint8_t* const tex_address =
+              tex_att->GetAddress(tex_att->mapped_index(f[c]));
+          buffer()->Encode(tex_address, tex_att->byte_stride());
         }
       }
     }
@@ -198,7 +231,7 @@ bool PlyEncoder::ExitAndCleanup(bool return_value) {
   return return_value;
 }
 
-const char *PlyEncoder::GetAttributeDataType(int attribute) {
+const char* PlyEncoder::GetAttributeDataType(int attribute) {
   // TODO(ostava): Add support for more types.
   switch (in_point_cloud_->attribute(attribute)->data_type()) {
     case DT_FLOAT32:

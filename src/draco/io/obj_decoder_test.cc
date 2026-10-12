@@ -24,12 +24,12 @@ namespace draco {
 class ObjDecoderTest : public ::testing::Test {
  protected:
   template <class Geometry>
-  std::unique_ptr<Geometry> DecodeObj(const std::string &file_name) const {
+  std::unique_ptr<Geometry> DecodeObj(const std::string& file_name) const {
     return DecodeObj<Geometry>(file_name, false);
   }
 
   template <class Geometry>
-  std::unique_ptr<Geometry> DecodeObj(const std::string &file_name,
+  std::unique_ptr<Geometry> DecodeObj(const std::string& file_name,
                                       bool deduplicate_input_values) const {
     const std::string path = GetTestFileFullPath(file_name);
     ObjDecoder decoder;
@@ -43,7 +43,7 @@ class ObjDecoderTest : public ::testing::Test {
 
   template <class Geometry>
   std::unique_ptr<Geometry> DecodeObjWithMetadata(
-      const std::string &file_name) const {
+      const std::string& file_name) const {
     const std::string path = GetTestFileFullPath(file_name);
     ObjDecoder decoder;
     decoder.set_use_metadata(true);
@@ -56,7 +56,7 @@ class ObjDecoderTest : public ::testing::Test {
 
   template <class Geometry>
   std::unique_ptr<Geometry> DecodeObjWithPolygons(
-      const std::string &file_name, bool regularize_quads,
+      const std::string& file_name, bool regularize_quads,
       bool store_added_edges_per_vertex) const {
     const std::string path = GetTestFileFullPath(file_name);
     ObjDecoder decoder;
@@ -68,7 +68,7 @@ class ObjDecoderTest : public ::testing::Test {
     return geometry;
   }
 
-  void test_decoding(const std::string &file_name) {
+  void test_decoding(const std::string& file_name) {
     const std::unique_ptr<Mesh> mesh(DecodeObj<Mesh>(file_name));
     ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
     ASSERT_GT(mesh->num_faces(), 0);
@@ -173,7 +173,7 @@ TEST_F(ObjDecoderTest, QuadPreserveOBJ) {
   }
 
   // Expect metadata entry on the new attribute.
-  const AttributeMetadata *const metadata =
+  const AttributeMetadata* const metadata =
       mesh->GetAttributeMetadataByAttributeId(3);
   ASSERT_NE(metadata, nullptr);
   ASSERT_TRUE(metadata->sub_metadatas().empty());
@@ -238,7 +238,7 @@ TEST_F(ObjDecoderTest, OctagonPreservedOBJ) {
   ASSERT_EQ(mesh->attribute(1)->mapped_index(PointIndex(11)), 0);
 
   // Expect metadata entry on the new attribute.
-  const AttributeMetadata *const metadata =
+  const AttributeMetadata* const metadata =
       mesh->GetAttributeMetadataByAttributeId(1);
   ASSERT_NE(metadata, nullptr);
   ASSERT_TRUE(metadata->sub_metadatas().empty());
@@ -281,6 +281,17 @@ TEST_F(ObjDecoderTest, WrongAttributeMapping) {
   ASSERT_EQ(mesh->attribute(0)->size(), 3);
 }
 
+TEST_F(ObjDecoderTest, TestInvalidNegativeIndices) {
+  // Tests that out-of-bounds negative indices in OBJ faces are rejected.
+  const std::string file_name =
+      GetTestFileFullPath("invalid_negative_indices.obj");
+  ObjDecoder decoder;
+  Mesh mesh;
+  const Status status = decoder.DecodeFromFile(file_name, &mesh);
+  ASSERT_FALSE(status.ok());
+  EXPECT_EQ(status.error_msg_string(), "Invalid vertex index");
+}
+
 TEST_F(ObjDecoderTest, TestObjDecodingAll) {
   // test if we can read all obj that are currently in test folder.
   test_decoding("bunny_norm.obj");
@@ -304,6 +315,47 @@ TEST_F(ObjDecoderTest, TestObjDecodingAll) {
   test_decoding("two_faces_123.obj");
   test_decoding("two_faces_312.obj");
   test_decoding("inf_nan.obj");
+}
+
+TEST_F(ObjDecoderTest, TestBug11MidTokenSign) {
+  // Test that an OBJ file with a mid-token sign fails to decode without
+  // memory corruption.
+  //
+  // Example obj data:
+  // v 0 0 0
+  // v 1 0 0
+  // v 0 1 0
+  // f 1+2 2 3
+  const std::string file_name = "invalid_mid_token_sign.obj";
+  const std::string path = GetTestFileFullPath(file_name);
+  ObjDecoder decoder;
+  std::unique_ptr<draco::Mesh> mesh(new draco::Mesh());
+  draco::Status status = decoder.DecodeFromFile(path, mesh.get());
+  ASSERT_FALSE(status.ok());
+}
+
+TEST_F(ObjDecoderTest, TestBug12VertexOutOfBounds) {
+  // Test that an OBJ file with out-of-bounds vertex index fails without
+  // memory corruption.
+  const std::string file_name = "invalid_vertex_out_of_bounds.obj";
+  const std::string path = GetTestFileFullPath(file_name);
+  ObjDecoder decoder;
+  std::unique_ptr<draco::Mesh> mesh(new draco::Mesh());
+  draco::Status status = decoder.DecodeFromFile(path, mesh.get());
+  ASSERT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), draco::Status::DRACO_ERROR);
+}
+
+TEST_F(ObjDecoderTest, TestFacesWithoutPositions) {
+  // Test that an OBJ file with faces but no vertex positions returns an error
+  // instead of crashing.
+  const std::string obj_data = "f 1 2 3\n";
+  DecoderBuffer buffer;
+  buffer.Init(obj_data.data(), obj_data.size());
+  ObjDecoder decoder;
+  std::unique_ptr<draco::Mesh> mesh(new draco::Mesh());
+  const Status status = decoder.DecodeFromBuffer(&buffer, mesh.get());
+  EXPECT_FALSE(status.ok());
 }
 
 }  // namespace draco

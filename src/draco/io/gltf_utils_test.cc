@@ -16,16 +16,19 @@
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include <limits>
+#include <ostream>
+#include <sstream>
 #include <string>
 
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
+#include "draco/metadata/json_entity.h"
 
 namespace draco {
 
 class GltfUtilsTest : public ::testing::Test {
  protected:
-  void CompareGolden(JsonWriter *json_writer, const std::string &golden_str) {
+  void CompareGolden(JsonWriter* json_writer, const std::string& golden_str) {
     const std::string json = json_writer->MoveData();
     ASSERT_EQ(golden_str, json);
   }
@@ -373,6 +376,189 @@ TEST_F(GltfUtilsTest, TestArraysCompact) {
   json_writer.EndArray();
   json_writer.EndArray();
   CompareGolden(&json_writer, "\"array1\":[[]]");
+}
+
+TEST_F(GltfUtilsTest, TestJsonEntity) {
+  JsonWriter json_writer;
+
+  // Test boolean.
+  {
+    draco::JsonEntity entity("boolean");
+    entity.SetBoolean(true);
+    json_writer.OutputValue(entity);
+    CompareGolden(&json_writer, "\"boolean\": true");
+    json_writer.Reset();
+  }
+
+  // Test integer.
+  {
+    draco::JsonEntity entity("integer");
+    entity.SetInteger(42);
+    json_writer.OutputValue(entity);
+    CompareGolden(&json_writer, "\"integer\": 42");
+    json_writer.Reset();
+  }
+
+  // Test double.
+  {
+    draco::JsonEntity entity("double");
+    entity.SetDouble(-2.718);
+    json_writer.OutputValue(entity);
+    CompareGolden(&json_writer, "\"double\": -2.718");
+    json_writer.Reset();
+  }
+
+  // Test string.
+  {
+    draco::JsonEntity entity("string");
+    entity.SetString("Hello world!");
+    json_writer.OutputValue(entity);
+    CompareGolden(&json_writer, "\"string\": \"Hello world!\"");
+    json_writer.Reset();
+  }
+
+  // Test arrays.
+  json_writer.SetMode(JsonWriter::COMPACT);
+  {
+    // Test empty array.
+    {
+      draco::JsonEntity entity("empty");
+      entity.SetArray();
+      json_writer.OutputValue(entity);
+      CompareGolden(&json_writer, "\"empty\":[]");
+      json_writer.Reset();
+    }
+
+    // Test array of integers.
+    {
+      draco::JsonEntity entity("array");
+      entity.SetArray().push_back(draco::JsonEntity("", 2));
+      entity.SetArray().push_back(draco::JsonEntity("", 3));
+      entity.SetArray().push_back(draco::JsonEntity("", 5));
+      json_writer.OutputValue(entity);
+      CompareGolden(&json_writer, "\"array\":[2,3,5]");
+      json_writer.Reset();
+    }
+  }
+
+  // Test objects.
+  {
+    // Test empty entity.
+    {
+      draco::JsonEntity entity("empty");
+      entity.SetObject();
+      json_writer.OutputValue(entity);
+      CompareGolden(&json_writer, "\"empty\":{}");
+      json_writer.Reset();
+    }
+
+    // Test entity with integer fields.
+    {
+      draco::JsonEntity entity("object");
+      entity.SetObject().push_back(draco::JsonEntity("one", 1));
+      entity.SetObject().push_back(draco::JsonEntity("two", 2));
+      entity.SetObject().push_back(draco::JsonEntity("three", 3));
+      json_writer.OutputValue(entity);
+      CompareGolden(&json_writer,
+                    "\"object\":{\"one\":1,\"two\":2,\"three\":3}");
+      json_writer.Reset();
+    }
+  }
+
+  // Test entities without names.
+  json_writer.SetMode(JsonWriter::COMPACT);
+  {
+    draco::JsonEntity entity;
+    entity.SetObject().push_back(draco::JsonEntity("", 42));
+    entity.SetObject().push_back(draco::JsonEntity("", false));
+    entity.SetObject().push_back(draco::JsonEntity("", -2.718));
+    entity.SetObject().push_back(draco::JsonEntity("", "Hello world!"));
+    draco::JsonEntity array;
+    array.SetArray().push_back(draco::JsonEntity("", 5));
+    entity.SetObject().push_back(array);
+    draco::JsonEntity object;
+    object.SetObject().push_back(draco::JsonEntity("", 6));
+    entity.SetObject().push_back(object);
+    json_writer.OutputValue(entity);
+    CompareGolden(&json_writer, "{42,false,-2.718,\"Hello world!\",[5],{6}}");
+    json_writer.Reset();
+  }
+
+  // Test nesting.
+  json_writer.SetMode(JsonWriter::READABLE);
+  {
+    draco::JsonEntity entity("object");
+    entity.SetObject().emplace_back("array");
+    {
+      auto& items = entity.SetObject().back().SetArray();
+      items.emplace_back("", true);
+      items.emplace_back("", 42);
+      items.emplace_back("", -2.718);
+      items.emplace_back("", "Hello world!");
+      items.emplace_back("");
+      {
+        auto& nested = items.back().SetArray();
+        nested.emplace_back("", "a");
+        nested.emplace_back("", "b");
+        nested.emplace_back("", "c");
+      }
+      items.emplace_back("");
+      {
+        auto& fields = items.back().SetObject();
+        fields.emplace_back("boolean", true);
+        fields.emplace_back("integer", 42);
+        fields.emplace_back("double", -2.718);
+        fields.emplace_back("string", "Hello world!");
+        fields.emplace_back("next");
+        {
+          auto& items = fields.back().SetArray();
+          items.emplace_back("", 1);
+          items.emplace_back("", 2);
+          items.emplace_back("", 3);
+        }
+        fields.emplace_back("nested");
+        {
+          auto& nested = fields.back().SetObject();
+          nested.emplace_back("a", true);
+          nested.emplace_back("b", false);
+        }
+      }
+    }
+    // clang-format off
+    std::stringstream ss;
+    ss << "\"object\": {"                       << std::endl;
+    ss << "  \"array\": ["                      << std::endl;
+    ss << "    true,"                           << std::endl;
+    ss << "    42,"                             << std::endl;
+    ss << "    -2.718,"                         << std::endl;
+    ss << "    \"Hello world!\","               << std::endl;
+    ss << "    ["                               << std::endl;
+    ss << "      \"a\","                        << std::endl;
+    ss << "      \"b\","                        << std::endl;
+    ss << "      \"c\""                         << std::endl;
+    ss << "    ],"                              << std::endl;
+    ss << "    {"                               << std::endl;
+    ss << "      \"boolean\": true,"            << std::endl;
+    ss << "      \"integer\": 42,"              << std::endl;
+    ss << "      \"double\": -2.718,"           << std::endl;
+    ss << "      \"string\": \"Hello world!\"," << std::endl;
+    ss << "      \"next\": ["                   << std::endl;
+    ss << "        1,"                          << std::endl;
+    ss << "        2,"                          << std::endl;
+    ss << "        3"                           << std::endl;
+    ss << "      ],"                            << std::endl;
+    ss << "      \"nested\": {"                 << std::endl;
+    ss << "        \"a\": true,"                << std::endl;
+    ss << "        \"b\": false"                << std::endl;
+    ss << "      }"                             << std::endl;
+    ss << "    }"                               << std::endl;
+    ss << "  ]"                                 << std::endl;
+    ss << "}";
+    // clang-format on
+    json_writer.OutputValue(entity);
+    CompareGolden(&json_writer, ss.str());
+    json_writer.Reset();
+  }
 }
 
 }  // namespace draco

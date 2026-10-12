@@ -29,10 +29,10 @@ namespace draco {
 template <class TraverserT>
 class MeshTraversalSequencer : public PointsSequencer {
  public:
-  MeshTraversalSequencer(const Mesh *mesh,
-                         const MeshAttributeIndicesEncodingData *encoding_data)
+  MeshTraversalSequencer(const Mesh* mesh,
+                         const MeshAttributeIndicesEncodingData* encoding_data)
       : mesh_(mesh), encoding_data_(encoding_data), corner_order_(nullptr) {}
-  void SetTraverser(const TraverserT &t) { traverser_ = t; }
+  void SetTraverser(const TraverserT& t) { traverser_ = t; }
 
   // Function that can be used to set an order in which the mesh corners should
   // be processed. This is an optional flag used usually only by the encoder
@@ -41,17 +41,17 @@ class MeshTraversalSequencer : public PointsSequencer {
   // have all corners but only the first encountered corner for each face is
   // going to be used to start a traversal). If the corner order is not set, the
   // corners are processed sequentially based on their ids.
-  void SetCornerOrder(const std::vector<CornerIndex> &corner_order) {
+  void SetCornerOrder(const std::vector<CornerIndex>& corner_order) {
     corner_order_ = &corner_order;
   }
 
-  bool UpdatePointToAttributeIndexMapping(PointAttribute *attribute) override {
-    const auto *corner_table = traverser_.corner_table();
+  bool UpdatePointToAttributeIndexMapping(PointAttribute* attribute) override {
+    const auto* corner_table = traverser_.corner_table();
     attribute->SetExplicitMapping(mesh_->num_points());
     const size_t num_faces = mesh_->num_faces();
     const size_t num_points = mesh_->num_points();
     for (FaceIndex f(0); f < static_cast<uint32_t>(num_faces); ++f) {
-      const auto &face = mesh_->face(f);
+      const auto& face = mesh_->face(f);
       for (int p = 0; p < 3; ++p) {
         const PointIndex point_id = face[p];
         const VertexIndex vert_id =
@@ -103,9 +103,9 @@ class MeshTraversalSequencer : public PointsSequencer {
   }
 
   TraverserT traverser_;
-  const Mesh *mesh_;
-  const MeshAttributeIndicesEncodingData *encoding_data_;
-  const std::vector<CornerIndex> *corner_order_;
+  const Mesh* mesh_;
+  const MeshAttributeIndicesEncodingData* encoding_data_;
+  const std::vector<CornerIndex>* corner_order_;
 };
 
 }  // namespace draco

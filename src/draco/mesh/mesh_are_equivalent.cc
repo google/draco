@@ -21,7 +21,7 @@
 
 namespace draco {
 
-void MeshAreEquivalent::PrintPosition(const Mesh &mesh, FaceIndex f,
+void MeshAreEquivalent::PrintPosition(const Mesh& mesh, FaceIndex f,
                                       int32_t c) {
   fprintf(stderr, "Printing position for (%i,%i)\n", f.value(), c);
   const auto pos_att = mesh.GetNamedAttribute(GeometryAttribute::POSITION);
@@ -31,7 +31,7 @@ void MeshAreEquivalent::PrintPosition(const Mesh &mesh, FaceIndex f,
   fprintf(stderr, "Position (%f,%f,%f)\n", pos[0], pos[1], pos[2]);
 }
 
-Vector3f MeshAreEquivalent::GetPosition(const Mesh &mesh, FaceIndex f,
+Vector3f MeshAreEquivalent::GetPosition(const Mesh& mesh, FaceIndex f,
                                         int32_t c) {
   const auto pos_att = mesh.GetNamedAttribute(GeometryAttribute::POSITION);
   const PointIndex ver_index = mesh.face(f)[c];
@@ -76,7 +76,7 @@ void MeshAreEquivalent::InitOrderedFaceIndex() {
 }
 
 int32_t MeshAreEquivalent::ComputeCornerIndexOfSmallestPointXYZ(
-    const Mesh &mesh, FaceIndex f) {
+    const Mesh& mesh, FaceIndex f) {
   Vector3f pos[3];  // For the three corners.
   for (int32_t i = 0; i < 3; ++i) {
     pos[i] = GetPosition(mesh, f, i);
@@ -85,7 +85,7 @@ int32_t MeshAreEquivalent::ComputeCornerIndexOfSmallestPointXYZ(
   return static_cast<int32_t>(min_it - pos);
 }
 
-void MeshAreEquivalent::Init(const Mesh &mesh0, const Mesh &mesh1) {
+void MeshAreEquivalent::Init(const Mesh& mesh0, const Mesh& mesh1) {
   mesh_infos_.clear();
   DRACO_DCHECK_EQ(mesh_infos_.size(), 0);
 
@@ -103,7 +103,7 @@ void MeshAreEquivalent::Init(const Mesh &mesh0, const Mesh &mesh1) {
   InitOrderedFaceIndex();
 }
 
-bool MeshAreEquivalent::operator()(const Mesh &mesh0, const Mesh &mesh1) {
+bool MeshAreEquivalent::operator()(const Mesh& mesh0, const Mesh& mesh1) {
   if (mesh0.num_faces() != mesh1.num_faces()) {
     return false;
   }
@@ -137,8 +137,8 @@ bool MeshAreEquivalent::operator()(const Mesh &mesh0, const Mesh &mesh1) {
     return false;
   }
   for (MeshFeaturesIndex i(0); i < mesh0.NumMeshFeatures(); ++i) {
-    const MeshFeatures &features0 = mesh0.GetMeshFeatures(i);
-    const MeshFeatures &features1 = mesh1.GetMeshFeatures(i);
+    const MeshFeatures& features0 = mesh0.GetMeshFeatures(i);
+    const MeshFeatures& features1 = mesh1.GetMeshFeatures(i);
     if (features0.GetAttributeIndex() != features1.GetAttributeIndex()) {
       return false;
     }
@@ -158,8 +158,8 @@ bool MeshAreEquivalent::operator()(const Mesh &mesh0, const Mesh &mesh1) {
         features1.GetPropertyTableIndex()) {
       return false;
     }
-    const TextureMap &map0 = features0.GetTextureMap();
-    const TextureMap &map1 = features1.GetTextureMap();
+    const TextureMap& map0 = features0.GetTextureMap();
+    const TextureMap& map1 = features1.GetTextureMap();
     if (map0.tex_coord_index() != map1.tex_coord_index()) {
       return false;
     }
@@ -171,9 +171,9 @@ bool MeshAreEquivalent::operator()(const Mesh &mesh0, const Mesh &mesh1) {
   const int att_max = AttributeType::NAMED_ATTRIBUTES_COUNT;
   for (int att_id = 0; att_id < att_max; ++att_id) {
     // First check for existence of the attribute in both meshes.
-    const PointAttribute *const att0 =
+    const PointAttribute* const att0 =
         mesh0.GetNamedAttribute(AttributeType(att_id));
-    const PointAttribute *const att1 =
+    const PointAttribute* const att1 =
         mesh1.GetNamedAttribute(AttributeType(att_id));
     if (att0 == nullptr && att1 == nullptr) {
       continue;

@@ -70,6 +70,9 @@
             "EXT_structural_metadata": {
               "propertyAttributes": [
                 0
+              ],
+              "propertyTextures": [
+                0
               ]
             }
           }
@@ -121,6 +124,9 @@
             },
             "EXT_structural_metadata": {
               "propertyAttributes": [
+                1
+              ],
+              "propertyTextures": [
                 1
               ]
             }
@@ -177,6 +183,14 @@
     {
       "source": 1,
       "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    },
+    {
+      "source": 3,
+      "sampler": 0
     }
   ],
   "samplers": [
@@ -191,6 +205,12 @@
     },
     {
       "uri": "Texture1_MeshFeatures.png"
+    },
+    {
+      "uri": "Texture0_Property.png"
+    },
+    {
+      "uri": "Texture1_Property.png"
     }
   ],
   "accessors": [
@@ -383,6 +403,40 @@
           "properties": {
             "direction": {
               "attribute": "_DIRECTION"
+            }
+          }
+        }
+      ],
+      "propertyTextures": [
+        {
+          "name": "The magnitude left.",
+          "class": "magnitude",
+          "properties": {
+            "magnitude": {
+              "index": 2,
+              "texCoord": 0,
+              "channels": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          }
+        },
+        {
+          "name": "The magnitude right.",
+          "class": "magnitude",
+          "properties": {
+            "magnitude": {
+              "index": 3,
+              "texCoord": 0,
+              "channels": [
+                0,
+                1,
+                2,
+                3
+              ]
             }
           }
         }

@@ -16,10 +16,10 @@
 
 namespace draco {
 
-KeyframeAnimation::KeyframeAnimation() {}
+KeyframeAnimation::KeyframeAnimation() = default;
 
 bool KeyframeAnimation::SetTimestamps(
-    const std::vector<TimestampType> &timestamp) {
+    const std::vector<TimestampType>& timestamp) {
   // Already added attributes.
   const int32_t num_frames = timestamp.size();
   if (num_attributes() > 0) {

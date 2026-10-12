@@ -74,7 +74,7 @@ class DirectBitEncoder {
   }
 
   // Ends the bit encoding and stores the result into the target_buffer.
-  void EndEncoding(EncoderBuffer *target_buffer);
+  void EndEncoding(EncoderBuffer* target_buffer);
 
  private:
   void Clear();

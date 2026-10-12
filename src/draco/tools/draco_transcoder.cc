@@ -45,24 +45,28 @@ void Usage() {
   printf("default=8.\n");
   printf("  -qg <value>     quantization bits for any generic attribute, ");
   printf("default=8.\n");
+#ifdef DRACO_PMC_SUPPORTED
+  printf("  -pmc <value>    use PMC compression instead of Draco ");
+  printf("compression, default=false.\n");
+#endif
 
   printf("\nBoolean options may be negated by prefixing 'no'.\n");
 }
 
-int StringToInt(const std::string &s) {
-  char *end;
+int StringToInt(const std::string& s) {
+  char* end;
   return strtol(s.c_str(), &end, 10);  // NOLINT
 }
 
-bool MatchesBooleanOption(const std::string &option, const std::string &value) {
+bool MatchesBooleanOption(const std::string& option, const std::string& value) {
   const std::string opt = "-" + option;
   const std::string noopt = "-no" + option;
   return value == opt || value == noopt;
 }
 
 draco::Status TranscodeFile(
-    const draco::DracoTranscoder::FileOptions &file_options,
-    const draco::DracoTranscodingOptions &transcode_options) {
+    const draco::DracoTranscoder::FileOptions& file_options,
+    const draco::DracoTranscodingOptions& transcode_options) {
   draco::CycleTimer timer;
   timer.Start();
   DRACO_ASSIGN_OR_RETURN(std::unique_ptr<draco::DracoTranscoder> dt,
@@ -78,7 +82,7 @@ draco::Status TranscodeFile(
 
 }  // anonymous namespace
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   draco::DracoTranscoder::FileOptions file_options;
   draco::DracoTranscodingOptions transcode_options;
   const int argc_check = argc - 1;
@@ -113,6 +117,11 @@ int main(int argc, char **argv) {
       transcode_options.geometry.quantization_bits_generic =
           StringToInt(argv[++i]);
     }
+#ifdef DRACO_PMC_SUPPORTED
+    else if (MatchesBooleanOption("pmc", argv[i])) {
+      transcode_options.geometry.use_pmc = !strcmp("-pmc", argv[i]);
+    }
+#endif
   }
   if (argc < 3 || file_options.input_filename.empty() ||
       file_options.output_filename.empty()) {

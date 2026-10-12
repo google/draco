@@ -17,13 +17,13 @@
 namespace draco {
 
 PredictionSchemeMethod SelectPredictionMethod(
-    int att_id, const PointCloudEncoder *encoder) {
+    int att_id, const PointCloudEncoder* encoder) {
   return SelectPredictionMethod(att_id, *encoder->options(), encoder);
 }
 
 PredictionSchemeMethod SelectPredictionMethod(
-    int att_id, const EncoderOptions &options,
-    const PointCloudEncoder *encoder) {
+    int att_id, const EncoderOptions& options,
+    const PointCloudEncoder* encoder) {
   if (options.GetSpeed() >= 10) {
     // Selected fastest, though still doing some compression.
     return PREDICTION_DIFFERENCE;
@@ -32,15 +32,15 @@ PredictionSchemeMethod SelectPredictionMethod(
     // Use speed setting to select the best encoding method.
     const int att_quant =
         options.GetAttributeInt(att_id, "quantization_bits", -1);
-    const PointAttribute *const att = encoder->point_cloud()->attribute(att_id);
+    const PointAttribute* const att = encoder->point_cloud()->attribute(att_id);
     if (att_quant != -1 &&
         att->attribute_type() == GeometryAttribute::TEX_COORD &&
         att->num_components() == 2) {
       // Texture coordinate predictor needs a position attribute that is either
       // integer or quantized. For numerical reasons, we require the position
-      // quantization to be at most 21 bits and the 2*position_quantization +
+      // quantization to be at most 20 bits and the 2*position_quantization +
       // uv_quantization < 64 (TODO(b/231259902)).
-      const PointAttribute *const pos_att =
+      const PointAttribute* const pos_att =
           encoder->point_cloud()->GetNamedAttribute(
               GeometryAttribute::POSITION);
       bool is_pos_att_valid = false;
@@ -53,9 +53,9 @@ PredictionSchemeMethod SelectPredictionMethod(
               GeometryAttribute::POSITION);
           const int pos_quant =
               options.GetAttributeInt(pos_att_id, "quantization_bits", -1);
-          // Must be quantized but the quantization is restricted to 21 bits and
+          // Must be quantized but the quantization is restricted to 20 bits and
           // 2*|pos_quant|+|att_quant| must be smaller than 64 bits.
-          if (pos_quant > 0 && pos_quant <= 21 &&
+          if (pos_quant > 0 && pos_quant <= 20 &&
               2 * pos_quant + att_quant < 64) {
             is_pos_att_valid = true;
           }
@@ -75,7 +75,7 @@ PredictionSchemeMethod SelectPredictionMethod(
         // integer or quantized as well.
         const int pos_att_id = encoder->point_cloud()->GetNamedAttributeId(
             GeometryAttribute::POSITION);
-        const PointAttribute *const pos_att =
+        const PointAttribute* const pos_att =
             encoder->point_cloud()->GetNamedAttribute(
                 GeometryAttribute::POSITION);
         if (pos_att && (IsDataTypeIntegral(pos_att->data_type()) ||
@@ -105,7 +105,7 @@ PredictionSchemeMethod SelectPredictionMethod(
 
 // Returns the preferred prediction scheme based on the encoder options.
 PredictionSchemeMethod GetPredictionMethodFromOptions(
-    int att_id, const EncoderOptions &options) {
+    int att_id, const EncoderOptions& options) {
   const int pred_type =
       options.GetAttributeInt(att_id, "prediction_scheme", -1);
   if (pred_type == -1) {

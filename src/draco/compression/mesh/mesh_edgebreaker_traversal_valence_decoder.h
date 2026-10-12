@@ -36,13 +36,13 @@ class MeshEdgebreakerTraversalValenceDecoder
         active_context_(-1),
         min_valence_(2),
         max_valence_(7) {}
-  void Init(MeshEdgebreakerDecoderImplInterface *decoder) {
+  void Init(MeshEdgebreakerDecoderImplInterface* decoder) {
     MeshEdgebreakerTraversalDecoder::Init(decoder);
     corner_table_ = decoder->GetCornerTable();
   }
   void SetNumEncodedVertices(int num_vertices) { num_vertices_ = num_vertices; }
 
-  bool Start(DecoderBuffer *out_buffer) {
+  bool Start(DecoderBuffer* out_buffer) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (BitstreamVersion() < DRACO_BITSTREAM_VERSION(2, 2)) {
       if (!MeshEdgebreakerTraversalDecoder::DecodeTraversalSymbols()) {
@@ -201,7 +201,7 @@ class MeshEdgebreakerTraversalValenceDecoder
   }
 
  private:
-  const CornerTable *corner_table_;
+  const CornerTable* corner_table_;
   int num_vertices_;
   IndexTypeVector<VertexIndex, int> vertex_valences_;
   int last_symbol_;

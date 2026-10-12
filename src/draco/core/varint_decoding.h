@@ -27,7 +27,7 @@ namespace {
 // Decodes a specified unsigned integer as varint. |depth| is the current
 // recursion call depth. The first call to the function must be 1.
 template <typename IntTypeT>
-bool DecodeVarintUnsigned(int depth, IntTypeT *out_val, DecoderBuffer *buffer) {
+bool DecodeVarintUnsigned(int depth, IntTypeT* out_val, DecoderBuffer* buffer) {
   constexpr IntTypeT max_depth = sizeof(IntTypeT) + 1 + (sizeof(IntTypeT) >> 3);
   if (depth > max_depth) {
     return false;
@@ -60,7 +60,7 @@ bool DecodeVarintUnsigned(int depth, IntTypeT *out_val, DecoderBuffer *buffer) {
 // same as the one used in the corresponding EncodeVarint() call.
 // out_val is undefined if this returns false.
 template <typename IntTypeT>
-bool DecodeVarint(IntTypeT *out_val, DecoderBuffer *buffer) {
+bool DecodeVarint(IntTypeT* out_val, DecoderBuffer* buffer) {
   if (std::is_unsigned<IntTypeT>::value) {
     if (!DecodeVarintUnsigned<IntTypeT>(1, out_val, buffer)) {
       return false;

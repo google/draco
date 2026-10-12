@@ -43,7 +43,7 @@ class TriangleSoupMeshBuilder {
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Sets mesh name.
-  void SetName(const std::string &name);
+  void SetName(const std::string& name);
 #endif  // DRACO_TRANSCODER_SUPPORTED
 
   // Adds an empty attribute to the mesh. Returns the new attribute's id.
@@ -54,9 +54,9 @@ class TriangleSoupMeshBuilder {
 
   // Sets values for a given attribute on all corners of a given face.
   void SetAttributeValuesForFace(int att_id, FaceIndex face_id,
-                                 const void *corner_value_0,
-                                 const void *corner_value_1,
-                                 const void *corner_value_2);
+                                 const void* corner_value_0,
+                                 const void* corner_value_1,
+                                 const void* corner_value_2);
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Converts input values of type T into internal representation used by
@@ -64,16 +64,16 @@ class TriangleSoupMeshBuilder {
   template <typename T>
   Status ConvertAndSetAttributeValuesForFace(int att_id, FaceIndex face_id,
                                              int input_num_components,
-                                             const T *corner_value_0,
-                                             const T *corner_value_1,
-                                             const T *corner_value_2);
+                                             const T* corner_value_0,
+                                             const T* corner_value_1,
+                                             const T* corner_value_2);
 #endif
 
   // Sets value for a per-face attribute. If all faces of a given attribute are
   // set with this method, the attribute will be marked as per-face, otherwise
   // it will be marked as per-corner attribute.
   void SetPerFaceAttributeValueForFace(int att_id, FaceIndex face_id,
-                                       const void *value);
+                                       const void* value);
 
   // Add metadata.
   void AddMetadata(std::unique_ptr<GeometryMetadata> metadata) {
@@ -85,7 +85,7 @@ class TriangleSoupMeshBuilder {
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Sets attribute name.
-  void SetAttributeName(int att_id, const std::string &name);
+  void SetAttributeName(int att_id, const std::string& name);
 #endif  // DRACO_TRANSCODER_SUPPORTED
 
   // Add metadata for an attribute.
@@ -109,9 +109,9 @@ class TriangleSoupMeshBuilder {
 template <typename T>
 Status TriangleSoupMeshBuilder::ConvertAndSetAttributeValuesForFace(
     int att_id, FaceIndex face_id, int input_num_components,
-    const T *corner_value_0, const T *corner_value_1, const T *corner_value_2) {
+    const T* corner_value_0, const T* corner_value_1, const T* corner_value_2) {
   const int start_index = 3 * face_id.value();
-  PointAttribute *const att = mesh_->attribute(att_id);
+  PointAttribute* const att = mesh_->attribute(att_id);
   DRACO_RETURN_IF_ERROR(
       att->ConvertAndSetAttributeValue(AttributeValueIndex(start_index + 0),
                                        input_num_components, corner_value_0));

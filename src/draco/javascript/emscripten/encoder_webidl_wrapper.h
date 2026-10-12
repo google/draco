@@ -33,7 +33,7 @@ class DracoInt8Array {
  public:
   DracoInt8Array();
   int8_t GetValue(int index) const;
-  bool SetValues(const char *values, int count);
+  bool SetValues(const char* values, int count);
 
   size_t size() { return values_.size(); }
 
@@ -44,51 +44,51 @@ class DracoInt8Array {
 class MetadataBuilder {
  public:
   MetadataBuilder();
-  bool AddStringEntry(draco::Metadata *metadata, const char *entry_name,
-                      const char *entry_value);
-  bool AddIntEntry(draco::Metadata *metadata, const char *entry_name,
+  bool AddStringEntry(draco::Metadata* metadata, const char* entry_name,
+                      const char* entry_value);
+  bool AddIntEntry(draco::Metadata* metadata, const char* entry_name,
                    long entry_value);
-  bool AddIntEntryArray(draco::Metadata *metadata, const char *entry_name,
-                        const int32_t *entry_values, int32_t num_values);
-  bool AddDoubleEntry(draco::Metadata *metadata, const char *entry_name,
+  bool AddIntEntryArray(draco::Metadata* metadata, const char* entry_name,
+                        const int32_t* entry_values, int32_t num_values);
+  bool AddDoubleEntry(draco::Metadata* metadata, const char* entry_name,
                       double entry_value);
 };
 
 class PointCloudBuilder {
  public:
   PointCloudBuilder() {}
-  int AddFloatAttribute(draco::PointCloud *pc,
+  int AddFloatAttribute(draco::PointCloud* pc,
                         draco_GeometryAttribute_Type type, long num_vertices,
-                        long num_components, const float *att_values);
-  int AddInt8Attribute(draco::PointCloud *pc, draco_GeometryAttribute_Type type,
+                        long num_components, const float* att_values);
+  int AddInt8Attribute(draco::PointCloud* pc, draco_GeometryAttribute_Type type,
                        long num_vertices, long num_components,
-                       const char *att_values);
-  int AddUInt8Attribute(draco::PointCloud *pc,
+                       const char* att_values);
+  int AddUInt8Attribute(draco::PointCloud* pc,
                         draco_GeometryAttribute_Type type, long num_vertices,
-                        long num_components, const uint8_t *att_values);
-  int AddInt16Attribute(draco::PointCloud *pc,
+                        long num_components, const uint8_t* att_values);
+  int AddInt16Attribute(draco::PointCloud* pc,
                         draco_GeometryAttribute_Type type, long num_vertices,
-                        long num_components, const int16_t *att_values);
-  int AddUInt16Attribute(draco::PointCloud *pc,
+                        long num_components, const int16_t* att_values);
+  int AddUInt16Attribute(draco::PointCloud* pc,
                          draco_GeometryAttribute_Type type, long num_vertices,
-                         long num_components, const uint16_t *att_values);
-  int AddInt32Attribute(draco::PointCloud *pc,
+                         long num_components, const uint16_t* att_values);
+  int AddInt32Attribute(draco::PointCloud* pc,
                         draco_GeometryAttribute_Type type, long num_vertices,
-                        long num_components, const int32_t *att_values);
-  int AddUInt32Attribute(draco::PointCloud *pc,
+                        long num_components, const int32_t* att_values);
+  int AddUInt32Attribute(draco::PointCloud* pc,
                          draco_GeometryAttribute_Type type, long num_vertices,
-                         long num_components, const uint32_t *att_values);
-  bool SetMetadataForAttribute(draco::PointCloud *pc, long attribute_id,
-                               const draco::Metadata *metadata);
-  bool AddMetadata(draco::PointCloud *pc, const draco::Metadata *metadata);
-  bool SetNormalizedFlagForAttribute(draco::PointCloud *pc, long attribute_id,
+                         long num_components, const uint32_t* att_values);
+  bool SetMetadataForAttribute(draco::PointCloud* pc, long attribute_id,
+                               const draco::Metadata* metadata);
+  bool AddMetadata(draco::PointCloud* pc, const draco::Metadata* metadata);
+  bool SetNormalizedFlagForAttribute(draco::PointCloud* pc, long attribute_id,
                                      bool normalized);
 
  private:
   template <typename DataTypeT>
-  int AddAttribute(draco::PointCloud *pc, draco_GeometryAttribute_Type type,
+  int AddAttribute(draco::PointCloud* pc, draco_GeometryAttribute_Type type,
                    long num_vertices, long num_components,
-                   const DataTypeT *att_values,
+                   const DataTypeT* att_values,
                    draco::DataType draco_data_type) {
     if (!pc) {
       return -1;
@@ -97,7 +97,7 @@ class PointCloudBuilder {
     att->Init(type, num_components, draco_data_type,
               /* normalized */ false, num_vertices);
     const int att_id = pc->AddAttribute(std::move(att));
-    draco::PointAttribute *const att_ptr = pc->attribute(att_id);
+    draco::PointAttribute* const att_ptr = pc->attribute(att_id);
 
     for (draco::PointIndex i(0); i < num_vertices; ++i) {
       att_ptr->SetAttributeValue(att_ptr->mapped_index(i),
@@ -118,22 +118,22 @@ class MeshBuilder : public PointCloudBuilder {
  public:
   MeshBuilder();
 
-  bool AddFacesToMesh(draco::Mesh *mesh, long num_faces, const int *faces);
+  bool AddFacesToMesh(draco::Mesh* mesh, long num_faces, const int* faces);
 
   // Deprecated: Use AddFloatAttribute() instead.
-  int AddFloatAttributeToMesh(draco::Mesh *mesh,
+  int AddFloatAttributeToMesh(draco::Mesh* mesh,
                               draco_GeometryAttribute_Type type,
                               long num_vertices, long num_components,
-                              const float *att_values);
+                              const float* att_values);
 
   // Deprecated: Use AddInt32Attribute() instead.
-  int AddInt32AttributeToMesh(draco::Mesh *mesh,
+  int AddInt32AttributeToMesh(draco::Mesh* mesh,
                               draco_GeometryAttribute_Type type,
                               long num_vertices, long num_components,
-                              const int32_t *att_values);
+                              const int32_t* att_values);
 
   // Deprecated: Use AddMetadata() instead.
-  bool AddMetadataToMesh(draco::Mesh *mesh, const draco::Metadata *metadata);
+  bool AddMetadataToMesh(draco::Mesh* mesh, const draco::Metadata* metadata);
 };
 
 class Encoder {
@@ -146,15 +146,15 @@ class Encoder {
   void SetAttributeExplicitQuantization(draco_GeometryAttribute_Type type,
                                         long quantization_bits,
                                         long num_components,
-                                        const float *origin, float range);
+                                        const float* origin, float range);
   void SetSpeedOptions(long encoding_speed, long decoding_speed);
   void SetTrackEncodedProperties(bool flag);
 
-  int EncodeMeshToDracoBuffer(draco::Mesh *mesh, DracoInt8Array *buffer);
+  int EncodeMeshToDracoBuffer(draco::Mesh* mesh, DracoInt8Array* buffer);
 
-  int EncodePointCloudToDracoBuffer(draco::PointCloud *pc,
+  int EncodePointCloudToDracoBuffer(draco::PointCloud* pc,
                                     bool deduplicate_values,
-                                    DracoInt8Array *buffer);
+                                    DracoInt8Array* buffer);
   int GetNumberOfEncodedPoints();
   int GetNumberOfEncodedFaces();
 
@@ -164,17 +164,17 @@ class Encoder {
 
 class ExpertEncoder {
  public:
-  ExpertEncoder(draco::PointCloud *pc);
+  ExpertEncoder(draco::PointCloud* pc);
 
   void SetEncodingMethod(long method);
   void SetAttributeQuantization(long att_id, long quantization_bits);
   void SetAttributeExplicitQuantization(long att_id, long quantization_bits,
                                         long num_components,
-                                        const float *origin, float range);
+                                        const float* origin, float range);
   void SetSpeedOptions(long encoding_speed, long decoding_speed);
   void SetTrackEncodedProperties(bool flag);
 
-  int EncodeToDracoBuffer(bool deduplicate_values, DracoInt8Array *buffer);
+  int EncodeToDracoBuffer(bool deduplicate_values, DracoInt8Array* buffer);
 
   int GetNumberOfEncodedPoints();
   int GetNumberOfEncodedFaces();
@@ -182,7 +182,7 @@ class ExpertEncoder {
  private:
   std::unique_ptr<draco::ExpertEncoder> encoder_;
 
-  draco::PointCloud *pc_;
+  draco::PointCloud* pc_;
 };
 
 #endif  // DRACO_JAVASCRIPT_EMSCRIPTEN_ENCODER_WEBIDL_WRAPPER_H_

@@ -29,10 +29,10 @@ namespace draco {
 
 template <class CornerTableT>
 class ValenceCache {
-  const CornerTableT &table_;
+  const CornerTableT& table_;
 
  public:
-  explicit ValenceCache(const CornerTableT &table) : table_(table) {}
+  explicit ValenceCache(const CornerTableT& table) : table_(table) {}
 
   // Do not call before CacheValences() / CacheValencesInaccurate().
   inline int8_t ValenceFromCacheInaccurate(CornerIndex c) const {

@@ -41,7 +41,7 @@ FloatPointsTreeEncoder::FloatPointsTreeEncoder(
 }
 
 bool FloatPointsTreeEncoder::EncodePointCloudKdTreeInternal(
-    std::vector<Point3ui> *qpoints) {
+    std::vector<Point3ui>* qpoints) {
   DRACO_DCHECK_LE(compression_level_, 6);
   switch (compression_level_) {
     case 0: {

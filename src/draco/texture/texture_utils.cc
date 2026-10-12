@@ -32,10 +32,10 @@
 
 namespace draco {
 
-std::string TextureUtils::GetTargetStem(const Texture &texture) {
-  // Return stem of the source image if there is one.
+std::string TextureUtils::GetTargetStem(const Texture& texture) {
   if (!texture.source_image().filename().empty()) {
-    const std::string &full_path = texture.source_image().filename();
+    // Return stem of the source image if there is one.
+    const std::string& full_path = texture.source_image().filename();
     std::string folder_path;
     std::string filename;
     SplitPath(full_path, &folder_path, &filename);
@@ -46,9 +46,9 @@ std::string TextureUtils::GetTargetStem(const Texture &texture) {
   return "";
 }
 
-std::string TextureUtils::GetOrGenerateTargetStem(const Texture &texture,
+std::string TextureUtils::GetOrGenerateTargetStem(const Texture& texture,
                                                   int index,
-                                                  const std::string &suffix) {
+                                                  const std::string& suffix) {
   // Return target stem from |texture| if there is one.
   const std::string name = GetTargetStem(texture);
   if (!name.empty()) {
@@ -59,16 +59,16 @@ std::string TextureUtils::GetOrGenerateTargetStem(const Texture &texture,
   return "Texture" + std::to_string(index) + suffix;
 }
 
-ImageFormat TextureUtils::GetTargetFormat(const Texture &texture) {
+ImageFormat TextureUtils::GetTargetFormat(const Texture& texture) {
   // Return format based on source image mime type.
   return GetSourceFormat(texture);
 }
 
-std::string TextureUtils::GetTargetExtension(const Texture &texture) {
+std::string TextureUtils::GetTargetExtension(const Texture& texture) {
   return GetExtension(GetTargetFormat(texture));
 }
 
-std::string TextureUtils::GetTargetMimeType(const Texture &texture) {
+std::string TextureUtils::GetTargetMimeType(const Texture& texture) {
   const ImageFormat format = GetTargetFormat(texture);
   if (format == ImageFormat::NONE) {
     // Unknown format, try to re-use mime type stored in the source_image.
@@ -104,7 +104,7 @@ std::string TextureUtils::GetMimeType(ImageFormat image_format) {
   }
 }
 
-ImageFormat TextureUtils::GetSourceFormat(const Texture &texture) {
+ImageFormat TextureUtils::GetSourceFormat(const Texture& texture) {
   // Try to get the extension based on source image mime type.
   std::string extension =
       LowercaseMimeTypeExtension(texture.source_image().mime_type());
@@ -119,7 +119,7 @@ ImageFormat TextureUtils::GetSourceFormat(const Texture &texture) {
   return GetFormat(extension);
 }
 
-ImageFormat TextureUtils::GetFormat(const std::string &extension) {
+ImageFormat TextureUtils::GetFormat(const std::string& extension) {
   if (extension == "png") {
     return ImageFormat::PNG;
   } else if (extension == "jpg" || extension == "jpeg") {
@@ -149,7 +149,7 @@ std::string TextureUtils::GetExtension(ImageFormat format) {
 }
 
 int TextureUtils::ComputeRequiredNumChannels(
-    const Texture &texture, const MaterialLibrary &material_library) {
+    const Texture& texture, const MaterialLibrary& material_library) {
   // TODO(vytyaz): Consider a case where |texture| is not only used in OMR but
   // also in other texture map types.
   const auto mr_textures = TextureUtils::FindTextures(
@@ -163,13 +163,13 @@ int TextureUtils::ComputeRequiredNumChannels(
   return 3;
 }
 
-std::vector<const Texture *> TextureUtils::FindTextures(
+std::vector<const Texture*> TextureUtils::FindTextures(
     const TextureMap::Type texture_type,
-    const MaterialLibrary *material_library) {
+    const MaterialLibrary* material_library) {
   // Find textures with no duplicates.
-  std::unordered_set<const Texture *> textures;
+  std::unordered_set<const Texture*> textures;
   for (int i = 0; i < material_library->NumMaterials(); ++i) {
-    const TextureMap *const texture_map =
+    const TextureMap* const texture_map =
         material_library->GetMaterial(i)->GetTextureMapByType(texture_type);
     if (texture_map != nullptr && texture_map->texture() != nullptr) {
       textures.insert(texture_map->texture());
@@ -177,7 +177,7 @@ std::vector<const Texture *> TextureUtils::FindTextures(
   }
 
   // Return the textures as a vector.
-  std::vector<const Texture *> result;
+  std::vector<const Texture*> result;
   result.insert(result.end(), textures.begin(), textures.end());
   return result;
 }

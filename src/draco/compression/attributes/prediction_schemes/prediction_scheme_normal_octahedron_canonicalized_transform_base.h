@@ -89,7 +89,7 @@ class PredictionSchemeNormalOctahedronCanonicalizedTransformBase
     }
   }
 
-  bool IsInBottomLeft(const Point2 &p) const {
+  bool IsInBottomLeft(const Point2& p) const {
     if (p[0] == 0 && p[1] == 0) {
       return true;
     }

@@ -47,14 +47,14 @@ namespace draco {
 
 struct AnsCoder {
   AnsCoder() : buf(nullptr), buf_offset(0), state(0) {}
-  uint8_t *buf;
+  uint8_t* buf;
   int buf_offset;
   uint32_t state;
 };
 
 struct AnsDecoder {
   AnsDecoder() : buf(nullptr), buf_offset(0), state(0) {}
-  const uint8_t *buf;
+  const uint8_t* buf;
   int buf_offset;
   uint32_t state;
 };
@@ -64,18 +64,18 @@ typedef uint8_t AnsP8;
 #define DRACO_ANS_L_BASE (4096u)
 #define DRACO_ANS_IO_BASE 256
 
-static uint32_t mem_get_le16(const void *vmem) {
+static uint32_t mem_get_le16(const void* vmem) {
   uint32_t val;
-  const uint8_t *mem = (const uint8_t *)vmem;
+  const uint8_t* mem = (const uint8_t*)vmem;
 
   val = mem[1] << 8;
   val |= mem[0];
   return val;
 }
 
-static uint32_t mem_get_le24(const void *vmem) {
+static uint32_t mem_get_le24(const void* vmem) {
   uint32_t val;
-  const uint8_t *mem = (const uint8_t *)vmem;
+  const uint8_t* mem = (const uint8_t*)vmem;
 
   val = mem[2] << 16;
   val |= mem[1] << 8;
@@ -83,9 +83,9 @@ static uint32_t mem_get_le24(const void *vmem) {
   return val;
 }
 
-static inline uint32_t mem_get_le32(const void *vmem) {
+static inline uint32_t mem_get_le32(const void* vmem) {
   uint32_t val;
-  const uint8_t *mem = (const uint8_t *)vmem;
+  const uint8_t* mem = (const uint8_t*)vmem;
 
   val = mem[3] << 24;
   val |= mem[2] << 16;
@@ -94,23 +94,23 @@ static inline uint32_t mem_get_le32(const void *vmem) {
   return val;
 }
 
-static inline void mem_put_le16(void *vmem, uint32_t val) {
-  uint8_t *mem = reinterpret_cast<uint8_t *>(vmem);
+static inline void mem_put_le16(void* vmem, uint32_t val) {
+  uint8_t* mem = reinterpret_cast<uint8_t*>(vmem);
 
   mem[0] = (val >> 0) & 0xff;
   mem[1] = (val >> 8) & 0xff;
 }
 
-static inline void mem_put_le24(void *vmem, uint32_t val) {
-  uint8_t *mem = reinterpret_cast<uint8_t *>(vmem);
+static inline void mem_put_le24(void* vmem, uint32_t val) {
+  uint8_t* mem = reinterpret_cast<uint8_t*>(vmem);
 
   mem[0] = (val >> 0) & 0xff;
   mem[1] = (val >> 8) & 0xff;
   mem[2] = (val >> 16) & 0xff;
 }
 
-static inline void mem_put_le32(void *vmem, uint32_t val) {
-  uint8_t *mem = reinterpret_cast<uint8_t *>(vmem);
+static inline void mem_put_le32(void* vmem, uint32_t val) {
+  uint8_t* mem = reinterpret_cast<uint8_t*>(vmem);
 
   mem[0] = (val >> 0) & 0xff;
   mem[1] = (val >> 8) & 0xff;
@@ -118,14 +118,14 @@ static inline void mem_put_le32(void *vmem, uint32_t val) {
   mem[3] = (val >> 24) & 0xff;
 }
 
-static inline void ans_write_init(struct AnsCoder *const ans,
-                                  uint8_t *const buf) {
+static inline void ans_write_init(struct AnsCoder* const ans,
+                                  uint8_t* const buf) {
   ans->buf = buf;
   ans->buf_offset = 0;
   ans->state = DRACO_ANS_L_BASE;
 }
 
-static inline int ans_write_end(struct AnsCoder *const ans) {
+static inline int ans_write_end(struct AnsCoder* const ans) {
   uint32_t state;
   DRACO_DCHECK_GE(ans->state, DRACO_ANS_L_BASE);
   DRACO_DCHECK_LT(ans->state, DRACO_ANS_L_BASE * DRACO_ANS_IO_BASE);
@@ -148,7 +148,7 @@ static inline int ans_write_end(struct AnsCoder *const ans) {
 // rABS with descending spread.
 // p or p0 takes the place of l_s from the paper.
 // DRACO_ANS_P8_PRECISION is m.
-static inline void rabs_desc_write(struct AnsCoder *ans, int val, AnsP8 p0) {
+static inline void rabs_desc_write(struct AnsCoder* ans, int val, AnsP8 p0) {
   const AnsP8 p = DRACO_ANS_P8_PRECISION - p0;
   const unsigned l_s = val ? p : p0;
   unsigned quot, rem;
@@ -163,7 +163,7 @@ static inline void rabs_desc_write(struct AnsCoder *ans, int val, AnsP8 p0) {
 
 #define DRACO_ANS_IMPL1 0
 #define UNPREDICTABLE(x) x
-static inline int rabs_desc_read(struct AnsDecoder *ans, AnsP8 p0) {
+static inline int rabs_desc_read(struct AnsDecoder* ans, AnsP8 p0) {
   int val;
 #if DRACO_ANS_IMPL1
   unsigned l_s;
@@ -198,7 +198,7 @@ static inline int rabs_desc_read(struct AnsDecoder *ans, AnsP8 p0) {
 // rABS with ascending spread.
 // p or p0 takes the place of l_s from the paper.
 // DRACO_ANS_P8_PRECISION is m.
-static inline void rabs_asc_write(struct AnsCoder *ans, int val, AnsP8 p0) {
+static inline void rabs_asc_write(struct AnsCoder* ans, int val, AnsP8 p0) {
   const AnsP8 p = DRACO_ANS_P8_PRECISION - p0;
   const unsigned l_s = val ? p : p0;
   unsigned quot, rem;
@@ -211,7 +211,7 @@ static inline void rabs_asc_write(struct AnsCoder *ans, int val, AnsP8 p0) {
   ans->state = quot * DRACO_ANS_P8_PRECISION + rem + (val ? p0 : 0);
 }
 
-static inline int rabs_asc_read(struct AnsDecoder *ans, AnsP8 p0) {
+static inline int rabs_asc_read(struct AnsDecoder* ans, AnsP8 p0) {
   int val;
 #if DRACO_ANS_IMPL1
   unsigned l_s;
@@ -247,7 +247,7 @@ static inline int rabs_asc_read(struct AnsDecoder *ans, AnsP8 p0) {
 #define rabs_write rabs_desc_write
 
 // uABS with normalization.
-static inline void uabs_write(struct AnsCoder *ans, int val, AnsP8 p0) {
+static inline void uabs_write(struct AnsCoder* ans, int val, AnsP8 p0) {
   AnsP8 p = DRACO_ANS_P8_PRECISION - p0;
   const unsigned l_s = val ? p : p0;
   while (ans->state >=
@@ -263,7 +263,7 @@ static inline void uabs_write(struct AnsCoder *ans, int val, AnsP8 p0) {
   }
 }
 
-static inline int uabs_read(struct AnsDecoder *ans, AnsP8 p0) {
+static inline int uabs_read(struct AnsDecoder* ans, AnsP8 p0) {
   AnsP8 p = DRACO_ANS_P8_PRECISION - p0;
   int s;
   // unsigned int xp1;
@@ -285,7 +285,7 @@ static inline int uabs_read(struct AnsDecoder *ans, AnsP8 p0) {
   return s;
 }
 
-static inline int uabs_read_bit(struct AnsDecoder *ans) {
+static inline int uabs_read_bit(struct AnsDecoder* ans) {
   int s;
   unsigned state = ans->state;
   while (state < DRACO_ANS_L_BASE && ans->buf_offset > 0) {
@@ -296,8 +296,8 @@ static inline int uabs_read_bit(struct AnsDecoder *ans) {
   return s;
 }
 
-static inline int ans_read_init(struct AnsDecoder *const ans,
-                                const uint8_t *const buf, int offset) {
+static inline int ans_read_init(struct AnsDecoder* const ans,
+                                const uint8_t* const buf, int offset) {
   unsigned x;
   if (offset < 1) {
     return 1;
@@ -329,11 +329,11 @@ static inline int ans_read_init(struct AnsDecoder *const ans,
   return 0;
 }
 
-static inline int ans_read_end(struct AnsDecoder *const ans) {
+static inline int ans_read_end(struct AnsDecoder* const ans) {
   return ans->state == DRACO_ANS_L_BASE;
 }
 
-static inline int ans_reader_has_error(const struct AnsDecoder *const ans) {
+static inline int ans_reader_has_error(const struct AnsDecoder* const ans) {
   return ans->state < DRACO_ANS_L_BASE && ans->buf_offset == 0;
 }
 
@@ -352,7 +352,7 @@ class RAnsEncoder {
   RAnsEncoder() {}
 
   // Provides the input buffer where the data is going to be stored.
-  inline void write_init(uint8_t *const buf) {
+  inline void write_init(uint8_t* const buf) {
     ans_.buf = buf;
     ans_.buf_offset = 0;
     ans_.state = l_rans_base;
@@ -385,7 +385,7 @@ class RAnsEncoder {
   // rANS with normalization.
   // sym->prob takes the place of l_s from the paper.
   // rans_precision is m.
-  inline void rans_write(const struct rans_sym *const sym) {
+  inline void rans_write(const struct rans_sym* const sym) {
     const uint32_t p = sym->prob;
     while (ans_.state >= l_rans_base / rans_precision * DRACO_ANS_IO_BASE * p) {
       ans_.buf[ans_.buf_offset++] = ans_.state % DRACO_ANS_IO_BASE;
@@ -418,7 +418,7 @@ class RAnsDecoder {
   // Initializes the decoder from the input buffer. The |offset| specifies the
   // number of bytes encoded by the encoder. A non zero return value is an
   // error.
-  inline int read_init(const uint8_t *const buf, int offset) {
+  inline int read_init(const uint8_t* const buf, int offset) {
     unsigned x;
     if (offset < 1) {
       return 1;
@@ -505,7 +505,7 @@ class RAnsDecoder {
   }
 
  private:
-  inline void fetch_sym(struct rans_dec_sym *out, uint32_t rem) {
+  inline void fetch_sym(struct rans_dec_sym* out, uint32_t rem) {
     uint32_t symbol = lut_table_[rem];
     out->val = symbol;
     out->prob = probability_table_[symbol].prob;

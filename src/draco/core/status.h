@@ -36,35 +36,35 @@ class Status {
   };
 
   Status() : code_(OK) {}
-  Status(const Status &status) = default;
-  Status(Status &&status) = default;
+  Status(const Status& status) = default;
+  Status(Status&& status) = default;
   explicit Status(Code code) : code_(code) {}
-  Status(Code code, const std::string &error_msg)
+  Status(Code code, const std::string& error_msg)
       : code_(code), error_msg_(error_msg) {}
 
   Code code() const { return code_; }
-  const std::string &error_msg_string() const { return error_msg_; }
-  const char *error_msg() const { return error_msg_.c_str(); }
+  const std::string& error_msg_string() const { return error_msg_; }
+  const char* error_msg() const { return error_msg_.c_str(); }
   std::string code_string() const;
   std::string code_and_error_string() const;
 
   bool operator==(Code code) const { return code == code_; }
   bool ok() const { return code_ == OK; }
 
-  Status &operator=(const Status &) = default;
+  Status& operator=(const Status&) = default;
 
  private:
   Code code_;
   std::string error_msg_;
 };
 
-inline std::ostream &operator<<(std::ostream &os, const Status &status) {
+inline std::ostream& operator<<(std::ostream& os, const Status& status) {
   os << status.error_msg_string();
   return os;
 }
 
 inline Status OkStatus() { return Status(Status::OK); }
-inline Status ErrorStatus(const std::string &msg) {
+inline Status ErrorStatus(const std::string& msg) {
   return Status(Status::DRACO_ERROR, msg);
 }
 

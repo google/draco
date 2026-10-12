@@ -21,31 +21,31 @@
 
 namespace draco {
 
-void Options::MergeAndReplace(const Options &other_options) {
-  for (const auto &item : other_options.options_) {
+void Options::MergeAndReplace(const Options& other_options) {
+  for (const auto& item : other_options.options_) {
     options_[item.first] = item.second;
   }
 }
 
-void Options::SetInt(const std::string &name, int val) {
+void Options::SetInt(const std::string& name, int val) {
   options_[name] = std::to_string(val);
 }
 
-void Options::SetFloat(const std::string &name, float val) {
+void Options::SetFloat(const std::string& name, float val) {
   options_[name] = std::to_string(val);
 }
 
-void Options::SetBool(const std::string &name, bool val) {
+void Options::SetBool(const std::string& name, bool val) {
   options_[name] = std::to_string(val ? 1 : 0);
 }
 
-void Options::SetString(const std::string &name, const std::string &val) {
+void Options::SetString(const std::string& name, const std::string& val) {
   options_[name] = val;
 }
 
-int Options::GetInt(const std::string &name) const { return GetInt(name, -1); }
+int Options::GetInt(const std::string& name) const { return GetInt(name, -1); }
 
-int Options::GetInt(const std::string &name, int default_val) const {
+int Options::GetInt(const std::string& name, int default_val) const {
   const auto it = options_.find(name);
   if (it == options_.end()) {
     return default_val;
@@ -53,11 +53,11 @@ int Options::GetInt(const std::string &name, int default_val) const {
   return std::atoi(it->second.c_str());
 }
 
-float Options::GetFloat(const std::string &name) const {
+float Options::GetFloat(const std::string& name) const {
   return GetFloat(name, -1);
 }
 
-float Options::GetFloat(const std::string &name, float default_val) const {
+float Options::GetFloat(const std::string& name, float default_val) const {
   const auto it = options_.find(name);
   if (it == options_.end()) {
     return default_val;
@@ -65,11 +65,11 @@ float Options::GetFloat(const std::string &name, float default_val) const {
   return static_cast<float>(std::atof(it->second.c_str()));
 }
 
-bool Options::GetBool(const std::string &name) const {
+bool Options::GetBool(const std::string& name) const {
   return GetBool(name, false);
 }
 
-bool Options::GetBool(const std::string &name, bool default_val) const {
+bool Options::GetBool(const std::string& name, bool default_val) const {
   const int ret = GetInt(name, -1);
   if (ret == -1) {
     return default_val;
@@ -77,12 +77,12 @@ bool Options::GetBool(const std::string &name, bool default_val) const {
   return static_cast<bool>(ret);
 }
 
-std::string Options::GetString(const std::string &name) const {
+std::string Options::GetString(const std::string& name) const {
   return GetString(name, "");
 }
 
-std::string Options::GetString(const std::string &name,
-                               const std::string &default_val) const {
+std::string Options::GetString(const std::string& name,
+                               const std::string& default_val) const {
   const auto it = options_.find(name);
   if (it == options_.end()) {
     return default_val;

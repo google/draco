@@ -28,7 +28,7 @@ class DirectBitDecoder {
   ~DirectBitDecoder();
 
   // Sets |source_buffer| as the buffer to decode bits from.
-  bool StartDecoding(DecoderBuffer *source_buffer);
+  bool StartDecoding(DecoderBuffer* source_buffer);
 
   // Decode one bit. Returns true if the bit is a 1, otherwise false.
   bool DecodeNextBit() {
@@ -47,7 +47,7 @@ class DirectBitDecoder {
 
   // Decode the next |nbits| and return the sequence in |value|. |nbits| must be
   // > 0 and <= 32.
-  bool DecodeLeastSignificantBits32(int nbits, uint32_t *value) {
+  bool DecodeLeastSignificantBits32(int nbits, uint32_t* value) {
     DRACO_DCHECK_EQ(true, nbits <= 32);
     DRACO_DCHECK_EQ(true, nbits > 0);
     const int remaining = 32 - num_used_bits_;

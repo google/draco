@@ -32,13 +32,13 @@
 #endif
 namespace draco {
 
-ExpertEncoder::ExpertEncoder(const PointCloud &point_cloud)
+ExpertEncoder::ExpertEncoder(const PointCloud& point_cloud)
     : point_cloud_(&point_cloud), mesh_(nullptr) {}
 
-ExpertEncoder::ExpertEncoder(const Mesh &mesh)
+ExpertEncoder::ExpertEncoder(const Mesh& mesh)
     : point_cloud_(&mesh), mesh_(&mesh) {}
 
-Status ExpertEncoder::EncodeToBuffer(EncoderBuffer *out_buffer) {
+Status ExpertEncoder::EncodeToBuffer(EncoderBuffer* out_buffer) {
   if (point_cloud_ == nullptr) {
     return Status(Status::DRACO_ERROR, "Invalid input geometry.");
   }
@@ -48,8 +48,8 @@ Status ExpertEncoder::EncodeToBuffer(EncoderBuffer *out_buffer) {
   return EncodeMeshToBuffer(*mesh_, out_buffer);
 }
 
-Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud &pc,
-                                               EncoderBuffer *out_buffer) {
+Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud& pc,
+                                               EncoderBuffer* out_buffer) {
 #ifdef DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Apply DracoCompressionOptions associated with the point cloud.
@@ -73,7 +73,7 @@ Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud &pc,
     //     -data type is float32 and quantization is enabled, OR
     //     -data type is uint32, uint16, uint8 or int32, int16, int8
     for (int i = 0; i < pc.num_attributes(); ++i) {
-      const PointAttribute *const att = pc.attribute(i);
+      const PointAttribute* const att = pc.attribute(i);
       if (kd_tree_possible && att->data_type() != DT_FLOAT32 &&
           att->data_type() != DT_UINT32 && att->data_type() != DT_UINT16 &&
           att->data_type() != DT_UINT8 && att->data_type() != DT_INT32 &&
@@ -113,8 +113,8 @@ Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud &pc,
 #endif
 }
 
-Status ExpertEncoder::EncodeMeshToBuffer(const Mesh &m,
-                                         EncoderBuffer *out_buffer) {
+Status ExpertEncoder::EncodeMeshToBuffer(const Mesh& m,
+                                         EncoderBuffer* out_buffer) {
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Apply DracoCompressionOptions associated with the mesh.
   DRACO_RETURN_IF_ERROR(ApplyCompressionOptions(m));
@@ -145,7 +145,7 @@ Status ExpertEncoder::EncodeMeshToBuffer(const Mesh &m,
   return OkStatus();
 }
 
-void ExpertEncoder::Reset(const EncoderOptions &options) {
+void ExpertEncoder::Reset(const EncoderOptions& options) {
   Base::Reset(options);
 }
 
@@ -164,7 +164,7 @@ void ExpertEncoder::SetAttributeQuantization(int32_t attribute_id,
 void ExpertEncoder::SetAttributeExplicitQuantization(int32_t attribute_id,
                                                      int quantization_bits,
                                                      int num_dims,
-                                                     const float *origin,
+                                                     const float* origin,
                                                      float range) {
   options().SetAttributeInt(attribute_id, "quantization_bits",
                             quantization_bits);
@@ -200,11 +200,11 @@ Status ExpertEncoder::SetAttributePredictionScheme(
 }
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
-Status ExpertEncoder::ApplyCompressionOptions(const PointCloud &pc) {
+Status ExpertEncoder::ApplyCompressionOptions(const PointCloud& pc) {
   if (!pc.IsCompressionEnabled()) {
     return OkStatus();
   }
-  const auto &compression_options = pc.GetCompressionOptions();
+  const auto& compression_options = pc.GetCompressionOptions();
 
   // Set any encoder options that haven't been explicitly set by users (don't
   // override existing options).
@@ -257,17 +257,17 @@ Status ExpertEncoder::ApplyCompressionOptions(const PointCloud &pc) {
   return OkStatus();
 }
 
-Status ExpertEncoder::ApplyGridQuantization(const PointCloud &pc,
+Status ExpertEncoder::ApplyGridQuantization(const PointCloud& pc,
                                             int attribute_index) {
   const auto compression_options = pc.GetCompressionOptions();
   const float spacing = compression_options.quantization_position.spacing();
   return SetAttributeGridQuantization(pc, attribute_index, spacing);
 }
 
-Status ExpertEncoder::SetAttributeGridQuantization(const PointCloud &pc,
+Status ExpertEncoder::SetAttributeGridQuantization(const PointCloud& pc,
                                                    int attribute_index,
                                                    float spacing) {
-  const auto *const att = pc.attribute(attribute_index);
+  const auto* const att = pc.attribute(attribute_index);
   if (att->attribute_type() != GeometryAttribute::POSITION) {
     return ErrorStatus(
         "Invalid attribute type: Grid quantization is currently supported only "
@@ -279,7 +279,7 @@ Status ExpertEncoder::SetAttributeGridQuantization(const PointCloud &pc,
         "supported only for 3D positions.");
   }
   // Compute quantization properties based on the grid spacing.
-  const auto &bbox = pc.ComputeBoundingBox();
+  const auto& bbox = pc.ComputeBoundingBox();
   // Snap min and max points of the |bbox| to the quantization grid vertices.
   Vector3f min_pos;
   int num_values = 0;  // Number of values that we need to encode.

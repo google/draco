@@ -29,7 +29,7 @@ CornerTable::CornerTable()
       valence_cache_(*this) {}
 
 std::unique_ptr<CornerTable> CornerTable::Create(
-    const IndexTypeVector<FaceIndex, FaceType> &faces) {
+    const IndexTypeVector<FaceIndex, FaceType>& faces) {
   std::unique_ptr<CornerTable> ct(new CornerTable());
   if (!ct->Init(faces)) {
     return nullptr;
@@ -37,7 +37,7 @@ std::unique_ptr<CornerTable> CornerTable::Create(
   return ct;
 }
 
-bool CornerTable::Init(const IndexTypeVector<FaceIndex, FaceType> &faces) {
+bool CornerTable::Init(const IndexTypeVector<FaceIndex, FaceType>& faces) {
   valence_cache_.ClearValenceCache();
   valence_cache_.ClearValenceCacheInaccurate();
   corner_to_vertex_map_.resize(faces.size() * 3);
@@ -80,7 +80,7 @@ bool CornerTable::Reset(int num_faces, int num_vertices) {
   return true;
 }
 
-bool CornerTable::ComputeOppositeCorners(int *num_vertices) {
+bool CornerTable::ComputeOppositeCorners(int* num_vertices) {
   DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
   if (num_vertices == nullptr) {
     return false;
@@ -265,7 +265,7 @@ bool CornerTable::BreakNonManifoldEdges() {
         // Go over all processed edges (sink vertices). If the current sink
         // vertex has been already encountered before it may indicate a
         // non-manifold edge that needs to be broken.
-        for (auto &&attached_sink_vertex : sink_vertices) {
+        for (auto&& attached_sink_vertex : sink_vertices) {
           if (attached_sink_vertex.first == sink_v) {
             // Sink vertex has been already processed.
             const CornerIndex other_edge_corner = attached_sink_vertex.second;

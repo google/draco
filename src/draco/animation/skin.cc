@@ -18,7 +18,7 @@
 
 namespace draco {
 
-void Skin::Copy(const Skin &s) {
+void Skin::Copy(const Skin& s) {
   inverse_bind_matrices_.Copy(s.GetInverseBindMatrices());
   joints_ = s.GetJoints();
   joint_root_index_ = s.GetJointRoot();

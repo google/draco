@@ -70,6 +70,15 @@ class TextureMap {
     // Texture types of glTF material extension KHR_materials_specular.
     SPECULAR = 17,
     SPECULAR_COLOR = 18,
+    // Texture types of glTF material extension KHR_materials_iridescence.
+    IRIDESCENCE = 19,
+    IRIDESCENCE_THICKNESS = 20,
+    // Texture types of glTF material extension KHR_materials_anisotropy.
+    ANISOTROPY = 21,
+    // Texture types of glTF material extension
+    // KHR_materials_diffuse_transmission.
+    DIFFUSE_TRANSMISSION = 22,
+    DIFFUSE_TRANSMISSION_COLOR = 23,
     // The number of texture types.
     TEXTURE_TYPES_COUNT
   };
@@ -104,10 +113,10 @@ class TextureMap {
   };
 
   TextureMap();
-  TextureMap(TextureMap &&) = default;
+  TextureMap(TextureMap&&) = default;
 
   // Copies texture map data from the |src| texture map to this texture map.
-  void Copy(const TextureMap &src);
+  void Copy(const TextureMap& src);
 
   // Sets the mapping information between the texture and the target mesh.
   // |tex_coord_index| is the local index of the texture coordinates that is
@@ -128,22 +137,22 @@ class TextureMap {
 
   // Set texture and without transferring the ownership. The caller needs to
   // ensure the texture is valid during the lifetime of the TextureMap object.
-  void SetTexture(Texture *texture);
+  void SetTexture(Texture* texture);
 
-  void SetTransform(const TextureTransform &transform);
-  const TextureTransform &texture_transform() const {
+  void SetTransform(const TextureTransform& transform);
+  const TextureTransform& texture_transform() const {
     return texture_transform_;
   }
 
-  const Texture *texture() const { return texture_; }
-  Texture *texture() { return texture_; }
+  const Texture* texture() const { return texture_; }
+  Texture* texture() { return texture_; }
   Type type() const { return type_; }
   WrappingMode wrapping_mode() const { return wrapping_mode_; }
   int tex_coord_index() const { return tex_coord_index_; }
   FilterType min_filter() const { return min_filter_; }
   FilterType mag_filter() const { return mag_filter_; }
 
-  TextureMap &operator=(TextureMap &&) = default;
+  TextureMap& operator=(TextureMap&&) = default;
 
  private:
   Type type_;
@@ -163,7 +172,7 @@ class TextureMap {
 
   // Either raw pointer owned by |owned_texture_| or a pointer to a user
   // specified texture in case |owned_texture_| is nullptr.
-  Texture *texture_;
+  Texture* texture_;
 
   // Transformation values of the texture map.
   TextureTransform texture_transform_;

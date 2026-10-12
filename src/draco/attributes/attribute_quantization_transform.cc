@@ -25,8 +25,8 @@
 namespace draco {
 
 bool AttributeQuantizationTransform::InitFromAttribute(
-    const PointAttribute &attribute) {
-  const AttributeTransformData *const transform_data =
+    const PointAttribute& attribute) {
+  const AttributeTransformData* const transform_data =
       attribute.GetAttributeTransformData();
   if (!transform_data ||
       transform_data->transform_type() != ATTRIBUTE_QUANTIZATION_TRANSFORM) {
@@ -46,7 +46,7 @@ bool AttributeQuantizationTransform::InitFromAttribute(
 
 // Copy parameter values into the provided AttributeTransformData instance.
 void AttributeQuantizationTransform::CopyToAttributeTransformData(
-    AttributeTransformData *out_data) const {
+    AttributeTransformData* out_data) const {
   out_data->set_transform_type(ATTRIBUTE_QUANTIZATION_TRANSFORM);
   out_data->AppendParameterValue(quantization_bits_);
   for (int i = 0; i < min_values_.size(); ++i) {
@@ -56,8 +56,8 @@ void AttributeQuantizationTransform::CopyToAttributeTransformData(
 }
 
 bool AttributeQuantizationTransform::TransformAttribute(
-    const PointAttribute &attribute, const std::vector<PointIndex> &point_ids,
-    PointAttribute *target_attribute) {
+    const PointAttribute& attribute, const std::vector<PointIndex>& point_ids,
+    PointAttribute* target_attribute) {
   if (point_ids.empty()) {
     GeneratePortableAttribute(attribute, target_attribute->size(),
                               target_attribute);
@@ -69,7 +69,7 @@ bool AttributeQuantizationTransform::TransformAttribute(
 }
 
 bool AttributeQuantizationTransform::InverseTransformAttribute(
-    const PointAttribute &attribute, PointAttribute *target_attribute) {
+    const PointAttribute& attribute, PointAttribute* target_attribute) {
   if (target_attribute->data_type() != DT_FLOAT32) {
     return false;
   }
@@ -86,9 +86,8 @@ bool AttributeQuantizationTransform::InverseTransformAttribute(
   if (!dequantizer.Init(range_, max_quantized_value)) {
     return false;
   }
-  const int32_t *const source_attribute_data =
-      reinterpret_cast<const int32_t *>(
-          attribute.GetAddress(AttributeValueIndex(0)));
+  const int32_t* const source_attribute_data = reinterpret_cast<const int32_t*>(
+      attribute.GetAddress(AttributeValueIndex(0)));
 
   const int num_values = target_attribute->size();
 
@@ -113,7 +112,7 @@ bool AttributeQuantizationTransform::IsQuantizationValid(
 }
 
 bool AttributeQuantizationTransform::SetParameters(int quantization_bits,
-                                                   const float *min_values,
+                                                   const float* min_values,
                                                    int num_components,
                                                    float range) {
   if (!IsQuantizationValid(quantization_bits)) {
@@ -126,7 +125,7 @@ bool AttributeQuantizationTransform::SetParameters(int quantization_bits,
 }
 
 bool AttributeQuantizationTransform::ComputeParameters(
-    const PointAttribute &attribute, const int quantization_bits) {
+    const PointAttribute& attribute, const int quantization_bits) {
   if (quantization_bits_ != -1) {
     return false;  // already initialized.
   }
@@ -188,7 +187,7 @@ bool AttributeQuantizationTransform::ComputeParameters(
 }
 
 bool AttributeQuantizationTransform::EncodeParameters(
-    EncoderBuffer *encoder_buffer) const {
+    EncoderBuffer* encoder_buffer) const {
   if (is_initialized()) {
     encoder_buffer->Encode(min_values_.data(),
                            sizeof(float) * min_values_.size());
@@ -200,7 +199,7 @@ bool AttributeQuantizationTransform::EncodeParameters(
 }
 
 bool AttributeQuantizationTransform::DecodeParameters(
-    const PointAttribute &attribute, DecoderBuffer *decoder_buffer) {
+    const PointAttribute& attribute, DecoderBuffer* decoder_buffer) {
   min_values_.resize(attribute.num_components());
   if (!decoder_buffer->Decode(&min_values_[0],
                               sizeof(float) * min_values_.size())) {
@@ -221,14 +220,14 @@ bool AttributeQuantizationTransform::DecodeParameters(
 }
 
 void AttributeQuantizationTransform::GeneratePortableAttribute(
-    const PointAttribute &attribute, int num_points,
-    PointAttribute *target_attribute) const {
+    const PointAttribute& attribute, int num_points,
+    PointAttribute* target_attribute) const {
   DRACO_DCHECK(is_initialized());
 
   const int num_components = attribute.num_components();
 
   // Quantize all values using the order given by point_ids.
-  int32_t *const portable_attribute_data = reinterpret_cast<int32_t *>(
+  int32_t* const portable_attribute_data = reinterpret_cast<int32_t*>(
       target_attribute->GetAddress(AttributeValueIndex(0)));
   const uint32_t max_quantized_value = (1 << (quantization_bits_)) - 1;
   Quantizer quantizer;
@@ -247,14 +246,14 @@ void AttributeQuantizationTransform::GeneratePortableAttribute(
 }
 
 void AttributeQuantizationTransform::GeneratePortableAttribute(
-    const PointAttribute &attribute, const std::vector<PointIndex> &point_ids,
-    int num_points, PointAttribute *target_attribute) const {
+    const PointAttribute& attribute, const std::vector<PointIndex>& point_ids,
+    int num_points, PointAttribute* target_attribute) const {
   DRACO_DCHECK(is_initialized());
 
   const int num_components = attribute.num_components();
 
   // Quantize all values using the order given by point_ids.
-  int32_t *const portable_attribute_data = reinterpret_cast<int32_t *>(
+  int32_t* const portable_attribute_data = reinterpret_cast<int32_t*>(
       target_attribute->GetAddress(AttributeValueIndex(0)));
   const uint32_t max_quantized_value = (1 << (quantization_bits_)) - 1;
   Quantizer quantizer;

@@ -29,26 +29,26 @@ namespace draco {
 template <class T>
 class StatusOr {
  public:
-  StatusOr() {}
+  StatusOr() = default;
   // Note: Constructors are intentionally not explicit to allow returning
   // Status or the return value directly from functions.
-  StatusOr(const StatusOr &) = default;
-  StatusOr(StatusOr &&) = default;
-  StatusOr(const Status &status) : status_(status) {}
-  StatusOr(const T &value) : status_(OkStatus()), value_(value) {}
-  StatusOr(T &&value) : status_(OkStatus()), value_(std::move(value)) {}
-  StatusOr(const Status &status, const T &value)
+  StatusOr(const StatusOr&) = default;
+  StatusOr(StatusOr&&) = default;
+  StatusOr(const Status& status) : status_(status) {}
+  StatusOr(const T& value) : status_(OkStatus()), value_(value) {}
+  StatusOr(T&& value) : status_(OkStatus()), value_(std::move(value)) {}
+  StatusOr(const Status& status, const T& value)
       : status_(status), value_(value) {}
 
-  const Status &status() const { return status_; }
-  const T &value() const & { return value_; }
-  const T &&value() const && { return std::move(value_); }
-  T &&value() && { return std::move(value_); }
+  const Status& status() const { return status_; }
+  const T& value() const& { return value_; }
+  const T&& value() const&& { return std::move(value_); }
+  T&& value() && { return std::move(value_); }
 
   // For consistency with existing Google StatusOr API we also include
   // ValueOrDie() that currently returns the value().
-  const T &ValueOrDie() const & { return value(); }
-  T &&ValueOrDie() && { return std::move(value()); }
+  const T& ValueOrDie() const& { return value(); }
+  T&& ValueOrDie() && { return std::move(value()); }
 
   bool ok() const { return status_.ok(); }
 

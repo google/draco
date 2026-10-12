@@ -15,6 +15,8 @@
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_PREDICTION_SCHEME_DECODER_INTERFACE_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_PREDICTION_SCHEME_DECODER_INTERFACE_H_
 
+#include <cstdint>
+
 #include "draco/compression/attributes/prediction_schemes/prediction_scheme_interface.h"
 #include "draco/core/decoder_buffer.h"
 
@@ -28,7 +30,12 @@ class PredictionSchemeDecoderInterface : public PredictionSchemeInterface {
  public:
   // Method that can be used to decode any prediction scheme specific data
   // from the input buffer.
-  virtual bool DecodePredictionData(DecoderBuffer *buffer) = 0;
+  virtual bool DecodePredictionData(DecoderBuffer* buffer) = 0;
+
+  // Sets the maximum number of predicted values to be decoded with the help of
+  // this predictor, used to prevent allocating too much memory while decoding
+  // an invalid bitstream.
+  virtual void SetMaxNumPredictedValues(int32_t num) {};
 };
 
 // A specialized version of the prediction scheme interface for specific
@@ -44,8 +51,8 @@ class PredictionSchemeTypedDecoderInterface
  public:
   // Reverts changes made by the prediction scheme during encoding.
   virtual bool ComputeOriginalValues(
-      const CorrTypeT *in_corr, DataTypeT *out_data, int size,
-      int num_components, const PointIndex *entry_to_point_id_map) = 0;
+      const CorrTypeT* in_corr, DataTypeT* out_data, int size,
+      int num_components, const PointIndex* entry_to_point_id_map) = 0;
 };
 
 }  // namespace draco

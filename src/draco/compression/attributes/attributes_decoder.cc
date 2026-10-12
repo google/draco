@@ -21,13 +21,13 @@ namespace draco {
 AttributesDecoder::AttributesDecoder()
     : point_cloud_decoder_(nullptr), point_cloud_(nullptr) {}
 
-bool AttributesDecoder::Init(PointCloudDecoder *decoder, PointCloud *pc) {
+bool AttributesDecoder::Init(PointCloudDecoder* decoder, PointCloud* pc) {
   point_cloud_decoder_ = decoder;
   point_cloud_ = pc;
   return true;
 }
 
-bool AttributesDecoder::DecodeAttributesDecoderData(DecoderBuffer *in_buffer) {
+bool AttributesDecoder::DecodeAttributesDecoderData(DecoderBuffer* in_buffer) {
   // Decode and create attributes.
   uint32_t num_attributes;
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
@@ -56,7 +56,7 @@ bool AttributesDecoder::DecodeAttributesDecoderData(DecoderBuffer *in_buffer) {
 
   // Decode attribute descriptor data.
   point_attribute_ids_.resize(num_attributes);
-  PointCloud *pc = point_cloud_;
+  PointCloud* pc = point_cloud_;
   for (uint32_t i = 0; i < num_attributes; ++i) {
     // Decode attribute descriptor data.
     uint8_t att_type, data_type, num_components, normalized;

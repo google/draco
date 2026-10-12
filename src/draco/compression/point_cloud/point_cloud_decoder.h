@@ -34,11 +34,11 @@ class PointCloudDecoder {
 
   // Decodes a Draco header int other provided |out_header|.
   // Returns false on error.
-  static Status DecodeHeader(DecoderBuffer *buffer, DracoHeader *out_header);
+  static Status DecodeHeader(DecoderBuffer* buffer, DracoHeader* out_header);
 
   // The main entry point for point cloud decoding.
-  Status Decode(const DecoderOptions &options, DecoderBuffer *in_buffer,
-                PointCloud *out_point_cloud);
+  Status Decode(const DecoderOptions& options, DecoderBuffer* in_buffer,
+                PointCloud* out_point_cloud);
 
   bool SetAttributesDecoder(
       int att_decoder_id, std::unique_ptr<AttributesDecoderInterface> decoder) {
@@ -58,13 +58,13 @@ class PointCloudDecoder {
   // be slightly different (non-portable) across platforms. For example, for
   // attributes encoded with quantization, this method returns an attribute
   // that contains the quantized values (before the dequantization step).
-  const PointAttribute *GetPortableAttribute(int32_t point_attribute_id);
+  const PointAttribute* GetPortableAttribute(int32_t point_attribute_id);
 
   uint16_t bitstream_version() const {
     return DRACO_BITSTREAM_VERSION(version_major_, version_minor_);
   }
 
-  const AttributesDecoderInterface *attributes_decoder(int dec_id) {
+  const AttributesDecoderInterface* attributes_decoder(int dec_id) {
     return attributes_decoders_[dec_id].get();
   }
   int32_t num_attributes_decoders() const {
@@ -73,11 +73,11 @@ class PointCloudDecoder {
 
   // Get a mutable pointer to the decoded point cloud. This is intended to be
   // used mostly by other decoder subsystems.
-  PointCloud *point_cloud() { return point_cloud_; }
-  const PointCloud *point_cloud() const { return point_cloud_; }
+  PointCloud* point_cloud() { return point_cloud_; }
+  const PointCloud* point_cloud() const { return point_cloud_; }
 
-  DecoderBuffer *buffer() { return buffer_; }
-  const DecoderOptions *options() const { return options_; }
+  DecoderBuffer* buffer() { return buffer_; }
+  const DecoderOptions* options() const { return options_; }
 
  protected:
   // Can be implemented by derived classes to perform any custom initialization
@@ -96,7 +96,7 @@ class PointCloudDecoder {
 
  private:
   // Point cloud that is being filled in by the decoder.
-  PointCloud *point_cloud_;
+  PointCloud* point_cloud_;
 
   std::vector<std::unique_ptr<AttributesDecoderInterface>> attributes_decoders_;
 
@@ -104,13 +104,13 @@ class PointCloudDecoder {
   std::vector<int32_t> attribute_to_decoder_map_;
 
   // Input buffer holding the encoded data.
-  DecoderBuffer *buffer_;
+  DecoderBuffer* buffer_;
 
   // Bit-stream version of the encoder that encoded the input data.
   uint8_t version_major_;
   uint8_t version_minor_;
 
-  const DecoderOptions *options_;
+  const DecoderOptions* options_;
 };
 
 }  // namespace draco

@@ -16,8 +16,8 @@
 
 namespace draco {
 
-void ConvertSignedIntsToSymbols(const int32_t *in, int in_values,
-                                uint32_t *out) {
+void ConvertSignedIntsToSymbols(const int32_t* in, int in_values,
+                                uint32_t* out) {
   // Convert the quantized values into a format more suitable for entropy
   // encoding.
   // Put the sign bit into LSB pos and shift the rest one bit left.
@@ -26,8 +26,8 @@ void ConvertSignedIntsToSymbols(const int32_t *in, int in_values,
   }
 }
 
-void ConvertSymbolsToSignedInts(const uint32_t *in, int in_values,
-                                int32_t *out) {
+void ConvertSymbolsToSignedInts(const uint32_t* in, int in_values,
+                                int32_t* out) {
   for (int i = 0; i < in_values; ++i) {
     out[i] = ConvertSymbolToSignedInt(in[i]);
   }

@@ -63,13 +63,37 @@ class MeshSplitter {
   // Default = false.
   void SetPreserveMeshFeatures(bool flag) { preserve_mesh_features_ = flag; }
 
-  // Sets a flag that tells the splitter to preserve structural metadata on the
-  // input mesh during mesh splitting. When set, the structural metadata like
-  // property attributes indices used on sub-meshes are going to be copied over.
-  // Any redundant structural metadata on sub-meshes are going to be deleted.
-  // Default = false.
-  void SetPreserveStructuralMetadata(bool flag) {
-    preserve_structural_metadata_ = flag;
+  // Describes the parts of structural metadata preserved during mesh splitting.
+  enum PreserveStructuralMetadata {
+    // Each output mesh will contain an empty draco::StructuralMetadata object,
+    // and no indices pointing to property textures and property attributes of
+    // the structural metadata.
+    NONE,
+
+    // Each output mesh will contain an empty draco::StructuralMetadata object,
+    // but each output mesh will contain indices pointing to property textures
+    // and property attributes in the draco::StructuralMetadata object of the
+    // original mesh. Individual output meshes may have some of the indices
+    // removed according to their material mask and material-related config of
+    // the mesh splitter. Use INDICES when splitting a mesh with the intent for
+    // output meshes to refer to a common draco::StructuralMetadata object with
+    // an accompanying non-matierial texture library, as is the case of
+    // combining the output meshes into a draco::Scene.
+    INDICES,
+
+    // Each output mesh will be fully self-contained, and will include a
+    // draco::StructuralMetadata object with an accompanying non-matierial
+    // texture library, as well as indices pointing to property textures and
+    // property attributes in the structural metadata object. Unused property
+    // attributes and property textures within the structural metadata will be
+    // removed. As with INDICES, some of the indices may be removed according to
+    // materials.
+    ALL
+  };
+
+  // Prescribes whether and how the structural metadata should be preserved.
+  void SetPreserveStructuralMetadata(PreserveStructuralMetadata preserve) {
+    preserve_structural_metadata_ = preserve;
   }
 
   // By default, the splitter will attempt to deduplicate vertices after
@@ -82,26 +106,31 @@ class MeshSplitter {
   // clouds.
   void SetDeduplicateVertices(bool flag) { deduplicate_vertices_ = flag; }
 
+  // Sets a flag that tells the splitter to preserve GaussianSplatting on the
+  // input mesh during mesh splitting. When set, the GaussianSplatting used on
+  // the input mesh is going to be copied over to all sub-meshes.
+  // Default = false.
+  void SetPreserveGaussianSplatting(bool flag) {
+    preserve_gaussian_splatting_ = flag;
+  }
+
   // Splits the input |mesh| according to attribute values stored in the
   // specified attribute. If the |mesh| contains faces, the attribute values
   // need to be defined per-face, that is, all points attached to a single face
   // must share the same attribute value. Meshes without faces are treated as
   // point clouds and the attribute values can be defined per-point. Each
-  // attribute value (AttributeValueIndex) is mapped to a single output mesh. If
-  // an AttributeValueIndex is unused, no mesh is created for the given value.
-  StatusOr<MeshVector> SplitMesh(const Mesh &mesh, uint32_t split_attribute_id);
+  // attribute value (AttributeValueIndex) is mapped to a single output mesh.
+  // More specifically, the index in the output MeshVector matches the
+  // AttributeValueIndex in the attribute. If an AttributeValueIndex is unused,
+  // the vector is set to nullptr at that index and no mesh is created for it.
+  StatusOr<MeshVector> SplitMesh(const Mesh& mesh, uint32_t split_attribute_id);
 
   // Splits the input |mesh| into separate components defined in
   // |connected_components|. That is, all faces associated with a given
   // component index will be stored in the same mesh. The number of generated
   // meshes will correspond to |connected_components.NumConnectedComponents()|.
   StatusOr<MeshVector> SplitMeshToComponents(
-      const Mesh &mesh, const MeshConnectedComponents &connected_components);
-
-  // Returns attribute index on each split mesh that corresponds to the
-  // |source_mesh_att_index| of the source Mesh.
-  // Must be called after SplitMesh() or SplitMeshToComponents().
-  int GetSplitMeshAttributeIndex(int source_mesh_att_index) const;
+      const Mesh& mesh, const MeshConnectedComponents& connected_components);
 
  private:
   struct WorkData {
@@ -110,17 +139,18 @@ class MeshSplitter {
   };
 
   template <typename BuilderT>
-  StatusOr<MeshVector> SplitMeshInternal(const Mesh &mesh,
+  StatusOr<MeshVector> SplitMeshInternal(const Mesh& mesh,
                                          int split_attribute_id);
 
-  StatusOr<MeshVector> FinalizeMeshes(const Mesh &mesh,
-                                      const WorkData &work_data,
+  StatusOr<MeshVector> FinalizeMeshes(const Mesh& mesh,
+                                      const WorkData& work_data,
                                       MeshVector out_meshes) const;
 
   bool preserve_materials_;
   bool remove_unused_material_indices_;
   bool preserve_mesh_features_;
-  bool preserve_structural_metadata_;
+  PreserveStructuralMetadata preserve_structural_metadata_;
+  bool preserve_gaussian_splatting_;
   bool deduplicate_vertices_;
 
   // Map between attribute ids of the input and output meshes.

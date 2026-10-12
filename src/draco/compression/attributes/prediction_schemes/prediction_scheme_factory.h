@@ -32,10 +32,10 @@ namespace draco {
 template <class EncodingDataSourceT, class PredictionSchemeT,
           class MeshPredictionSchemeFactoryT>
 std::unique_ptr<PredictionSchemeT> CreateMeshPredictionScheme(
-    const EncodingDataSourceT *source, PredictionSchemeMethod method,
-    int att_id, const typename PredictionSchemeT::Transform &transform,
+    const EncodingDataSourceT* source, PredictionSchemeMethod method,
+    int att_id, const typename PredictionSchemeT::Transform& transform,
     uint16_t bitstream_version) {
-  const PointAttribute *const att = source->point_cloud()->attribute(att_id);
+  const PointAttribute* const att = source->point_cloud()->attribute(att_id);
   if (source->GetGeometryType() == TRIANGULAR_MESH &&
       (method == MESH_PREDICTION_PARALLELOGRAM ||
        method == MESH_PREDICTION_MULTI_PARALLELOGRAM ||
@@ -43,15 +43,15 @@ std::unique_ptr<PredictionSchemeT> CreateMeshPredictionScheme(
        method == MESH_PREDICTION_TEX_COORDS_PORTABLE ||
        method == MESH_PREDICTION_GEOMETRIC_NORMAL ||
        method == MESH_PREDICTION_TEX_COORDS_DEPRECATED)) {
-    const CornerTable *const ct = source->GetCornerTable();
-    const MeshAttributeIndicesEncodingData *const encoding_data =
+    const CornerTable* const ct = source->GetCornerTable();
+    const MeshAttributeIndicesEncodingData* const encoding_data =
         source->GetAttributeEncodingData(att_id);
     if (ct == nullptr || encoding_data == nullptr) {
       // No connectivity data found.
       return nullptr;
     }
     // Connectivity data exists.
-    const MeshAttributeCornerTable *const att_ct =
+    const MeshAttributeCornerTable* const att_ct =
         source->GetAttributeCornerTable(att_id);
     if (att_ct != nullptr) {
       typedef MeshPredictionSchemeData<MeshAttributeCornerTable> MeshData;

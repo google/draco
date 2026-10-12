@@ -35,7 +35,7 @@ class MeshEdgebreakerTraversalPredictiveEncoder
         last_corner_(kInvalidCornerIndex),
         num_symbols_(0) {}
 
-  bool Init(MeshEdgebreakerEncoderImplInterface *encoder) {
+  bool Init(MeshEdgebreakerEncoderImplInterface* encoder) {
     if (!MeshEdgebreakerTraversalEncoder::Init(encoder)) {
       return false;
     }
@@ -155,7 +155,7 @@ class MeshEdgebreakerTraversalPredictiveEncoder
   int NumEncodedSymbols() const { return num_symbols_; }
 
  private:
-  const CornerTable *corner_table_;
+  const CornerTable* corner_table_;
   std::vector<int> vertex_valences_;
   std::vector<bool> predictions_;
   // Previously encoded symbol.

@@ -25,7 +25,7 @@ namespace {
 
 class PointCloudTest : public ::testing::Test {
  protected:
-  PointCloudTest() {}
+  PointCloudTest() = default;
 };
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
@@ -70,7 +70,7 @@ TEST_F(PointCloudTest, PointCloudCopy) {
   ASSERT_EQ(speed, 1050);
   ASSERT_EQ(code, "YT-1300f");
 
-  const auto *const att_metadata_copy =
+  const auto* const att_metadata_copy =
       pc->GetMetadata()->GetAttributeMetadataByUniqueId(0);
   ASSERT_NE(att_metadata_copy, nullptr);
   int att_test;
@@ -203,7 +203,7 @@ TEST_F(PointCloudTest, TestPointCloudWithMetadata) {
       std::unique_ptr<draco::AttributeMetadata>(new draco::AttributeMetadata());
   pos_metadata->AddEntryString("name", "position");
   pc.AddAttributeMetadata(pos_att_id, std::move(pos_metadata));
-  const draco::GeometryMetadata *pc_metadata = pc.GetMetadata();
+  const draco::GeometryMetadata* pc_metadata = pc.GetMetadata();
   ASSERT_NE(pc_metadata, nullptr);
   // Add a generic material attribute metadata.
   draco::GeometryAttribute material_att;
@@ -218,10 +218,10 @@ TEST_F(PointCloudTest, TestPointCloudWithMetadata) {
   pc.AddAttributeMetadata(material_att_id, std::move(material_metadata));
 
   // Test if the attribute metadata is correctly added.
-  const draco::AttributeMetadata *requested_pos_metadata =
+  const draco::AttributeMetadata* requested_pos_metadata =
       pc.GetAttributeMetadataByStringEntry("name", "position");
   ASSERT_NE(requested_pos_metadata, nullptr);
-  const draco::AttributeMetadata *requested_mat_metadata =
+  const draco::AttributeMetadata* requested_mat_metadata =
       pc.GetAttributeMetadataByStringEntry("name", "material");
   ASSERT_NE(requested_mat_metadata, nullptr);
 

@@ -31,20 +31,20 @@ class StlEncoder {
   // Encodes the mesh and saves it into a file.
   // Returns false when either the encoding failed or when the file couldn't be
   // opened.
-  Status EncodeToFile(const Mesh &mesh, const std::string &file_name);
+  Status EncodeToFile(const Mesh& mesh, const std::string& file_name);
 
   // Encodes the mesh into a buffer.
-  Status EncodeToBuffer(const Mesh &mesh, EncoderBuffer *out_buffer);
+  Status EncodeToBuffer(const Mesh& mesh, EncoderBuffer* out_buffer);
 
  protected:
   Status EncodeInternal();
-  EncoderBuffer *buffer() const { return out_buffer_; }
+  EncoderBuffer* buffer() const { return out_buffer_; }
 
  private:
-  EncoderBuffer *out_buffer_;
+  EncoderBuffer* out_buffer_;
 
-  const PointCloud *in_point_cloud_;
-  const Mesh *in_mesh_;
+  const PointCloud* in_point_cloud_;
+  const Mesh* in_mesh_;
 };
 
 }  // namespace draco

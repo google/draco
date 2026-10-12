@@ -14,11 +14,13 @@
 //
 #include "draco/io/stl_encoder.h"
 
+#include <cstring>
 #include <iomanip>
 #include <memory>
 #include <sstream>
 #include <string>
 
+#include "draco/attributes/geometry_indices.h"
 #include "draco/io/file_writer_factory.h"
 #include "draco/io/file_writer_interface.h"
 
@@ -27,8 +29,8 @@ namespace draco {
 StlEncoder::StlEncoder()
     : out_buffer_(nullptr), in_point_cloud_(nullptr), in_mesh_(nullptr) {}
 
-Status StlEncoder::EncodeToFile(const Mesh &mesh,
-                                const std::string &file_name) {
+Status StlEncoder::EncodeToFile(const Mesh& mesh,
+                                const std::string& file_name) {
   in_mesh_ = &mesh;
   std::unique_ptr<FileWriterInterface> file =
       FileWriterFactory::OpenWriter(file_name);
@@ -43,7 +45,7 @@ Status StlEncoder::EncodeToFile(const Mesh &mesh,
   return OkStatus();
 }
 
-Status StlEncoder::EncodeToBuffer(const Mesh &mesh, EncoderBuffer *out_buffer) {
+Status StlEncoder::EncodeToBuffer(const Mesh& mesh, EncoderBuffer* out_buffer) {
   in_mesh_ = &mesh;
   out_buffer_ = out_buffer;
   Status s = EncodeInternal();
@@ -79,10 +81,14 @@ Status StlEncoder::EncodeInternal() {
 
   uint16_t unused = 0;
 
-  if (in_mesh_) {
+  if (in_mesh_ && in_mesh_->num_faces() > 0) {
+    if (in_mesh_->attribute(pos_att_id)->GetAddress(AttributeValueIndex(0)) ==
+        nullptr) {
+      return ErrorStatus("PointAttribute yielded invalid address.");
+    }
     for (FaceIndex i(0); i < in_mesh_->num_faces(); ++i) {
-      const auto &f = in_mesh_->face(i);
-      const auto *const pos_att = in_mesh_->attribute(pos_att_id);
+      const auto& f = in_mesh_->face(i);
+      const auto* const pos_att = in_mesh_->attribute(pos_att_id);
 
       // The normal attribute can contain arbitrary normals that may not
       // correspond to the winding of the face.
@@ -90,16 +96,19 @@ Status StlEncoder::EncodeInternal() {
       // using the points of the triangle face: norm(cross(p2-p1, p3-p1))
 
       Vector3f pos[3];
-      pos_att->GetMappedValue(f[0], &pos[0][0]);
-      pos_att->GetMappedValue(f[1], &pos[1][0]);
-      pos_att->GetMappedValue(f[2], &pos[2][0]);
+      for (int c = 0; c < 3; ++c) {
+        const uint8_t* const address =
+            pos_att->GetAddress(pos_att->mapped_index(f[c]));
+        memcpy(&pos[c][0], address, sizeof(Vector3f));
+      }
       Vector3f norm = CrossProduct(pos[1] - pos[0], pos[2] - pos[0]);
       norm.Normalize();
       buffer()->Encode(norm.data(), sizeof(float) * 3);
 
       for (int c = 0; c < 3; ++c) {
-        buffer()->Encode(pos_att->GetAddress(pos_att->mapped_index(f[c])),
-                         pos_att->byte_stride());
+        const uint8_t* const address =
+            pos_att->GetAddress(pos_att->mapped_index(f[c]));
+        buffer()->Encode(address, pos_att->byte_stride());
       }
 
       buffer()->Encode(&unused, 2);

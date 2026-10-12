@@ -22,7 +22,7 @@ namespace {
 
 class StatusTest : public ::testing::Test {
  protected:
-  StatusTest() {}
+  StatusTest() = default;
 };
 
 TEST_F(StatusTest, TestStatusOutput) {

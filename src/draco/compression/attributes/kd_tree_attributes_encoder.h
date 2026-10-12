@@ -33,8 +33,8 @@ class KdTreeAttributesEncoder : public AttributesEncoder {
 
  protected:
   bool TransformAttributesToPortableFormat() override;
-  bool EncodePortableAttributes(EncoderBuffer *out_buffer) override;
-  bool EncodeDataNeededByPortableTransforms(EncoderBuffer *out_buffer) override;
+  bool EncodePortableAttributes(EncoderBuffer* out_buffer) override;
+  bool EncodeDataNeededByPortableTransforms(EncoderBuffer* out_buffer) override;
 
  private:
   std::vector<AttributeQuantizationTransform>

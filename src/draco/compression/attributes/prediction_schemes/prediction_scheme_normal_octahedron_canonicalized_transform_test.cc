@@ -25,7 +25,7 @@ class PredictionSchemeNormalOctahedronCanonicalizedTransformTest
       Transform;
   typedef Transform::Point2 Point2;
 
-  void TestComputeCorrection(const Transform &transform, const int32_t ox,
+  void TestComputeCorrection(const Transform& transform, const int32_t ox,
                              const int32_t oy, const int32_t px,
                              const int32_t py, const int32_t cx,
                              const int32_t cy) {
@@ -37,15 +37,15 @@ class PredictionSchemeNormalOctahedronCanonicalizedTransformTest
     ASSERT_EQ(corr[1], (cy + 15) % 15);
   }
 
-  void TestGetRotationCount(const Transform &transform, const Point2 &pred,
+  void TestGetRotationCount(const Transform& transform, const Point2& pred,
                             const int32_t rot_dir) {
     const int32_t rotation_count = transform.GetRotationCount(pred);
     ASSERT_EQ(rot_dir, rotation_count);
   }
 
-  void TestRotateRepresentation(const Transform &transform, const Point2 &org,
-                                const Point2 &pred, const Point2 &rot_org,
-                                const Point2 &rot_pred) {
+  void TestRotateRepresentation(const Transform& transform, const Point2& org,
+                                const Point2& pred, const Point2& rot_org,
+                                const Point2& rot_pred) {
     const int32_t rotation_count = transform.GetRotationCount(pred);
     const Point2 res_org = transform.RotatePoint(org, rotation_count);
     const Point2 res_pred = transform.RotatePoint(pred, rotation_count);

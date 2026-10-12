@@ -34,11 +34,11 @@ class MaterialLibrary {
   MaterialLibrary() = default;
 
   // Copies the |src| into this instance.
-  void Copy(const MaterialLibrary &src);
+  void Copy(const MaterialLibrary& src);
 
   // Appends materials from the |src| library to this library. All materials
   // and textures are copied over.
-  void Append(const MaterialLibrary &src);
+  void Append(const MaterialLibrary& src);
 
   // Deletes all materials from the material library.
   void Clear();
@@ -48,7 +48,7 @@ class MaterialLibrary {
   size_t NumMaterials() const { return materials_.size(); }
 
   // Returns a material with a given index or nullptr if the index is not valid.
-  const Material *GetMaterial(int index) const {
+  const Material* GetMaterial(int index) const {
     if (index < 0 || index >= materials_.size()) {
       return nullptr;
     }
@@ -57,15 +57,15 @@ class MaterialLibrary {
 
   // Returns a mutable pointer to a given material. If the material with the
   // specified |index| does not exist, it is automatically created.
-  Material *MutableMaterial(int index);
+  Material* MutableMaterial(int index);
 
   // Removes a material with a given index and returns it. Caller can ignore the
   // returned value, in which case the material will be automatically deleted.
   // Index of all subsequent materials will be decremented by one.
   std::unique_ptr<Material> RemoveMaterial(int index);
 
-  const TextureLibrary &GetTextureLibrary() const { return texture_library_; }
-  TextureLibrary &MutableTextureLibrary() { return texture_library_; }
+  const TextureLibrary& GetTextureLibrary() const { return texture_library_; }
+  TextureLibrary& MutableTextureLibrary() { return texture_library_; }
 
   // Removes all textures that are not referenced by a TextureMap from the
   // texture library.
@@ -73,11 +73,11 @@ class MaterialLibrary {
 
   // Returns a map between each TextureMap object and associated texture index
   // in the texture |library|.
-  std::map<TextureMap *, int> ComputeTextureMapToTextureIndexMapping(
-      const TextureLibrary &library) const;
+  std::map<TextureMap*, int> ComputeTextureMapToTextureIndexMapping(
+      const TextureLibrary& library) const;
 
   // Creates a named materials variant and returns its index.
-  int AddMaterialsVariant(const std::string &name) {
+  int AddMaterialsVariant(const std::string& name) {
     materials_variants_names_.push_back(name);
     return materials_variants_names_.size() - 1;
   }
@@ -86,7 +86,7 @@ class MaterialLibrary {
   int NumMaterialsVariants() const { return materials_variants_names_.size(); }
 
   // Returns the name of a materials variant.
-  const std::string &GetMaterialsVariantName(int index) const {
+  const std::string& GetMaterialsVariantName(int index) const {
     return materials_variants_names_[index];
   }
 

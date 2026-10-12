@@ -29,9 +29,9 @@ class MeshPredictionSchemeGeometricNormalDecoder
  public:
   using CorrType = typename MeshPredictionSchemeDecoder<DataTypeT, TransformT,
                                                         MeshDataT>::CorrType;
-  MeshPredictionSchemeGeometricNormalDecoder(const PointAttribute *attribute,
-                                             const TransformT &transform,
-                                             const MeshDataT &mesh_data)
+  MeshPredictionSchemeGeometricNormalDecoder(const PointAttribute* attribute,
+                                             const TransformT& transform,
+                                             const MeshDataT& mesh_data)
       : MeshPredictionSchemeDecoder<DataTypeT, TransformT, MeshDataT>(
             attribute, transform, mesh_data),
         predictor_(mesh_data) {}
@@ -40,11 +40,11 @@ class MeshPredictionSchemeGeometricNormalDecoder
   MeshPredictionSchemeGeometricNormalDecoder() {}
 
  public:
-  bool ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
+  bool ComputeOriginalValues(const CorrType* in_corr, DataTypeT* out_data,
                              int size, int num_components,
-                             const PointIndex *entry_to_point_id_map) override;
+                             const PointIndex* entry_to_point_id_map) override;
 
-  bool DecodePredictionData(DecoderBuffer *buffer) override;
+  bool DecodePredictionData(DecoderBuffer* buffer) override;
 
   PredictionSchemeMethod GetPredictionMethod() const override {
     return MESH_PREDICTION_GEOMETRIC_NORMAL;
@@ -71,7 +71,7 @@ class MeshPredictionSchemeGeometricNormalDecoder
     return GeometryAttribute::POSITION;
   }
 
-  bool SetParentAttribute(const PointAttribute *att) override {
+  bool SetParentAttribute(const PointAttribute* att) override {
     if (att->attribute_type() != GeometryAttribute::POSITION) {
       return false;  // Invalid attribute type.
     }
@@ -96,10 +96,10 @@ class MeshPredictionSchemeGeometricNormalDecoder
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeGeometricNormalDecoder<
     DataTypeT, TransformT,
-    MeshDataT>::ComputeOriginalValues(const CorrType *in_corr,
-                                      DataTypeT *out_data, int size,
+    MeshDataT>::ComputeOriginalValues(const CorrType* in_corr,
+                                      DataTypeT* out_data, int size,
                                       int num_components,
-                                      const PointIndex *entry_to_point_id_map) {
+                                      const PointIndex* entry_to_point_id_map) {
   this->SetQuantizationBits(this->transform().quantization_bits());
   predictor_.SetEntryToPointIdMap(entry_to_point_id_map);
   DRACO_DCHECK(this->IsInitialized());
@@ -141,8 +141,8 @@ bool MeshPredictionSchemeGeometricNormalDecoder<
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeGeometricNormalDecoder<
-    DataTypeT, TransformT, MeshDataT>::DecodePredictionData(DecoderBuffer
-                                                                *buffer) {
+    DataTypeT, TransformT, MeshDataT>::DecodePredictionData(DecoderBuffer*
+                                                                buffer) {
   // Get data needed for transform
   if (!this->transform().DecodeTransformData(buffer)) {
     return false;

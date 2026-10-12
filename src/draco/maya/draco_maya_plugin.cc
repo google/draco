@@ -17,20 +17,20 @@
 namespace draco {
 namespace maya {
 
-static void decode_faces(std::unique_ptr<draco::Mesh> &drc_mesh,
-                         Drc2PyMesh *out_mesh) {
+static void decode_faces(std::unique_ptr<draco::Mesh>& drc_mesh,
+                         Drc2PyMesh* out_mesh) {
   int num_faces = drc_mesh->num_faces();
   out_mesh->faces = new int[num_faces * 3];
   out_mesh->faces_num = num_faces;
   for (int i = 0; i < num_faces; i++) {
-    const draco::Mesh::Face &face = drc_mesh->face(draco::FaceIndex(i));
+    const draco::Mesh::Face& face = drc_mesh->face(draco::FaceIndex(i));
     out_mesh->faces[i * 3 + 0] = face[0].value();
     out_mesh->faces[i * 3 + 1] = face[1].value();
     out_mesh->faces[i * 3 + 2] = face[2].value();
   }
 }
-static void decode_vertices(std::unique_ptr<draco::Mesh> &drc_mesh,
-                            Drc2PyMesh *out_mesh) {
+static void decode_vertices(std::unique_ptr<draco::Mesh>& drc_mesh,
+                            Drc2PyMesh* out_mesh) {
   const auto pos_att =
       drc_mesh->GetNamedAttribute(draco::GeometryAttribute::POSITION);
   if (pos_att == nullptr) {
@@ -53,8 +53,8 @@ static void decode_vertices(std::unique_ptr<draco::Mesh> &drc_mesh,
     out_mesh->vertices[i * 3 + 2] = out_vertex[2];
   }
 }
-static void decode_normals(std::unique_ptr<draco::Mesh> &drc_mesh,
-                           Drc2PyMesh *out_mesh) {
+static void decode_normals(std::unique_ptr<draco::Mesh>& drc_mesh,
+                           Drc2PyMesh* out_mesh) {
   const auto normal_att =
       drc_mesh->GetNamedAttribute(draco::GeometryAttribute::NORMAL);
   if (normal_att == nullptr) {
@@ -77,8 +77,8 @@ static void decode_normals(std::unique_ptr<draco::Mesh> &drc_mesh,
     out_mesh->normals[i * 3 + 2] = out_normal[2];
   }
 }
-static void decode_uvs(std::unique_ptr<draco::Mesh> &drc_mesh,
-                       Drc2PyMesh *out_mesh) {
+static void decode_uvs(std::unique_ptr<draco::Mesh>& drc_mesh,
+                       Drc2PyMesh* out_mesh) {
   const auto uv_att =
       drc_mesh->GetNamedAttribute(draco::GeometryAttribute::TEX_COORD);
   if (uv_att == nullptr) {
@@ -103,8 +103,8 @@ static void decode_uvs(std::unique_ptr<draco::Mesh> &drc_mesh,
   }
 }
 
-void drc2py_free(Drc2PyMesh **mesh_ptr) {
-  Drc2PyMesh *mesh = *mesh_ptr;
+void drc2py_free(Drc2PyMesh** mesh_ptr) {
+  Drc2PyMesh* mesh = *mesh_ptr;
   if (!mesh) return;
   if (mesh->faces) {
     delete[] mesh->faces;
@@ -130,8 +130,8 @@ void drc2py_free(Drc2PyMesh **mesh_ptr) {
   *mesh_ptr = nullptr;
 }
 
-DecodeResult drc2py_decode(char *data, unsigned int length,
-                           Drc2PyMesh **res_mesh) {
+DecodeResult drc2py_decode(char* data, unsigned int length,
+                           Drc2PyMesh** res_mesh) {
   draco::DecoderBuffer buffer;
   buffer.Init(data, length);
   auto type_statusor = draco::Decoder::GetEncodedGeometryType(&buffer);
@@ -159,7 +159,7 @@ DecodeResult drc2py_decode(char *data, unsigned int length,
 }
 
 // As encode references see https://github.com/google/draco/issues/116
-EncodeResult drc2py_encode(Drc2PyMesh *in_mesh, char *file_path) {
+EncodeResult drc2py_encode(Drc2PyMesh* in_mesh, char* file_path) {
   if (in_mesh->faces_num == 0) return EncodeResult::KO_WRONG_INPUT;
   if (in_mesh->vertices_num == 0) return EncodeResult::KO_WRONG_INPUT;
   // TODO: Add check to protect against quad faces. At the moment only

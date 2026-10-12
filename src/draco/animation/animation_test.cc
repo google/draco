@@ -66,6 +66,39 @@ TEST(AnimationTest, TestCopy) {
   ASSERT_EQ(dst_anim.GetChannel(0)->transformation_type,
             src_anim.GetChannel(0)->transformation_type);
 }
+TEST(AnimationTest, TestRemoveChannel) {
+  draco::Animation anim;
+
+  std::unique_ptr<draco::AnimationChannel> channel_0(
+      new draco::AnimationChannel());
+  channel_0->transformation_type =
+      draco::AnimationChannel::ChannelTransformation::TRANSLATION;
+
+  std::unique_ptr<draco::AnimationChannel> channel_1(
+      new draco::AnimationChannel());
+  channel_1->transformation_type =
+      draco::AnimationChannel::ChannelTransformation::ROTATION;
+
+  std::unique_ptr<draco::AnimationChannel> channel_2(
+      new draco::AnimationChannel());
+  channel_2->transformation_type =
+      draco::AnimationChannel::ChannelTransformation::SCALE;
+
+  anim.AddChannel(std::move(channel_0));
+  anim.AddChannel(std::move(channel_1));
+  anim.AddChannel(std::move(channel_2));
+  ASSERT_EQ(anim.NumChannels(), 3);
+
+  // Remove the middle channel.
+  anim.RemoveChannel(1);
+  ASSERT_EQ(anim.NumChannels(), 2);
+
+  // Verify that the remaining channels are channel_0 and channel_2.
+  ASSERT_EQ(anim.GetChannel(0)->transformation_type,
+            draco::AnimationChannel::ChannelTransformation::TRANSLATION);
+  ASSERT_EQ(anim.GetChannel(1)->transformation_type,
+            draco::AnimationChannel::ChannelTransformation::SCALE);
+}
 #endif  // DRACO_TRANSCODER_SUPPORTED
 
 }  // namespace

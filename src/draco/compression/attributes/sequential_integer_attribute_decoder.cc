@@ -20,9 +20,10 @@
 
 namespace draco {
 
-SequentialIntegerAttributeDecoder::SequentialIntegerAttributeDecoder() {}
+SequentialIntegerAttributeDecoder::SequentialIntegerAttributeDecoder() =
+    default;
 
-bool SequentialIntegerAttributeDecoder::Init(PointCloudDecoder *decoder,
+bool SequentialIntegerAttributeDecoder::Init(PointCloudDecoder* decoder,
                                              int attribute_id) {
   if (!SequentialAttributeDecoder::Init(decoder, attribute_id)) {
     return false;
@@ -31,7 +32,7 @@ bool SequentialIntegerAttributeDecoder::Init(PointCloudDecoder *decoder,
 }
 
 bool SequentialIntegerAttributeDecoder::TransformAttributeToOriginalFormat(
-    const std::vector<PointIndex> &point_ids) {
+    const std::vector<PointIndex>& point_ids) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder() &&
       decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
@@ -42,7 +43,7 @@ bool SequentialIntegerAttributeDecoder::TransformAttributeToOriginalFormat(
 }
 
 bool SequentialIntegerAttributeDecoder::DecodeValues(
-    const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
+    const std::vector<PointIndex>& point_ids, DecoderBuffer* in_buffer) {
   // Decode prediction scheme.
   int8_t prediction_scheme_method;
   if (!in_buffer->Decode(&prediction_scheme_method)) {
@@ -104,7 +105,7 @@ SequentialIntegerAttributeDecoder::CreateIntPredictionScheme(
 }
 
 bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
-    const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
+    const std::vector<PointIndex>& point_ids, DecoderBuffer* in_buffer) {
   const int num_components = GetNumValueComponents();
   if (num_components <= 0) {
     return false;
@@ -112,7 +113,7 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
   const size_t num_entries = point_ids.size();
   const size_t num_values = num_entries * num_components;
   PreparePortableAttribute(static_cast<int>(num_entries), num_components);
-  int32_t *const portable_attribute_data = GetPortableAttributeData();
+  int32_t* const portable_attribute_data = GetPortableAttributeData();
   if (portable_attribute_data == nullptr) {
     return false;
   }
@@ -124,7 +125,7 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
     // Decode compressed values.
     if (!DecodeSymbols(static_cast<uint32_t>(num_values), num_components,
                        in_buffer,
-                       reinterpret_cast<uint32_t *>(portable_attribute_data))) {
+                       reinterpret_cast<uint32_t*>(portable_attribute_data))) {
       return false;
     }
   } else {
@@ -164,12 +165,13 @@ bool SequentialIntegerAttributeDecoder::DecodeIntegerValues(
                          !prediction_scheme_->AreCorrectionsPositive())) {
     // Convert the values back to the original signed format.
     ConvertSymbolsToSignedInts(
-        reinterpret_cast<const uint32_t *>(portable_attribute_data),
+        reinterpret_cast<const uint32_t*>(portable_attribute_data),
         static_cast<int>(num_values), portable_attribute_data);
   }
 
   // If the data was encoded with a prediction scheme, we must revert it.
   if (prediction_scheme_) {
+    prediction_scheme_->SetMaxNumPredictedValues(num_values);
     if (!prediction_scheme_->DecodePredictionData(in_buffer)) {
       return false;
     }
@@ -217,7 +219,7 @@ void SequentialIntegerAttributeDecoder::StoreTypedValues(uint32_t num_values) {
   const int entry_size = sizeof(AttributeTypeT) * num_components;
   const std::unique_ptr<AttributeTypeT[]> att_val(
       new AttributeTypeT[num_components]);
-  const int32_t *const portable_attribute_data = GetPortableAttributeData();
+  const int32_t* const portable_attribute_data = GetPortableAttributeData();
   int val_id = 0;
   int out_byte_pos = 0;
   for (uint32_t i = 0; i < num_values; ++i) {

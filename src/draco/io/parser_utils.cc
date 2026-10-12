@@ -23,7 +23,7 @@
 namespace draco {
 namespace parser {
 
-void SkipCharacters(DecoderBuffer *buffer, const char *skip_chars) {
+void SkipCharacters(DecoderBuffer* buffer, const char* skip_chars) {
   if (skip_chars == nullptr) {
     return;
   }
@@ -45,7 +45,7 @@ void SkipCharacters(DecoderBuffer *buffer, const char *skip_chars) {
   }
 }
 
-void SkipWhitespace(DecoderBuffer *buffer) {
+void SkipWhitespace(DecoderBuffer* buffer) {
   bool end_reached = false;
   while (PeekWhitespace(buffer, &end_reached) && !end_reached) {
     // Skip the whitespace character
@@ -53,7 +53,7 @@ void SkipWhitespace(DecoderBuffer *buffer) {
   }
 }
 
-bool PeekWhitespace(DecoderBuffer *buffer, bool *end_reached) {
+bool PeekWhitespace(DecoderBuffer* buffer, bool* end_reached) {
   uint8_t c;
   if (!buffer->Peek(&c)) {
     *end_reached = true;
@@ -65,9 +65,9 @@ bool PeekWhitespace(DecoderBuffer *buffer, bool *end_reached) {
   return true;
 }
 
-void SkipLine(DecoderBuffer *buffer) { ParseLine(buffer, nullptr); }
+void SkipLine(DecoderBuffer* buffer) { ParseLine(buffer, nullptr); }
 
-bool ParseFloat(DecoderBuffer *buffer, float *value) {
+bool ParseFloat(DecoderBuffer* buffer, float* value) {
   // Read optional sign.
   char ch;
   if (!buffer->Peek(&ch)) {
@@ -135,7 +135,7 @@ bool ParseFloat(DecoderBuffer *buffer, float *value) {
   return true;
 }
 
-bool ParseSignedInt(DecoderBuffer *buffer, int32_t *value) {
+bool ParseSignedInt(DecoderBuffer* buffer, int32_t* value) {
   // Parse any explicit sign and set the appropriate largest magnitude
   // value that can be represented without overflow.
   char ch;
@@ -156,7 +156,7 @@ bool ParseSignedInt(DecoderBuffer *buffer, int32_t *value) {
   return true;
 }
 
-bool ParseUnsignedInt(DecoderBuffer *buffer, uint32_t *value) {
+bool ParseUnsignedInt(DecoderBuffer* buffer, uint32_t* value) {
   // Parse the number until we run out of digits.
   uint32_t v = 0;
   char ch;
@@ -184,7 +184,7 @@ int GetSignValue(char c) {
   return 0;
 }
 
-bool ParseString(DecoderBuffer *buffer, std::string *out_string) {
+bool ParseString(DecoderBuffer* buffer, std::string* out_string) {
   out_string->clear();
   SkipWhitespace(buffer);
   bool end_reached = false;
@@ -198,7 +198,7 @@ bool ParseString(DecoderBuffer *buffer, std::string *out_string) {
   return true;
 }
 
-void ParseLine(DecoderBuffer *buffer, std::string *out_string) {
+void ParseLine(DecoderBuffer* buffer, std::string* out_string) {
   if (out_string) {
     out_string->clear();
   }
@@ -242,8 +242,8 @@ void ParseLine(DecoderBuffer *buffer, std::string *out_string) {
   }
 }
 
-DecoderBuffer ParseLineIntoDecoderBuffer(DecoderBuffer *buffer) {
-  const char *const head = buffer->data_head();
+DecoderBuffer ParseLineIntoDecoderBuffer(DecoderBuffer* buffer) {
+  const char* const head = buffer->data_head();
   char c;
   while (buffer->Peek(&c)) {
     // Skip the character.
@@ -260,7 +260,7 @@ DecoderBuffer ParseLineIntoDecoderBuffer(DecoderBuffer *buffer) {
   return out_buffer;
 }
 
-std::string ToLower(const std::string &str) {
+std::string ToLower(const std::string& str) {
   std::string out;
   std::transform(str.begin(), str.end(), std::back_inserter(out), tolower);
   return out;

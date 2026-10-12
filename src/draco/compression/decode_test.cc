@@ -27,7 +27,7 @@ namespace {
 
 class DecodeTest : public ::testing::Test {
  protected:
-  DecodeTest() {}
+  DecodeTest() = default;
 };
 
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
@@ -52,7 +52,7 @@ TEST_F(DecodeTest, TestSkipAttributeTransform) {
       decoder.DecodePointCloudFromBuffer(&buffer).value();
   ASSERT_NE(pc, nullptr);
 
-  const draco::PointAttribute *const pos_att =
+  const draco::PointAttribute* const pos_att =
       pc->GetNamedAttribute(draco::GeometryAttribute::POSITION);
   ASSERT_NE(pos_att, nullptr);
 
@@ -62,14 +62,14 @@ TEST_F(DecodeTest, TestSkipAttributeTransform) {
   ASSERT_NE(pos_att->GetAttributeTransformData(), nullptr);
 
   // Normal attribute should be left transformed.
-  const draco::PointAttribute *const norm_att =
+  const draco::PointAttribute* const norm_att =
       pc->GetNamedAttribute(draco::GeometryAttribute::NORMAL);
   ASSERT_EQ(norm_att->data_type(), draco::DT_FLOAT32);
   ASSERT_EQ(norm_att->GetAttributeTransformData(), nullptr);
 }
 #endif
 
-void TestSkipAttributeTransformOnPointCloudWithColor(const std::string &file) {
+void TestSkipAttributeTransformOnPointCloudWithColor(const std::string& file) {
   std::vector<char> data;
   ASSERT_TRUE(draco::ReadFileToBuffer(draco::GetTestFileFullPath(file), &data));
   ASSERT_FALSE(data.empty());
@@ -87,7 +87,7 @@ void TestSkipAttributeTransformOnPointCloudWithColor(const std::string &file) {
       decoder.DecodePointCloudFromBuffer(&buffer).value();
   ASSERT_NE(pc, nullptr);
 
-  const draco::PointAttribute *const pos_att =
+  const draco::PointAttribute* const pos_att =
       pc->GetNamedAttribute(draco::GeometryAttribute::POSITION);
   ASSERT_NE(pos_att, nullptr);
 
@@ -97,7 +97,7 @@ void TestSkipAttributeTransformOnPointCloudWithColor(const std::string &file) {
               pos_att->data_type() == draco::DT_UINT32);
   ASSERT_NE(pos_att->GetAttributeTransformData(), nullptr);
 
-  const draco::PointAttribute *const clr_att =
+  const draco::PointAttribute* const clr_att =
       pc->GetNamedAttribute(draco::GeometryAttribute::COLOR);
   ASSERT_EQ(clr_att->data_type(), draco::DT_UINT8);
 
@@ -115,7 +115,7 @@ void TestSkipAttributeTransformOnPointCloudWithColor(const std::string &file) {
       decoder_2.DecodePointCloudFromBuffer(&buffer_2).value();
   ASSERT_NE(pc_2, nullptr);
 
-  const draco::PointAttribute *const clr_att_2 =
+  const draco::PointAttribute* const clr_att_2 =
       pc_2->GetNamedAttribute(draco::GeometryAttribute::COLOR);
   ASSERT_NE(clr_att_2, nullptr);
   for (draco::PointIndex pi(0); pi < pc_2->num_points(); ++pi) {
@@ -156,7 +156,7 @@ TEST_F(DecodeTest, TestSkipAttributeTransformWithNoQuantization) {
       decoder.DecodePointCloudFromBuffer(&buffer).value();
   ASSERT_NE(pc, nullptr);
 
-  const draco::PointAttribute *const pos_att =
+  const draco::PointAttribute* const pos_att =
       pc->GetNamedAttribute(draco::GeometryAttribute::POSITION);
   ASSERT_NE(pos_att, nullptr);
 
@@ -216,22 +216,22 @@ TEST_F(DecodeTest, TestSkipAttributeTransformUniqueId) {
   ASSERT_NE(mesh_skip, nullptr);
 
   // Compare the unique ids.
-  const draco::PointAttribute *const pos_att_no_skip =
+  const draco::PointAttribute* const pos_att_no_skip =
       mesh_no_skip->GetNamedAttribute(draco::GeometryAttribute::POSITION);
   ASSERT_NE(pos_att_no_skip, nullptr);
   ASSERT_EQ(pos_att_no_skip->data_type(), draco::DataType::DT_FLOAT32);
 
-  const draco::PointAttribute *const pos_att_skip =
+  const draco::PointAttribute* const pos_att_skip =
       mesh_skip->GetNamedAttribute(draco::GeometryAttribute::POSITION);
   ASSERT_NE(pos_att_skip, nullptr);
   ASSERT_EQ(pos_att_skip->data_type(), draco::DataType::DT_INT32);
 
-  const draco::PointAttribute *const norm_att_no_skip =
+  const draco::PointAttribute* const norm_att_no_skip =
       mesh_no_skip->GetNamedAttribute(draco::GeometryAttribute::NORMAL);
   ASSERT_NE(norm_att_no_skip, nullptr);
   ASSERT_EQ(norm_att_no_skip->data_type(), draco::DataType::DT_FLOAT32);
 
-  const draco::PointAttribute *const norm_att_skip =
+  const draco::PointAttribute* const norm_att_skip =
       mesh_skip->GetNamedAttribute(draco::GeometryAttribute::NORMAL);
   ASSERT_NE(norm_att_skip, nullptr);
   ASSERT_EQ(norm_att_skip->data_type(), draco::DataType::DT_INT32);

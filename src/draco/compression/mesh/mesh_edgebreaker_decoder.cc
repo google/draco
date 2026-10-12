@@ -20,7 +20,7 @@
 
 namespace draco {
 
-MeshEdgebreakerDecoder::MeshEdgebreakerDecoder() {}
+MeshEdgebreakerDecoder::MeshEdgebreakerDecoder() = default;
 
 bool MeshEdgebreakerDecoder::CreateAttributesDecoder(int32_t att_decoder_id) {
   return impl_->CreateAttributesDecoder(att_decoder_id);

@@ -32,36 +32,36 @@ class TextureUtils {
  public:
   // Returns |texture| image stem (file basename without extension) based on the
   // source image filename or an empty string when source image is not set.
-  static std::string GetTargetStem(const Texture &texture);
+  static std::string GetTargetStem(const Texture& texture);
 
   // Returns |texture| image stem (file basename without extension) based on the
   // source image filename or a name generated from |index| and |suffix| like
   // "Texture5_BaseColor" when source image is not set.
-  static std::string GetOrGenerateTargetStem(const Texture &texture, int index,
-                                             const std::string &suffix);
+  static std::string GetOrGenerateTargetStem(const Texture& texture, int index,
+                                             const std::string& suffix);
 
   // Returns |texture| format based on compression settings, the source image
   // mime type or the source image filename.
-  static ImageFormat GetTargetFormat(const Texture &texture);
+  static ImageFormat GetTargetFormat(const Texture& texture);
 
   // Returns |texture| image file extension based on compression settings, the
   // source image mime type or the source image filename.
-  static std::string GetTargetExtension(const Texture &texture);
+  static std::string GetTargetExtension(const Texture& texture);
 
   // Returns mime type string based on |texture| compression settings, source
   // image mime type or the source image filename.
-  static std::string GetTargetMimeType(const Texture &texture);
+  static std::string GetTargetMimeType(const Texture& texture);
 
   // Returns mime type string for a given |image_format|.
   static std::string GetMimeType(ImageFormat image_format);
 
   // Returns |texture| format based on source image mime type or the source
   // image filename.
-  static ImageFormat GetSourceFormat(const Texture &texture);
+  static ImageFormat GetSourceFormat(const Texture& texture);
 
   // Returns image format corresponding to a given image file |extension|. NONE
   // is returned when |extension| is empty or unknown.
-  static ImageFormat GetFormat(const std::string &extension);
+  static ImageFormat GetFormat(const std::string& extension);
 
   // Returns image file extension corresponding to a given image |format|. Empty
   // extension is returned when the |format| is NONE.
@@ -72,11 +72,11 @@ class TextureUtils {
   // that occlusion and metallic-roughness texture maps may share a texture.
   // TODO(vytyaz): Move this and FindTextures() to MaterialLibrary class.
   static int ComputeRequiredNumChannels(
-      const Texture &texture, const MaterialLibrary &material_library);
+      const Texture& texture, const MaterialLibrary& material_library);
 
-  static std::vector<const Texture *> FindTextures(
+  static std::vector<const Texture*> FindTextures(
       const TextureMap::Type texture_type,
-      const MaterialLibrary *material_library);
+      const MaterialLibrary* material_library);
 };
 
 }  // namespace draco

@@ -29,9 +29,9 @@ class KeyframeAnimationEncoder : private PointCloudSequentialEncoder {
   KeyframeAnimationEncoder();
 
   // Encode an animation to a buffer.
-  Status EncodeKeyframeAnimation(const KeyframeAnimation &animation,
-                                 const EncoderOptions &options,
-                                 EncoderBuffer *out_buffer);
+  Status EncodeKeyframeAnimation(const KeyframeAnimation& animation,
+                                 const EncoderOptions& options,
+                                 EncoderBuffer* out_buffer);
 };
 
 }  // namespace draco
