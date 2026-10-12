@@ -1,1 +1,6 @@
 docs/_site
+
+# local build trees (agent verification builds)
+build-asan/
+build-fuzz/
+build/
