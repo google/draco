@@ -1,0 +1,276 @@
+{
+    "accessors": [
+        {
+            "bufferView": 0,
+            "componentType": 5126,
+            "count": 2549,
+            "type": "VEC2"
+        },
+        {
+            "bufferView": 1,
+            "componentType": 5126,
+            "count": 2549,
+            "type": "VEC3"
+        },
+        {
+            "bufferView": 2,
+            "componentType": 5126,
+            "count": 2549,
+            "type": "VEC4"
+        },
+        {
+            "bufferView": 3,
+            "componentType": 5126,
+            "count": 2549,
+            "type": "VEC3",
+            "max": [
+                0.05445001,
+                0.130220339,
+                0.0544500239
+            ],
+            "min": [
+                -0.05445001,
+                -0.130220339,
+                -0.0544500239
+            ]
+        },
+        {
+            "bufferView": 4,
+            "componentType": 5123,
+            "count": 13530,
+            "type": "SCALAR"
+        },
+        {
+            "name": "First label accessor, index 5",
+            "bufferView" : 5,
+            "componentType" : 5121,
+            "count" : 12,
+            "max" : [
+                7
+            ],
+            "min" : [
+                0
+            ],
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 6,
+            "componentType" : 5126,
+            "count" : 8,
+            "max" : [
+                0.07500011473894119,
+                0.009645418263971806,
+                0.001000528922304511
+            ],
+            "min" : [
+                -0.07500011473894119,
+                -0.009645414538681507,
+                -0.0010005402145907283
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 7,
+            "componentType" : 5126,
+            "count" : 8,
+            "max" : [
+                5.216573754296405e-06,
+                -5.404175226431107e-06,
+                1.0
+            ],
+            "min" : [
+                -5.066010089649353e-06,
+                -5.40417659067316e-06,
+                -1.0
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 8,
+            "componentType" : 5126,
+            "count" : 8,
+            "max" : [
+                0.9999998807907104,
+                0.5
+            ],
+            "min" : [
+                0.0,
+                0.0
+            ],
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 9,
+            "componentType" : 5121,
+            "count" : 12,
+            "max" : [
+                7
+            ],
+            "min" : [
+                0
+            ],
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 10,
+            "componentType" : 5126,
+            "count" : 8,
+            "max" : [
+                0.07500021904706955,
+                0.009641403332352638,
+                0.0010003353236243129
+            ],
+            "min" : [
+                -0.07500021904706955,
+                -0.00964139774441719,
+                -0.0010003463830798864
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 11,
+            "componentType" : 5126,
+            "count" : 8,
+            "max" : [
+                2.633700660226168e-06,
+                -5.412433893070556e-06,
+                1.0
+            ],
+            "min" : [
+                -2.4831367682054406e-06,
+                -5.412434802565258e-06,
+                -1.0
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 12,
+            "componentType" : 5126,
+            "count" : 8,
+            "max" : [
+                1.0,
+                1.0
+            ],
+            "min" : [
+                8.206588120174274e-08,
+                0.5
+            ],
+            "type" : "VEC2"
+        }
+    ],
+    "asset": {
+        "generator": "Hand-made combination of outputs from Unity (WaterBottle) and Blender (labels)",
+        "version": "2.0"
+    },
+    "bufferViews": [
+        {
+            "buffer": 0,
+            "byteLength": 20392
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 20392,
+            "byteLength": 30588
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 50980,
+            "byteLength": 40784
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 91764,
+            "byteLength": 30588
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 122352,
+            "byteLength": 27060
+        },
+        {
+            "name": "First label bufferView, index 5",
+            "buffer" : 1,
+            "byteLength" : 12,
+            "byteOffset" : 0,
+            "target" : 34963
+        },
+        {
+            "buffer" : 1,
+            "byteLength" : 96,
+            "byteOffset" : 12,
+            "target" : 34962
+        },
+        {
+            "buffer" : 1,
+            "byteLength" : 96,
+            "byteOffset" : 108,
+            "target" : 34962
+        },
+        {
+            "buffer" : 1,
+            "byteLength" : 64,
+            "byteOffset" : 204,
+            "target" : 34962
+        },
+        {
+            "buffer" : 1,
+            "byteLength" : 12,
+            "byteOffset" : 268,
+            "target" : 34963
+        },
+        {
+            "buffer" : 1,
+            "byteLength" : 96,
+            "byteOffset" : 280,
+            "target" : 34962
+        },
+        {
+            "buffer" : 1,
+            "byteLength" : 96,
+            "bmesh": 3,
+            "translation": [
+                0.08,
+                0.18,
+                0
+            ],
+            "name": "SpecGlossLabel"
+        }
+    ],
+    "scene": 0,
+    "scenes": [
+        {
+            "nodes": [
+                0,
+                1,
+                2,
+                3
+            ]
+        }
+    ],
+    "textures": [
+        {
+            "source": 0
+        },
+        {
+            "source": 1
+        },
+        {
+            "source": 2
+        },
+        {
+            "source": 3
+        },
+        {
+            "source": 4
+        },
+        {
+            "source": 5
+        },
+        {
+            "source": 6
+        },
+        {
+            "source": 7
+        }
+    ]
+}
