@@ -212,6 +212,7 @@ class GltfEncoderTest : public ::testing::Test {
       Compare(bbox0, bbox1, 0.01f * bbox0.Size().MinCoeff(), "Position");
     }
 
+#ifdef DRACO_PMC_SUPPORTED
     // Compare texture coordinate bounding boxes.
     const PointAttribute* tc0 =
         mesh0->GetNamedAttribute(GeometryAttribute::TEX_COORD);
@@ -272,6 +273,7 @@ class GltfEncoderTest : public ::testing::Test {
       const auto bbox1 = PmcUtils::ComputeBoundingBox<int32_t, 4>(*j1);
       Compare(bbox0, bbox1, 0, "Joints");
     }
+#endif  // DRACO_PMC_SUPPORTED
   }
 
   void CompareScenes(const Scene* scene0, const Scene* scene1) {
