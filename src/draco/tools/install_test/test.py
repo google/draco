@@ -45,6 +45,10 @@ CMAKE_GENERATOR = None
 # and builds transcoder support dependencies).
 ENABLE_TRANSCODER = False
 
+# Enable PMC before running tests (sets DRACO_PMC_SUPPORTED and builds PMC
+# support dependencies).
+ENABLE_PMC = False
+
 # The Draco tree that this script uses.
 DRACO_SOURCES_PATH = os.path.abspath(os.path.join('..', '..', '..', '..'))
 
@@ -336,6 +340,28 @@ def build_and_install_transcoder_dependencies():
   cmake_configure(source_path=tinygltf_submodule_path, cmake_args=cmake_args)
   cmake_build(cmake_args=['--target install'])
 
+  if ENABLE_PMC:
+    pmc_submodule_path = os.path.join(DRACO_SOURCES_PATH, 'third_party', 'pmc')
+    if not os.path.isdir(pmc_submodule_path):
+      result = run_process_and_capture_output(
+          'git clone --depth 1 -b v18.0 '
+          'https://gitlab.com/AOMediaVVM/reference-software/aomedia-pmc '
+          f'{pmc_submodule_path}'
+      )
+      if result[0] != 0:
+        raise Exception(
+            f'git clone pmc failed!\nexit_code: {result[0]}\n{result[1]}'
+        )
+    pmc_include_src = os.path.join(pmc_submodule_path, 'lib', 'public', 'pmc')
+    shutil.copytree(
+        src=pmc_include_src,
+        dst=os.path.join(DRACO_SHARED_INSTALL_PATH, 'include', 'pmc'),
+    )
+    shutil.copytree(
+        src=pmc_include_src,
+        dst=os.path.join(DRACO_STATIC_INSTALL_PATH, 'include', 'pmc'),
+    )
+
   os.chdir(orig_dir)
 
 
@@ -354,6 +380,8 @@ def build_and_install_draco():
   cmake_args.append('-DBUILD_SHARED_LIBS=ON')
   if ENABLE_TRANSCODER:
     cmake_args.append('-DDRACO_TRANSCODER_SUPPORTED=ON')
+  if ENABLE_PMC:
+    cmake_args.append('-DDRACO_PMC_SUPPORTED=ON')
   cmake_configure(source_path=DRACO_SOURCES_PATH, cmake_args=cmake_args)
   cmake_build(cmake_args=['--target install'])
 
@@ -364,6 +392,8 @@ def build_and_install_draco():
   cmake_args.append('-DBUILD_SHARED_LIBS=OFF')
   if ENABLE_TRANSCODER:
     cmake_args.append('-DDRACO_TRANSCODER_SUPPORTED=ON')
+  if ENABLE_PMC:
+    cmake_args.append('-DDRACO_PMC_SUPPORTED=ON')
   cmake_configure(source_path=DRACO_SOURCES_PATH, cmake_args=cmake_args)
   cmake_build(cmake_args=['--target install'])
 
@@ -418,6 +448,10 @@ if __name__ == '__main__':
       action='store_true',
       help='Run tests with Draco transcoder support enabled.')
   parser.add_argument(
+      '-p', '--with_pmc',
+      action='store_true',
+      help='Run tests with Draco PMC support enabled.')
+  parser.add_argument(
       '-v',
       '--verbose',
       action='store_true',
@@ -432,6 +466,8 @@ if __name__ == '__main__':
     VERBOSE = True
   if args.with_transcoder:
     ENABLE_TRANSCODER = True
+  if args.with_pmc:
+    ENABLE_PMC = True
 
   if VERBOSE:
     print(f'CMAKE={CMAKE}')
@@ -439,6 +475,7 @@ if __name__ == '__main__':
     print(f'CMAKE_GENERATOR={CMAKE_GENERATOR}')
     print(f'CMAKE_AVAILABLE_GENERATORS={CMAKE_AVAILABLE_GENERATORS}')
     print(f'ENABLE_TRANSCODER={ENABLE_TRANSCODER}')
+    print(f'ENABLE_PMC={ENABLE_PMC}')
     print(f'DRACO_SOURCES_PATH={DRACO_SOURCES_PATH}')
     print(f'DRACO_SHARED_BUILD_PATH={DRACO_SHARED_BUILD_PATH}')
     print(f'DRACO_STATIC_BUILD_PATH={DRACO_STATIC_BUILD_PATH}')

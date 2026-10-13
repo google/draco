@@ -934,6 +934,7 @@ else()
         SOURCES ${draco_pmc_sources}
         DEFINES ${draco_defines}
         INCLUDES ${draco_include_paths})
+      add_dependencies(draco_pmc pmc_ext)
     endif()
 
   endif()
@@ -1014,6 +1015,10 @@ else()
       LIB_DEPS ${draco_lib_deps})
 
     if(BUILD_SHARED_LIBS)
+      set(draco_shared_lib_deps draco_static)
+      if(DRACO_PMC_SUPPORTED)
+        list(APPEND draco_shared_lib_deps pmc)
+      endif()
       draco_add_library(
         NAME draco_shared
         SOURCES "${draco_src_root}/core/draco_version.h"
@@ -1021,7 +1026,7 @@ else()
         TYPE SHARED
         DEFINES ${draco_defines}
         INCLUDES ${draco_include_paths}
-        LIB_DEPS draco_static)
+        LIB_DEPS ${draco_shared_lib_deps})
       add_library(draco::draco ALIAS draco_shared)
       set_target_properties(draco_shared PROPERTIES EXPORT_NAME draco)
     else()

@@ -281,6 +281,9 @@ jobs:
           - test_name: ubuntu-make-with-transcoder
             os: ubuntu-latest
             test_command: python3 test.py -v -t -G "Unix Makefiles"
+          - test_name: ubuntu-make-with-pmc
+            os: ubuntu-latest
+            test_command: python3 test.py -v -t -p -G "Unix Makefiles"
 
           - test_name: macos-make
             os: macos-latest

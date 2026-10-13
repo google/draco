@@ -1,3 +1,17 @@
 @PACKAGE_INIT@
 
 include("${CMAKE_CURRENT_LIST_DIR}/draco-targets.cmake")
+
+if(@DRACO_PMC_SUPPORTED@)
+  if(NOT TARGET draco::pmc)
+    add_library(draco::pmc STATIC IMPORTED)
+    set_target_properties(draco::pmc PROPERTIES
+      IMPORTED_LOCATION "${PACKAGE_PREFIX_DIR}/@libs_path@/@pmc_lib_name@"
+    )
+  endif()
+  if(TARGET draco::draco_static)
+    target_link_libraries(draco::draco_static INTERFACE draco::pmc)
+  elseif(NOT @BUILD_SHARED_LIBS@ AND TARGET draco::draco)
+    target_link_libraries(draco::draco INTERFACE draco::pmc)
+  endif()
+endif()

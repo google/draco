@@ -82,6 +82,10 @@ macro(draco_setup_install_target)
       endif()
     endif()
 
+    if(DRACO_PMC_SUPPORTED)
+      install(FILES "${pmc_lib_path}" DESTINATION "${libs_path}")
+    endif()
+
     if(DRACO_UNITY_PLUGIN)
       install(TARGETS dracodec_unity DESTINATION "${libs_path}")
     endif()
