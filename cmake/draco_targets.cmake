@@ -109,7 +109,11 @@ macro(draco_add_executable)
 
   add_executable(${exe_NAME} ${exe_SOURCES})
 
+  if(DRACO_TRANSCODER_SUPPORTED)
+    target_compile_features(${exe_NAME} PUBLIC cxx_std_17)
+  else()
     target_compile_features(${exe_NAME} PUBLIC cxx_std_11)
+  endif()
 
   if(NOT EMSCRIPTEN)
     set_target_properties(${exe_NAME} PROPERTIES VERSION ${DRACO_VERSION})
@@ -291,7 +295,11 @@ macro(draco_add_library)
 
   add_library(${lib_NAME} ${lib_TYPE} ${lib_SOURCES})
 
+  if(DRACO_TRANSCODER_SUPPORTED)
+    target_compile_features(${lib_NAME} PUBLIC cxx_std_17)
+  else()
     target_compile_features(${lib_NAME} PUBLIC cxx_std_11)
+  endif()
 
   target_include_directories(${lib_NAME} PUBLIC
     $<BUILD_INTERFACE:${draco_root}/src>
