@@ -18,11 +18,12 @@
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
-#include <cmath>
 #include <cstdint>
 #include <optional>
 #include <string>
 #include <vector>
+
+#include "draco/core/constants.h"
 
 namespace draco {
 
@@ -32,8 +33,8 @@ namespace draco {
 struct Audio {
   struct Emitter {
     struct Positional {
-      float cone_inner_angle = 2 * M_PI;
-      float cone_outer_angle = 2 * M_PI;
+      float cone_inner_angle = 2 * DRACO_PI;
+      float cone_outer_angle = 2 * DRACO_PI;
       float cone_outer_gain = 0.0f;
       std::string distance_model = "inverse";
       float max_distance = 0.0f;
