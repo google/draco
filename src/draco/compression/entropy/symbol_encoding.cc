@@ -59,6 +59,9 @@ static void ComputeBitLengths(const uint32_t *symbols, int num_values,
     for (int j = 1; j < num_components; ++j) {
       if (max_component_value < symbols[i + j]) {
         max_component_value = symbols[i + j];
+        if (max_component_value == 0xFFFFFFFF) {
+          throw std::runtime_error("Failure in ComputeBitLengths.");
+        }
       }
     }
     int value_msb_pos = 0;
@@ -128,7 +131,10 @@ bool EncodeSymbols(const uint32_t *symbols, int num_values, int num_components,
   uint32_t max_value;
   ComputeBitLengths(symbols, num_values, num_components, &bit_lengths,
                     &max_value);
-
+    if(max_value==0xFFFFFFFF)
+    {
+        throw std::runtime_error("Failure in ComputeBitLengths.");
+    }
   // Approximate number of bits needed for storing the symbols using the tagged
   // scheme.
   const int64_t tagged_scheme_total_bits =

@@ -43,8 +43,8 @@ namespace draco {
 class GeometryAttribute {
  public:
   // Supported attribute types.
-  enum Type {
-    INVALID = -1,
+  enum Type :uint8_t{
+    INVALID = 0xFF,
     // Named attributes start here. The difference between named and generic
     // attributes is that for named attributes we know their purpose and we
     // can apply some special methods when dealing with them (e.g. during
