@@ -161,7 +161,7 @@ macro(draco_setup_pmc)
   set(pmc_build_dir "${draco_build}/pmc-build")
 
   # Determine library file name extension
-  if(WIN32)
+  if(MSVC)
     set(pmc_lib_name "pmc.lib")
   else()
     set(pmc_lib_name "libpmc.a")
@@ -173,13 +173,23 @@ macro(draco_setup_pmc)
   ExternalProject_Add(pmc_ext
     SOURCE_DIR "${pmc_path}"
     BINARY_DIR "${pmc_build_dir}"
+    BUILD_COMMAND
+      ${CMAKE_COMMAND} --build <BINARY_DIR> --config $<CONFIG> --target genversion
+      COMMAND
+      ${CMAKE_COMMAND} --build <BINARY_DIR> --config $<CONFIG> --target pmc
+    BUILD_BYPRODUCTS "${pmc_lib_path}"
     INSTALL_COMMAND ""
     CMAKE_ARGS
       -DPMC_LIB_ONLY=ON
-      -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+      "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
+      "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+      "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${pmc_build_dir}/lib"
+      "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG=${pmc_build_dir}/lib"
+      "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE=${pmc_build_dir}/lib"
+      "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL=${pmc_build_dir}/lib"
+      "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO=${pmc_build_dir}/lib"
   )
 
   # Define the imported target that Draco can link against.

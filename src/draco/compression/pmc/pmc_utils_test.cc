@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifdef DRACO_PMC_SUPPORTED
-
 #include "draco/compression/pmc/pmc_utils.h"
+
+#ifdef DRACO_PMC_SUPPORTED
 
 #include <cmath>
 #include <cstddef>
@@ -31,10 +31,6 @@
 #include "gtest/gtest.h"
 
 namespace draco {
-
-using GeometryAttribute::NORMAL;
-using GeometryAttribute::POSITION;
-using GeometryAttribute::TEX_COORD;
 
 TEST(PmcUtilsTest, FloatToRational) {
   pmc::Rational r1 = PmcUtils::FloatToRational(3.3f);
@@ -190,7 +186,7 @@ TEST(PmcUtilsTest, ComputeBoundingBox) {
 
   // Compute and check position bounding box.
   BoundingBox position_bbox = PmcUtils::ComputeBoundingBox<float, 3>(
-      *mesh->GetNamedAttribute(POSITION));
+      *mesh->GetNamedAttribute(GeometryAttribute::POSITION));
   ASSERT_EQ(position_bbox.GetMinPoint()[0], 0.0f);
   ASSERT_EQ(position_bbox.GetMinPoint()[1], 0.0f);
   ASSERT_EQ(position_bbox.GetMinPoint()[2], 0.0f);
@@ -201,15 +197,15 @@ TEST(PmcUtilsTest, ComputeBoundingBox) {
   // Compute and check texture coordinate bounding box.
   BoundingBoxD<float, 2> tex_coord_bbox =
       PmcUtils::ComputeBoundingBox<float, 2>(
-          *mesh->GetNamedAttribute(TEX_COORD));
+          *mesh->GetNamedAttribute(GeometryAttribute::TEX_COORD));
   ASSERT_EQ(tex_coord_bbox.GetMinPoint()[0], 0.0f);
   ASSERT_EQ(tex_coord_bbox.GetMinPoint()[1], 0.0f);
   ASSERT_EQ(tex_coord_bbox.GetMaxPoint()[0], 1.0f);
   ASSERT_EQ(tex_coord_bbox.GetMaxPoint()[1], 1.0f);
 
   // Compute and check normal bounding box.
-  BoundingBox normal_bbox =
-      PmcUtils::ComputeBoundingBox<float, 3>(*mesh->GetNamedAttribute(NORMAL));
+  BoundingBox normal_bbox = PmcUtils::ComputeBoundingBox<float, 3>(
+      *mesh->GetNamedAttribute(GeometryAttribute::NORMAL));
   ASSERT_EQ(normal_bbox.GetMinPoint()[0], -1.0f);
   ASSERT_EQ(normal_bbox.GetMinPoint()[1], -1.0f);
   ASSERT_EQ(normal_bbox.GetMinPoint()[2], -1.0f);

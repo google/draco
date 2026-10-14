@@ -41,12 +41,6 @@
 
 namespace draco {
 
-using GeometryAttribute::COLOR;
-using GeometryAttribute::NORMAL;
-using GeometryAttribute::POSITION;
-using GeometryAttribute::TANGENT;
-using GeometryAttribute::TEX_COORD;
-
 // Compares bounds for each dimension of two bounding boxes.
 template <typename T, int D>
 void Compare(const BoundingBoxD<T, D>& bbox1, const BoundingBoxD<T, D>& bbox2,
@@ -69,9 +63,9 @@ TEST(PmcDracoMeshEncoderTest, CubeAttributes) {
   BoundingBox input_position_bbox = mesh->ComputeBoundingBox();
   BoundingBoxD<float, 2> input_tex_coord_bbox =
       PmcUtils::ComputeBoundingBox<float, 2>(
-          *mesh->GetNamedAttribute(TEX_COORD));
-  BoundingBox input_normal_bbox =
-      PmcUtils::ComputeBoundingBox<float, 3>(*mesh->GetNamedAttribute(NORMAL));
+          *mesh->GetNamedAttribute(GeometryAttribute::TEX_COORD));
+  BoundingBox input_normal_bbox = PmcUtils::ComputeBoundingBox<float, 3>(
+      *mesh->GetNamedAttribute(GeometryAttribute::NORMAL));
 
   // Set quantization options.
   DracoCompressionOptions& options = mesh->GetCompressionOptions();
@@ -101,9 +95,9 @@ TEST(PmcDracoMeshEncoderTest, CubeAttributes) {
   BoundingBox decoded_position_bbox = decoded_mesh.ComputeBoundingBox();
   BoundingBoxD<float, 2> decoded_tex_coord_bbox =
       PmcUtils::ComputeBoundingBox<float, 2>(
-          *decoded_mesh.GetNamedAttribute(TEX_COORD));
+          *decoded_mesh.GetNamedAttribute(GeometryAttribute::TEX_COORD));
   BoundingBox decoded_normal_bbox = PmcUtils::ComputeBoundingBox<float, 3>(
-      *decoded_mesh.GetNamedAttribute(NORMAL));
+      *decoded_mesh.GetNamedAttribute(GeometryAttribute::NORMAL));
 
   constexpr float kTol = 0.001f;
   Compare(decoded_position_bbox, input_position_bbox, kTol, "Position");
@@ -118,20 +112,22 @@ TEST(PmcDracoMeshEncoderTest, ColorAttribute) {
   ASSERT_EQ(mesh->num_points(), 114);
   ASSERT_EQ(mesh->num_attributes(), 2);
 
-  ASSERT_EQ(mesh->NumNamedAttributes(POSITION), 1);
-  ASSERT_EQ(mesh->NumNamedAttributes(COLOR), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::POSITION), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::COLOR), 1);
 
-  ASSERT_EQ(mesh->GetNamedAttribute(POSITION)->unique_id(), 0);
-  ASSERT_EQ(mesh->GetNamedAttribute(COLOR)->unique_id(), 1);
+  ASSERT_EQ(mesh->GetNamedAttribute(GeometryAttribute::POSITION)->unique_id(),
+            0);
+  ASSERT_EQ(mesh->GetNamedAttribute(GeometryAttribute::COLOR)->unique_id(), 1);
 
-  const auto* color_att = mesh->GetNamedAttribute(COLOR);
+  const auto* color_att = mesh->GetNamedAttribute(GeometryAttribute::COLOR);
   ASSERT_NE(color_att, nullptr);
   ASSERT_EQ(color_att->num_components(), 4);
 
   // Compute input mesh bounding box.
   BoundingBox input_position_bbox = mesh->ComputeBoundingBox();
   BoundingBoxD<int32_t, 4> input_color_bbox =
-      PmcUtils::ComputeBoundingBox<int32_t, 4>(*mesh->GetNamedAttribute(COLOR));
+      PmcUtils::ComputeBoundingBox<int32_t, 4>(
+          *mesh->GetNamedAttribute(GeometryAttribute::COLOR));
 
   // Set quantization options.
   DracoCompressionOptions& options = mesh->GetCompressionOptions();
@@ -155,17 +151,20 @@ TEST(PmcDracoMeshEncoderTest, ColorAttribute) {
   ASSERT_EQ(decoded_mesh.num_faces(), 224);
   ASSERT_EQ(decoded_mesh.num_points(), 114);
 
-  ASSERT_EQ(decoded_mesh.NumNamedAttributes(POSITION), 1);
-  ASSERT_EQ(decoded_mesh.NumNamedAttributes(COLOR), 1);
+  ASSERT_EQ(decoded_mesh.NumNamedAttributes(GeometryAttribute::POSITION), 1);
+  ASSERT_EQ(decoded_mesh.NumNamedAttributes(GeometryAttribute::COLOR), 1);
 
-  ASSERT_EQ(decoded_mesh.GetNamedAttribute(POSITION)->unique_id(), 0);
-  ASSERT_EQ(decoded_mesh.GetNamedAttribute(COLOR)->unique_id(), 1);
+  ASSERT_EQ(
+      decoded_mesh.GetNamedAttribute(GeometryAttribute::POSITION)->unique_id(),
+      0);
+  ASSERT_EQ(
+      decoded_mesh.GetNamedAttribute(GeometryAttribute::COLOR)->unique_id(), 1);
 
   // Compare decoded mesh bounding box to input mesh bounding boxes.
   BoundingBox decoded_position_bbox = decoded_mesh.ComputeBoundingBox();
   BoundingBoxD<int32_t, 4> decoded_color_bbox =
       PmcUtils::ComputeBoundingBox<int32_t, 4>(
-          *decoded_mesh.GetNamedAttribute(COLOR));
+          *decoded_mesh.GetNamedAttribute(GeometryAttribute::COLOR));
 
   constexpr float kTol = 0.001f;
   Compare(decoded_position_bbox, input_position_bbox, kTol, "Position");
@@ -179,21 +178,26 @@ TEST(PmcDracoMeshEncoderTest, TwoTexcoordAttributes) {
   ASSERT_EQ(mesh->num_points(), 231);
   ASSERT_EQ(mesh->num_attributes(), 5);
 
-  ASSERT_EQ(mesh->NumNamedAttributes(POSITION), 1);
-  ASSERT_EQ(mesh->NumNamedAttributes(TEX_COORD), 2);
-  ASSERT_EQ(mesh->NumNamedAttributes(NORMAL), 1);
-  ASSERT_EQ(mesh->NumNamedAttributes(TANGENT), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::POSITION), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::TEX_COORD), 2);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::NORMAL), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::TANGENT), 1);
 
-  ASSERT_EQ(mesh->GetNamedAttribute(POSITION)->unique_id(), 1);
-  ASSERT_EQ(mesh->GetNamedAttribute(NORMAL)->unique_id(), 0);
-  ASSERT_EQ(mesh->GetNamedAttribute(TANGENT)->unique_id(), 2);
-  ASSERT_EQ(mesh->GetNamedAttribute(TEX_COORD, 0)->unique_id(), 3);
-  ASSERT_EQ(mesh->GetNamedAttribute(TEX_COORD, 1)->unique_id(), 4);
+  ASSERT_EQ(mesh->GetNamedAttribute(GeometryAttribute::POSITION)->unique_id(),
+            1);
+  ASSERT_EQ(mesh->GetNamedAttribute(GeometryAttribute::NORMAL)->unique_id(), 0);
+  ASSERT_EQ(mesh->GetNamedAttribute(GeometryAttribute::TANGENT)->unique_id(),
+            2);
+  ASSERT_EQ(
+      mesh->GetNamedAttribute(GeometryAttribute::TEX_COORD, 0)->unique_id(), 3);
+  ASSERT_EQ(
+      mesh->GetNamedAttribute(GeometryAttribute::TEX_COORD, 1)->unique_id(), 4);
 
   // Compute input mesh bounding box.
   BoundingBox input_position_bbox = mesh->ComputeBoundingBox();
   BoundingBoxD<float, 4> input_tangent_bbox =
-      PmcUtils::ComputeBoundingBox<float, 4>(*mesh->GetNamedAttribute(TANGENT));
+      PmcUtils::ComputeBoundingBox<float, 4>(
+          *mesh->GetNamedAttribute(GeometryAttribute::TANGENT));
 
   // Set quantization options.
   DracoCompressionOptions& options = mesh->GetCompressionOptions();
@@ -220,21 +224,32 @@ TEST(PmcDracoMeshEncoderTest, TwoTexcoordAttributes) {
   ASSERT_EQ(decoded_mesh.num_points(), 231);
   ASSERT_EQ(decoded_mesh.num_attributes(), 5);
 
-  ASSERT_EQ(decoded_mesh.NumNamedAttributes(TEX_COORD), 2);
-  ASSERT_EQ(decoded_mesh.NumNamedAttributes(POSITION), 1);
-  ASSERT_EQ(decoded_mesh.NumNamedAttributes(NORMAL), 1);
-  ASSERT_EQ(decoded_mesh.NumNamedAttributes(TANGENT), 1);
+  ASSERT_EQ(decoded_mesh.NumNamedAttributes(GeometryAttribute::TEX_COORD), 2);
+  ASSERT_EQ(decoded_mesh.NumNamedAttributes(GeometryAttribute::POSITION), 1);
+  ASSERT_EQ(decoded_mesh.NumNamedAttributes(GeometryAttribute::NORMAL), 1);
+  ASSERT_EQ(decoded_mesh.NumNamedAttributes(GeometryAttribute::TANGENT), 1);
 
-  ASSERT_EQ(decoded_mesh.GetNamedAttribute(POSITION)->unique_id(), 1);
-  ASSERT_EQ(decoded_mesh.GetNamedAttribute(NORMAL)->unique_id(), 0);
-  ASSERT_EQ(decoded_mesh.GetNamedAttribute(TANGENT)->unique_id(), 2);
-  ASSERT_EQ(decoded_mesh.GetNamedAttribute(TEX_COORD, 0)->unique_id(), 3);
-  ASSERT_EQ(decoded_mesh.GetNamedAttribute(TEX_COORD, 1)->unique_id(), 4);
+  ASSERT_EQ(
+      decoded_mesh.GetNamedAttribute(GeometryAttribute::POSITION)->unique_id(),
+      1);
+  ASSERT_EQ(
+      decoded_mesh.GetNamedAttribute(GeometryAttribute::NORMAL)->unique_id(),
+      0);
+  ASSERT_EQ(
+      decoded_mesh.GetNamedAttribute(GeometryAttribute::TANGENT)->unique_id(),
+      2);
+  ASSERT_EQ(decoded_mesh.GetNamedAttribute(GeometryAttribute::TEX_COORD, 0)
+                ->unique_id(),
+            3);
+  ASSERT_EQ(decoded_mesh.GetNamedAttribute(GeometryAttribute::TEX_COORD, 1)
+                ->unique_id(),
+            4);
 
   // Compare decoded mesh bounding box to input mesh bounding boxes.
   BoundingBox decoded_position_bbox = decoded_mesh.ComputeBoundingBox();
   BoundingBoxD<float, 4> decoded_tangent_bbox =
-      PmcUtils::ComputeBoundingBox<float, 4>(*mesh->GetNamedAttribute(TANGENT));
+      PmcUtils::ComputeBoundingBox<float, 4>(
+          *mesh->GetNamedAttribute(GeometryAttribute::TANGENT));
 
   constexpr float kTol = 0.001f;
   Compare(decoded_position_bbox, input_position_bbox, kTol, "Position");
@@ -244,10 +259,10 @@ TEST(PmcDracoMeshEncoderTest, TwoTexcoordAttributes) {
 TEST(PmcDracoMeshEncoderTest, DecodeMissingAttributeError) {
   auto mesh = draco::ReadMeshFromTestFile("sphere_two_tex_coords.gltf");
   ASSERT_NE(mesh, nullptr);
-  ASSERT_EQ(mesh->NumNamedAttributes(POSITION), 1);
-  ASSERT_EQ(mesh->NumNamedAttributes(TEX_COORD), 2);
-  ASSERT_EQ(mesh->NumNamedAttributes(NORMAL), 1);
-  ASSERT_EQ(mesh->NumNamedAttributes(TANGENT), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::POSITION), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::TEX_COORD), 2);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::NORMAL), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::TANGENT), 1);
 
   // Encode mesh.
   PmcDracoMeshEncoder encoder;
@@ -270,10 +285,10 @@ TEST(PmcDracoMeshEncoderTest, DecodeMissingAttributeError) {
 TEST(PmcDracoMeshEncoderTest, DuplicateAttributeNamesError) {
   auto mesh = draco::ReadMeshFromTestFile("sphere_two_tex_coords.gltf");
   ASSERT_NE(mesh, nullptr);
-  ASSERT_EQ(mesh->NumNamedAttributes(POSITION), 1);
-  ASSERT_EQ(mesh->NumNamedAttributes(TEX_COORD), 2);
-  ASSERT_EQ(mesh->NumNamedAttributes(NORMAL), 1);
-  ASSERT_EQ(mesh->NumNamedAttributes(TANGENT), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::POSITION), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::TEX_COORD), 2);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::NORMAL), 1);
+  ASSERT_EQ(mesh->NumNamedAttributes(GeometryAttribute::TANGENT), 1);
 
   // Set the metadata name of normal attribute to be "TANGENT", which
   // conflicts with the existing tangent attribute name.
@@ -294,7 +309,7 @@ TEST(PmcDracoMeshEncoderTest, UnboundedTexCoordAttributes) {
   auto scene = draco::ReadSceneFromTestFile("UnusedTexCoords/TexCoord2.gltf");
   ASSERT_NE(scene, nullptr);
   Mesh& mesh = scene->GetMesh(draco::MeshIndex(0));
-  ASSERT_EQ(mesh.NumNamedAttributes(TEX_COORD), 8);
+  ASSERT_EQ(mesh.NumNamedAttributes(GeometryAttribute::TEX_COORD), 8);
 
   // Compute input mesh bounding box.
   BoundingBox input_position_bbox = mesh.ComputeBoundingBox();
@@ -317,8 +332,8 @@ TEST(PmcDracoMeshEncoderTest, UnboundedTexCoordAttributes) {
   ASSERT_TRUE(decoder.Decode(&in_buffer, &decoded_mesh).ok());
 
   // Check decoded mesh.
-  ASSERT_EQ(decoded_mesh.NumNamedAttributes(TEX_COORD), 8);
-  ASSERT_EQ(decoded_mesh.NumNamedAttributes(POSITION), 1);
+  ASSERT_EQ(decoded_mesh.NumNamedAttributes(GeometryAttribute::TEX_COORD), 8);
+  ASSERT_EQ(decoded_mesh.NumNamedAttributes(GeometryAttribute::POSITION), 1);
 
   // Compare decoded mesh bounding box to input mesh bounding box.
   BoundingBox decoded_position_bbox = decoded_mesh.ComputeBoundingBox();
@@ -330,10 +345,10 @@ TEST(PmcDracoMeshEncoderTest, UnboundedTexCoordAttributes) {
   for (int i = 0; i < 8; ++i) {
     BoundingBoxD<float, 2> input_tex_coord_bbox =
         PmcUtils::ComputeBoundingBox<float, 2>(
-            *mesh.GetNamedAttribute(TEX_COORD, i));
+            *mesh.GetNamedAttribute(GeometryAttribute::TEX_COORD, i));
     BoundingBoxD<float, 2> decoded_tex_coord_bbox =
         PmcUtils::ComputeBoundingBox<float, 2>(
-            *decoded_mesh.GetNamedAttribute(TEX_COORD, i));
+            *decoded_mesh.GetNamedAttribute(GeometryAttribute::TEX_COORD, i));
     Compare(decoded_tex_coord_bbox, input_tex_coord_bbox, kTol,
             "TexCoord_" + std::to_string(i));
   }
