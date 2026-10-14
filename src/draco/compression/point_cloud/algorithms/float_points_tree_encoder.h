@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <vector>
+#include <iterator>
 
 #include "draco/compression/point_cloud/algorithms/point_cloud_compression_method.h"
 #include "draco/compression/point_cloud/algorithms/point_cloud_types.h"
