@@ -154,6 +154,20 @@ StatusOr<int> PopulateAttribute(GeometryAttribute::Type att_type,
   return att_id;
 }
 
+template <typename ScalarT, int components_per_vector>
+Status PopulateColorAttribute(const pmc::AttributeMeshpartInfo& color_info,
+                              const std::vector<int32_t>& color_indices,
+                              const std::vector<int32_t>& color_values,
+                              int face_count,
+                              draco::TriangleSoupMeshBuilder* mb) {
+  const DataType data_type =
+      std::is_same_v<ScalarT, float> ? draco::DT_FLOAT32 : draco::DT_UINT8;
+  return PopulateAttribute<ScalarT, components_per_vector>(
+             draco::GeometryAttribute::COLOR, data_type, components_per_vector,
+             color_info, color_indices, color_values, face_count, false, mb)
+      .status();
+}
+
 struct DecodedTexCoord {
   pmc::AttributeMeshpartInfo info;
   std::vector<int32_t> values;
@@ -465,30 +479,23 @@ Status PmcDracoMeshDecoder::Decode(
           tangent_values, geom_info.faceCount, false, &mb)));
 
   // Add color attribute.
-  auto populate_color =
-      [&]<typename ScalarT, int components_per_vector>() -> Status {
-    DataType data_type =
-        std::is_same_v<ScalarT, float> ? draco::DT_FLOAT32 : draco::DT_UINT8;
-    return PopulateAttribute<ScalarT, components_per_vector>(
-               draco::GeometryAttribute::COLOR, data_type,
-               components_per_vector, color_info, color_indices, color_values,
-               geom_info.faceCount, false, &mb)
-        .status();
-  };
-
   // Data type is float32 if a coordinate system exists.
   const bool is_float_color = color_info.coordSys.has_value();
   if (color_info.componentsPerVector == 3) {
     if (is_float_color) {
-      DRACO_RETURN_IF_ERROR((populate_color.operator()<float, 3>()));
+      DRACO_RETURN_IF_ERROR((PopulateColorAttribute<float, 3>(
+          color_info, color_indices, color_values, geom_info.faceCount, &mb)));
     } else {
-      DRACO_RETURN_IF_ERROR((populate_color.operator()<uint8_t, 3>()));
+      DRACO_RETURN_IF_ERROR((PopulateColorAttribute<uint8_t, 3>(
+          color_info, color_indices, color_values, geom_info.faceCount, &mb)));
     }
   } else if (color_info.componentsPerVector == 4) {
     if (is_float_color) {
-      DRACO_RETURN_IF_ERROR((populate_color.operator()<float, 4>()));
+      DRACO_RETURN_IF_ERROR((PopulateColorAttribute<float, 4>(
+          color_info, color_indices, color_values, geom_info.faceCount, &mb)));
     } else {
-      DRACO_RETURN_IF_ERROR((populate_color.operator()<uint8_t, 4>()));
+      DRACO_RETURN_IF_ERROR((PopulateColorAttribute<uint8_t, 4>(
+          color_info, color_indices, color_values, geom_info.faceCount, &mb)));
     }
   }
 
