@@ -41,6 +41,17 @@ jobs:
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
+          - test_name: macos-make-release-shared-with-pmc
+            os: macos-latest
+            cmake_configure_command: |-
+              cmake .. -G "Unix Makefiles" \
+                -DBUILD_SHARED_LIBS=ON \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DDRACO_TESTS=ON \
+                -DDRACO_TRANSCODER_SUPPORTED=ON \
+                -DDRACO_PMC_SUPPORTED=ON
+            cmake_build_command: cmake --build . -- -j2
+            draco_test_command: ./draco_tests
 
           - test_name: macos-make-release-static
             os: macos-latest
@@ -59,6 +70,17 @@ jobs:
                 -DCMAKE_BUILD_TYPE=Release \
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
+            cmake_build_command: cmake --build . -- -j2
+            draco_test_command: ./draco_tests
+          - test_name: macos-make-release-static-with-pmc
+            os: macos-latest
+            cmake_configure_command: |-
+              cmake .. -G "Unix Makefiles" \
+                -DBUILD_SHARED_LIBS=OFF \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DDRACO_TESTS=ON \
+                -DDRACO_TRANSCODER_SUPPORTED=ON \
+                -DDRACO_PMC_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
 
@@ -81,6 +103,17 @@ jobs:
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . --config Release
             draco_test_command: Release/draco_tests
+          - test_name: macos-xcode-release-shared-with-pmc
+            os: macos-latest
+            cmake_configure_command: |-
+              cmake .. -G Xcode \
+                -DBUILD_SHARED_LIBS=ON \
+                -DCMAKE_CONFIGURATION_TYPES=Release \
+                -DDRACO_TESTS=ON \
+                -DDRACO_TRANSCODER_SUPPORTED=ON \
+                -DDRACO_PMC_SUPPORTED=ON
+            cmake_build_command: cmake --build . --config Release
+            draco_test_command: Release/draco_tests
 
           - test_name: macos-xcode-release-static
             os: macos-latest
@@ -99,6 +132,17 @@ jobs:
                 -DCMAKE_CONFIGURATION_TYPES=Release \
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
+            cmake_build_command: cmake --build . --config Release
+            draco_test_command: Release/draco_tests
+          - test_name: macos-xcode-release-static-with-pmc
+            os: macos-latest
+            cmake_configure_command: |-
+              cmake .. -G Xcode \
+                -DBUILD_SHARED_LIBS=OFF \
+                -DCMAKE_CONFIGURATION_TYPES=Release \
+                -DDRACO_TESTS=ON \
+                -DDRACO_TRANSCODER_SUPPORTED=ON \
+                -DDRACO_PMC_SUPPORTED=ON
             cmake_build_command: cmake --build . --config Release
             draco_test_command: Release/draco_tests
 
@@ -125,6 +169,19 @@ jobs:
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
+          - test_name: ubuntu-make-release-shared-with-pmc
+            os: ubuntu-latest
+            cmake_configure_command: |-
+              cmake .. -G "Unix Makefiles" \
+                -DBUILD_SHARED_LIBS=ON \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
+                -DDRACO_TESTS=ON \
+                -DDRACO_TRANSCODER_SUPPORTED=ON \
+                -DDRACO_PMC_SUPPORTED=ON
+            cmake_build_command: cmake --build . -- -j2
+            draco_test_command: ./draco_tests
 
           - test_name: ubuntu-make-release-static
             os: ubuntu-latest
@@ -149,6 +206,19 @@ jobs:
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
+          - test_name: ubuntu-make-release-static-with-pmc
+            os: ubuntu-latest
+            cmake_configure_command: |-
+              cmake .. -G "Unix Makefiles" \
+                -DBUILD_SHARED_LIBS=OFF \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_C_COMPILER=gcc \
+                -DCMAKE_CXX_COMPILER=g++ \
+                -DDRACO_TESTS=ON \
+                -DDRACO_TRANSCODER_SUPPORTED=ON \
+                -DDRACO_PMC_SUPPORTED=ON
+            cmake_build_command: cmake --build . -- -j2
+            draco_test_command: ./draco_tests
 
           - test_name: windows-msvc-release-shared
             os: windows-latest
@@ -169,6 +239,17 @@ jobs:
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . --config Release -- -m:2
             draco_test_command: Release/draco_tests
+          - test_name: windows-msvc-release-shared-with-pmc
+            os: windows-latest
+            cmake_configure_command: |-
+              cmake .. \
+                -DBUILD_SHARED_LIBS=ON \
+                -DCMAKE_CONFIGURATION_TYPES=Release \
+                -DDRACO_TESTS=ON \
+                -DDRACO_TRANSCODER_SUPPORTED=ON \
+                -DDRACO_PMC_SUPPORTED=ON
+            cmake_build_command: cmake --build . --config Release -- -m:2
+            draco_test_command: Release/draco_tests
 
           - test_name: windows-msvc-release-static
             os: windows-latest
@@ -187,6 +268,17 @@ jobs:
                 -DCMAKE_CONFIGURATION_TYPES=Release \
                 -DDRACO_TESTS=ON \
                 -DDRACO_TRANSCODER_SUPPORTED=ON
+            cmake_build_command: cmake --build . --config Release -- -m:2
+            draco_test_command: Release/draco_tests
+          - test_name: windows-msvc-release-static-with-pmc
+            os: windows-latest
+            cmake_configure_command: |-
+              cmake .. \
+                -DBUILD_SHARED_LIBS=OFF \
+                -DCMAKE_CONFIGURATION_TYPES=Release \
+                -DDRACO_TESTS=ON \
+                -DDRACO_TRANSCODER_SUPPORTED=ON \
+                -DDRACO_PMC_SUPPORTED=ON
             cmake_build_command: cmake --build . --config Release -- -m:2
             draco_test_command: Release/draco_tests
 
@@ -213,6 +305,19 @@ jobs:
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
+          - test_name: windows-make-release-shared-with-pmc
+            os: windows-latest
+            cmake_configure_command: |-
+              cmake .. -G "MinGW Makefiles" \
+                -DBUILD_SHARED_LIBS=ON \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
+                -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
+                -DDRACO_TESTS=ON \
+                -DDRACO_TRANSCODER_SUPPORTED=ON \
+                -DDRACO_PMC_SUPPORTED=ON
+            cmake_build_command: cmake --build . -- -j2
+            draco_test_command: ./draco_tests
 
           - test_name: windows-make-release-static
             os: windows-latest
@@ -237,6 +342,19 @@ jobs:
                 -DDRACO_TRANSCODER_SUPPORTED=ON
             cmake_build_command: cmake --build . -- -j2
             draco_test_command: ./draco_tests
+          - test_name: windows-make-release-static-with-pmc
+            os: windows-latest
+            cmake_configure_command: |-
+              cmake .. -G "MinGW Makefiles" \
+                -DBUILD_SHARED_LIBS=OFF \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
+                -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
+                -DDRACO_TESTS=ON \
+                -DDRACO_TRANSCODER_SUPPORTED=ON \
+                -DDRACO_PMC_SUPPORTED=ON
+            cmake_build_command: cmake --build . -- -j2
+            draco_test_command: ./draco_tests
 
     name: test-${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}
@@ -246,6 +364,16 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           submodules: true
+
+      - name: Clone PMC
+        if: contains(matrix.test_name, 'with-pmc')
+        shell: bash
+        run: >-
+          if [ ! -d third_party/pmc ]; then
+          git clone --depth 1 -b v18.0
+          https://gitlab.com/AOMediaVVM/reference-software/aomedia-pmc
+          third_party/pmc;
+          fi
 
       - name: Create build directory
         shell: bash
@@ -294,6 +422,9 @@ jobs:
           - test_name: macos-make-with-transcoder
             os: macos-latest
             test_command: python3 test.py -v -t -G "Unix Makefiles"
+          - test_name: macos-make-with-pmc
+            os: macos-latest
+            test_command: python3 test.py -v -t -p -G "Unix Makefiles"
 
           - test_name: macos-xcode
             os: macos-latest
@@ -301,6 +432,9 @@ jobs:
           - test_name: macos-xcode-with-transcoder
             os: macos-latest
             test_command: python3 test.py -v -t -G Xcode
+          - test_name: macos-xcode-with-pmc
+            os: macos-latest
+            test_command: python3 test.py -v -t -p -G Xcode
 
           - test_name: windows-make
             os: windows-latest
@@ -308,6 +442,9 @@ jobs:
           - test_name: windows-make-with-transcoder
             os: windows-latest
             test_command: python3 test.py -v -t -G "MinGW Makefiles"
+          - test_name: windows-make-with-pmc
+            os: windows-latest
+            test_command: python3 test.py -v -t -p -G "MinGW Makefiles"
 
           - test_name: windows-msvc
             os: windows-latest
@@ -315,6 +452,9 @@ jobs:
           - test_name: windows-msvc-with-transcoder
             os: windows-latest
             test_command: python3 test.py -v -t -G "Visual Studio 18 2026"
+          - test_name: windows-msvc-with-pmc
+            os: windows-latest
+            test_command: python3 test.py -v -t -p -G "Visual Studio 18 2026"
 
     name: install-test-${{ matrix.test_name }}
     runs-on: ${{ matrix.os }}
