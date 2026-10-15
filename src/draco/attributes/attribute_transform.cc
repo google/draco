@@ -16,7 +16,7 @@
 
 namespace draco {
 
-bool AttributeTransform::TransferToAttribute(PointAttribute *attribute) const {
+bool AttributeTransform::TransferToAttribute(PointAttribute* attribute) const {
   std::unique_ptr<AttributeTransformData> transform_data(
       new AttributeTransformData());
   this->CopyToAttributeTransformData(transform_data.get());
@@ -25,7 +25,7 @@ bool AttributeTransform::TransferToAttribute(PointAttribute *attribute) const {
 }
 
 std::unique_ptr<PointAttribute> AttributeTransform::InitTransformedAttribute(
-    const PointAttribute &src_attribute, int num_entries) {
+    const PointAttribute& src_attribute, int num_entries) {
   const int num_components = GetTransformedNumComponents(src_attribute);
   const DataType dt = GetTransformedDataType(src_attribute);
   GeometryAttribute ga;

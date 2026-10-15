@@ -121,7 +121,7 @@ TEST(StructuralMetadataSchemaTest, TestSchemaObjectLookupByName) {
   Object object;
   ASSERT_EQ(object.GetType(), Object::OBJECT);
 
-  auto &objects = object.SetObjects();
+  auto& objects = object.SetObjects();
 
   objects.push_back(Object("object1", 1));
   objects.push_back(Object("object2", "two"));
@@ -287,6 +287,18 @@ TEST(StructuralMetadataSchemaTest, TestSchemaObjectCompare) {
     b.SetObjects().emplace_back("two");
     ASSERT_FALSE(a == b);
     ASSERT_TRUE(a != b);
+  }
+  {
+    // Compare two object-type objects with the same contents in different
+    // order.
+    Object a;
+    Object b;
+    a.SetObjects().emplace_back("one");
+    a.SetObjects().emplace_back("two");
+    b.SetObjects().emplace_back("two");
+    b.SetObjects().emplace_back("one");
+    ASSERT_TRUE(a == b);
+    ASSERT_FALSE(a != b);
   }
   {
     // Compare two identical array-type objects.

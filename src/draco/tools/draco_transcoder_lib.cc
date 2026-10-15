@@ -14,19 +14,25 @@
 //
 #include "draco/tools/draco_transcoder_lib.h"
 
+#include <cstdio>
+#include <memory>
+#include <string>
+#include <utility>
+
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include "draco/core/status_or.h"
 #include "draco/io/file_utils.h"
+#include "draco/io/image_compression_options.h"
 #include "draco/io/scene_io.h"
 #include "draco/scene/scene_utils.h"
 #include "draco/texture/texture_utils.h"
 
 namespace draco {
 
-DracoTranscoder::DracoTranscoder() {}
+DracoTranscoder::DracoTranscoder() = default;
 
 StatusOr<std::unique_ptr<DracoTranscoder>> DracoTranscoder::Create(
-    const DracoTranscodingOptions &options) {
+    const DracoTranscodingOptions& options) {
   DRACO_RETURN_IF_ERROR(options.geometry.Check());
   std::unique_ptr<DracoTranscoder> dt(new DracoTranscoder());
   dt->transcoding_options_ = options;
@@ -34,20 +40,20 @@ StatusOr<std::unique_ptr<DracoTranscoder>> DracoTranscoder::Create(
 }
 
 StatusOr<std::unique_ptr<DracoTranscoder>> DracoTranscoder::Create(
-    const DracoCompressionOptions &options) {
+    const DracoCompressionOptions& options) {
   DracoTranscodingOptions new_options;
   new_options.geometry = options;
   return Create(new_options);
 }
 
-Status DracoTranscoder::Transcode(const FileOptions &file_options) {
+Status DracoTranscoder::Transcode(const FileOptions& file_options) {
   DRACO_RETURN_IF_ERROR(ReadScene(file_options));
   DRACO_RETURN_IF_ERROR(CompressScene());
   DRACO_RETURN_IF_ERROR(WriteScene(file_options));
   return OkStatus();
 }
 
-Status DracoTranscoder::ReadScene(const FileOptions &file_options) {
+Status DracoTranscoder::ReadScene(const FileOptions& file_options) {
   if (file_options.input_filename.empty()) {
     return Status(Status::DRACO_ERROR, "Input filename is empty.");
   } else if (file_options.output_filename.empty()) {
@@ -58,7 +64,7 @@ Status DracoTranscoder::ReadScene(const FileOptions &file_options) {
   return OkStatus();
 }
 
-Status DracoTranscoder::WriteScene(const FileOptions &file_options) {
+Status DracoTranscoder::WriteScene(const FileOptions& file_options) {
   if (!file_options.output_bin_filename.empty() &&
       !file_options.output_resource_directory.empty()) {
     DRACO_RETURN_IF_ERROR(gltf_encoder_.EncodeFile<Scene>(

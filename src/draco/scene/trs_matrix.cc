@@ -18,7 +18,7 @@
 
 namespace draco {
 
-void TrsMatrix::Copy(const TrsMatrix &tm) {
+void TrsMatrix::Copy(const TrsMatrix& tm) {
   matrix_ = tm.matrix_;
   translation_ = tm.translation_;
   rotation_ = tm.rotation_;
@@ -75,7 +75,7 @@ bool TrsMatrix::IsMatrixTranslationOnly() const {
   return translation_check == Eigen::Matrix4d::Identity();
 }
 
-bool TrsMatrix::operator==(const TrsMatrix &trs_matrix) const {
+bool TrsMatrix::operator==(const TrsMatrix& trs_matrix) const {
   if (matrix_set_ != trs_matrix.matrix_set_ ||
       translation_set_ != trs_matrix.translation_set_ ||
       rotation_set_ != trs_matrix.rotation_set_ ||

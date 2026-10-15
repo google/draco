@@ -12,7 +12,7 @@ namespace {
             error_string);                                             \
   } while (false)
 
-std::vector<FileReaderFactory::OpenFunction> *GetFileReaderOpenFunctions() {
+std::vector<FileReaderFactory::OpenFunction>* GetFileReaderOpenFunctions() {
   static auto open_functions =
       new (std::nothrow) std::vector<FileReaderFactory::OpenFunction>();
   return open_functions;
@@ -31,7 +31,7 @@ bool FileReaderFactory::RegisterReader(OpenFunction open_function) {
 }
 
 std::unique_ptr<FileReaderInterface> FileReaderFactory::OpenReader(
-    const std::string &file_name) {
+    const std::string& file_name) {
   for (auto open_function : *GetFileReaderOpenFunctions()) {
     auto reader = open_function(file_name);
     if (reader == nullptr) {

@@ -35,23 +35,23 @@ class AttributesDecoderInterface {
 
   // Called after all attribute decoders are created. It can be used to perform
   // any custom initialization.
-  virtual bool Init(PointCloudDecoder *decoder, PointCloud *pc) = 0;
+  virtual bool Init(PointCloudDecoder* decoder, PointCloud* pc) = 0;
 
   // Decodes any attribute decoder specific data from the |in_buffer|.
-  virtual bool DecodeAttributesDecoderData(DecoderBuffer *in_buffer) = 0;
+  virtual bool DecodeAttributesDecoderData(DecoderBuffer* in_buffer) = 0;
 
   // Decode attribute data from the source buffer. Needs to be implemented by
   // the derived classes.
-  virtual bool DecodeAttributes(DecoderBuffer *in_buffer) = 0;
+  virtual bool DecodeAttributes(DecoderBuffer* in_buffer) = 0;
 
   virtual int32_t GetAttributeId(int i) const = 0;
   virtual int32_t GetNumAttributes() const = 0;
-  virtual PointCloudDecoder *GetDecoder() const = 0;
+  virtual PointCloudDecoder* GetDecoder() const = 0;
 
   // Returns an attribute containing data processed by the attribute transform.
   // (see TransformToPortableFormat() method). This data is guaranteed to be
   // same for encoder and decoder and it can be used by predictors.
-  virtual const PointAttribute *GetPortableAttribute(
+  virtual const PointAttribute* GetPortableAttribute(
       int32_t /* point_attribute_id */) {
     return nullptr;
   }

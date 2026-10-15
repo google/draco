@@ -22,7 +22,7 @@ AdaptiveRAnsBitDecoder::AdaptiveRAnsBitDecoder() : p0_f_(0.5) {}
 
 AdaptiveRAnsBitDecoder::~AdaptiveRAnsBitDecoder() { Clear(); }
 
-bool AdaptiveRAnsBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
+bool AdaptiveRAnsBitDecoder::StartDecoding(DecoderBuffer* source_buffer) {
   Clear();
 
   uint32_t size_in_bytes;
@@ -33,8 +33,8 @@ bool AdaptiveRAnsBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
     return false;
   }
   if (ans_read_init(&ans_decoder_,
-                    reinterpret_cast<uint8_t *>(
-                        const_cast<char *>(source_buffer->data_head())),
+                    reinterpret_cast<uint8_t*>(
+                        const_cast<char*>(source_buffer->data_head())),
                     size_in_bytes) != 0) {
     return false;
   }
@@ -50,7 +50,7 @@ bool AdaptiveRAnsBitDecoder::DecodeNextBit() {
 }
 
 void AdaptiveRAnsBitDecoder::DecodeLeastSignificantBits32(int nbits,
-                                                          uint32_t *value) {
+                                                          uint32_t* value) {
   DRACO_DCHECK_EQ(true, nbits <= 32);
   DRACO_DCHECK_EQ(true, nbits > 0);
 

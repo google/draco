@@ -33,18 +33,18 @@ class MeshPredictionSchemeTexCoordsPortableEncoder
  public:
   using CorrType = typename MeshPredictionSchemeEncoder<DataTypeT, TransformT,
                                                         MeshDataT>::CorrType;
-  MeshPredictionSchemeTexCoordsPortableEncoder(const PointAttribute *attribute,
-                                               const TransformT &transform,
-                                               const MeshDataT &mesh_data)
+  MeshPredictionSchemeTexCoordsPortableEncoder(const PointAttribute* attribute,
+                                               const TransformT& transform,
+                                               const MeshDataT& mesh_data)
       : MeshPredictionSchemeEncoder<DataTypeT, TransformT, MeshDataT>(
             attribute, transform, mesh_data),
         predictor_(mesh_data) {}
 
   bool ComputeCorrectionValues(
-      const DataTypeT *in_data, CorrType *out_corr, int size,
-      int num_components, const PointIndex *entry_to_point_id_map) override;
+      const DataTypeT* in_data, CorrType* out_corr, int size,
+      int num_components, const PointIndex* entry_to_point_id_map) override;
 
-  bool EncodePredictionData(EncoderBuffer *buffer) override;
+  bool EncodePredictionData(EncoderBuffer* buffer) override;
 
   PredictionSchemeMethod GetPredictionMethod() const override {
     return MESH_PREDICTION_TEX_COORDS_PORTABLE;
@@ -68,7 +68,7 @@ class MeshPredictionSchemeTexCoordsPortableEncoder
     return GeometryAttribute::POSITION;
   }
 
-  bool SetParentAttribute(const PointAttribute *att) override {
+  bool SetParentAttribute(const PointAttribute* att) override {
     if (att->attribute_type() != GeometryAttribute::POSITION) {
       return false;  // Invalid attribute type.
     }
@@ -87,9 +87,9 @@ class MeshPredictionSchemeTexCoordsPortableEncoder
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeTexCoordsPortableEncoder<DataTypeT, TransformT,
                                                   MeshDataT>::
-    ComputeCorrectionValues(const DataTypeT *in_data, CorrType *out_corr,
+    ComputeCorrectionValues(const DataTypeT* in_data, CorrType* out_corr,
                             int size, int num_components,
-                            const PointIndex *entry_to_point_id_map) {
+                            const PointIndex* entry_to_point_id_map) {
   predictor_.SetEntryToPointIdMap(entry_to_point_id_map);
   this->transform().Init(in_data, size, num_components);
   // We start processing from the end because this prediction uses data from
@@ -113,8 +113,8 @@ bool MeshPredictionSchemeTexCoordsPortableEncoder<DataTypeT, TransformT,
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeTexCoordsPortableEncoder<
-    DataTypeT, TransformT, MeshDataT>::EncodePredictionData(EncoderBuffer
-                                                                *buffer) {
+    DataTypeT, TransformT, MeshDataT>::EncodePredictionData(EncoderBuffer*
+                                                                buffer) {
   // Encode the delta-coded orientations using arithmetic coding.
   const int32_t num_orientations = predictor_.num_orientations();
   buffer->Encode(num_orientations);

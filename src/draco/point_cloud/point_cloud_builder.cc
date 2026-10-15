@@ -19,7 +19,7 @@
 
 namespace draco {
 
-PointCloudBuilder::PointCloudBuilder() {}
+PointCloudBuilder::PointCloudBuilder() = default;
 
 void PointCloudBuilder::Start(PointIndex::ValueType num_points) {
   point_cloud_ = std::unique_ptr<PointCloud>(new PointCloud());
@@ -42,14 +42,14 @@ int PointCloudBuilder::AddAttribute(GeometryAttribute::Type attribute_type,
 
 void PointCloudBuilder::SetAttributeValueForPoint(int att_id,
                                                   PointIndex point_index,
-                                                  const void *attribute_value) {
-  PointAttribute *const att = point_cloud_->attribute(att_id);
+                                                  const void* attribute_value) {
+  PointAttribute* const att = point_cloud_->attribute(att_id);
   att->SetAttributeValue(att->mapped_index(point_index), attribute_value);
 }
 
 void PointCloudBuilder::SetAttributeValuesForAllPoints(
-    int att_id, const void *attribute_values, int stride) {
-  PointAttribute *const att = point_cloud_->attribute(att_id);
+    int att_id, const void* attribute_values, int stride) {
+  PointAttribute* const att = point_cloud_->attribute(att_id);
   const int data_stride =
       DataTypeLength(att->data_type()) * att->num_components();
   if (stride == 0) {
@@ -64,7 +64,7 @@ void PointCloudBuilder::SetAttributeValuesForAllPoints(
     for (PointIndex i(0); i < point_cloud_->num_points(); ++i) {
       att->SetAttributeValue(
           att->mapped_index(i),
-          static_cast<const uint8_t *>(attribute_values) + stride * i.value());
+          static_cast<const uint8_t*>(attribute_values) + stride * i.value());
     }
   }
 }
@@ -87,7 +87,7 @@ void PointCloudBuilder::SetAttributeUniqueId(int att_id, uint32_t unique_id) {
 }
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
-void PointCloudBuilder::SetAttributeName(int att_id, const std::string &name) {
+void PointCloudBuilder::SetAttributeName(int att_id, const std::string& name) {
   point_cloud_->attribute(att_id)->set_name(name);
 }
 #endif  // DRACO_TRANSCODER_SUPPORTED

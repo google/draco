@@ -23,9 +23,9 @@
 namespace draco {
 
 template <typename OutStreamT>
-OutStreamT WriteMeshIntoStream(const Mesh *mesh, OutStreamT &&os,
+OutStreamT WriteMeshIntoStream(const Mesh* mesh, OutStreamT&& os,
                                MeshEncoderMethod method,
-                               const EncoderOptions &options) {
+                               const EncoderOptions& options) {
   EncoderBuffer buffer;
   EncoderOptions local_options = options;
   ExpertEncoder encoder(*mesh);
@@ -36,25 +36,25 @@ OutStreamT WriteMeshIntoStream(const Mesh *mesh, OutStreamT &&os,
     return os;
   }
 
-  os.write(static_cast<const char *>(buffer.data()), buffer.size());
+  os.write(static_cast<const char*>(buffer.data()), buffer.size());
 
   return os;
 }
 
 template <typename OutStreamT>
-OutStreamT WriteMeshIntoStream(const Mesh *mesh, OutStreamT &&os,
+OutStreamT WriteMeshIntoStream(const Mesh* mesh, OutStreamT&& os,
                                MeshEncoderMethod method) {
   const EncoderOptions options = EncoderOptions::CreateDefaultOptions();
   return WriteMeshIntoStream(mesh, os, method, options);
 }
 
 template <typename OutStreamT>
-OutStreamT &WriteMeshIntoStream(const Mesh *mesh, OutStreamT &&os) {
+OutStreamT& WriteMeshIntoStream(const Mesh* mesh, OutStreamT&& os) {
   return WriteMeshIntoStream(mesh, os, MESH_EDGEBREAKER_ENCODING);
 }
 
 template <typename InStreamT>
-InStreamT &ReadMeshFromStream(std::unique_ptr<Mesh> *mesh, InStreamT &&is) {
+InStreamT& ReadMeshFromStream(std::unique_ptr<Mesh>* mesh, InStreamT&& is) {
   // Determine size of stream and write into a vector
   const auto start_pos = is.tellg();
   is.seekg(0, std::ios::end);
@@ -81,13 +81,13 @@ InStreamT &ReadMeshFromStream(std::unique_ptr<Mesh> *mesh, InStreamT &&is) {
 // are supported. Other file extensions are processed by the default
 // draco::MeshDecoder.
 // Returns nullptr with an error status if the decoding failed.
-StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name);
+StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string& file_name);
 
 // Reads a mesh from a file. The function does the same thing as the previous
 // one except using metadata to encode additional information when
 // |use_metadata| is set to true.
 // Returns nullptr with an error status if the decoding failed.
-StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
+StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string& file_name,
                                                  bool use_metadata);
 
 // Reads a mesh from a file. Reading is configured with |options|:
@@ -96,11 +96,11 @@ StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
 // The second form returns the files associated with the mesh via the
 // |mesh_files| argument.
 // Returns nullptr with an error status if the decoding failed.
-StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
-                                                 const Options &options);
+StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string& file_name,
+                                                 const Options& options);
 StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(
-    const std::string &file_name, const Options &options,
-    std::vector<std::string> *mesh_files);
+    const std::string& file_name, const Options& options,
+    std::vector<std::string>* mesh_files);
 
 }  // namespace draco
 

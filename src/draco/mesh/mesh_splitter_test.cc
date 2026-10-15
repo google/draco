@@ -32,4 +32,4 @@
 #include "draco/point_cloud/point_cloud_builder.h"
 
 namespace {}  // namespace
-#endif        // DRACO_TRANSCODER_SUPPORTED
+#endif  // DRACO_TRANSCODER_SUPPORTED

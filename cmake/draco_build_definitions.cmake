@@ -31,6 +31,9 @@ macro(set_draco_target)
     endif()
     set(draco_plugin_dependency draco_static)
   endif()
+  if(DRACO_PMC_SUPPORTED)
+    list(APPEND draco_dependency pmc)
+  endif()
 endmacro()
 
 # Configures flags and sets build system globals.
@@ -56,7 +59,7 @@ macro(draco_set_build_definitions)
   # passed to libtool.
   #
   # We set DRACO_SOVERSION = [c-a].a.r
-  set(LT_CURRENT 9)
+  set(LT_CURRENT 10)
   set(LT_REVISION 0)
   set(LT_AGE 0)
   math(EXPR DRACO_SOVERSION_MAJOR "${LT_CURRENT} - ${LT_AGE}")
@@ -72,6 +75,10 @@ macro(draco_set_build_definitions)
     draco_setup_eigen()
     draco_setup_filesystem()
     draco_setup_tinygltf()
+
+    if(DRACO_PMC_SUPPORTED)
+      draco_setup_pmc()
+    endif()
 
 
   endif()

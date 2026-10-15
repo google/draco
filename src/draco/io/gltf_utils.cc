@@ -20,7 +20,7 @@
 #ifdef DRACO_TRANSCODER_SUPPORTED
 namespace draco {
 
-std::ostream &operator<<(std::ostream &os, const GltfValue &value) {
+std::ostream& operator<<(std::ostream& os, const GltfValue& value) {
   if (value.type_ == GltfValue::INT) {
     os << value.value_int_;
   } else {
@@ -35,20 +35,20 @@ void Indent::Increase() { indent_ += std::string(indent_space_count_, ' '); }
 
 void Indent::Decrease() { indent_.erase(0, indent_space_count_); }
 
-std::ostream &operator<<(std::ostream &os, const Indent &indent) {
+std::ostream& operator<<(std::ostream& os, const Indent& indent) {
   return os << indent.indent_;
 }
 
-std::ostream &operator<<(std::ostream &os,
-                         const JsonWriter::IndentWrapper &indent) {
+std::ostream& operator<<(std::ostream& os,
+                         const JsonWriter::IndentWrapper& indent) {
   if (indent.writer.mode_ == JsonWriter::READABLE) {
     os << indent.writer.indent_writer_;
   }
   return os;
 }
 
-std::ostream &operator<<(std::ostream &os,
-                         const JsonWriter::Separator &separator) {
+std::ostream& operator<<(std::ostream& os,
+                         const JsonWriter::Separator& separator) {
   if (separator.writer.mode_ == JsonWriter::READABLE) {
     os << " ";
   }
@@ -63,7 +63,7 @@ void JsonWriter::Reset() {
 
 void JsonWriter::BeginObject() { BeginObject(""); }
 
-void JsonWriter::BeginObject(const std::string &name) {
+void JsonWriter::BeginObject(const std::string& name) {
   FinishPreviousLine(BEGIN);
   o_ << indent_;
   if (!name.empty()) {
@@ -80,12 +80,13 @@ void JsonWriter::EndObject() {
 }
 
 void JsonWriter::BeginArray() {
+  // TODO(vytyaz): Call BeginArray("") instead, similar to BeginObject().
   FinishPreviousLine(BEGIN);
   o_ << indent_ << "[";
   indent_writer_.Increase();
 }
 
-void JsonWriter::BeginArray(const std::string &name) {
+void JsonWriter::BeginArray(const std::string& name) {
   FinishPreviousLine(BEGIN);
   o_ << indent_ << "\"" << name << "\":" << separator_ << "[";
   indent_writer_.Increase();
@@ -118,7 +119,7 @@ std::string JsonWriter::MoveData() {
   return str;
 }
 
-std::string JsonWriter::EscapeCharacter(const std::string &str,
+std::string JsonWriter::EscapeCharacter(const std::string& str,
                                         const char character) {
   size_t start = 0;
   if ((start = str.find(character, start)) != std::string::npos) {
@@ -134,7 +135,7 @@ std::string JsonWriter::EscapeCharacter(const std::string &str,
   return str;
 }
 
-std::string JsonWriter::EscapeJsonSpecialCharacters(const std::string &str) {
+std::string JsonWriter::EscapeJsonSpecialCharacters(const std::string& str) {
   std::string s = str;
   const char backspace = '\b';
   const char form_feed = '\f';

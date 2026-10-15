@@ -35,51 +35,51 @@ std::string GetTestTempDir();
 
 // Returns the full path to a given file system entry, such as test file or test
 // directory.
-std::string GetTestFileFullPath(const std::string &entry_name);
+std::string GetTestFileFullPath(const std::string& entry_name);
 
 // Returns the full path to a given temporary file (a location where tests store
 // generated files).
-std::string GetTestTempFileFullPath(const std::string &file_name);
+std::string GetTestTempFileFullPath(const std::string& file_name);
 
 // Generates a new golden file and saves it into the correct folder.
 // Returns false if the file couldn't be created.
-bool GenerateGoldenFile(const std::string &golden_file_name, const void *data,
+bool GenerateGoldenFile(const std::string& golden_file_name, const void* data,
                         int data_size);
 
 // Compare a golden file content with the input data.
 // Function will log the first byte position where the data differ.
 // Returns false if there are any differences.
-bool CompareGoldenFile(const std::string &golden_file_name, const void *data,
+bool CompareGoldenFile(const std::string& golden_file_name, const void* data,
                        int data_size);
 
 // Loads a mesh / point cloud specified by a |file_name| that is going to be
 // automatically converted to the correct path available to the testing
 // instance.
 inline std::unique_ptr<Mesh> ReadMeshFromTestFile(
-    const std::string &file_name) {
+    const std::string& file_name) {
   const std::string path = GetTestFileFullPath(file_name);
   return ReadMeshFromFile(path).value();
 }
-inline std::unique_ptr<Mesh> ReadMeshFromTestFile(const std::string &file_name,
+inline std::unique_ptr<Mesh> ReadMeshFromTestFile(const std::string& file_name,
                                                   bool use_metadata) {
   const std::string path = GetTestFileFullPath(file_name);
   return ReadMeshFromFile(path, use_metadata).value();
 }
-inline std::unique_ptr<Mesh> ReadMeshFromTestFile(const std::string &file_name,
-                                                  const Options &options) {
+inline std::unique_ptr<Mesh> ReadMeshFromTestFile(const std::string& file_name,
+                                                  const Options& options) {
   const std::string path = GetTestFileFullPath(file_name);
   return ReadMeshFromFile(path, options).value();
 }
 
 inline std::unique_ptr<PointCloud> ReadPointCloudFromTestFile(
-    const std::string &file_name) {
+    const std::string& file_name) {
   const std::string path = GetTestFileFullPath(file_name);
   return ReadPointCloudFromFile(path).value();
 }
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 inline std::unique_ptr<Scene> ReadSceneFromTestFile(
-    const std::string &file_name) {
+    const std::string& file_name) {
   const std::string path = GetTestFileFullPath(file_name);
   return ReadSceneFromFile(path).value();
 }
@@ -88,14 +88,14 @@ inline std::unique_ptr<Scene> ReadSceneFromTestFile(
 // converted to the correct path available to the testing instance. Supported
 // geometry types are Mesh and Scene.
 template <typename T>
-std::unique_ptr<T> ReadGeometryFromTestFile(const std::string &file_name);
+std::unique_ptr<T> ReadGeometryFromTestFile(const std::string& file_name);
 
 #endif  // DRACO_TRANSCODER_SUPPORTED
 
 // Utility class for redirection and capture of stderr/stdout.
 class CaptureStream {
  public:
-  explicit CaptureStream(std::ostream &stream)
+  explicit CaptureStream(std::ostream& stream)
       : old_buffer_(stream.rdbuf(buffer_.rdbuf())), stream_(stream) {}
 
   ~CaptureStream() { Reset(); }
@@ -114,8 +114,8 @@ class CaptureStream {
 
  private:
   std::ostringstream buffer_;
-  std::streambuf *old_buffer_ = nullptr;
-  std::ostream &stream_;
+  std::streambuf* old_buffer_ = nullptr;
+  std::ostream& stream_;
 };
 
 // Evaluates an expression that returns draco::Status. If the status is not OK,

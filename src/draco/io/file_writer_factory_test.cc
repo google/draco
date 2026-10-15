@@ -13,20 +13,18 @@ namespace {
 class AlwaysFailFileWriter : public FileWriterInterface {
  public:
   static std::unique_ptr<FileWriterInterface> Open(
-      const std::string & /*file_name*/) {
+      const std::string& /*file_name*/) {
     return nullptr;
   }
 
   AlwaysFailFileWriter() = delete;
-  AlwaysFailFileWriter(const AlwaysFailFileWriter &) = delete;
-  AlwaysFailFileWriter &operator=(const AlwaysFailFileWriter &) = delete;
+  AlwaysFailFileWriter(const AlwaysFailFileWriter&) = delete;
+  AlwaysFailFileWriter& operator=(const AlwaysFailFileWriter&) = delete;
   // Note this isn't overridden as the class can never be instantiated. This
   // avoids an unused function warning.
   // ~AlwaysFailFileWriter() override = default;
 
-  bool Write(const char * /*buffer*/, size_t /*size*/) override {
-    return false;
-  }
+  bool Write(const char* /*buffer*/, size_t /*size*/) override { return false; }
 
  private:
   static bool is_registered_;
@@ -35,15 +33,15 @@ class AlwaysFailFileWriter : public FileWriterInterface {
 class AlwaysOkFileWriter : public FileWriterInterface {
  public:
   static std::unique_ptr<FileWriterInterface> Open(
-      const std::string & /*file_name*/) {
+      const std::string& /*file_name*/) {
     return std::unique_ptr<AlwaysOkFileWriter>(new AlwaysOkFileWriter());
   }
 
-  AlwaysOkFileWriter(const AlwaysOkFileWriter &) = delete;
-  AlwaysOkFileWriter &operator=(const AlwaysOkFileWriter &) = delete;
+  AlwaysOkFileWriter(const AlwaysOkFileWriter&) = delete;
+  AlwaysOkFileWriter& operator=(const AlwaysOkFileWriter&) = delete;
   ~AlwaysOkFileWriter() override = default;
 
-  bool Write(const char * /*buffer*/, size_t /*size*/) override { return true; }
+  bool Write(const char* /*buffer*/, size_t /*size*/) override { return true; }
 
  private:
   AlwaysOkFileWriter() = default;

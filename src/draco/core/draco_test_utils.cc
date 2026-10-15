@@ -29,28 +29,28 @@ static constexpr char kTestTempDir[] = DRACO_TEST_TEMP_DIR;
 
 std::string GetTestTempDir() { return std::string(kTestDataDir); }
 
-std::string GetTestFileFullPath(const std::string &file_name) {
+std::string GetTestFileFullPath(const std::string& file_name) {
   return std::string(kTestDataDir) + std::string("/") + file_name;
 }
 
-std::string GetTestTempFileFullPath(const std::string &file_name) {
+std::string GetTestTempFileFullPath(const std::string& file_name) {
   return std::string(kTestTempDir) + std::string("/") + file_name;
 }
 
-bool GenerateGoldenFile(const std::string &golden_file_name, const void *data,
+bool GenerateGoldenFile(const std::string& golden_file_name, const void* data,
                         int data_size) {
   const std::string path = GetTestFileFullPath(golden_file_name);
   return WriteBufferToFile(data, data_size, path);
 }
 
-bool CompareGoldenFile(const std::string &golden_file_name, const void *data,
+bool CompareGoldenFile(const std::string& golden_file_name, const void* data,
                        int data_size) {
   const std::string golden_path = GetTestFileFullPath(golden_file_name);
   std::ifstream in_file(golden_path, std::ios::binary);
   if (!in_file || data_size < 0) {
     return false;
   }
-  const char *const data_c8 = static_cast<const char *>(data);
+  const char* const data_c8 = static_cast<const char*>(data);
   constexpr int buffer_size = 1024;
   char buffer[buffer_size];
   size_t extracted_size = 0;
@@ -85,13 +85,13 @@ bool CompareGoldenFile(const std::string &golden_file_name, const void *data,
 
 template <>
 std::unique_ptr<Mesh> ReadGeometryFromTestFile<Mesh>(
-    const std::string &file_name) {
+    const std::string& file_name) {
   return ReadMeshFromTestFile(file_name);
 }
 
 template <>
 std::unique_ptr<Scene> ReadGeometryFromTestFile<Scene>(
-    const std::string &file_name) {
+    const std::string& file_name) {
   return ReadSceneFromTestFile(file_name);
 }
 

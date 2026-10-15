@@ -26,7 +26,7 @@ GeometryAttribute::GeometryAttribute()
       unique_id_(0) {}
 
 void GeometryAttribute::Init(GeometryAttribute::Type attribute_type,
-                             DataBuffer *buffer, uint8_t num_components,
+                             DataBuffer* buffer, uint8_t num_components,
                              DataType data_type, bool normalized,
                              int64_t byte_stride, int64_t byte_offset) {
   buffer_ = buffer;
@@ -42,7 +42,7 @@ void GeometryAttribute::Init(GeometryAttribute::Type attribute_type,
   attribute_type_ = attribute_type;
 }
 
-bool GeometryAttribute::CopyFrom(const GeometryAttribute &src_att) {
+bool GeometryAttribute::CopyFrom(const GeometryAttribute& src_att) {
   num_components_ = src_att.num_components_;
   data_type_ = src_att.data_type_;
   normalized_ = src_att.normalized_;
@@ -65,7 +65,7 @@ bool GeometryAttribute::CopyFrom(const GeometryAttribute &src_att) {
   return true;
 }
 
-bool GeometryAttribute::operator==(const GeometryAttribute &va) const {
+bool GeometryAttribute::operator==(const GeometryAttribute& va) const {
   if (attribute_type_ != va.attribute_type_) {
     return false;
   }
@@ -98,7 +98,7 @@ bool GeometryAttribute::operator==(const GeometryAttribute &va) const {
   return true;
 }
 
-void GeometryAttribute::ResetBuffer(DataBuffer *buffer, int64_t byte_stride,
+void GeometryAttribute::ResetBuffer(DataBuffer* buffer, int64_t byte_stride,
                                     int64_t byte_offset) {
   buffer_ = buffer;
   buffer_descriptor_.buffer_id = buffer->buffer_id();

@@ -23,8 +23,6 @@
 #include "draco/core/status.h"
 #include "draco/core/status_or.h"
 #include "draco/material/material.h"
-
-#define TINYGLTF_ENCLOSING_NAMESPACE draco
 #include "tiny_gltf.h"
 
 namespace draco {
@@ -37,41 +35,41 @@ class TinyGltfUtils {
   static int GetNumComponentsForType(int type);
 
   // Returns the material transparency mode in |mode|.
-  static Material::TransparencyMode TextToMaterialMode(const std::string &mode);
+  static Material::TransparencyMode TextToMaterialMode(const std::string& mode);
 
   // Returns the animation sampler interpolation in |interpolation|.
   static AnimationSampler::SamplerInterpolation TextToSamplerInterpolation(
-      const std::string &interpolation);
+      const std::string& interpolation);
 
   // Returns the animation channel transformation in |path|.
   static AnimationChannel::ChannelTransformation TextToChannelTransformation(
-      const std::string &path);
+      const std::string& path);
 
   // Adds all of the animation data associated with a channel.
   // The channel references a sampler, whose data will be added to the
   // |animation|. The sampler references input and output accessors,
   // whose data will be added to the |animation|.
   static Status AddChannelToAnimation(
-      const tinygltf::Model &model, const tinygltf::Animation &input_animation,
-      const tinygltf::AnimationChannel &channel, int node_index,
-      Animation *animation);
+      const tinygltf::Model& model, const tinygltf::Animation& input_animation,
+      const tinygltf::AnimationChannel& channel, int node_index,
+      Animation* animation);
 
   // Adds all of the sampler data. The sampler references
   // input and output accessors, whose data will be added to the |animation|.
-  static Status AddSamplerToAnimation(const tinygltf::Model &model,
-                                      const tinygltf::AnimationSampler &sampler,
-                                      Animation *animation);
+  static Status AddSamplerToAnimation(const tinygltf::Model& model,
+                                      const tinygltf::AnimationSampler& sampler,
+                                      Animation* animation);
 
   // Converts the gltf2 animation accessor and adds it to
   // |node_animation_data|.
   static Status AddAccessorToAnimationData(
-      const tinygltf::Model &model, const tinygltf::Accessor &accessor,
-      NodeAnimationData *node_animation_data);
+      const tinygltf::Model& model, const tinygltf::Accessor& accessor,
+      NodeAnimationData* node_animation_data);
 
   // Returns the data from |accessor| as a vector of |T|.
   template <typename T>
   static StatusOr<std::vector<T>> CopyDataAsFloat(
-      const tinygltf::Model &model, const tinygltf::Accessor &accessor) {
+      const tinygltf::Model& model, const tinygltf::Accessor& accessor) {
     const int num_components = GetNumComponentsForType(accessor.type);
     if (num_components != T::dimension) {
       return Status(Status::DRACO_ERROR,
@@ -80,50 +78,27 @@ class TinyGltfUtils {
     return CopyDataAsFloatImpl<T>(model, accessor);
   }
 
+  // Checks if the accessor data is within the buffer bounds.
+  static Status CheckAccessorBounds(const tinygltf::Model& model,
+                                    const tinygltf::Accessor& accessor);
+
  private:
   template <typename T>
   static StatusOr<std::vector<T>> CopyDataAsFloatImpl(
-      const tinygltf::Model &model, const tinygltf::Accessor &accessor) {
+      const tinygltf::Model& model, const tinygltf::Accessor& accessor) {
     if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT) {
       return Status(Status::DRACO_ERROR,
                     "Non-float data is not supported by CopyDataAsFloat().");
     }
-    if (accessor.bufferView < 0) {
-      return Status(Status::DRACO_ERROR,
-                    "Error CopyDataAsFloat() bufferView < 0.");
-    }
+    DRACO_RETURN_IF_ERROR(CheckAccessorBounds(model, accessor));
 
-    const tinygltf::BufferView &buffer_view =
+    const tinygltf::BufferView& buffer_view =
         model.bufferViews[accessor.bufferView];
-    if (buffer_view.buffer < 0) {
-      return Status(Status::DRACO_ERROR, "Error CopyDataAsFloat() buffer < 0.");
-    }
+    const tinygltf::Buffer& buffer = model.buffers[buffer_view.buffer];
 
-    const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
-
-    const unsigned char *const data_start =
+    const unsigned char* const data_start =
         buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
     const int byte_stride = accessor.ByteStride(buffer_view);
-
-    // Validate that reading |accessor.count| elements with |byte_stride|
-    // does not read past the end of the buffer.
-    if (accessor.count < 0 || byte_stride <= 0) {
-      return Status(Status::DRACO_ERROR,
-                     "Error CopyDataAsFloat() invalid accessor.");
-    }
-    const size_t start_offset =
-        buffer_view.byteOffset + accessor.byteOffset;
-    if (start_offset > buffer.data.size()) {
-      return Status(Status::DRACO_ERROR,
-                     "Error CopyDataAsFloat() accessor offset out of bounds.");
-    }
-    const size_t available_bytes = buffer.data.size() - start_offset;
-    const size_t required_bytes =
-        static_cast<size_t>(byte_stride) * static_cast<size_t>(accessor.count);
-    if (required_bytes > available_bytes) {
-      return Status(Status::DRACO_ERROR,
-                     "Error CopyDataAsFloat() accessor data out of bounds.");
-    }
     const int component_size =
         tinygltf::GetComponentSizeInBytes(accessor.componentType);
 
@@ -131,7 +106,7 @@ class TinyGltfUtils {
     output.resize(accessor.count);
 
     const int num_components = GetNumComponentsForType(accessor.type);
-    const unsigned char *data = data_start;
+    const unsigned char* data = data_start;
     for (int i = 0; i < accessor.count; ++i) {
       T values;
 
@@ -149,7 +124,7 @@ class TinyGltfUtils {
   }
 
   template <typename T>
-  static void SetDataImpl(float value, int index, T *values) {
+  static void SetDataImpl(float value, int index, T* values) {
     (*values)[index] = value;
   }
 };

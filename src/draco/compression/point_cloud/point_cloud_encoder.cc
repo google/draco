@@ -21,12 +21,12 @@ namespace draco {
 PointCloudEncoder::PointCloudEncoder()
     : point_cloud_(nullptr), buffer_(nullptr), num_encoded_points_(0) {}
 
-void PointCloudEncoder::SetPointCloud(const PointCloud &pc) {
+void PointCloudEncoder::SetPointCloud(const PointCloud& pc) {
   point_cloud_ = &pc;
 }
 
-Status PointCloudEncoder::Encode(const EncoderOptions &options,
-                                 EncoderBuffer *out_buffer) {
+Status PointCloudEncoder::Encode(const EncoderOptions& options,
+                                 EncoderBuffer* out_buffer) {
   options_ = &options;
   buffer_ = out_buffer;
 
@@ -108,7 +108,7 @@ bool PointCloudEncoder::EncodePointAttributes() {
 
   // Initialize all the encoders (this is used for example to init attribute
   // dependencies, no data is encoded in this step).
-  for (auto &att_enc : attributes_encoders_) {
+  for (auto& att_enc : attributes_encoders_) {
     if (!att_enc->Init(this, point_cloud_)) {
       return false;
     }
@@ -180,7 +180,7 @@ bool PointCloudEncoder::MarkParentAttribute(int32_t parent_att_id) {
   return true;
 }
 
-const PointAttribute *PointCloudEncoder::GetPortableAttribute(
+const PointAttribute* PointCloudEncoder::GetPortableAttribute(
     int32_t parent_att_id) {
   if (parent_att_id < 0 || parent_att_id >= point_cloud_->num_attributes()) {
     return nullptr;

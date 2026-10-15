@@ -30,7 +30,7 @@ namespace draco {
 class AttributeTransformData {
  public:
   AttributeTransformData() : transform_type_(ATTRIBUTE_INVALID_TRANSFORM) {}
-  AttributeTransformData(const AttributeTransformData &data) = default;
+  AttributeTransformData(const AttributeTransformData& data) = default;
 
   // Returns the type of the attribute transform that is described by the class.
   AttributeTransformType transform_type() const { return transform_type_; }
@@ -48,7 +48,7 @@ class AttributeTransformData {
 
   // Sets a parameter value on a given |byte_offset|.
   template <typename DataTypeT>
-  void SetParameterValue(int byte_offset, const DataTypeT &in_data) {
+  void SetParameterValue(int byte_offset, const DataTypeT& in_data) {
     if (byte_offset + sizeof(DataTypeT) > buffer_.data_size()) {
       buffer_.Resize(byte_offset + sizeof(DataTypeT));
     }
@@ -57,7 +57,7 @@ class AttributeTransformData {
 
   // Sets a parameter value at the end of the |buffer_|.
   template <typename DataTypeT>
-  void AppendParameterValue(const DataTypeT &in_data) {
+  void AppendParameterValue(const DataTypeT& in_data) {
     SetParameterValue(static_cast<int>(buffer_.data_size()), in_data);
   }
 

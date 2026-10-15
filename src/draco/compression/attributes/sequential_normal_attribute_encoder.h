@@ -37,13 +37,13 @@ class SequentialNormalAttributeEncoder
   }
   bool IsLossyEncoder() const override { return true; }
 
-  bool EncodeDataNeededByPortableTransform(EncoderBuffer *out_buffer) override;
+  bool EncodeDataNeededByPortableTransform(EncoderBuffer* out_buffer) override;
 
  protected:
-  bool Init(PointCloudEncoder *encoder, int attribute_id) override;
+  bool Init(PointCloudEncoder* encoder, int attribute_id) override;
 
   // Put quantized values in portable attribute for sequential encoding.
-  bool PrepareValues(const std::vector<PointIndex> &point_ids,
+  bool PrepareValues(const std::vector<PointIndex>& point_ids,
                      int num_points) override;
 
   std::unique_ptr<PredictionSchemeTypedEncoderInterface<int32_t>>

@@ -17,22 +17,22 @@
 namespace draco {
 
 std::unique_ptr<CornerTable> CreateCornerTableFromPositionAttribute(
-    const Mesh *mesh) {
+    const Mesh* mesh) {
   return CreateCornerTableFromAttribute(mesh, GeometryAttribute::POSITION);
 }
 
 std::unique_ptr<CornerTable> CreateCornerTableFromAttribute(
-    const Mesh *mesh, GeometryAttribute::Type type) {
+    const Mesh* mesh, GeometryAttribute::Type type) {
   typedef CornerTable::FaceType FaceType;
 
-  const PointAttribute *const att = mesh->GetNamedAttribute(type);
+  const PointAttribute* const att = mesh->GetNamedAttribute(type);
   if (att == nullptr) {
     return nullptr;
   }
   IndexTypeVector<FaceIndex, FaceType> faces(mesh->num_faces());
   FaceType new_face;
   for (FaceIndex i(0); i < mesh->num_faces(); ++i) {
-    const Mesh::Face &face = mesh->face(i);
+    const Mesh::Face& face = mesh->face(i);
     for (int j = 0; j < 3; ++j) {
       // Map general vertex indices to attribute indices.
       new_face[j] = att->mapped_index(face[j]).value();
@@ -44,12 +44,12 @@ std::unique_ptr<CornerTable> CreateCornerTableFromAttribute(
 }
 
 std::unique_ptr<CornerTable> CreateCornerTableFromAllAttributes(
-    const Mesh *mesh) {
+    const Mesh* mesh) {
   typedef CornerTable::FaceType FaceType;
   IndexTypeVector<FaceIndex, FaceType> faces(mesh->num_faces());
   FaceType new_face;
   for (FaceIndex i(0); i < mesh->num_faces(); ++i) {
-    const Mesh::Face &face = mesh->face(i);
+    const Mesh::Face& face = mesh->face(i);
     // Each face is identified by point indices that automatically split the
     // mesh along attribute seams.
     for (int j = 0; j < 3; ++j) {

@@ -94,17 +94,17 @@ class DynamicIntegerPointsKdTreeDecoder {
   // be used to tell the decoder the maximum number of points accepted by the
   // iterator.
   template <class OutputIteratorT>
-  bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT &oit);
+  bool DecodePoints(DecoderBuffer* buffer, OutputIteratorT& oit);
 
   template <class OutputIteratorT>
-  bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT &oit,
+  bool DecodePoints(DecoderBuffer* buffer, OutputIteratorT& oit,
                     uint32_t oit_max_points);
 
 #ifndef DRACO_OLD_GCC
   template <class OutputIteratorT>
-  bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT &&oit);
+  bool DecodePoints(DecoderBuffer* buffer, OutputIteratorT&& oit);
   template <class OutputIteratorT>
-  bool DecodePoints(DecoderBuffer *buffer, OutputIteratorT &&oit,
+  bool DecodePoints(DecoderBuffer* buffer, OutputIteratorT&& oit,
                     uint32_t oit_max_points);
 #endif  // DRACO_OLD_GCC
 
@@ -114,13 +114,13 @@ class DynamicIntegerPointsKdTreeDecoder {
   uint32_t num_decoded_points() const { return num_decoded_points_; }
 
  private:
-  uint32_t GetAxis(uint32_t num_remaining_points, const VectorUint32 &levels,
+  uint32_t GetAxis(uint32_t num_remaining_points, const VectorUint32& levels,
                    uint32_t last_axis);
 
   template <class OutputIteratorT>
-  bool DecodeInternal(uint32_t num_points, OutputIteratorT &oit);
+  bool DecodeInternal(uint32_t num_points, OutputIteratorT& oit);
 
-  void DecodeNumber(int nbits, uint32_t *value) {
+  void DecodeNumber(int nbits, uint32_t* value) {
     numbers_decoder_.DecodeLeastSignificantBits32(nbits, value);
   }
 
@@ -169,14 +169,14 @@ class DynamicIntegerPointsKdTreeDecoder {
 template <int compression_level_t>
 template <class OutputIteratorT>
 bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
-    DecoderBuffer *buffer, OutputIteratorT &&oit) {
+    DecoderBuffer* buffer, OutputIteratorT&& oit) {
   return DecodePoints(buffer, oit, std::numeric_limits<uint32_t>::max());
 }
 
 template <int compression_level_t>
 template <class OutputIteratorT>
 bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
-    DecoderBuffer *buffer, OutputIteratorT &&oit, uint32_t oit_max_points) {
+    DecoderBuffer* buffer, OutputIteratorT&& oit, uint32_t oit_max_points) {
   OutputIteratorT local = std::forward<OutputIteratorT>(oit);
   return DecodePoints(buffer, local, oit_max_points);
 }
@@ -185,14 +185,14 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
 template <int compression_level_t>
 template <class OutputIteratorT>
 bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
-    DecoderBuffer *buffer, OutputIteratorT &oit) {
+    DecoderBuffer* buffer, OutputIteratorT& oit) {
   return DecodePoints(buffer, oit, std::numeric_limits<uint32_t>::max());
 }
 
 template <int compression_level_t>
 template <class OutputIteratorT>
 bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
-    DecoderBuffer *buffer, OutputIteratorT &oit, uint32_t oit_max_points) {
+    DecoderBuffer* buffer, OutputIteratorT& oit, uint32_t oit_max_points) {
   if (!buffer->Decode(&bit_length_)) {
     return false;
   }
@@ -237,7 +237,7 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodePoints(
 
 template <int compression_level_t>
 uint32_t DynamicIntegerPointsKdTreeDecoder<compression_level_t>::GetAxis(
-    uint32_t num_remaining_points, const VectorUint32 &levels,
+    uint32_t num_remaining_points, const VectorUint32& levels,
     uint32_t last_axis) {
   if (!Policy::select_axis) {
     return DRACO_INCREMENT_MOD(last_axis, dimension_);
@@ -260,7 +260,7 @@ uint32_t DynamicIntegerPointsKdTreeDecoder<compression_level_t>::GetAxis(
 template <int compression_level_t>
 template <class OutputIteratorT>
 bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
-    uint32_t num_points, OutputIteratorT &oit) {
+    uint32_t num_points, OutputIteratorT& oit) {
   typedef DecodingStatus Status;
   // The tree can be 32 * dimension levels deep, so keeping a base and levels
   // vector per level takes memory quadratic in the dimension. The walk keeps
@@ -296,7 +296,7 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
         return false;
       }
       while (!undo_.empty()) {
-        const SplitUndo &split = undo_.back();
+        const SplitUndo& split = undo_.back();
         if (split.depth < status.depth) {
           break;
         }
@@ -310,8 +310,8 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
       }
       depth = status.depth;
     }
-    const VectorUint32 &old_base = base_;
-    const VectorUint32 &levels = levels_;
+    const VectorUint32& old_base = base_;
+    const VectorUint32& levels = levels_;
 
     if (num_remaining_points > num_points) {
       return false;

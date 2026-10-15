@@ -57,34 +57,34 @@ class EncoderBuffer {
   // Can be used only when we are not encoding a bit-sequence.
   // Returns false when the value couldn't be encoded.
   template <typename T>
-  bool Encode(const T &data) {
+  bool Encode(const T& data) {
     if (bit_encoder_active()) {
       return false;
     }
-    const uint8_t *src_data = reinterpret_cast<const uint8_t *>(&data);
+    const uint8_t* src_data = reinterpret_cast<const uint8_t*>(&data);
     buffer_.insert(buffer_.end(), src_data, src_data + sizeof(T));
     return true;
   }
-  bool Encode(const void *data, size_t data_size) {
+  bool Encode(const void* data, size_t data_size) {
     if (bit_encoder_active()) {
       return false;
     }
-    const uint8_t *src_data = reinterpret_cast<const uint8_t *>(data);
+    const uint8_t* src_data = reinterpret_cast<const uint8_t*>(data);
     buffer_.insert(buffer_.end(), src_data, src_data + data_size);
     return true;
   }
 
   bool bit_encoder_active() const { return bit_encoder_reserved_bytes_ > 0; }
-  const char *data() const { return buffer_.data(); }
+  const char* data() const { return buffer_.data(); }
   size_t size() const { return buffer_.size(); }
-  std::vector<char> *buffer() { return &buffer_; }
+  std::vector<char>* buffer() { return &buffer_; }
 
  private:
   // Internal helper class to encode bits to a bit buffer.
   class BitEncoder {
    public:
     // |data| is the buffer to write the bits into.
-    explicit BitEncoder(char *data) : bit_buffer_(data), bit_offset_(0) {}
+    explicit BitEncoder(char* data) : bit_buffer_(data), bit_offset_(0) {}
 
     // Write |nbits| of |data| into the bit buffer.
     void PutBits(uint32_t data, int32_t nbits) {
@@ -124,7 +124,7 @@ class EncoderBuffer {
       bit_offset_++;
     }
 
-    char *bit_buffer_;
+    char* bit_buffer_;
     size_t bit_offset_;
   };
   friend class BufferBitCodingTest;

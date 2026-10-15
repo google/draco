@@ -14,6 +14,8 @@
 //
 #include "draco/mesh/mesh_splitter.h"
 
+#include "draco/mesh/mesh.h"
+
 #ifdef DRACO_TRANSCODER_SUPPORTED
 #include <memory>
 #include <unordered_map>
@@ -36,22 +38,22 @@ class MeshSplitterInternal {
   struct WorkData : public MeshSplitter::WorkData {
     // TriangleSoupMeshBuilder or PointCloudBuilder.
     std::vector<BuilderT> builders;
-    std::vector<int> *att_id_map;
+    std::vector<int>* att_id_map;
   };
 
   // Computes number of elements (faces or points) for each sub-mesh.
-  Status InitializeWorkDataNumElements(const Mesh &mesh, int split_attribute_id,
-                                       WorkData *work_data) const;
+  Status InitializeWorkDataNumElements(const Mesh& mesh, int split_attribute_id,
+                                       WorkData* work_data) const;
   // Initializes a builder for a given sub-mesh.
-  void InitializeBuilder(int b_index, int num_elements, const Mesh &mesh,
-                         int ignored_attribute_id, WorkData *work_data) const;
+  void InitializeBuilder(int b_index, int num_elements, const Mesh& mesh,
+                         int ignored_attribute_id, WorkData* work_data) const;
   // Add all faces or points to the builders.
-  void AddElementsToBuilder(const Mesh &mesh,
-                            const PointAttribute *split_attribute,
-                            WorkData *work_data) const;
+  void AddElementsToBuilder(const Mesh& mesh,
+                            const PointAttribute* split_attribute,
+                            WorkData* work_data) const;
   // Builds the meshes from the data accumulated in the builders.
   StatusOr<MeshSplitter::MeshVector> BuildMeshes(
-      const Mesh &mesh, WorkData *work_data, bool deduplicate_vertices) const;
+      const Mesh& mesh, WorkData* work_data, bool deduplicate_vertices) const;
 };
 
 namespace {
@@ -59,22 +61,23 @@ namespace {
 // Helper functions for copying single element from source |mesh| to a target
 // builder |b_index| stored in |work_data|.
 void AddElementToBuilder(
-    int b_index, FaceIndex source_i, FaceIndex target_i, const Mesh &mesh,
-    MeshSplitterInternal<TriangleSoupMeshBuilder>::WorkData *work_data);
+    int b_index, FaceIndex source_i, FaceIndex target_i, const Mesh& mesh,
+    MeshSplitterInternal<TriangleSoupMeshBuilder>::WorkData* work_data);
 void AddElementToBuilder(
-    int b_index, PointIndex source_i, PointIndex target_i, const Mesh &mesh,
-    MeshSplitterInternal<PointCloudBuilder>::WorkData *work_data);
+    int b_index, PointIndex source_i, PointIndex target_i, const Mesh& mesh,
+    MeshSplitterInternal<PointCloudBuilder>::WorkData* work_data);
 }  // namespace
 
 MeshSplitter::MeshSplitter()
     : preserve_materials_(false),
       remove_unused_material_indices_(true),
       preserve_mesh_features_(false),
-      preserve_structural_metadata_(false),
+      preserve_structural_metadata_(NONE),
+      preserve_gaussian_splatting_(false),
       deduplicate_vertices_(true) {}
 
 StatusOr<MeshSplitter::MeshVector> MeshSplitter::SplitMesh(
-    const Mesh &mesh, uint32_t split_attribute_id) {
+    const Mesh& mesh, uint32_t split_attribute_id) {
   if (mesh.num_attributes() <= split_attribute_id) {
     return Status(Status::DRACO_ERROR, "Invalid attribute id.");
   }
@@ -87,8 +90,8 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::SplitMesh(
 
 template <typename BuilderT>
 StatusOr<MeshSplitter::MeshVector> MeshSplitter::SplitMeshInternal(
-    const Mesh &mesh, int split_attribute_id) {
-  const PointAttribute *const split_attribute =
+    const Mesh& mesh, int split_attribute_id) {
+  const PointAttribute* const split_attribute =
       mesh.attribute(split_attribute_id);
 
   // Preserve the split attribute only if it is the material attribute and the
@@ -142,8 +145,8 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::SplitMeshInternal(
 template <>
 Status
 MeshSplitterInternal<TriangleSoupMeshBuilder>::InitializeWorkDataNumElements(
-    const Mesh &mesh, int split_attribute_id, WorkData *work_data) const {
-  const PointAttribute *const split_attribute =
+    const Mesh& mesh, int split_attribute_id, WorkData* work_data) const {
+  const PointAttribute* const split_attribute =
       mesh.attribute(split_attribute_id);
   // Verify that the attribute values are defined "per-face", i.e., all points
   // on a face are always mapped to the same attribute value.
@@ -163,8 +166,8 @@ MeshSplitterInternal<TriangleSoupMeshBuilder>::InitializeWorkDataNumElements(
 
 template <>
 Status MeshSplitterInternal<PointCloudBuilder>::InitializeWorkDataNumElements(
-    const Mesh &mesh, int split_attribute_id, WorkData *work_data) const {
-  const PointAttribute *const split_attribute =
+    const Mesh& mesh, int split_attribute_id, WorkData* work_data) const {
+  const PointAttribute* const split_attribute =
       mesh.attribute(split_attribute_id);
   // Each point can have a different value. Just accumulate the number of points
   // with the same attribute value index.
@@ -177,8 +180,8 @@ Status MeshSplitterInternal<PointCloudBuilder>::InitializeWorkDataNumElements(
 
 template <typename BuilderT>
 void MeshSplitterInternal<BuilderT>::InitializeBuilder(
-    int b_index, int num_elements, const Mesh &mesh, int ignored_attribute_id,
-    WorkData *work_data) const {
+    int b_index, int num_elements, const Mesh& mesh, int ignored_attribute_id,
+    WorkData* work_data) const {
   work_data->builders[b_index].Start(num_elements);
 
   // Add all attributes.
@@ -186,7 +189,7 @@ void MeshSplitterInternal<BuilderT>::InitializeBuilder(
     if (ai == ignored_attribute_id) {
       continue;
     }
-    const GeometryAttribute *const src_att = mesh.attribute(ai);
+    const GeometryAttribute* const src_att = mesh.attribute(ai);
     (*work_data->att_id_map)[ai] = work_data->builders[b_index].AddAttribute(
         src_att->attribute_type(), src_att->num_components(),
         src_att->data_type(), src_att->normalized());
@@ -197,8 +200,8 @@ void MeshSplitterInternal<BuilderT>::InitializeBuilder(
 
 template <>
 void MeshSplitterInternal<TriangleSoupMeshBuilder>::AddElementsToBuilder(
-    const Mesh &mesh, const PointAttribute *split_attribute,
-    WorkData *work_data) const {
+    const Mesh& mesh, const PointAttribute* split_attribute,
+    WorkData* work_data) const {
   // Go over all faces of the input mesh and add them to the appropriate
   // sub-mesh.
   for (FaceIndex fi(0); fi < mesh.num_faces(); ++fi) {
@@ -211,8 +214,8 @@ void MeshSplitterInternal<TriangleSoupMeshBuilder>::AddElementsToBuilder(
 
 template <>
 void MeshSplitterInternal<PointCloudBuilder>::AddElementsToBuilder(
-    const Mesh &mesh, const PointAttribute *split_attribute,
-    WorkData *work_data) const {
+    const Mesh& mesh, const PointAttribute* split_attribute,
+    WorkData* work_data) const {
   // Go over all points of the input mesh and add them to the appropriate
   // sub-mesh.
   for (PointIndex pi(0); pi < mesh.num_points(); ++pi) {
@@ -225,11 +228,11 @@ void MeshSplitterInternal<PointCloudBuilder>::AddElementsToBuilder(
 namespace {
 
 void AddElementToBuilder(
-    int b_index, FaceIndex source_i, FaceIndex target_i, const Mesh &mesh,
-    MeshSplitterInternal<TriangleSoupMeshBuilder>::WorkData *work_data) {
-  const auto &face = mesh.face(source_i);
+    int b_index, FaceIndex source_i, FaceIndex target_i, const Mesh& mesh,
+    MeshSplitterInternal<TriangleSoupMeshBuilder>::WorkData* work_data) {
+  const auto& face = mesh.face(source_i);
   for (int ai = 0; ai < mesh.num_attributes(); ++ai) {
-    const PointAttribute *const src_att = mesh.attribute(ai);
+    const PointAttribute* const src_att = mesh.attribute(ai);
     const int target_att_id = work_data->att_id_map->at(ai);
     if (target_att_id == -1) {
       continue;
@@ -243,10 +246,10 @@ void AddElementToBuilder(
 }
 
 void AddElementToBuilder(
-    int b_index, PointIndex source_i, PointIndex target_i, const Mesh &mesh,
-    MeshSplitterInternal<PointCloudBuilder>::WorkData *work_data) {
+    int b_index, PointIndex source_i, PointIndex target_i, const Mesh& mesh,
+    MeshSplitterInternal<PointCloudBuilder>::WorkData* work_data) {
   for (int ai = 0; ai < mesh.num_attributes(); ++ai) {
-    const PointAttribute *const src_att = mesh.attribute(ai);
+    const PointAttribute* const src_att = mesh.attribute(ai);
     const int target_att_id = work_data->att_id_map->at(ai);
     if (target_att_id == -1) {
       continue;
@@ -262,7 +265,7 @@ void AddElementToBuilder(
 template <>
 StatusOr<MeshSplitter::MeshVector>
 MeshSplitterInternal<TriangleSoupMeshBuilder>::BuildMeshes(
-    const Mesh &mesh, WorkData *work_data, bool deduplicate_vertices) const {
+    const Mesh& mesh, WorkData* work_data, bool deduplicate_vertices) const {
   const int num_out_meshes = work_data->builders.size();
   MeshSplitter::MeshVector out_meshes(num_out_meshes);
   for (int mi = 0; mi < num_out_meshes; ++mi) {
@@ -280,7 +283,7 @@ MeshSplitterInternal<TriangleSoupMeshBuilder>::BuildMeshes(
 template <>
 StatusOr<MeshSplitter::MeshVector>
 MeshSplitterInternal<PointCloudBuilder>::BuildMeshes(
-    const Mesh &mesh, WorkData *work_data, bool deduplicate_vertices) const {
+    const Mesh& mesh, WorkData* work_data, bool deduplicate_vertices) const {
   const int num_out_meshes = work_data->builders.size();
   MeshSplitter::MeshVector out_meshes(num_out_meshes);
   for (int mi = 0; mi < num_out_meshes; ++mi) {
@@ -295,7 +298,7 @@ MeshSplitterInternal<PointCloudBuilder>::BuildMeshes(
       continue;
     }
     std::unique_ptr<Mesh> mesh(new Mesh());
-    PointCloud *mesh_pc = mesh.get();
+    PointCloud* mesh_pc = mesh.get();
     mesh_pc->Copy(*pc);
     out_meshes[mi] = std::move(mesh);
   }
@@ -303,18 +306,9 @@ MeshSplitterInternal<PointCloudBuilder>::BuildMeshes(
 }
 
 StatusOr<MeshSplitter::MeshVector> MeshSplitter::FinalizeMeshes(
-    const Mesh &mesh, const WorkData &work_data, MeshVector out_meshes) const {
+    const Mesh& mesh, const WorkData& work_data, MeshVector out_meshes) const {
   // Finalize meshes.
   const int num_out_meshes = out_meshes.size();
-
-  // If we are going to preserve mesh features, we will need to update texture
-  // pointers for all mesh feature textures. Here we store the mapping between
-  // the old texture pointers and their indices.
-  std::unordered_map<const Texture *, int> features_texture_to_index_map;
-  if (preserve_mesh_features_) {
-    features_texture_to_index_map =
-        mesh.GetNonMaterialTextureLibrary().ComputeTextureToIndexMap();
-  }
 
   for (int mi = 0; mi < num_out_meshes; ++mi) {
     if (out_meshes[mi] == nullptr) {
@@ -349,7 +343,7 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::FinalizeMeshes(
               ->GetMaterialLibrary()
               .MutableMaterial(material_index)
               ->Copy(*mesh.GetMaterialLibrary().GetMaterial(material_index));
-          std::unordered_map<const Texture *, int> texture_to_index =
+          std::unordered_map<const Texture*, int> texture_to_index =
               mesh.GetMaterialLibrary()
                   .GetTextureLibrary()
                   .ComputeTextureToIndexMap();
@@ -357,7 +351,7 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::FinalizeMeshes(
                                       .GetMaterial(material_index)
                                       ->NumTextureMaps();
                ++tmi) {
-            const TextureMap *const source_texture_map =
+            const TextureMap* const source_texture_map =
                 mesh.GetMaterialLibrary()
                     .GetMaterial(material_index)
                     ->GetTextureMapByIndex(tmi);
@@ -368,7 +362,7 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::FinalizeMeshes(
 
             // Use the index to assign texture to the corresponding texture map
             // on the split mesh.
-            TextureMap *new_texture_map = out_meshes[mi]
+            TextureMap* new_texture_map = out_meshes[mi]
                                               ->GetMaterialLibrary()
                                               .MutableMaterial(material_index)
                                               ->GetTextureMapByIndex(tmi);
@@ -386,7 +380,7 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::FinalizeMeshes(
 
     // Copy metadata of the original mesh to the output meshes.
     if (mesh.GetMetadata() != nullptr) {
-      const GeometryMetadata &metadata = *mesh.GetMetadata();
+      const GeometryMetadata& metadata = *mesh.GetMetadata();
       out_meshes[mi]->AddMetadata(
           std::unique_ptr<GeometryMetadata>(new GeometryMetadata(metadata)));
     }
@@ -397,8 +391,8 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::FinalizeMeshes(
       if (mapped_att_id == -1) {
         continue;
       }
-      const PointAttribute *const src_att = mesh.attribute(att_id);
-      PointAttribute *const dst_att = out_meshes[mi]->attribute(mapped_att_id);
+      const PointAttribute* const src_att = mesh.attribute(att_id);
+      PointAttribute* const dst_att = out_meshes[mi]->attribute(mapped_att_id);
       dst_att->set_unique_id(src_att->unique_id());
     }
 
@@ -460,30 +454,10 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::FinalizeMeshes(
           }
         }
       }
-
-      // Copy over all features textures to the split mesh.
-      out_meshes[mi]->GetNonMaterialTextureLibrary().Copy(
-          mesh.GetNonMaterialTextureLibrary());
-
-      // Update mesh features texture pointers to the new library.
-      for (MeshFeaturesIndex mfi(0); mfi < out_meshes[mi]->NumMeshFeatures();
-           ++mfi) {
-        Mesh::UpdateMeshFeaturesTexturePointer(
-            features_texture_to_index_map,
-            &out_meshes[mi]->GetNonMaterialTextureLibrary(),
-            &out_meshes[mi]->GetMeshFeatures(mfi));
-      }
-
-      // This will remove any mesh features that may not be be actually used
-      // by this |out_meshes[mi]| (e.g. because corresponding material indices
-      // were not present in this split mesh). This also removes any unused
-      // features textures from the non-material texture library.
-      DRACO_RETURN_IF_ERROR(
-          MeshUtils::RemoveUnusedMeshFeatures(out_meshes[mi].get()));
     }
 
-    if (preserve_structural_metadata_) {
-      // Copy proeprty attributes indices from the source |mesh| to the
+    if (preserve_structural_metadata_ != NONE) {
+      // Copy property attributes indices from the source |mesh| to the
       // |out_meshes[mi]|.
       for (int i = 0; i < mesh.NumPropertyAttributesIndices(); ++i) {
         if (work_data.split_by_materials) {
@@ -531,27 +505,112 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::FinalizeMeshes(
         }
       }
 
-      // This will remove any property attributes indices that may not be be
-      // actually used by this |out_meshes[mi]| (e.g. because corresponding
-      // material indices were not present in this split mesh).
-      DRACO_RETURN_IF_ERROR(MeshUtils::RemoveUnusedPropertyAttributesIndices(
-          out_meshes[mi].get()));
-    }
-
-    // Remove unused materials after we remove mesh features because some of
-    // the mesh features may have referenced old material indices.
-    if (preserve_materials_) {
-      out_meshes[mi]->RemoveUnusedMaterials(remove_unused_material_indices_);
+      // Copy property textures indices from the source |mesh| to the
+      // |out_meshes[mi]|.
+      // TODO(vytyaz): Unify attribute and texture indices to avoid code
+      // duplication.
+      for (int i = 0; i < mesh.NumPropertyTexturesIndices(); ++i) {
+        if (work_data.split_by_materials) {
+          // Copy over only those property texture indices that were masked to
+          // the material corresponding to |mi|.
+          bool is_used = false;
+          if (mesh.NumPropertyTexturesIndexMaterialMasks(i) == 0) {
+            is_used = true;
+          } else {
+            for (int mask_index = 0;
+                 mask_index < mesh.NumPropertyTexturesIndexMaterialMasks(i);
+                 ++mask_index) {
+              if (mesh.GetPropertyTexturesIndexMaterialMask(i, mask_index) ==
+                  mi) {
+                is_used = true;
+                break;
+              }
+            }
+          }
+          if (!is_used) {
+            // Ignore this property textures index.
+            continue;
+          }
+        }
+        // Create a copy of source property textures index.
+        const int new_i = out_meshes[mi]->AddPropertyTexturesIndex(
+            mesh.GetPropertyTexturesIndex(i));
+        if (work_data.split_by_materials && !preserve_materials_) {
+          // If the input |mesh| was split by materials and we didn't preserve
+          // the materials, all property textures indices must be masked to
+          // material 0.
+          out_meshes[mi]->AddPropertyTexturesIndexMaterialMask(new_i, 0);
+        } else {
+          // Otherwise property textures index uses same masking as the source
+          // mesh because the material texture is still present in the split
+          // meshes. Note that this masking can be later changed in
+          // RemoveUnusedMaterials() call below.
+          for (int mask_index = 0;
+               mask_index < mesh.NumPropertyTexturesIndexMaterialMasks(i);
+               ++mask_index) {
+            out_meshes[mi]->AddPropertyTexturesIndexMaterialMask(
+                new_i,
+                mesh.GetPropertyTexturesIndexMaterialMask(i, mask_index));
+          }
+        }
+      }
     }
 
     // Copy structural metadata from input mesh to each of the output meshes.
-    out_meshes[mi]->GetStructuralMetadata().Copy(mesh.GetStructuralMetadata());
+    if (preserve_structural_metadata_ == ALL) {
+      out_meshes[mi]->GetStructuralMetadata().Copy(
+          mesh.GetStructuralMetadata());
+    }
+
+    if (preserve_gaussian_splatting_ &&
+        mesh.GetGaussianSplatting().has_value()) {
+      out_meshes[mi]->SetGaussianSplatting(mesh.GetGaussianSplatting().value());
+    }
+
+    if (preserve_mesh_features_ || preserve_structural_metadata_ != NONE) {
+      // Copy all feature ID textures and property textures to the split mesh.
+      out_meshes[mi]->GetNonMaterialTextureLibrary().Copy(
+          mesh.GetNonMaterialTextureLibrary());
+
+      // Update non-material texture pointers to point to the copied textures.
+      if (preserve_structural_metadata_ == ALL) {
+        Mesh::UpdateNonMaterialTexturePointers(
+            mesh.GetNonMaterialTextureLibrary().ComputeTextureToIndexMap(),
+            &out_meshes[mi]->GetNonMaterialTextureLibrary(),
+            out_meshes[mi].get(), &out_meshes[mi]->GetStructuralMetadata());
+      }
+
+      // Remove any mesh features, property attributes, and property textures
+      // that may not be be actually used by this |out_meshes[mi]| (e.g. because
+      // corresponding material indices were not present in this split mesh).
+      MeshUtils::RemoveUnusedMeshFeatures(out_meshes[mi].get());
+      if (preserve_structural_metadata_ != NONE) {
+        MeshUtils::RemoveUnusedPropertyAttributesIndices(out_meshes[mi].get());
+        MeshUtils::RemoveUnusedPropertyTexturesIndices(out_meshes[mi].get());
+      }
+      if (preserve_structural_metadata_ == ALL) {
+        MeshUtils::RemoveUnusedPropertyAttributes(out_meshes[mi].get());
+        MeshUtils::RemoveUnusedPropertyTextures(out_meshes[mi].get());
+      }
+
+      // Remove from non-material texture library the textures that are unused
+      // neither by mesh feature ID textures, nor by structural metadata
+      // property textures.
+      MeshUtils::RemoveUnusedNonMaterialTextures(out_meshes[mi].get());
+    }
+
+    // Remove unused materials after we remove unused mesh features and
+    // structural metadata because some of them may have referenced old material
+    // indices.
+    if (preserve_materials_) {
+      out_meshes[mi]->RemoveUnusedMaterials(remove_unused_material_indices_);
+    }
   }
   return std::move(out_meshes);
 }
 
 StatusOr<MeshSplitter::MeshVector> MeshSplitter::SplitMeshToComponents(
-    const Mesh &mesh, const MeshConnectedComponents &connected_components) {
+    const Mesh& mesh, const MeshConnectedComponents& connected_components) {
   // Create the sub-meshes.
   const int num_out_meshes = connected_components.NumConnectedComponents();
   MeshSplitterInternal<TriangleSoupMeshBuilder> splitter_internal;
@@ -581,10 +640,6 @@ StatusOr<MeshSplitter::MeshVector> MeshSplitter::SplitMeshToComponents(
       auto out_meshes,
       splitter_internal.BuildMeshes(mesh, &work_data, deduplicate_vertices_));
   return FinalizeMeshes(mesh, work_data, std::move(out_meshes));
-}
-
-int MeshSplitter::GetSplitMeshAttributeIndex(int source_mesh_att_index) const {
-  return att_id_map_[source_mesh_att_index];
 }
 
 }  // namespace draco

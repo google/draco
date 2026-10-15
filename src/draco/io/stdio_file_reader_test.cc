@@ -20,7 +20,7 @@ TEST(StdioFileReaderTest, Open) {
 TEST(StdioFileReaderTest, FailRead) {
   auto reader = StdioFileReader::Open(GetTestFileFullPath("car.drc"));
   ASSERT_NE(reader, nullptr);
-  std::vector<char> *buffer = nullptr;
+  std::vector<char>* buffer = nullptr;
   EXPECT_FALSE(reader->ReadFileToBuffer(buffer));
 }
 

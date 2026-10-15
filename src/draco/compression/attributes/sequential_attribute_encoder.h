@@ -38,23 +38,23 @@ class SequentialAttributeEncoder {
   // This method is automatically called by the PointCloudEncoder after all
   // attribute encoders are created and it should not be called explicitly from
   // other places.
-  virtual bool Init(PointCloudEncoder *encoder, int attribute_id);
+  virtual bool Init(PointCloudEncoder* encoder, int attribute_id);
 
   // Initialization for a specific attribute. This can be used mostly for
   // standalone encoding of an attribute without an PointCloudEncoder.
-  virtual bool InitializeStandalone(PointAttribute *attribute);
+  virtual bool InitializeStandalone(PointAttribute* attribute);
 
   // Transforms attribute data into format that is going to be encoded
   // losslessly. The transform itself can be lossy.
   virtual bool TransformAttributeToPortableFormat(
-      const std::vector<PointIndex> &point_ids);
+      const std::vector<PointIndex>& point_ids);
 
   // Performs lossless encoding of the transformed attribute data.
-  virtual bool EncodePortableAttribute(const std::vector<PointIndex> &point_ids,
-                                       EncoderBuffer *out_buffer);
+  virtual bool EncodePortableAttribute(const std::vector<PointIndex>& point_ids,
+                                       EncoderBuffer* out_buffer);
 
   // Encodes any data related to the portable attribute transform.
-  virtual bool EncodeDataNeededByPortableTransform(EncoderBuffer *out_buffer);
+  virtual bool EncodeDataNeededByPortableTransform(EncoderBuffer* out_buffer);
 
   virtual bool IsLossyEncoder() const { return false; }
 
@@ -63,7 +63,7 @@ class SequentialAttributeEncoder {
   }
   int GetParentAttributeId(int i) const { return parent_attributes_[i]; }
 
-  const PointAttribute *GetPortableAttribute() const {
+  const PointAttribute* GetPortableAttribute() const {
     if (portable_attribute_ != nullptr) {
       return portable_attribute_.get();
     }
@@ -78,26 +78,26 @@ class SequentialAttributeEncoder {
     return SEQUENTIAL_ATTRIBUTE_ENCODER_GENERIC;
   }
 
-  const PointAttribute *attribute() const { return attribute_; }
+  const PointAttribute* attribute() const { return attribute_; }
   int attribute_id() const { return attribute_id_; }
-  PointCloudEncoder *encoder() const { return encoder_; }
+  PointCloudEncoder* encoder() const { return encoder_; }
 
  protected:
   // Should be used to initialize newly created prediction scheme.
   // Returns false when the initialization failed (in which case the scheme
   // cannot be used).
-  virtual bool InitPredictionScheme(PredictionSchemeInterface *ps);
+  virtual bool InitPredictionScheme(PredictionSchemeInterface* ps);
 
   // Sets parent attributes for a given prediction scheme. Must be called
   // after all prediction schemes are initialized, but before the prediction
   // scheme is used.
   virtual bool SetPredictionSchemeParentAttributes(
-      PredictionSchemeInterface *ps);
+      PredictionSchemeInterface* ps);
 
   // Encodes all attribute values in the specified order. Should be overridden
   // for specialized  encoders.
-  virtual bool EncodeValues(const std::vector<PointIndex> &point_ids,
-                            EncoderBuffer *out_buffer);
+  virtual bool EncodeValues(const std::vector<PointIndex>& point_ids,
+                            EncoderBuffer* out_buffer);
 
   bool is_parent_encoder() const { return is_parent_encoder_; }
 
@@ -108,11 +108,11 @@ class SequentialAttributeEncoder {
   // Returns a mutable attribute that should be filled by derived encoders with
   // the transformed version of the attribute data. To get a public const
   // version, use the GetPortableAttribute() method.
-  PointAttribute *portable_attribute() { return portable_attribute_.get(); }
+  PointAttribute* portable_attribute() { return portable_attribute_.get(); }
 
  private:
-  PointCloudEncoder *encoder_;
-  const PointAttribute *attribute_;
+  PointCloudEncoder* encoder_;
+  const PointAttribute* attribute_;
   int attribute_id_;
 
   // List of attribute encoders that need to be encoded before this attribute.

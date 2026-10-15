@@ -27,14 +27,14 @@ class SequentialQuantizationAttributeDecoder
     : public SequentialIntegerAttributeDecoder {
  public:
   SequentialQuantizationAttributeDecoder();
-  bool Init(PointCloudDecoder *decoder, int attribute_id) override;
+  bool Init(PointCloudDecoder* decoder, int attribute_id) override;
 
  protected:
-  bool DecodeIntegerValues(const std::vector<PointIndex> &point_ids,
-                           DecoderBuffer *in_buffer) override;
+  bool DecodeIntegerValues(const std::vector<PointIndex>& point_ids,
+                           DecoderBuffer* in_buffer) override;
   bool DecodeDataNeededByPortableTransform(
-      const std::vector<PointIndex> &point_ids,
-      DecoderBuffer *in_buffer) override;
+      const std::vector<PointIndex>& point_ids,
+      DecoderBuffer* in_buffer) override;
   bool StoreValues(uint32_t num_points) override;
 
   // Decodes data necessary for dequantizing the encoded values.

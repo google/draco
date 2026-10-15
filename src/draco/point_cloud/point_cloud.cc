@@ -27,7 +27,7 @@ namespace draco {
 PointCloud::PointCloud() : num_points_(0) {}
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
-void PointCloud::Copy(const PointCloud &src) {
+void PointCloud::Copy(const PointCloud& src) {
   num_points_ = src.num_points_;
   for (int i = 0; i < GeometryAttribute::NAMED_ATTRIBUTES_COUNT; ++i) {
     named_attribute_index_[i] = src.named_attribute_index_[i];
@@ -40,14 +40,20 @@ void PointCloud::Copy(const PointCloud &src) {
   compression_enabled_ = src.compression_enabled_;
   compression_options_ = src.compression_options_;
   CopyMetadata(src);
+
+  morph_targets_.resize(src.morph_targets_.size());
+  for (int i = 0; i < src.morph_targets_.size(); ++i) {
+    morph_targets_[i] = std::unique_ptr<PointCloud>(new PointCloud());
+    morph_targets_[i]->Copy(*src.morph_targets_[i]);
+  }
 }
 
-void PointCloud::CopyMetadata(const PointCloud &src) {
+void PointCloud::CopyMetadata(const PointCloud& src) {
   if (src.metadata_ == nullptr) {
     metadata_ = nullptr;
   } else {
     // Copy base metadata.
-    const GeometryMetadata *const metadata = src.metadata_.get();
+    const GeometryMetadata* const metadata = src.metadata_.get();
     metadata_.reset(new GeometryMetadata(*metadata));
   }
 }
@@ -73,12 +79,12 @@ int32_t PointCloud::GetNamedAttributeId(GeometryAttribute::Type type,
   return named_attribute_index_[type][i];
 }
 
-const PointAttribute *PointCloud::GetNamedAttribute(
+const PointAttribute* PointCloud::GetNamedAttribute(
     GeometryAttribute::Type type) const {
   return GetNamedAttribute(type, 0);
 }
 
-const PointAttribute *PointCloud::GetNamedAttribute(
+const PointAttribute* PointCloud::GetNamedAttribute(
     GeometryAttribute::Type type, int i) const {
   const int32_t att_id = GetNamedAttributeId(type, i);
   if (att_id == -1) {
@@ -87,7 +93,7 @@ const PointAttribute *PointCloud::GetNamedAttribute(
   return attributes_[att_id].get();
 }
 
-const PointAttribute *PointCloud::GetNamedAttributeByUniqueId(
+const PointAttribute* PointCloud::GetNamedAttributeByUniqueId(
     GeometryAttribute::Type type, uint32_t unique_id) const {
   for (size_t att_id = 0; att_id < named_attribute_index_[type].size();
        ++att_id) {
@@ -99,7 +105,7 @@ const PointAttribute *PointCloud::GetNamedAttributeByUniqueId(
   return nullptr;
 }
 
-const PointAttribute *PointCloud::GetAttributeByUniqueId(
+const PointAttribute* PointCloud::GetAttributeByUniqueId(
     uint32_t unique_id) const {
   const int32_t att_id = GetAttributeIdByUniqueId(unique_id);
   if (att_id == -1) {
@@ -109,11 +115,11 @@ const PointAttribute *PointCloud::GetAttributeByUniqueId(
 }
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
-const PointAttribute *PointCloud::GetNamedAttributeByName(
-    GeometryAttribute::Type type, const std::string &name) const {
-  const auto &index = named_attribute_index_;
+const PointAttribute* PointCloud::GetNamedAttributeByName(
+    GeometryAttribute::Type type, const std::string& name) const {
+  const auto& index = named_attribute_index_;
   for (size_t i = 0; i < index[type].size(); ++i) {
-    const PointAttribute *const att = attributes_[index[type][i]].get();
+    const PointAttribute* const att = attributes_[index[type][i]].get();
     if (att->name() == name) {
       return att;
     }
@@ -137,7 +143,7 @@ int PointCloud::AddAttribute(std::unique_ptr<PointAttribute> pa) {
 }
 
 int PointCloud::AddAttribute(
-    const GeometryAttribute &att, bool identity_mapping,
+    const GeometryAttribute& att, bool identity_mapping,
     AttributeValueIndex::ValueType num_attribute_values) {
   auto pa = CreateAttribute(att, identity_mapping, num_attribute_values);
   if (!pa) {
@@ -148,7 +154,7 @@ int PointCloud::AddAttribute(
 }
 
 std::unique_ptr<PointAttribute> PointCloud::CreateAttribute(
-    const GeometryAttribute &att, bool identity_mapping,
+    const GeometryAttribute& att, bool identity_mapping,
     AttributeValueIndex::ValueType num_attribute_values) const {
   if (att.attribute_type() == GeometryAttribute::INVALID) {
     return nullptr;
@@ -244,14 +250,13 @@ void PointCloud::DeduplicatePointIds() {
   std::vector<PointIndex> unique_points;
   // Go through all vertices and find their duplicates.
   for (PointIndex i(0); i < num_points_; ++i) {
-    const auto it = unique_point_map.find(i);
-    if (it != unique_point_map.end()) {
-      index_map[i] = it->second;
-    } else {
-      unique_point_map.insert(std::make_pair(i, PointIndex(num_unique_points)));
-      index_map[i] = num_unique_points++;
+    const auto iterator_and_inserted = unique_point_map.insert(
+        std::make_pair(i, PointIndex(num_unique_points)));
+    if (iterator_and_inserted.second) {
+      ++num_unique_points;
       unique_points.push_back(i);
     }
+    index_map[i] = iterator_and_inserted.first->second;
   }
   if (num_unique_points == num_points_) {
     return;  // All vertices are already unique.
@@ -262,8 +267,8 @@ void PointCloud::DeduplicatePointIds() {
 }
 
 void PointCloud::ApplyPointIdDeduplication(
-    const IndexTypeVector<PointIndex, PointIndex> &id_map,
-    const std::vector<PointIndex> &unique_point_ids) {
+    const IndexTypeVector<PointIndex, PointIndex>& id_map,
+    const std::vector<PointIndex>& unique_point_ids) {
   int32_t num_unique_points = 0;
   for (PointIndex i : unique_point_ids) {
     const PointIndex new_point_id = id_map[i];

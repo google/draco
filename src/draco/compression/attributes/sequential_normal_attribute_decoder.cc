@@ -18,9 +18,9 @@
 
 namespace draco {
 
-SequentialNormalAttributeDecoder::SequentialNormalAttributeDecoder() {}
+SequentialNormalAttributeDecoder::SequentialNormalAttributeDecoder() = default;
 
-bool SequentialNormalAttributeDecoder::Init(PointCloudDecoder *decoder,
+bool SequentialNormalAttributeDecoder::Init(PointCloudDecoder* decoder,
                                             int attribute_id) {
   if (!SequentialIntegerAttributeDecoder::Init(decoder, attribute_id)) {
     return false;
@@ -37,7 +37,7 @@ bool SequentialNormalAttributeDecoder::Init(PointCloudDecoder *decoder,
 }
 
 bool SequentialNormalAttributeDecoder::DecodeIntegerValues(
-    const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
+    const std::vector<PointIndex>& point_ids, DecoderBuffer* in_buffer) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0)) {
     // Note: in older bitstreams, we do not have a PortableAttribute() decoded
@@ -54,7 +54,7 @@ bool SequentialNormalAttributeDecoder::DecodeIntegerValues(
 }
 
 bool SequentialNormalAttributeDecoder::DecodeDataNeededByPortableTransform(
-    const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
+    const std::vector<PointIndex>& point_ids, DecoderBuffer* in_buffer) {
   if (decoder()->bitstream_version() >= DRACO_BITSTREAM_VERSION(2, 0)) {
     // For newer file version, decode attribute transform data here.
     if (!octahedral_transform_.DecodeParameters(*GetPortableAttribute(),

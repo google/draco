@@ -22,7 +22,7 @@ namespace draco {
 MeshAttributeCornerTable::MeshAttributeCornerTable()
     : no_interior_seams_(true), corner_table_(nullptr), valence_cache_(*this) {}
 
-bool MeshAttributeCornerTable::InitEmpty(const CornerTable *table) {
+bool MeshAttributeCornerTable::InitEmpty(const CornerTable* table) {
   if (table == nullptr) {
     return false;
   }
@@ -38,9 +38,9 @@ bool MeshAttributeCornerTable::InitEmpty(const CornerTable *table) {
   return true;
 }
 
-bool MeshAttributeCornerTable::InitFromAttribute(const Mesh *mesh,
-                                                 const CornerTable *table,
-                                                 const PointAttribute *att) {
+bool MeshAttributeCornerTable::InitFromAttribute(const Mesh* mesh,
+                                                 const CornerTable* table,
+                                                 const PointAttribute* att) {
   if (!InitEmpty(table)) {
     return false;
   }
@@ -126,8 +126,8 @@ void MeshAttributeCornerTable::AddSeamEdge(CornerIndex c) {
   }
 }
 
-bool MeshAttributeCornerTable::RecomputeVertices(const Mesh *mesh,
-                                                 const PointAttribute *att) {
+bool MeshAttributeCornerTable::RecomputeVertices(const Mesh* mesh,
+                                                 const PointAttribute* att) {
   DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
   if (mesh != nullptr && att != nullptr) {
     return RecomputeVerticesInternal<true>(mesh, att);
@@ -138,7 +138,7 @@ bool MeshAttributeCornerTable::RecomputeVertices(const Mesh *mesh,
 
 template <bool init_vertex_to_attribute_entry_map>
 bool MeshAttributeCornerTable::RecomputeVerticesInternal(
-    const Mesh *mesh, const PointAttribute *att) {
+    const Mesh* mesh, const PointAttribute* att) {
   DRACO_DCHECK(GetValenceCache().IsCacheEmpty());
   vertex_to_attribute_entry_id_map_.clear();
   vertex_to_left_most_corner_map_.clear();

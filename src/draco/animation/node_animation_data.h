@@ -31,11 +31,11 @@ namespace draco {
 // is using it.
 class NodeAnimationData {
  public:
-  enum class Type { SCALAR, VEC3, VEC4, MAT4 };
+  enum class Type { SCALAR, VEC2, VEC3, VEC4, MAT4 };
 
   NodeAnimationData() : type_(Type::SCALAR), count_(0), normalized_(false) {}
 
-  void Copy(const NodeAnimationData &src) {
+  void Copy(const NodeAnimationData& src) {
     type_ = src.type_;
     count_ = src.count_;
     normalized_ = src.normalized_;
@@ -46,8 +46,8 @@ class NodeAnimationData {
   int count() const { return count_; }
   bool normalized() const { return normalized_; }
 
-  std::vector<float> *GetMutableData() { return &data_; }
-  const std::vector<float> *GetData() const { return &data_; }
+  std::vector<float>* GetMutableData() { return &data_; }
+  const std::vector<float>* GetData() const { return &data_; }
 
   void SetType(Type type) { type_ = type; }
   void SetCount(int count) { count_ = count; }
@@ -58,6 +58,8 @@ class NodeAnimationData {
     switch (type_) {
       case Type::SCALAR:
         return 1;
+      case Type::VEC2:
+        return 2;
       case Type::VEC3:
         return 3;
       case Type::MAT4:
@@ -71,6 +73,8 @@ class NodeAnimationData {
     switch (type_) {
       case Type::SCALAR:
         return "SCALAR";
+      case Type::VEC2:
+        return "VEC2";
       case Type::VEC3:
         return "VEC3";
       case Type::MAT4:
@@ -80,7 +84,7 @@ class NodeAnimationData {
     }
   }
 
-  bool operator==(const NodeAnimationData &nad) const {
+  bool operator==(const NodeAnimationData& nad) const {
     return type_ == nad.type_ && count_ == nad.count_ &&
            normalized_ == nad.normalized_ && data_ == nad.data_;
   }
@@ -98,49 +102,49 @@ class NodeAnimationData {
 class NodeAnimationDataHash {
  public:
   NodeAnimationDataHash() = delete;
-  NodeAnimationDataHash &operator=(const NodeAnimationDataHash &) = delete;
-  NodeAnimationDataHash(NodeAnimationDataHash &&) = delete;
-  NodeAnimationDataHash &operator=(NodeAnimationDataHash &&) = delete;
+  NodeAnimationDataHash& operator=(const NodeAnimationDataHash&) = delete;
+  NodeAnimationDataHash(NodeAnimationDataHash&&) = delete;
+  NodeAnimationDataHash& operator=(NodeAnimationDataHash&&) = delete;
 
-  explicit NodeAnimationDataHash(const NodeAnimationData *nad)
+  explicit NodeAnimationDataHash(const NodeAnimationData* nad)
       : node_animation_data_(nad) {
     hash_ = NodeAnimationDataHash::HashNodeAnimationData(*node_animation_data_);
   }
 
-  NodeAnimationDataHash(const NodeAnimationDataHash &nadh) {
+  NodeAnimationDataHash(const NodeAnimationDataHash& nadh) {
     node_animation_data_ = nadh.node_animation_data_;
     hash_ = nadh.hash_;
   }
 
-  bool operator==(const NodeAnimationDataHash &nadh) const {
+  bool operator==(const NodeAnimationDataHash& nadh) const {
     return *node_animation_data_ == *nadh.node_animation_data_;
   }
 
   struct Hash {
-    size_t operator()(const NodeAnimationDataHash &nadh) const {
+    size_t operator()(const NodeAnimationDataHash& nadh) const {
       return nadh.hash_;
     }
   };
 
-  const NodeAnimationData *GetNodeAnimationData() {
+  const NodeAnimationData* GetNodeAnimationData() {
     return node_animation_data_;
   }
 
  private:
   // Returns a hash of |nad|.
-  static size_t HashNodeAnimationData(const NodeAnimationData &nad) {
+  static size_t HashNodeAnimationData(const NodeAnimationData& nad) {
     size_t hash = 79;  // Magic number.
     hash = HashCombine(static_cast<int>(nad.type()), hash);
     hash = HashCombine(nad.count(), hash);
     hash = HashCombine(nad.normalized(), hash);
     const uint64_t data_hash =
-        FingerprintString(reinterpret_cast<const char *>(nad.GetData()->data()),
+        FingerprintString(reinterpret_cast<const char*>(nad.GetData()->data()),
                           nad.GetData()->size() * sizeof(float));
     hash = HashCombine(data_hash, hash);
     return hash;
   }
 
-  const NodeAnimationData *node_animation_data_;
+  const NodeAnimationData* node_animation_data_;
   size_t hash_;
 };
 

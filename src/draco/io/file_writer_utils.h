@@ -23,15 +23,15 @@ namespace draco {
 // |out_folder_path| will contain the path to the folder containing the file
 // excluding the final slash. If no folder is specified in the |full_path|, then
 // |out_folder_path| is set to "."
-void SplitPathPrivate(const std::string &full_path,
-                      std::string *out_folder_path, std::string *out_file_name);
+void SplitPathPrivate(const std::string& full_path,
+                      std::string* out_folder_path, std::string* out_file_name);
 
 // Checks is |path| exists and if it is a directory.
-bool DirectoryExists(const std::string &path);
+bool DirectoryExists(const std::string& path);
 
 // Checks if the path for file is valid. If not this function will try and
 // create the path. Returns false on error.
-bool CheckAndCreatePathForFile(const std::string &filename);
+bool CheckAndCreatePathForFile(const std::string& filename);
 
 }  // namespace draco
 

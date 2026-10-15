@@ -24,6 +24,7 @@
 
 #include "draco/metadata/property_attribute.h"
 #include "draco/metadata/property_table.h"
+#include "draco/metadata/property_texture.h"
 #include "draco/metadata/structural_metadata_schema.h"
 
 namespace draco {
@@ -34,32 +35,39 @@ class StructuralMetadata {
   StructuralMetadata() = default;
 
   // Methods for comparing two structural metadata objects.
-  bool operator==(const StructuralMetadata &other) const;
-  bool operator!=(const StructuralMetadata &other) const {
+  bool operator==(const StructuralMetadata& other) const;
+  bool operator!=(const StructuralMetadata& other) const {
     return !(*this == other);
   }
 
   // Copies |src| structural metadata into this object.
-  void Copy(const StructuralMetadata &src);
+  void Copy(const StructuralMetadata& src);
 
   // Schema of the structural metadata.
-  void SetSchema(const StructuralMetadataSchema &schema);
-  const StructuralMetadataSchema &GetSchema() const;
+  void SetSchema(const StructuralMetadataSchema& schema);
+  const StructuralMetadataSchema& GetSchema() const;
 
   // Property tables.
   int AddPropertyTable(std::unique_ptr<PropertyTable> property_table);
   int NumPropertyTables() const;
-  const PropertyTable &GetPropertyTable(int index) const;
-  PropertyTable &GetPropertyTable(int index);
+  const PropertyTable& GetPropertyTable(int index) const;
+  PropertyTable& GetPropertyTable(int index);
   void RemovePropertyTable(int index);
 
   // Property attributes.
   int AddPropertyAttribute(
       std::unique_ptr<PropertyAttribute> property_attribute);
   int NumPropertyAttributes() const;
-  const PropertyAttribute &GetPropertyAttribute(int index) const;
-  PropertyAttribute &GetPropertyAttribute(int index);
+  const PropertyAttribute& GetPropertyAttribute(int index) const;
+  PropertyAttribute& GetPropertyAttribute(int index);
   void RemovePropertyAttribute(int index);
+
+  // Property textures.
+  int AddPropertyTexture(std::unique_ptr<PropertyTexture> property_texture);
+  int NumPropertyTextures() const;
+  const PropertyTexture& GetPropertyTexture(int index) const;
+  PropertyTexture& GetPropertyTexture(int index);
+  void RemovePropertyTexture(int index);
 
  private:
   // Schema of the structural metadata.
@@ -70,6 +78,9 @@ class StructuralMetadata {
 
   // Property attributes.
   std::vector<std::unique_ptr<PropertyAttribute>> property_attributes_;
+
+  // Property textures.
+  std::vector<std::unique_ptr<PropertyTexture>> property_textures_;
 };
 
 }  // namespace draco

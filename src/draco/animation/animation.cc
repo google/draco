@@ -18,7 +18,7 @@
 
 namespace draco {
 
-void Animation::Copy(const Animation &src) {
+void Animation::Copy(const Animation& src) {
   name_ = src.name_;
   channels_.clear();
   for (int i = 0; i < src.NumChannels(); ++i) {

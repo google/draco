@@ -94,56 +94,14 @@
             "EXT_structural_metadata": {
               "propertyAttributes": [
                 0
+              ],
+              "propertyTextures": [
+                0
               ]
             }
           }
         }
       ]
-    }
-  ],
-  "materials": [
-    {
-      "pbrMetallicRoughness": {
-        "baseColorFactor": [
-          0.80000001192092896,
-          0,
-          0,
-          1
-        ],
-        "metallicFactor": 0,
-        "roughnessFactor": 1
-      },
-      "emissiveFactor": [
-        0,
-        0,
-        0
-      ],
-      "alphaMode": "OPAQUE",
-      "name": "Red"
-    }
-  ],
-  "textures": [
-    {
-      "source": 0,
-      "sampler": 0
-    },
-    {
-      "source": 1,
-      "sampler": 0
-    }
-  ],
-  "samplers": [
-    {
-      "wrapS": 33071,
-      "wrapT": 33071
-    }
-  ],
-  "images": [
-    {
-      "uri": "Texture0_MeshFeatures.png"
-    },
-    {
-      "uri": "Texture1_MeshFeatures.png"
     }
   ],
   "accessors": [
@@ -236,6 +194,12 @@
                 "required": true,
                 "type": "STRING"
               },
+              "classification": {
+                "description": "The classification.",
+                "required": false,
+                "type": "ENUM",
+                "enumType": "classification"
+              },
               "sequence": {
                 "componentType": "FLOAT32",
                 "description": "The number sequence.",
@@ -267,6 +231,7 @@
           "classifications": {
             "description": "Classifications of planets.",
             "name": "classifications",
+            "valueType": "UINT16",
             "values": [
               {
                 "name": "Unspecified",
@@ -306,10 +271,13 @@
               "stringOffsetType": "UINT32",
               "stringOffsets": 12
             },
+            "classification": {
+              "values": 13
+            },
             "sequence": {
-              "values": 13,
+              "values": 14,
               "arrayOffsetType": "UINT8",
-              "arrayOffsets": 14
+              "arrayOffsets": 15
             }
           }
         }
@@ -327,9 +295,79 @@
             }
           }
         }
+      ],
+      "propertyTextures": [
+        {
+          "name": "The movement.",
+          "class": "movement",
+          "properties": {
+            "magnitude": {
+              "index": 2,
+              "texCoord": 0,
+              "channels": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          }
+        }
       ]
     }
   },
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.80000001192092896,
+          0,
+          0,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 1
+      },
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "alphaMode": "OPAQUE",
+      "name": "Red"
+    }
+  ],
+  "textures": [
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    }
+  ],
+  "samplers": [
+    {
+      "wrapS": 33071,
+      "wrapT": 33071
+    }
+  ],
+  "images": [
+    {
+      "uri": "Texture0_MeshFeatures.png"
+    },
+    {
+      "uri": "Texture1_MeshFeatures.png"
+    },
+    {
+      "uri": "Texture0_Property.png"
+    }
+  ],
   "bufferViews": [
     {
       "buffer": 0,
@@ -402,19 +440,25 @@
     {
       "buffer": 0,
       "byteOffset": 2716,
+      "byteLength": 32,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2748,
       "byteLength": 164,
       "target": 34963
     },
     {
       "buffer": 0,
-      "byteOffset": 2880,
+      "byteOffset": 2912,
       "byteLength": 20,
       "target": 34963
     }
   ],
   "buffers": [
     {
-      "byteLength": 2900,
+      "byteLength": 2932,
       "uri": "buffer0.bin"
     }
   ],

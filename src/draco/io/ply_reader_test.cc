@@ -23,7 +23,7 @@ namespace draco {
 
 class PlyReaderTest : public ::testing::Test {
  protected:
-  std::vector<char> ReadPlyFile(const std::string &file_name) const {
+  std::vector<char> ReadPlyFile(const std::string& file_name) const {
     const std::string path = GetTestFileFullPath(file_name);
 
     std::vector<char> data;
@@ -46,7 +46,7 @@ TEST_F(PlyReaderTest, TestReader) {
   ASSERT_TRUE(reader.element(1).property(0).is_list());
 
   ASSERT_TRUE(reader.element(0).GetPropertyByName("red") != nullptr);
-  const PlyProperty *const prop = reader.element(0).GetPropertyByName("red");
+  const PlyProperty* const prop = reader.element(0).GetPropertyByName("red");
   PlyPropertyReader<uint8_t> reader_uint8(prop);
   PlyPropertyReader<uint32_t> reader_uint32(prop);
   PlyPropertyReader<float> reader_float(prop);
@@ -77,8 +77,8 @@ TEST_F(PlyReaderTest, TestReaderAscii) {
             reader_ascii.element(0).num_properties());
 
   ASSERT_TRUE(reader.element(0).GetPropertyByName("x") != nullptr);
-  const PlyProperty *const prop = reader.element(0).GetPropertyByName("x");
-  const PlyProperty *const prop_ascii =
+  const PlyProperty* const prop = reader.element(0).GetPropertyByName("x");
+  const PlyProperty* const prop_ascii =
       reader_ascii.element(0).GetPropertyByName("x");
   PlyPropertyReader<float> reader_float(prop);
   PlyPropertyReader<float> reader_float_ascii(prop_ascii);
@@ -104,7 +104,7 @@ TEST_F(PlyReaderTest, TestReaderExtraWhitespace) {
   ASSERT_TRUE(reader.element(1).property(0).is_list());
 
   ASSERT_TRUE(reader.element(0).GetPropertyByName("red") != nullptr);
-  const PlyProperty *const prop = reader.element(0).GetPropertyByName("red");
+  const PlyProperty* const prop = reader.element(0).GetPropertyByName("red");
   PlyPropertyReader<uint8_t> reader_uint8(prop);
   PlyPropertyReader<uint32_t> reader_uint32(prop);
   PlyPropertyReader<float> reader_float(prop);
@@ -130,7 +130,7 @@ TEST_F(PlyReaderTest, TestReaderMoreDataTypes) {
   ASSERT_TRUE(reader.element(1).property(0).is_list());
 
   ASSERT_TRUE(reader.element(0).GetPropertyByName("red") != nullptr);
-  const PlyProperty *const prop = reader.element(0).GetPropertyByName("red");
+  const PlyProperty* const prop = reader.element(0).GetPropertyByName("red");
   PlyPropertyReader<uint8_t> reader_uint8(prop);
   PlyPropertyReader<uint32_t> reader_uint32(prop);
   PlyPropertyReader<float> reader_float(prop);
@@ -138,6 +138,16 @@ TEST_F(PlyReaderTest, TestReaderMoreDataTypes) {
     ASSERT_EQ(reader_uint8.ReadValue(i), reader_uint32.ReadValue(i));
     ASSERT_EQ(reader_uint8.ReadValue(i), reader_float.ReadValue(i));
   }
+}
+
+TEST_F(PlyReaderTest, TestBug13InvalidPropertyListCount) {
+  const std::string file_name = "invalid_property_list.ply";
+  const std::vector<char> data = ReadPlyFile(file_name);
+  DecoderBuffer buf;
+  buf.Init(data.data(), data.size());
+  PlyReader reader;
+  Status status = reader.Read(&buf);
+  ASSERT_FALSE(status.ok());
 }
 
 TEST_F(PlyReaderTest, TestReaderTruncatedListData) {
@@ -167,6 +177,59 @@ TEST_F(PlyReaderTest, TestReaderTruncatedListData) {
   ASSERT_FALSE(status.ok());
 }
 
+TEST_F(PlyReaderTest, TestReaderEmptyListData) {
+  // Binary PLY where the "face" element declares a list property whose
+  // count field is 0 (i.e. num_entries == 0, num_bytes_to_read == 0).
+  const char kData[] =
+      "ply\n"
+      "format binary_little_endian 1.0\n"
+      "element vertex 1\n"
+      "property float x\n"
+      "property float y\n"
+      "property float z\n"
+      "element face 1\n"
+      "property list uchar int vertex_indices\n"
+      "end_header\n"
+      "\x00\x00\x80\x3f\x00\x00\x00\x40\x00\x00\x40\x40"  // vertex: 1, 2, 3
+      "\x00"  // list count: 0 entries (0 bytes to read)
+      ;
+  DecoderBuffer buf;
+  buf.Init(kData, sizeof(kData) - 1);
+  PlyReader reader;
+  const Status status = reader.Read(&buf);
+  ASSERT_TRUE(status.ok());
+  const PlyElement* face_element = reader.GetElementByName("face");
+  ASSERT_NE(face_element, nullptr);
+  const PlyProperty* prop = face_element->GetPropertyByName("vertex_indices");
+  ASSERT_NE(prop, nullptr);
+  EXPECT_EQ(prop->GetListEntryNumValues(0), 0);
+}
+
+TEST_F(PlyReaderTest, TestReaderTruncatedListCount) {
+  // Binary PLY where the "face" element declares a list property, but the
+  // buffer ends before the list count can be decoded.
+  // Regression test for PlyReader::ParseElementData(): verifies that failure of
+  // buffer->Decode() when reading the list count is checked and returns an
+  // error.
+  const char kData[] =
+      "ply\n"
+      "format binary_little_endian 1.0\n"
+      "element vertex 1\n"
+      "property float x\n"
+      "property float y\n"
+      "property float z\n"
+      "element face 1\n"
+      "property list uchar int vertex_indices\n"
+      "end_header\n"
+      "\x00\x00\x80\x3f\x00\x00\x00\x40\x00\x00\x40\x40"  // vertex: 1, 2, 3
+      ;
+  DecoderBuffer buf;
+  buf.Init(kData, sizeof(kData) - 1);
+  PlyReader reader;
+  const Status status = reader.Read(&buf);
+  ASSERT_FALSE(status.ok());
+}
+
 TEST_F(PlyReaderTest, TestReaderBigEndian) {
   const std::string file_name = "test_pos_color.ply";
   const std::vector<char> data = ReadPlyFile(file_name);
@@ -179,6 +242,7 @@ TEST_F(PlyReaderTest, TestReaderBigEndian) {
 
   const std::string file_name_big_endian = "test_pos_color_big_endian.ply";
   const std::vector<char> data_big_endian = ReadPlyFile(file_name_big_endian);
+  ASSERT_NE(data_big_endian.size(), 0u);
   buf.Init(data_big_endian.data(), data_big_endian.size());
   PlyReader reader_big_endian;
   status = reader_big_endian.Read(&buf);
@@ -188,8 +252,8 @@ TEST_F(PlyReaderTest, TestReaderBigEndian) {
             reader_big_endian.element(0).num_properties());
 
   ASSERT_TRUE(reader.element(0).GetPropertyByName("x") != nullptr);
-  const PlyProperty *const prop = reader.element(0).GetPropertyByName("x");
-  const PlyProperty *const prop_big_endian =
+  const PlyProperty* const prop = reader.element(0).GetPropertyByName("x");
+  const PlyProperty* const prop_big_endian =
       reader_big_endian.element(0).GetPropertyByName("x");
   PlyPropertyReader<float> reader_float(prop);
   PlyPropertyReader<float> reader_float_big_endian(prop_big_endian);

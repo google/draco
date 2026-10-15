@@ -72,8 +72,8 @@ class OctahedronToolBox {
   // Convert all edge points in the top left and bottom right quadrants to
   // their corresponding position in the bottom left and top right quadrants.
   // Convert all corner edge points to the top right corner.
-  inline void CanonicalizeOctahedralCoords(int32_t s, int32_t t, int32_t *out_s,
-                                           int32_t *out_t) const {
+  inline void CanonicalizeOctahedralCoords(int32_t s, int32_t t, int32_t* out_s,
+                                           int32_t* out_t) const {
     if ((s == 0 && t == 0) || (s == 0 && t == max_value_) ||
         (s == max_value_ && t == 0)) {
       s = max_value_;
@@ -94,9 +94,9 @@ class OctahedronToolBox {
 
   // Converts an integer vector to octahedral coordinates.
   // Precondition: |int_vec| abs sum must equal center value.
-  inline void IntegerVectorToQuantizedOctahedralCoords(const int32_t *int_vec,
-                                                       int32_t *out_s,
-                                                       int32_t *out_t) const {
+  inline void IntegerVectorToQuantizedOctahedralCoords(const int32_t* int_vec,
+                                                       int32_t* out_s,
+                                                       int32_t* out_t) const {
     DRACO_DCHECK_EQ(
         std::abs(int_vec[0]) + std::abs(int_vec[1]) + std::abs(int_vec[2]),
         center_value_);
@@ -122,8 +122,8 @@ class OctahedronToolBox {
   }
 
   template <class T>
-  void FloatVectorToQuantizedOctahedralCoords(const T *vector, int32_t *out_s,
-                                              int32_t *out_t) const {
+  void FloatVectorToQuantizedOctahedralCoords(const T* vector, int32_t* out_s,
+                                              int32_t* out_t) const {
     const double abs_sum = std::abs(static_cast<double>(vector[0])) +
                            std::abs(static_cast<double>(vector[1])) +
                            std::abs(static_cast<double>(vector[2]));
@@ -170,7 +170,7 @@ class OctahedronToolBox {
 
   // Normalize |vec| such that its abs sum is equal to the center value;
   template <class T>
-  void CanonicalizeIntegerVector(T *vec) const {
+  void CanonicalizeIntegerVector(T* vec) const {
     static_assert(std::is_integral<T>::value, "T must be an integral type.");
     static_assert(std::is_signed<T>::value, "T must be a signed type.");
     const int64_t abs_sum = static_cast<int64_t>(std::abs(vec[0])) +
@@ -195,14 +195,14 @@ class OctahedronToolBox {
   }
 
   inline void QuantizedOctahedralCoordsToUnitVector(int32_t in_s, int32_t in_t,
-                                                    float *out_vector) const {
+                                                    float* out_vector) const {
     OctahedralCoordsToUnitVector(in_s * dequantization_scale_ - 1.f,
                                  in_t * dequantization_scale_ - 1.f,
                                  out_vector);
   }
 
   // |s| and |t| are expected to be signed values.
-  inline bool IsInDiamond(const int32_t &s, const int32_t &t) const {
+  inline bool IsInDiamond(const int32_t& s, const int32_t& t) const {
     // Expect center already at origin.
     DRACO_DCHECK_LE(s, center_value_);
     DRACO_DCHECK_LE(t, center_value_);
@@ -213,7 +213,7 @@ class OctahedronToolBox {
     return st <= center_value_;
   }
 
-  void InvertDiamond(int32_t *s, int32_t *t) const {
+  void InvertDiamond(int32_t* s, int32_t* t) const {
     // Expect center already at origin.
     DRACO_DCHECK_LE(*s, center_value_);
     DRACO_DCHECK_LE(*t, center_value_);
@@ -257,7 +257,7 @@ class OctahedronToolBox {
     *t /= 2;
   }
 
-  void InvertDirection(int32_t *s, int32_t *t) const {
+  void InvertDirection(int32_t* s, int32_t* t) const {
     // Expect center already at origin.
     DRACO_DCHECK_LE(*s, center_value_);
     DRACO_DCHECK_LE(*t, center_value_);
@@ -295,7 +295,7 @@ class OctahedronToolBox {
 
  private:
   inline void OctahedralCoordsToUnitVector(float in_s_scaled, float in_t_scaled,
-                                           float *out_vector) const {
+                                           float* out_vector) const {
     // Background about the encoding:
     //   A normal is encoded in a normalized space <s, t> depicted below. The
     //   encoding correponds to an octahedron that is unwrapped to a 2D plane.

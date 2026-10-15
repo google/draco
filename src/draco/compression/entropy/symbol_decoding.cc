@@ -23,14 +23,14 @@ namespace draco {
 
 template <template <int> class SymbolDecoderT>
 bool DecodeTaggedSymbols(uint32_t num_values, int num_components,
-                         DecoderBuffer *src_buffer, uint32_t *out_values);
+                         DecoderBuffer* src_buffer, uint32_t* out_values);
 
 template <template <int> class SymbolDecoderT>
-bool DecodeRawSymbols(uint32_t num_values, DecoderBuffer *src_buffer,
-                      uint32_t *out_values);
+bool DecodeRawSymbols(uint32_t num_values, DecoderBuffer* src_buffer,
+                      uint32_t* out_values);
 
 bool DecodeSymbols(uint32_t num_values, int num_components,
-                   DecoderBuffer *src_buffer, uint32_t *out_values) {
+                   DecoderBuffer* src_buffer, uint32_t* out_values) {
   if (num_values == 0) {
     return true;
   }
@@ -51,7 +51,7 @@ bool DecodeSymbols(uint32_t num_values, int num_components,
 
 template <template <int> class SymbolDecoderT>
 bool DecodeTaggedSymbols(uint32_t num_values, int num_components,
-                         DecoderBuffer *src_buffer, uint32_t *out_values) {
+                         DecoderBuffer* src_buffer, uint32_t* out_values) {
   // Decode the encoded data.
   SymbolDecoderT<5> tag_decoder;
   if (!tag_decoder.Create(src_buffer)) {
@@ -88,8 +88,8 @@ bool DecodeTaggedSymbols(uint32_t num_values, int num_components,
 }
 
 template <class SymbolDecoderT>
-bool DecodeRawSymbolsInternal(uint32_t num_values, DecoderBuffer *src_buffer,
-                              uint32_t *out_values) {
+bool DecodeRawSymbolsInternal(uint32_t num_values, DecoderBuffer* src_buffer,
+                              uint32_t* out_values) {
   SymbolDecoderT decoder;
   if (!decoder.Create(src_buffer)) {
     return false;
@@ -112,8 +112,8 @@ bool DecodeRawSymbolsInternal(uint32_t num_values, DecoderBuffer *src_buffer,
 }
 
 template <template <int> class SymbolDecoderT>
-bool DecodeRawSymbols(uint32_t num_values, DecoderBuffer *src_buffer,
-                      uint32_t *out_values) {
+bool DecodeRawSymbols(uint32_t num_values, DecoderBuffer* src_buffer,
+                      uint32_t* out_values) {
   uint8_t max_bit_length;
   if (!src_buffer->Decode(&max_bit_length)) {
     return false;

@@ -40,12 +40,12 @@ inline uint64_t HashCombine(uint64_t a, uint64_t b) {
 }
 
 // Will never return 1 or 0.
-uint64_t FingerprintString(const char *s, size_t len);
+uint64_t FingerprintString(const char* s, size_t len);
 
 // Hash for std::array.
 template <typename T>
 struct HashArray {
-  size_t operator()(const T &a) const {
+  size_t operator()(const T& a) const {
     size_t hash = 79;  // Magic number.
     for (unsigned int i = 0; i < std::tuple_size<T>::value; ++i) {
       hash = HashCombine(hash, ValueHash(a[i]));
@@ -54,7 +54,7 @@ struct HashArray {
   }
 
   template <typename V>
-  size_t ValueHash(const V &val) const {
+  size_t ValueHash(const V& val) const {
     return std::hash<V>()(val);
   }
 };

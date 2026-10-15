@@ -18,13 +18,13 @@
 
 namespace draco {
 
-AdaptiveRAnsBitEncoder::AdaptiveRAnsBitEncoder() {}
+AdaptiveRAnsBitEncoder::AdaptiveRAnsBitEncoder() = default;
 
 AdaptiveRAnsBitEncoder::~AdaptiveRAnsBitEncoder() { Clear(); }
 
 void AdaptiveRAnsBitEncoder::StartEncoding() { Clear(); }
 
-void AdaptiveRAnsBitEncoder::EndEncoding(EncoderBuffer *target_buffer) {
+void AdaptiveRAnsBitEncoder::EndEncoding(EncoderBuffer* target_buffer) {
   // Buffer for ans to write.
   std::vector<uint8_t> buffer(bits_.size() + 16);
   AnsCoder ans_coder;

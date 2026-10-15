@@ -34,14 +34,14 @@ class MeshPredictionSchemeTexCoordsPortablePredictor {
  public:
   static constexpr int kNumComponents = 2;
 
-  explicit MeshPredictionSchemeTexCoordsPortablePredictor(const MeshDataT &md)
+  explicit MeshPredictionSchemeTexCoordsPortablePredictor(const MeshDataT& md)
       : pos_attribute_(nullptr),
         entry_to_point_id_map_(nullptr),
         mesh_data_(md) {}
-  void SetPositionAttribute(const PointAttribute &position_attribute) {
+  void SetPositionAttribute(const PointAttribute& position_attribute) {
     pos_attribute_ = &position_attribute;
   }
-  void SetEntryToPointIdMap(const PointIndex *map) {
+  void SetEntryToPointIdMap(const PointIndex* map) {
     entry_to_point_id_map_ = map;
   }
   bool IsInitialized() const { return pos_attribute_ != nullptr; }
@@ -55,7 +55,7 @@ class MeshPredictionSchemeTexCoordsPortablePredictor {
   }
 
   VectorD<int64_t, 2> GetTexCoordForEntryId(int entry_id,
-                                            const DataTypeT *data) const {
+                                            const DataTypeT* data) const {
     const int data_offset = entry_id * kNumComponents;
     return VectorD<int64_t, 2>(data[data_offset], data[data_offset + 1]);
   }
@@ -63,10 +63,10 @@ class MeshPredictionSchemeTexCoordsPortablePredictor {
   // Computes predicted UV coordinates on a given corner. The coordinates are
   // stored in |predicted_value_| member.
   template <bool is_encoder_t>
-  bool ComputePredictedValue(CornerIndex corner_id, const DataTypeT *data,
+  bool ComputePredictedValue(CornerIndex corner_id, const DataTypeT* data,
                              int data_id);
 
-  const DataTypeT *predicted_value() const { return predicted_value_; }
+  const DataTypeT* predicted_value() const { return predicted_value_; }
   bool orientation(int i) const { return orientations_[i]; }
   void set_orientation(int i, bool v) { orientations_[i] = v; }
   size_t num_orientations() const { return orientations_.size(); }
@@ -75,8 +75,8 @@ class MeshPredictionSchemeTexCoordsPortablePredictor {
   }
 
  private:
-  const PointAttribute *pos_attribute_;
-  const PointIndex *entry_to_point_id_map_;
+  const PointAttribute* pos_attribute_;
+  const PointIndex* entry_to_point_id_map_;
   DataTypeT predicted_value_[kNumComponents];
   // Encoded / decoded array of UV flips.
   // TODO(ostava): We should remove this and replace this with in-place encoding
@@ -89,7 +89,7 @@ template <typename DataTypeT, class MeshDataT>
 template <bool is_encoder_t>
 bool MeshPredictionSchemeTexCoordsPortablePredictor<
     DataTypeT, MeshDataT>::ComputePredictedValue(CornerIndex corner_id,
-                                                 const DataTypeT *data,
+                                                 const DataTypeT* data,
                                                  int data_id) {
   // Compute the predicted UV coordinate from the positions on all corners
   // of the processed triangle. For the best prediction, the UV coordinates
@@ -174,15 +174,9 @@ bool MeshPredictionSchemeTexCoordsPortablePredictor<
         // Return false if squared length calculation would overflow.
         return false;
       }
-      // Keep the scaled prediction arithmetic in the unsigned domain.  The
-      // decoder accepts untrusted deltas, so intermediate values may exceed
-      // the signed range even though the final wrapped value is valid for the
-      // bitstream.  Performing the addition as signed arithmetic invokes
-      // undefined behaviour on malformed input.
-      const Vec2 x_uv =
-          Vec2(Vec2u(n_uv) * pn_norm2_squared +
-               Vec2u(static_cast<uint64_t>(cn_dot_pn),
-                     static_cast<uint64_t>(cn_dot_pn)) * Vec2u(pn_uv));
+      // Keep the scaled prediction arithmetic in the unsigned domain.
+      const Vec2 x_uv = Vec2(Vec2u(n_uv) * pn_norm2_squared +
+                             Vec2u(pn_uv) * static_cast<uint64_t>(cn_dot_pn));
       const int64_t pn_absmax_element =
           std::max(std::max(std::abs(pn[0]), std::abs(pn[1])), std::abs(pn[2]));
       if (std::abs(cn_dot_pn) >

@@ -19,6 +19,7 @@
 #ifndef DRACO_IO_PLY_READER_H_
 #define DRACO_IO_PLY_READER_H_
 
+#include <cstdint>
 #include <map>
 #include <vector>
 
@@ -36,7 +37,7 @@ class PlyProperty {
  public:
   friend class PlyReader;
 
-  PlyProperty(const std::string &name, DataType data_type, DataType list_type);
+  PlyProperty(const std::string& name, DataType data_type, DataType list_type);
   void ReserveData(int num_entries) {
     data_.reserve(DataTypeLength(data_type_) * num_entries);
   }
@@ -47,15 +48,15 @@ class PlyProperty {
   int64_t GetListEntryNumValues(int entry_id) const {
     return list_data_[entry_id * 2 + 1];
   }
-  const void *GetDataEntryAddress(int entry_id) const {
+  const void* GetDataEntryAddress(int entry_id) const {
     return data_.data() + entry_id * data_type_num_bytes_;
   }
-  void push_back_value(const void *data) {
-    data_.insert(data_.end(), static_cast<const uint8_t *>(data),
-                 static_cast<const uint8_t *>(data) + data_type_num_bytes_);
+  void push_back_value(const void* data) {
+    data_.insert(data_.end(), static_cast<const uint8_t*>(data),
+                 static_cast<const uint8_t*>(data) + data_type_num_bytes_);
   }
 
-  const std::string &name() const { return name_; }
+  const std::string& name() const { return name_; }
   bool is_list() const { return list_data_type_ != DT_INVALID; }
   DataType data_type() const { return data_type_; }
   int data_type_num_bytes() const { return data_type_num_bytes_; }
@@ -77,8 +78,8 @@ class PlyProperty {
 // arbitrary properties such as vertex coordinates or face indices.
 class PlyElement {
  public:
-  PlyElement(const std::string &name, int64_t num_entries);
-  void AddProperty(const PlyProperty &prop) {
+  PlyElement(const std::string& name, int64_t num_entries);
+  void AddProperty(const PlyProperty& prop) {
     property_index_[prop.name()] = static_cast<int>(properties_.size());
     properties_.emplace_back(prop);
     if (!properties_.back().is_list()) {
@@ -86,7 +87,7 @@ class PlyElement {
     }
   }
 
-  const PlyProperty *GetPropertyByName(const std::string &name) const {
+  const PlyProperty* GetPropertyByName(const std::string& name) const {
     const auto it = property_index_.find(name);
     if (it != property_index_.end()) {
       return &properties_[it->second];
@@ -96,10 +97,10 @@ class PlyElement {
 
   int num_properties() const { return static_cast<int>(properties_.size()); }
   int num_entries() const { return static_cast<int>(num_entries_); }
-  const PlyProperty &property(int prop_index) const {
+  const PlyProperty& property(int prop_index) const {
     return properties_[prop_index];
   }
-  PlyProperty &property(int prop_index) { return properties_[prop_index]; }
+  PlyProperty& property(int prop_index) { return properties_[prop_index]; }
 
  private:
   std::string name_;
@@ -113,9 +114,9 @@ class PlyElement {
 class PlyReader {
  public:
   PlyReader();
-  Status Read(DecoderBuffer *buffer);
+  Status Read(DecoderBuffer* buffer);
 
-  const PlyElement *GetElementByName(const std::string &name) const {
+  const PlyElement* GetElementByName(const std::string& name) const {
     const auto it = element_index_.find(name);
     if (it != element_index_.end()) {
       return &elements_[it->second];
@@ -124,26 +125,26 @@ class PlyReader {
   }
 
   int num_elements() const { return static_cast<int>(elements_.size()); }
-  const PlyElement &element(int element_index) const {
+  const PlyElement& element(int element_index) const {
     return elements_[element_index];
   }
 
  private:
   enum Format { kLittleEndian = 0, kBigEndian, kAscii };
 
-  Status ParseHeader(DecoderBuffer *buffer);
-  StatusOr<bool> ParseEndHeader(DecoderBuffer *buffer);
-  bool ParseElement(DecoderBuffer *buffer);
-  StatusOr<bool> ParseProperty(DecoderBuffer *buffer);
-  bool ParsePropertiesData(DecoderBuffer *buffer);
-  bool ParseElementData(DecoderBuffer *buffer, int element_index);
-  bool ParseElementDataAscii(DecoderBuffer *buffer, int element_index);
+  Status ParseHeader(DecoderBuffer* buffer);
+  StatusOr<bool> ParseEndHeader(DecoderBuffer* buffer);
+  bool ParseElement(DecoderBuffer* buffer);
+  StatusOr<bool> ParseProperty(DecoderBuffer* buffer);
+  bool ParsePropertiesData(DecoderBuffer* buffer);
+  bool ParseElementData(DecoderBuffer* buffer, int element_index);
+  bool ParseElementDataAscii(DecoderBuffer* buffer, int element_index);
 
   // Splits |line| by whitespace characters.
-  std::vector<std::string> SplitWords(const std::string &line);
-  DataType GetDataTypeFromString(const std::string &name) const;
+  std::vector<std::string> SplitWords(const std::string& line);
+  DataType GetDataTypeFromString(const std::string& name) const;
 
-  static void SwapBytes(uint8_t *data, int num_bytes);
+  static void SwapBytes(uint8_t* data, int num_bytes);
 
   std::vector<PlyElement> elements_;
   std::map<std::string, int> element_index_;

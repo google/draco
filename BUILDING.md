@@ -93,6 +93,26 @@ to be explicitly enabled when you run `cmake`, for example:
 $ cmake ../ -DDRACO_TRANSCODER_SUPPORTED=ON
 ~~~~~
 
+To enable Polygonal Mesh Coding (PMC) support in the transcoder, you must also
+enable `DRACO_PMC_SUPPORTED`:
+
+~~~~~ bash
+$ cmake ../ -DDRACO_TRANSCODER_SUPPORTED=ON -DDRACO_PMC_SUPPORTED=ON
+~~~~~
+
+### PMC Dependency Setup
+
+The PMC library is required when `DRACO_PMC_SUPPORTED` is enabled. It should be
+placed in `third_party/pmc`. If PMC is not present as a submodule, you can clone
+it manually:
+
+~~~~~ bash
+$ git clone https://gitlab.com/AOMediaVVM/reference-software/aomedia-pmc third_party/pmc
+$ cd third_party/pmc
+$ git checkout v18.0
+~~~~~
+
+
 The above option is currently not compatible with our Javascript or WebAssembly
 builds but all other use cases are supported. Note that binaries and libraries
 built with the transcoder support may result in increased binary sizes of the
@@ -107,6 +127,8 @@ copies of third party dependencies instead of git submodules.
   filesystem includes are located.
 - `DRACO_TINYGLTF_PATH`: this path must contain tiny_gltf.h and its
   dependencies.
+- `DRACO_PMC_PATH`: optional path to the PMC library sources (defaults to
+  `third_party/pmc`).
 
 When not specified the Draco build requires the presence of the submodules that
 are stored within `draco/third_party`.
@@ -192,6 +214,8 @@ has dependencies on third party libraries:
   - Provides C++17 std::filesystem emulation for pre-C++17 environments.
 - [TinyGLTF](https://github.com/syoyo/tinygltf)
   - Provides GLTF I/O support.
+- [PMC](https://gitlab.com/AOMediaVVM/reference-software/aomedia-pmc)
+  - Provides Polygonal Mesh Coding (PMC) support.
 
 These dependencies are managed as Git submodules. To obtain the dependencies
 run the following command in your Draco repository:

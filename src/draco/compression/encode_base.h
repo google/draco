@@ -35,8 +35,8 @@ class EncoderBase {
         num_encoded_faces_(0) {}
   virtual ~EncoderBase() {}
 
-  const EncoderOptionsT &options() const { return options_; }
-  EncoderOptionsT &options() { return options_; }
+  const EncoderOptionsT& options() const { return options_; }
+  EncoderOptionsT& options() { return options_; }
 
   // If enabled, it tells the encoder to keep track of the number of encoded
   // points and faces (default = false).
@@ -49,7 +49,7 @@ class EncoderBase {
   size_t num_encoded_faces() const { return num_encoded_faces_; }
 
  protected:
-  void Reset(const EncoderOptionsT &options) { options_ = options; }
+  void Reset(const EncoderOptionsT& options) { options_ = options; }
 
   void Reset() { options_ = EncoderOptionsT::CreateDefaultOptions(); }
 

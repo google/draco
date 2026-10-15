@@ -55,11 +55,11 @@ class SpatialQuantizationOptions {
   // integer quantized position. |spacing| defines the distance between two grid
   // vertices. E.g. a grid with |spacing| = 10 would have grid vertices at
   // locations {10 * i, 10 * j, 10 * k} where i, j, k are integer numbers.
-  SpatialQuantizationOptions &SetGrid(float spacing);
+  SpatialQuantizationOptions& SetGrid(float spacing);
 
   const float spacing() const { return spacing_; }
 
-  bool operator==(const SpatialQuantizationOptions &other) const;
+  bool operator==(const SpatialQuantizationOptions& other) const;
 
  private:
   enum Mode { LOCAL_QUANTIZATION_BITS, GLOBAL_GRID };
@@ -71,6 +71,10 @@ class SpatialQuantizationOptions {
 // TODO(fgalligan): Add support for unified_position_quantization.
 // Struct to hold Draco compression options.
 struct DracoCompressionOptions {
+#ifdef DRACO_PMC_SUPPORTED
+  // If true, use PMC compression instead of Draco compression.
+  bool use_pmc = false;
+#endif                        // DRACO_PMC_SUPPORTED
   int compression_level = 7;  // compression level [0-10], most=10, least=0.
   SpatialQuantizationOptions quantization_position{11};
   int quantization_bits_normal = 8;
@@ -81,8 +85,11 @@ struct DracoCompressionOptions {
   int quantization_bits_weight = 8;
   bool find_non_degenerate_texture_quantization = false;
 
-  bool operator==(const DracoCompressionOptions &other) const {
+  bool operator==(const DracoCompressionOptions& other) const {
     return compression_level == other.compression_level &&
+#ifdef DRACO_PMC_SUPPORTED
+           use_pmc == other.use_pmc &&
+#endif  // DRACO_PMC_SUPPORTED
            quantization_position == other.quantization_position &&
            quantization_bits_normal == other.quantization_bits_normal &&
            quantization_bits_tex_coord == other.quantization_bits_tex_coord &&
@@ -94,7 +101,7 @@ struct DracoCompressionOptions {
                other.find_non_degenerate_texture_quantization;
   }
 
-  bool operator!=(const DracoCompressionOptions &other) const {
+  bool operator!=(const DracoCompressionOptions& other) const {
     return !(*this == other);
   }
 
@@ -125,7 +132,7 @@ struct DracoCompressionOptions {
     return OkStatus();
   }
 
-  static Status Validate(const std::string &name, int value, int min, int max) {
+  static Status Validate(const std::string& name, int value, int min, int max) {
     if (value < min || value > max) {
       const std::string range =
           "[" + std::to_string(min) + "-" + std::to_string(max) + "].";

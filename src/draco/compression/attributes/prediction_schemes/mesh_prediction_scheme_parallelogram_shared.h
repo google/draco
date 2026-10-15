@@ -26,9 +26,9 @@ namespace draco {
 // (performance).
 template <class CornerTableT>
 inline void GetParallelogramEntries(
-    const CornerIndex ci, const CornerTableT *table,
-    const std::vector<int32_t> &vertex_to_data_map, int *opp_entry,
-    int *next_entry, int *prev_entry) {
+    const CornerIndex ci, const CornerTableT* table,
+    const std::vector<int32_t>& vertex_to_data_map, int* opp_entry,
+    int* next_entry, int* prev_entry) {
   // One vertex of the input |table| correspond to exactly one attribute value
   // entry. The |table| can be either CornerTable for per-vertex attributes,
   // or MeshAttributeCornerTable for attributes with interior seams.
@@ -43,9 +43,9 @@ inline void GetParallelogramEntries(
 // not all entry points were available.
 template <class CornerTableT, typename DataTypeT>
 inline bool ComputeParallelogramPrediction(
-    int data_entry_id, const CornerIndex ci, const CornerTableT *table,
-    const std::vector<int32_t> &vertex_to_data_map, const DataTypeT *in_data,
-    int num_components, DataTypeT *out_prediction) {
+    int data_entry_id, const CornerIndex ci, const CornerTableT* table,
+    const std::vector<int32_t>& vertex_to_data_map, const DataTypeT* in_data,
+    int num_components, DataTypeT* out_prediction) {
   const CornerIndex oci = table->Opposite(ci);
   if (oci == kInvalidCornerIndex) {
     return false;

@@ -27,7 +27,7 @@ namespace draco {
 namespace {
 
 StatusOr<std::unique_ptr<Texture>> CreateDracoTextureInternal(
-    const std::vector<uint8_t> &image_data, SourceImage *out_source_image) {
+    const std::vector<uint8_t>& image_data, SourceImage* out_source_image) {
   std::unique_ptr<Texture> draco_texture(new Texture());
   const auto format =
       ImageFormatFromBuffer(image_data.data(), image_data.size());
@@ -38,7 +38,7 @@ StatusOr<std::unique_ptr<Texture>> CreateDracoTextureInternal(
 
 }  // namespace
 
-ImageFormat ImageFormatFromBuffer(const uint8_t *buffer, size_t buffer_size) {
+ImageFormat ImageFormatFromBuffer(const uint8_t* buffer, size_t buffer_size) {
   if (buffer_size > 4) {
     // These bytes are the Start of Image (SOI) and End of Image (EOI) markers
     // in a JPEG data stream.
@@ -98,7 +98,7 @@ ImageFormat ImageFormatFromBuffer(const uint8_t *buffer, size_t buffer_size) {
 }
 
 StatusOr<std::unique_ptr<Texture>> ReadTextureFromFile(
-    const std::string &file_name) {
+    const std::string& file_name) {
   std::vector<uint8_t> image_data;
   if (!ReadFileToBuffer(file_name, &image_data)) {
     return Status(Status::IO_ERROR, "Unable to read input texture file.");
@@ -120,7 +120,7 @@ StatusOr<std::unique_ptr<Texture>> ReadTextureFromFile(
   return texture;
 }
 
-StatusOr<std::unique_ptr<Texture>> ReadTextureFromBuffer(const uint8_t *buffer,
+StatusOr<std::unique_ptr<Texture>> ReadTextureFromBuffer(const uint8_t* buffer,
                                                          size_t buffer_size) {
   SourceImage source_image;
   std::vector<uint8_t> image_data(buffer, buffer + buffer_size);
@@ -131,12 +131,12 @@ StatusOr<std::unique_ptr<Texture>> ReadTextureFromBuffer(const uint8_t *buffer,
 }
 
 StatusOr<std::unique_ptr<Texture>> ReadTextureFromBuffer(
-    const uint8_t *buffer, size_t buffer_size, const std::string &mime_type) {
+    const uint8_t* buffer, size_t buffer_size, const std::string& mime_type) {
   return ReadTextureFromBuffer(buffer, buffer_size);
 }
 
-Status WriteTextureToFile(const std::string &file_name,
-                          const Texture &texture) {
+Status WriteTextureToFile(const std::string& file_name,
+                          const Texture& texture) {
   std::vector<uint8_t> buffer;
   DRACO_RETURN_IF_ERROR(WriteTextureToBuffer(texture, &buffer));
 
@@ -147,8 +147,8 @@ Status WriteTextureToFile(const std::string &file_name,
   return OkStatus();
 }
 
-Status WriteTextureToBuffer(const Texture &texture,
-                            std::vector<uint8_t> *buffer) {
+Status WriteTextureToBuffer(const Texture& texture,
+                            std::vector<uint8_t>* buffer) {
   // Copy data from the encoded source image if possible, otherwise load the
   // data from the source file.
   if (!texture.source_image().encoded_data().empty()) {

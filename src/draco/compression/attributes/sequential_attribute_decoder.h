@@ -28,53 +28,53 @@ class SequentialAttributeDecoder {
   SequentialAttributeDecoder();
   virtual ~SequentialAttributeDecoder() = default;
 
-  virtual bool Init(PointCloudDecoder *decoder, int attribute_id);
+  virtual bool Init(PointCloudDecoder* decoder, int attribute_id);
 
   // Initialization for a specific attribute. This can be used mostly for
   // standalone decoding of an attribute without an PointCloudDecoder.
-  virtual bool InitializeStandalone(PointAttribute *attribute);
+  virtual bool InitializeStandalone(PointAttribute* attribute);
 
   // Performs lossless decoding of the portable attribute data.
-  virtual bool DecodePortableAttribute(const std::vector<PointIndex> &point_ids,
-                                       DecoderBuffer *in_buffer);
+  virtual bool DecodePortableAttribute(const std::vector<PointIndex>& point_ids,
+                                       DecoderBuffer* in_buffer);
 
   // Decodes any data needed to revert portable transform of the decoded
   // attribute.
   virtual bool DecodeDataNeededByPortableTransform(
-      const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer);
+      const std::vector<PointIndex>& point_ids, DecoderBuffer* in_buffer);
 
   // Reverts transformation performed by encoder in
   // SequentialAttributeEncoder::TransformAttributeToPortableFormat() method.
   virtual bool TransformAttributeToOriginalFormat(
-      const std::vector<PointIndex> &point_ids);
+      const std::vector<PointIndex>& point_ids);
 
-  const PointAttribute *GetPortableAttribute();
+  const PointAttribute* GetPortableAttribute();
 
-  const PointAttribute *attribute() const { return attribute_; }
-  PointAttribute *attribute() { return attribute_; }
+  const PointAttribute* attribute() const { return attribute_; }
+  PointAttribute* attribute() { return attribute_; }
   int attribute_id() const { return attribute_id_; }
-  PointCloudDecoder *decoder() const { return decoder_; }
+  PointCloudDecoder* decoder() const { return decoder_; }
 
  protected:
   // Should be used to initialize newly created prediction scheme.
   // Returns false when the initialization failed (in which case the scheme
   // cannot be used).
-  virtual bool InitPredictionScheme(PredictionSchemeInterface *ps);
+  virtual bool InitPredictionScheme(PredictionSchemeInterface* ps);
 
   // The actual implementation of the attribute decoding. Should be overridden
   // for specialized decoders.
-  virtual bool DecodeValues(const std::vector<PointIndex> &point_ids,
-                            DecoderBuffer *in_buffer);
+  virtual bool DecodeValues(const std::vector<PointIndex>& point_ids,
+                            DecoderBuffer* in_buffer);
 
   void SetPortableAttribute(std::unique_ptr<PointAttribute> att) {
     portable_attribute_ = std::move(att);
   }
 
-  PointAttribute *portable_attribute() { return portable_attribute_.get(); }
+  PointAttribute* portable_attribute() { return portable_attribute_.get(); }
 
  private:
-  PointCloudDecoder *decoder_;
-  PointAttribute *attribute_;
+  PointCloudDecoder* decoder_;
+  PointAttribute* attribute_;
   int attribute_id_;
 
   // Storage for decoded portable attribute (after lossless decoding).

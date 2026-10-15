@@ -26,18 +26,18 @@ DecoderBuffer::DecoderBuffer()
       bit_mode_(false),
       bitstream_version_(0) {}
 
-void DecoderBuffer::Init(const char *data, size_t data_size) {
+void DecoderBuffer::Init(const char* data, size_t data_size) {
   Init(data, data_size, bitstream_version_);
 }
 
-void DecoderBuffer::Init(const char *data, size_t data_size, uint16_t version) {
+void DecoderBuffer::Init(const char* data, size_t data_size, uint16_t version) {
   data_ = data;
   data_size_ = data_size;
   bitstream_version_ = version;
   pos_ = 0;
 }
 
-bool DecoderBuffer::StartBitDecoding(bool decode_size, uint64_t *out_size) {
+bool DecoderBuffer::StartBitDecoding(bool decode_size, uint64_t* out_size) {
   if (decode_size) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
     if (bitstream_version_ < DRACO_BITSTREAM_VERSION(2, 2)) {
@@ -67,6 +67,6 @@ void DecoderBuffer::EndBitDecoding() {
 DecoderBuffer::BitDecoder::BitDecoder()
     : bit_buffer_(nullptr), bit_buffer_end_(nullptr), bit_offset_(0) {}
 
-DecoderBuffer::BitDecoder::~BitDecoder() {}
+DecoderBuffer::BitDecoder::~BitDecoder() = default;
 
 }  // namespace draco

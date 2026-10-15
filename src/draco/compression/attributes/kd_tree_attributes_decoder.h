@@ -26,17 +26,17 @@ class KdTreeAttributesDecoder : public AttributesDecoder {
   KdTreeAttributesDecoder();
 
  protected:
-  bool DecodePortableAttributes(DecoderBuffer *in_buffer) override;
-  bool DecodeDataNeededByPortableTransforms(DecoderBuffer *in_buffer) override;
+  bool DecodePortableAttributes(DecoderBuffer* in_buffer) override;
+  bool DecodeDataNeededByPortableTransforms(DecoderBuffer* in_buffer) override;
   bool TransformAttributesToOriginalFormat() override;
 
  private:
   template <int level_t, typename OutIteratorT>
   bool DecodePoints(int total_dimensionality, uint32_t num_expected_points,
-                    DecoderBuffer *in_buffer, OutIteratorT *out_iterator);
+                    DecoderBuffer* in_buffer, OutIteratorT* out_iterator);
 
   template <typename SignedDataTypeT>
-  bool TransformAttributeBackToSignedType(PointAttribute *att,
+  bool TransformAttributeBackToSignedType(PointAttribute* att,
                                           int num_processed_signed_components);
 
   std::vector<AttributeQuantizationTransform>

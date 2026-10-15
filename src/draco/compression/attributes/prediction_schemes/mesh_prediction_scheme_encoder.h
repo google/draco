@@ -28,14 +28,14 @@ class MeshPredictionSchemeEncoder
     : public PredictionSchemeEncoder<DataTypeT, TransformT> {
  public:
   typedef MeshDataT MeshData;
-  MeshPredictionSchemeEncoder(const PointAttribute *attribute,
-                              const TransformT &transform,
-                              const MeshDataT &mesh_data)
+  MeshPredictionSchemeEncoder(const PointAttribute* attribute,
+                              const TransformT& transform,
+                              const MeshDataT& mesh_data)
       : PredictionSchemeEncoder<DataTypeT, TransformT>(attribute, transform),
         mesh_data_(mesh_data) {}
 
  protected:
-  const MeshData &mesh_data() const { return mesh_data_; }
+  const MeshData& mesh_data() const { return mesh_data_; }
 
  private:
   MeshData mesh_data_;

@@ -19,14 +19,14 @@
 namespace draco {
 
 SequentialQuantizationAttributeDecoder::
-    SequentialQuantizationAttributeDecoder() {}
+    SequentialQuantizationAttributeDecoder() = default;
 
-bool SequentialQuantizationAttributeDecoder::Init(PointCloudDecoder *decoder,
+bool SequentialQuantizationAttributeDecoder::Init(PointCloudDecoder* decoder,
                                                   int attribute_id) {
   if (!SequentialIntegerAttributeDecoder::Init(decoder, attribute_id)) {
     return false;
   }
-  const PointAttribute *const attribute =
+  const PointAttribute* const attribute =
       decoder->point_cloud()->attribute(attribute_id);
   // Currently we can quantize only floating point arguments.
   if (attribute->data_type() != DT_FLOAT32) {
@@ -36,7 +36,7 @@ bool SequentialQuantizationAttributeDecoder::Init(PointCloudDecoder *decoder,
 }
 
 bool SequentialQuantizationAttributeDecoder::DecodeIntegerValues(
-    const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
+    const std::vector<PointIndex>& point_ids, DecoderBuffer* in_buffer) {
 #ifdef DRACO_BACKWARDS_COMPATIBILITY_SUPPORTED
   if (decoder()->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 0) &&
       !DecodeQuantizedDataInfo()) {
@@ -49,7 +49,7 @@ bool SequentialQuantizationAttributeDecoder::DecodeIntegerValues(
 
 bool SequentialQuantizationAttributeDecoder::
     DecodeDataNeededByPortableTransform(
-        const std::vector<PointIndex> &point_ids, DecoderBuffer *in_buffer) {
+        const std::vector<PointIndex>& point_ids, DecoderBuffer* in_buffer) {
   if (decoder()->bitstream_version() >= DRACO_BITSTREAM_VERSION(2, 0)) {
     // Decode quantization data here only for files with bitstream version 2.0+
     if (!DecodeQuantizedDataInfo()) {

@@ -106,51 +106,6 @@
       ]
     }
   ],
-  "materials": [
-    {
-      "pbrMetallicRoughness": {
-        "baseColorFactor": [
-          0.80000001192092896,
-          0,
-          0,
-          1
-        ],
-        "metallicFactor": 0,
-        "roughnessFactor": 1
-      },
-      "emissiveFactor": [
-        0,
-        0,
-        0
-      ],
-      "alphaMode": "OPAQUE",
-      "name": "Red"
-    }
-  ],
-  "textures": [
-    {
-      "source": 0,
-      "sampler": 0
-    },
-    {
-      "source": 1,
-      "sampler": 0
-    }
-  ],
-  "samplers": [
-    {
-      "wrapS": 33071,
-      "wrapT": 33071
-    }
-  ],
-  "images": [
-    {
-      "uri": "Texture0_MeshFeatures.png"
-    },
-    {
-      "uri": "Texture1_MeshFeatures.png"
-    }
-  ],
   "accessors": [
     {
       "componentType": 5121,
@@ -201,6 +156,51 @@
       "componentType": 5126,
       "count": 36,
       "type": "SCALAR"
+    }
+  ],
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.80000001192092896,
+          0,
+          0,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 1
+      },
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "alphaMode": "OPAQUE",
+      "name": "Red"
+    }
+  ],
+  "textures": [
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 1,
+      "sampler": 0
+    }
+  ],
+  "samplers": [
+    {
+      "wrapS": 33071,
+      "wrapT": 33071
+    }
+  ],
+  "images": [
+    {
+      "uri": "Texture0_MeshFeatures.png"
+    },
+    {
+      "uri": "Texture1_MeshFeatures.png"
     }
   ],
   "bufferViews": [

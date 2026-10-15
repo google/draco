@@ -74,7 +74,7 @@ class GeometryAttribute {
 
   GeometryAttribute();
   // Initializes and enables the attribute.
-  void Init(Type attribute_type, DataBuffer *buffer, uint8_t num_components,
+  void Init(Type attribute_type, DataBuffer* buffer, uint8_t num_components,
             DataType data_type, bool normalized, int64_t byte_stride,
             int64_t byte_offset);
   bool IsValid() const { return buffer_ != nullptr; }
@@ -82,7 +82,7 @@ class GeometryAttribute {
   // Copies data from the source attribute to the this attribute.
   // This attribute must have a valid buffer allocated otherwise the operation
   // is going to fail and return false.
-  bool CopyFrom(const GeometryAttribute &src_att);
+  bool CopyFrom(const GeometryAttribute& src_att);
 
   // Function for getting a attribute value with a specific format.
   // Unsafe. Caller must ensure the accessed memory is valid.
@@ -103,7 +103,7 @@ class GeometryAttribute {
   // att_components_t is the number of attribute components.
   template <typename T, int att_components_t>
   bool GetValue(AttributeValueIndex att_index,
-                std::array<T, att_components_t> *out) const {
+                std::array<T, att_components_t>* out) const {
     // Byte address of the attribute index.
     const int64_t byte_pos = byte_offset_ + byte_stride_ * att_index.value();
     // Check we are not reading past end of data.
@@ -119,28 +119,28 @@ class GeometryAttribute {
     return byte_offset_ + byte_stride_ * att_index.value();
   }
 
-  inline const uint8_t *GetAddress(AttributeValueIndex att_index) const {
+  inline const uint8_t* GetAddress(AttributeValueIndex att_index) const {
     const int64_t byte_pos = GetBytePos(att_index);
     return buffer_->data() + byte_pos;
   }
-  inline uint8_t *GetAddress(AttributeValueIndex att_index) {
+  inline uint8_t* GetAddress(AttributeValueIndex att_index) {
     const int64_t byte_pos = GetBytePos(att_index);
     return buffer_->data() + byte_pos;
   }
-  inline bool IsAddressValid(const uint8_t *address) const {
+  inline bool IsAddressValid(const uint8_t* address) const {
     return ((buffer_->data() + buffer_->data_size()) > address);
   }
 
   // Fills out_data with the raw value of the requested attribute entry.
   // out_data must be at least byte_stride_ long.
-  void GetValue(AttributeValueIndex att_index, void *out_data) const {
+  void GetValue(AttributeValueIndex att_index, void* out_data) const {
     const int64_t byte_pos = byte_offset_ + byte_stride_ * att_index.value();
     buffer_->Read(byte_pos, out_data, byte_stride_);
   }
 
   // Sets a value of an attribute entry. The input value must be allocated to
   // cover all components of a single attribute entry.
-  void SetAttributeValue(AttributeValueIndex entry_index, const void *value) {
+  void SetAttributeValue(AttributeValueIndex entry_index, const void* value) {
     const int64_t byte_pos = entry_index.value() * byte_stride();
     buffer_->Write(byte_pos, value, byte_stride());
   }
@@ -153,7 +153,7 @@ class GeometryAttribute {
   template <typename InputT>
   Status ConvertAndSetAttributeValue(AttributeValueIndex avi,
                                      int input_num_components,
-                                     const InputT *value);
+                                     const InputT* value);
 #endif
 
   // DEPRECATED: Use
@@ -166,7 +166,7 @@ class GeometryAttribute {
   // out_att_components_t is the number of components of the output format.
   // Returns false when the conversion failed.
   template <typename OutT, int out_att_components_t>
-  bool ConvertValue(AttributeValueIndex att_id, OutT *out_val) const {
+  bool ConvertValue(AttributeValueIndex att_id, OutT* out_val) const {
     return ConvertValue(att_id, out_att_components_t, out_val);
   }
 
@@ -176,7 +176,7 @@ class GeometryAttribute {
   // Returns false when the conversion failed.
   template <typename OutT>
   bool ConvertValue(AttributeValueIndex att_id, int8_t out_num_components,
-                    OutT *out_val) const {
+                    OutT* out_val) const {
     if (out_val == nullptr) {
       return false;
     }
@@ -226,7 +226,7 @@ class GeometryAttribute {
   // OutT is the desired data type of the attribute.
   // Returns false when the conversion failed.
   template <typename OutT>
-  bool ConvertValue(AttributeValueIndex att_index, OutT *out_value) const {
+  bool ConvertValue(AttributeValueIndex att_index, OutT* out_value) const {
     return ConvertValue<OutT>(att_index, num_components_, out_value);
   }
 
@@ -260,7 +260,7 @@ class GeometryAttribute {
     }
   }
 
-  bool operator==(const GeometryAttribute &va) const;
+  bool operator==(const GeometryAttribute& va) const;
 
   // Returns the type of the attribute indicating the nature of the attribute.
   Type attribute_type() const { return attribute_type_; }
@@ -276,7 +276,7 @@ class GeometryAttribute {
   bool normalized() const { return normalized_; }
   void set_normalized(bool normalized) { normalized_ = normalized; }
   // The buffer storing the entire data of the attribute.
-  const DataBuffer *buffer() const { return buffer_; }
+  const DataBuffer* buffer() const { return buffer_; }
   // Returns the number of bytes between two attribute entries, this is, at
   // least size of the data types times number of components.
   int64_t byte_stride() const { return byte_stride_; }
@@ -293,7 +293,7 @@ class GeometryAttribute {
 
  protected:
   // Sets a new internal storage for the attribute.
-  void ResetBuffer(DataBuffer *buffer, int64_t byte_stride,
+  void ResetBuffer(DataBuffer* buffer, int64_t byte_stride,
                    int64_t byte_offset);
 
  private:
@@ -303,15 +303,15 @@ class GeometryAttribute {
   // OutT is the desired data type of the attribute.
   template <typename T, typename OutT>
   bool ConvertTypedValue(AttributeValueIndex att_id, uint8_t out_num_components,
-                         OutT *out_value) const {
-    const uint8_t *src_address = GetAddress(att_id);
+                         OutT* out_value) const {
+    const uint8_t* src_address = GetAddress(att_id);
 
     // Convert all components available in both the original and output formats.
     for (int i = 0; i < std::min(num_components_, out_num_components); ++i) {
       if (!IsAddressValid(src_address)) {
         return false;
       }
-      const T in_value = *reinterpret_cast<const T *>(src_address);
+      const T in_value = *reinterpret_cast<const T*>(src_address);
       if (!ConvertComponentValue<T, OutT>(in_value, normalized_,
                                           out_value + i)) {
         return false;
@@ -331,15 +331,15 @@ class GeometryAttribute {
   template <typename T, typename OutT>
   Status ConvertAndSetAttributeTypedValue(AttributeValueIndex avi,
                                           int8_t input_num_components,
-                                          const T *value) {
-    uint8_t *address = GetAddress(avi);
+                                          const T* value) {
+    uint8_t* address = GetAddress(avi);
 
     // Convert all components available in both the original and output formats.
     for (int i = 0; i < num_components_; ++i) {
       if (!IsAddressValid(address)) {
         return ErrorStatus("GeometryAttribute: Invalid address.");
       }
-      OutT *const out_value = reinterpret_cast<OutT *>(address);
+      OutT* const out_value = reinterpret_cast<OutT*>(address);
       if (i < input_num_components) {
         if (!ConvertComponentValue<T, OutT>(*(value + i), normalized_,
                                             out_value)) {
@@ -360,13 +360,22 @@ class GeometryAttribute {
   // values will be treating integers as normalized types (the entire integer
   // range will be used to represent 0-1 floating point range).
   template <typename T, typename OutT>
-  static bool ConvertComponentValue(const T &in_value, bool normalized,
-                                    OutT *out_value) {
+  static bool ConvertComponentValue(const T& in_value, bool normalized,
+                                    OutT* out_value) {
     // Make sure the |in_value| can be represented as an integral type OutT.
+#if __cplusplus >= 201703L
+    if constexpr (std::is_integral<OutT>::value) {
+#else
     if (std::is_integral<OutT>::value) {
+#endif
       // Make sure the |in_value| fits within the range of values that OutT
       // is able to represent. Perform the check only for integral types.
+#if __cplusplus >= 201703L
+      if constexpr (!std::is_same<T, bool>::value &&
+                    std::is_integral<T>::value) {
+#else
       if (!std::is_same<T, bool>::value && std::is_integral<T>::value) {
+#endif
         static constexpr OutT kOutMin =
             std::is_signed<T>::value ? std::numeric_limits<OutT>::min() : 0;
         if (in_value < kOutMin || in_value > std::numeric_limits<OutT>::max()) {
@@ -375,7 +384,11 @@ class GeometryAttribute {
       }
 
       // Check conversion of floating point |in_value| to integral value OutT.
+#if __cplusplus >= 201703L
+      if constexpr (std::is_floating_point<T>::value) {
+#else
       if (std::is_floating_point<T>::value) {
+#endif
         // Make sure the floating point |in_value| is not NaN and not Inf as
         // integral type OutT is unable to represent these values.
         if (sizeof(in_value) > sizeof(double)) {
@@ -404,33 +417,48 @@ class GeometryAttribute {
       }
     }
 
-    if (std::is_integral<T>::value && std::is_floating_point<OutT>::value &&
-        normalized) {
-      // When converting integer to floating point, normalize the value if
-      // necessary.
+    if (!normalized) {
       *out_value = static_cast<OutT>(in_value);
-      *out_value /= static_cast<OutT>(std::numeric_limits<T>::max());
-    } else if (std::is_floating_point<T>::value &&
-               std::is_integral<OutT>::value && normalized) {
-      // Converting from floating point to a normalized integer.
-      if (in_value > 1 || in_value < 0) {
-        // Normalized float values need to be between 0 and 1.
-        return false;
-      }
-      // TODO(ostava): Consider allowing float to normalized integer conversion
-      // for 64-bit integer types. Currently it doesn't work because we don't
-      // have a floating point type that could store all 64 bit integers.
-      if (sizeof(OutT) > 4) {
-        return false;
-      }
-      // Expand the float to the range of the output integer and round it to the
-      // nearest representable value. Use doubles for the math to ensure the
-      // integer values are represented properly during the conversion process.
-      *out_value = static_cast<OutT>(std::floor(
-          in_value * static_cast<double>(std::numeric_limits<OutT>::max()) +
-          0.5));
     } else {
-      *out_value = static_cast<OutT>(in_value);
+#if __cplusplus >= 201703L
+      if constexpr (std::is_integral<T>::value &&
+                    std::is_floating_point<OutT>::value) {
+#else
+      if (std::is_integral<T>::value && std::is_floating_point<OutT>::value) {
+#endif
+        // When converting integer to floating point, normalize the value if
+        // necessary.
+        *out_value = static_cast<OutT>(in_value);
+        *out_value /= static_cast<OutT>(std::numeric_limits<T>::max());
+#if __cplusplus >= 201703L
+      } else if constexpr (std::is_floating_point<T>::value &&
+                           std::is_integral<OutT>::value) {
+#else
+      } else if (std::is_floating_point<T>::value &&
+                 std::is_integral<OutT>::value) {
+#endif
+        // Converting from floating point to a normalized integer.
+        if (in_value > 1 || in_value < 0) {
+          // Normalized float values need to be between 0 and 1.
+          return false;
+        }
+        // TODO(ostava): Consider allowing float to normalized integer
+        // conversion for 64-bit integer types. Currently it doesn't work
+        // because we don't have a floating point type that could store all 64
+        // bit integers.
+        if (sizeof(OutT) > 4) {
+          return false;
+        }
+        // Expand the float to the range of the output integer and round it to
+        // the nearest representable value. Use doubles for the math to ensure
+        // the integer values are represented properly during the conversion
+        // process.
+        *out_value = static_cast<OutT>(std::floor(
+            in_value * static_cast<double>(std::numeric_limits<OutT>::max()) +
+            0.5));
+      } else {
+        *out_value = static_cast<OutT>(in_value);
+      }
     }
 
     // TODO(ostava): Add handling of normalized attributes when converting
@@ -441,7 +469,7 @@ class GeometryAttribute {
     return true;
   }
 
-  DataBuffer *buffer_;
+  DataBuffer* buffer_;
   // The buffer descriptor is stored at the time the buffer is attached to this
   // attribute. The purpose is to detect if any changes happened to the buffer
   // since the time it was attached.
@@ -470,7 +498,7 @@ class GeometryAttribute {
 template <typename InputT>
 Status GeometryAttribute::ConvertAndSetAttributeValue(AttributeValueIndex avi,
                                                       int input_num_components,
-                                                      const InputT *value) {
+                                                      const InputT* value) {
   switch (this->data_type()) {
     case DT_INT8:
       return ConvertAndSetAttributeTypedValue<InputT, int8_t>(
@@ -518,7 +546,7 @@ Status GeometryAttribute::ConvertAndSetAttributeValue(AttributeValueIndex avi,
 
 // Function object for using Attribute as a hash key.
 struct GeometryAttributeHasher {
-  size_t operator()(const GeometryAttribute &va) const {
+  size_t operator()(const GeometryAttribute& va) const {
     size_t hash = HashCombine(va.buffer_descriptor_.buffer_id,
                               va.buffer_descriptor_.buffer_update_count);
     hash = HashCombine(va.num_components_, hash);
@@ -531,7 +559,7 @@ struct GeometryAttributeHasher {
 
 // Function object for using GeometryAttribute::Type as a hash key.
 struct GeometryAttributeTypeHasher {
-  size_t operator()(const GeometryAttribute::Type &at) const {
+  size_t operator()(const GeometryAttribute::Type& at) const {
     return static_cast<size_t>(at);
   }
 };

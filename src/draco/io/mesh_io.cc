@@ -33,26 +33,26 @@
 
 namespace draco {
 
-StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name) {
+StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string& file_name) {
   const Options options;
   return ReadMeshFromFile(file_name, options, nullptr);
 }
 
-StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
+StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string& file_name,
                                                  bool use_metadata) {
   Options options;
   options.SetBool("use_metadata", use_metadata);
   return ReadMeshFromFile(file_name, options, nullptr);
 }
 
-StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string &file_name,
-                                                 const Options &options) {
+StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(const std::string& file_name,
+                                                 const Options& options) {
   return ReadMeshFromFile(file_name, options, nullptr);
 }
 
 StatusOr<std::unique_ptr<Mesh>> ReadMeshFromFile(
-    const std::string &file_name, const Options &options,
-    std::vector<std::string> *mesh_files) {
+    const std::string& file_name, const Options& options,
+    std::vector<std::string>* mesh_files) {
   std::unique_ptr<Mesh> mesh(new Mesh());
   // Analyze file extension.
   const std::string extension = LowercaseFileExtension(file_name);

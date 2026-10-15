@@ -14,6 +14,7 @@
 //
 #include "draco/io/stl_decoder.h"
 
+#include <cstdint>
 #include <string>
 
 #include "draco/core/macros.h"
@@ -25,7 +26,7 @@
 namespace draco {
 
 StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromFile(
-    const std::string &file_name) {
+    const std::string& file_name) {
   std::vector<char> data;
   if (!ReadFileToBuffer(file_name, &data)) {
     return Status(Status::IO_ERROR, "Unable to read input file.");
@@ -36,7 +37,7 @@ StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromFile(
 }
 
 StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromBuffer(
-    DecoderBuffer *buffer) {
+    DecoderBuffer* buffer) {
   // Binary STL requires at least an 80-byte header + 4-byte face count.
   if (buffer->remaining_size() < 84) {
     return Status(Status::IO_ERROR, "STL file too small.");
@@ -50,6 +51,7 @@ StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromBuffer(
   if (!buffer->Decode(&face_count, 4)) {
     return Status(Status::IO_ERROR, "Failed to read STL face count.");
   }
+
   // Each face is 50 bytes (12 floats = 48 bytes + 2-byte attribute).
   constexpr int64_t kBytesPerFace = 50;
   if (face_count >
@@ -67,13 +69,8 @@ StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromBuffer(
 
   for (uint32_t i = 0; i < face_count; i++) {
     float data[48];
-    if (!buffer->Decode(data, 48)) {
-      return Status(Status::IO_ERROR, "Failed to read STL face data.");
-    }
-    uint16_t unused;
-    if (!buffer->Decode(&unused, 2)) {
-      return Status(Status::IO_ERROR, "Failed to read STL face attribute.");
-    }
+    buffer->Decode(data, 48);
+    buffer->Advance(2);
 
     builder.SetPerFaceAttributeValueForFace(
         norm_att_id, draco::FaceIndex(i),

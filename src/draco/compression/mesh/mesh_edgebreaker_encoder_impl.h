@@ -35,25 +35,25 @@ class MeshEdgebreakerEncoderImpl : public MeshEdgebreakerEncoderImplInterface {
  public:
   MeshEdgebreakerEncoderImpl();
   explicit MeshEdgebreakerEncoderImpl(
-      const TraversalEncoderT &traversal_encoder);
-  bool Init(MeshEdgebreakerEncoder *encoder) override;
+      const TraversalEncoderT& traversal_encoder);
+  bool Init(MeshEdgebreakerEncoder* encoder) override;
 
-  const MeshAttributeCornerTable *GetAttributeCornerTable(
+  const MeshAttributeCornerTable* GetAttributeCornerTable(
       int att_id) const override;
-  const MeshAttributeIndicesEncodingData *GetAttributeEncodingData(
+  const MeshAttributeIndicesEncodingData* GetAttributeEncodingData(
       int att_id) const override;
 
   bool GenerateAttributesEncoder(int32_t att_id) override;
   bool EncodeAttributesEncoderIdentifier(int32_t att_encoder_id) override;
   Status EncodeConnectivity() override;
 
-  const CornerTable *GetCornerTable() const override {
+  const CornerTable* GetCornerTable() const override {
     return corner_table_.get();
   }
   bool IsFaceEncoded(FaceIndex fi) const override {
     return visited_faces_[fi.value()];
   }
-  MeshEdgebreakerEncoder *GetEncoder() const override { return encoder_; }
+  MeshEdgebreakerEncoder* GetEncoder() const override { return encoder_; }
 
  private:
   // Initializes data needed for encoding non-position attributes.
@@ -63,7 +63,7 @@ class MeshEdgebreakerEncoderImpl : public MeshEdgebreakerEncoderImplInterface {
   // Creates a vertex traversal sequencer for the specified |TraverserT| type.
   template <class TraverserT>
   std::unique_ptr<PointsSequencer> CreateVertexTraversalSequencer(
-      MeshAttributeIndicesEncodingData *encoding_data);
+      MeshAttributeIndicesEncodingData* encoding_data);
 
   // Finds the configuration of the initial face that starts the traversal.
   // Configurations are determined by location of holes around the init face
@@ -71,7 +71,7 @@ class MeshEdgebreakerEncoderImpl : public MeshEdgebreakerEncoderImplInterface {
   // Returns true if the face configuration is interior and false if it is
   // exterior.
   bool FindInitFaceConfiguration(FaceIndex face_id,
-                                 CornerIndex *out_corner_id) const;
+                                 CornerIndex* out_corner_id) const;
 
   // Encodes the connectivity between vertices.
   bool EncodeConnectivityFromCorner(CornerIndex corner_id);
@@ -125,9 +125,9 @@ class MeshEdgebreakerEncoderImpl : public MeshEdgebreakerEncoderImplInterface {
   bool GenerateEncodingOrderForAttributes();
 
   // The main encoder that owns this class.
-  MeshEdgebreakerEncoder *encoder_;
+  MeshEdgebreakerEncoder* encoder_;
   // Mesh that's being encoded.
-  const Mesh *mesh_;
+  const Mesh* mesh_;
   // Corner table stores the mesh face connectivity data.
   std::unique_ptr<CornerTable> corner_table_;
   // Stack used for storing corners that need to be traversed when encoding

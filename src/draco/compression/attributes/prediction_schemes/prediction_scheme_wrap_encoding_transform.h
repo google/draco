@@ -29,7 +29,7 @@ class PredictionSchemeWrapEncodingTransform
   typedef CorrTypeT CorrType;
   PredictionSchemeWrapEncodingTransform() {}
 
-  void Init(const DataTypeT *orig_data, int size, int num_components) {
+  void Init(const DataTypeT* orig_data, int size, int num_components) {
     PredictionSchemeWrapTransformBase<DataTypeT>::Init(num_components);
     // Go over the original values and compute the bounds.
     if (size == 0) {
@@ -52,14 +52,14 @@ class PredictionSchemeWrapEncodingTransform
   // Computes the corrections based on the input original value and the
   // predicted value. Out of bound correction values are wrapped around the max
   // range of input values.
-  inline void ComputeCorrection(const DataTypeT *original_vals,
-                                const DataTypeT *predicted_vals,
-                                CorrTypeT *out_corr_vals) const {
+  inline void ComputeCorrection(const DataTypeT* original_vals,
+                                const DataTypeT* predicted_vals,
+                                CorrTypeT* out_corr_vals) const {
     for (int i = 0; i < this->num_components(); ++i) {
       predicted_vals = this->ClampPredictedValue(predicted_vals);
       out_corr_vals[i] = original_vals[i] - predicted_vals[i];
       // Wrap around if needed.
-      DataTypeT &corr_val = out_corr_vals[i];
+      DataTypeT& corr_val = out_corr_vals[i];
       if (corr_val < this->min_correction()) {
         corr_val += this->max_dif();
       } else if (corr_val > this->max_correction()) {
@@ -68,7 +68,7 @@ class PredictionSchemeWrapEncodingTransform
     }
   }
 
-  bool EncodeTransformData(EncoderBuffer *buffer) {
+  bool EncodeTransformData(EncoderBuffer* buffer) {
     // Store the input value range as it is needed by the decoder.
     buffer->Encode(this->min_value());
     buffer->Encode(this->max_value());

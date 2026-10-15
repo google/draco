@@ -21,8 +21,8 @@
 
 namespace draco {
 namespace {
-int64_t CountNumTriangles(const PlyElement &face_element,
-                          const PlyProperty &vertex_indices) {
+int64_t CountNumTriangles(const PlyElement& face_element,
+                          const PlyProperty& vertex_indices) {
   int64_t num_triangles = 0;
   for (int i = 0; i < face_element.num_entries(); ++i) {
     const int64_t list_size = vertex_indices.GetListEntryNumValues(i);
@@ -38,14 +38,14 @@ int64_t CountNumTriangles(const PlyElement &face_element,
 
 PlyDecoder::PlyDecoder() : out_mesh_(nullptr), out_point_cloud_(nullptr) {}
 
-Status PlyDecoder::DecodeFromFile(const std::string &file_name,
-                                  Mesh *out_mesh) {
+Status PlyDecoder::DecodeFromFile(const std::string& file_name,
+                                  Mesh* out_mesh) {
   out_mesh_ = out_mesh;
-  return DecodeFromFile(file_name, static_cast<PointCloud *>(out_mesh));
+  return DecodeFromFile(file_name, static_cast<PointCloud*>(out_mesh));
 }
 
-Status PlyDecoder::DecodeFromFile(const std::string &file_name,
-                                  PointCloud *out_point_cloud) {
+Status PlyDecoder::DecodeFromFile(const std::string& file_name,
+                                  PointCloud* out_point_cloud) {
   std::vector<char> data;
   if (!ReadFileToBuffer(file_name, &data)) {
     return Status(Status::DRACO_ERROR, "Unable to read input file.");
@@ -54,13 +54,13 @@ Status PlyDecoder::DecodeFromFile(const std::string &file_name,
   return DecodeFromBuffer(&buffer_, out_point_cloud);
 }
 
-Status PlyDecoder::DecodeFromBuffer(DecoderBuffer *buffer, Mesh *out_mesh) {
+Status PlyDecoder::DecodeFromBuffer(DecoderBuffer* buffer, Mesh* out_mesh) {
   out_mesh_ = out_mesh;
-  return DecodeFromBuffer(buffer, static_cast<PointCloud *>(out_mesh));
+  return DecodeFromBuffer(buffer, static_cast<PointCloud*>(out_mesh));
 }
 
-Status PlyDecoder::DecodeFromBuffer(DecoderBuffer *buffer,
-                                    PointCloud *out_point_cloud) {
+Status PlyDecoder::DecodeFromBuffer(DecoderBuffer* buffer,
+                                    PointCloud* out_point_cloud) {
   out_point_cloud_ = out_point_cloud;
   buffer_.Init(buffer->data_head(), buffer->remaining_size());
   return DecodeInternal();
@@ -91,12 +91,12 @@ Status PlyDecoder::DecodeInternal() {
   return OkStatus();
 }
 
-Status PlyDecoder::DecodeFaceData(const PlyElement *face_element) {
+Status PlyDecoder::DecodeFaceData(const PlyElement* face_element) {
   // We accept point clouds now.
   if (face_element == nullptr) {
     return OkStatus();
   }
-  const PlyProperty *vertex_indices =
+  const PlyProperty* vertex_indices =
       face_element->GetPropertyByName("vertex_indices");
   if (vertex_indices == nullptr) {
     // The property name may be named either "vertex_indices" or "vertex_index".
@@ -138,8 +138,8 @@ Status PlyDecoder::DecodeFaceData(const PlyElement *face_element) {
 
 template <typename DataTypeT>
 bool PlyDecoder::ReadPropertiesToAttribute(
-    const std::vector<const PlyProperty *> &properties,
-    PointAttribute *attribute, int num_vertices) {
+    const std::vector<const PlyProperty*>& properties,
+    PointAttribute* attribute, int num_vertices) {
   std::vector<std::unique_ptr<PlyPropertyReader<DataTypeT>>> readers;
   readers.reserve(properties.size());
   for (int prop = 0; prop < properties.size(); ++prop) {
@@ -157,15 +157,15 @@ bool PlyDecoder::ReadPropertiesToAttribute(
   return true;
 }
 
-Status PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
+Status PlyDecoder::DecodeVertexData(const PlyElement* vertex_element) {
   if (vertex_element == nullptr) {
     return Status(Status::INVALID_PARAMETER, "vertex_element is null");
   }
   // TODO(b/34330853): For now, try to load x,y,z vertices, red,green,blue,alpha
   // colors, and nx,ny,nz normals. We need to add other properties later.
-  const PlyProperty *const x_prop = vertex_element->GetPropertyByName("x");
-  const PlyProperty *const y_prop = vertex_element->GetPropertyByName("y");
-  const PlyProperty *const z_prop = vertex_element->GetPropertyByName("z");
+  const PlyProperty* const x_prop = vertex_element->GetPropertyByName("x");
+  const PlyProperty* const y_prop = vertex_element->GetPropertyByName("y");
+  const PlyProperty* const z_prop = vertex_element->GetPropertyByName("z");
   if (!x_prop || !y_prop || !z_prop) {
     // Currently, we require 3 vertex coordinates (this should be generalized
     // later on).
@@ -192,7 +192,7 @@ Status PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
     va.Init(GeometryAttribute::POSITION, nullptr, 3, dt, false,
             DataTypeLength(dt) * 3, 0);
     const int att_id = out_point_cloud_->AddAttribute(va, true, num_vertices);
-    std::vector<const PlyProperty *> properties;
+    std::vector<const PlyProperty*> properties;
     properties.push_back(x_prop);
     properties.push_back(y_prop);
     properties.push_back(z_prop);
@@ -206,9 +206,9 @@ Status PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
   }
 
   // Decode normals if present.
-  const PlyProperty *const n_x_prop = vertex_element->GetPropertyByName("nx");
-  const PlyProperty *const n_y_prop = vertex_element->GetPropertyByName("ny");
-  const PlyProperty *const n_z_prop = vertex_element->GetPropertyByName("nz");
+  const PlyProperty* const n_x_prop = vertex_element->GetPropertyByName("nx");
+  const PlyProperty* const n_y_prop = vertex_element->GetPropertyByName("ny");
+  const PlyProperty* const n_z_prop = vertex_element->GetPropertyByName("nz");
   if (n_x_prop != nullptr && n_y_prop != nullptr && n_z_prop != nullptr) {
     // For now, all normal properties must be set and of type float32
     if (n_x_prop->data_type() == DT_FLOAT32 &&
@@ -234,10 +234,10 @@ Status PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
 
   // Decode color data if present.
   int num_colors = 0;
-  const PlyProperty *const r_prop = vertex_element->GetPropertyByName("red");
-  const PlyProperty *const g_prop = vertex_element->GetPropertyByName("green");
-  const PlyProperty *const b_prop = vertex_element->GetPropertyByName("blue");
-  const PlyProperty *const a_prop = vertex_element->GetPropertyByName("alpha");
+  const PlyProperty* const r_prop = vertex_element->GetPropertyByName("red");
+  const PlyProperty* const g_prop = vertex_element->GetPropertyByName("green");
+  const PlyProperty* const b_prop = vertex_element->GetPropertyByName("blue");
+  const PlyProperty* const a_prop = vertex_element->GetPropertyByName("alpha");
   if (r_prop) {
     ++num_colors;
   }
@@ -253,7 +253,7 @@ Status PlyDecoder::DecodeVertexData(const PlyElement *vertex_element) {
 
   if (num_colors) {
     std::vector<std::unique_ptr<PlyPropertyReader<uint8_t>>> color_readers;
-    const PlyProperty *p;
+    const PlyProperty* p;
     if (r_prop) {
       p = r_prop;
       // TODO(ostava): For now ensure the data type of all components is uint8.

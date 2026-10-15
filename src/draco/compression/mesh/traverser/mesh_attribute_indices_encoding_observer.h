@@ -35,9 +35,9 @@ class MeshAttributeIndicesEncodingObserver {
         mesh_(nullptr),
         sequencer_(nullptr) {}
   MeshAttributeIndicesEncodingObserver(
-      const CornerTableT *connectivity, const Mesh *mesh,
-      PointsSequencer *sequencer,
-      MeshAttributeIndicesEncodingData *encoding_data)
+      const CornerTableT* connectivity, const Mesh* mesh,
+      PointsSequencer* sequencer,
+      MeshAttributeIndicesEncodingData* encoding_data)
       : att_connectivity_(connectivity),
         encoding_data_(encoding_data),
         mesh_(mesh),
@@ -65,10 +65,10 @@ class MeshAttributeIndicesEncodingObserver {
   }
 
  private:
-  const CornerTableT *att_connectivity_;
-  MeshAttributeIndicesEncodingData *encoding_data_;
-  const Mesh *mesh_;
-  PointsSequencer *sequencer_;
+  const CornerTableT* att_connectivity_;
+  MeshAttributeIndicesEncodingData* encoding_data_;
+  const Mesh* mesh_;
+  PointsSequencer* sequencer_;
 };
 
 }  // namespace draco

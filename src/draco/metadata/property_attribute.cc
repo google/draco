@@ -23,32 +23,32 @@
 
 namespace draco {
 
-bool PropertyAttribute::Property::operator==(const Property &other) const {
+bool PropertyAttribute::Property::operator==(const Property& other) const {
   return name_ == other.name_ && attribute_name_ == other.attribute_name_;
 }
 
-void PropertyAttribute::Property::Copy(const Property &src) {
+void PropertyAttribute::Property::Copy(const Property& src) {
   name_ = src.name_;
   attribute_name_ = src.attribute_name_;
 }
 
-void PropertyAttribute::Property::SetName(const std::string &name) {
+void PropertyAttribute::Property::SetName(const std::string& name) {
   name_ = name;
 }
 
-const std::string &PropertyAttribute::Property::GetName() const {
+const std::string& PropertyAttribute::Property::GetName() const {
   return name_;
 }
 
-void PropertyAttribute::Property::SetAttributeName(const std::string &name) {
+void PropertyAttribute::Property::SetAttributeName(const std::string& name) {
   attribute_name_ = name;
 }
 
-const std::string &PropertyAttribute::Property::GetAttributeName() const {
+const std::string& PropertyAttribute::Property::GetAttributeName() const {
   return attribute_name_;
 }
 
-bool PropertyAttribute::operator==(const PropertyAttribute &other) const {
+bool PropertyAttribute::operator==(const PropertyAttribute& other) const {
   if (name_ != other.name_ || class_ != other.class_ ||
       properties_.size() != other.properties_.size()) {
     return false;
@@ -61,7 +61,7 @@ bool PropertyAttribute::operator==(const PropertyAttribute &other) const {
   return true;
 }
 
-void PropertyAttribute::Copy(const PropertyAttribute &src) {
+void PropertyAttribute::Copy(const PropertyAttribute& src) {
   name_ = src.name_;
   class_ = src.class_;
   properties_.clear();
@@ -73,13 +73,13 @@ void PropertyAttribute::Copy(const PropertyAttribute &src) {
   }
 }
 
-void PropertyAttribute::SetName(const std::string &value) { name_ = value; }
+void PropertyAttribute::SetName(const std::string& value) { name_ = value; }
 
-const std::string &PropertyAttribute::GetName() const { return name_; }
+const std::string& PropertyAttribute::GetName() const { return name_; }
 
-void PropertyAttribute::SetClass(const std::string &value) { class_ = value; }
+void PropertyAttribute::SetClass(const std::string& value) { class_ = value; }
 
-const std::string &PropertyAttribute::GetClass() const { return class_; }
+const std::string& PropertyAttribute::GetClass() const { return class_; }
 
 int PropertyAttribute::AddProperty(std::unique_ptr<Property> property) {
   properties_.push_back(std::move(property));
@@ -88,12 +88,12 @@ int PropertyAttribute::AddProperty(std::unique_ptr<Property> property) {
 
 int PropertyAttribute::NumProperties() const { return properties_.size(); }
 
-const PropertyAttribute::Property &PropertyAttribute::GetProperty(
+const PropertyAttribute::Property& PropertyAttribute::GetProperty(
     int index) const {
   return *properties_[index];
 }
 
-PropertyAttribute::Property &PropertyAttribute::GetProperty(int index) {
+PropertyAttribute::Property& PropertyAttribute::GetProperty(int index) {
   return *properties_[index];
 }
 

@@ -39,8 +39,8 @@ struct PointDLess;
 
 template <class CoeffT, int dimension_t>
 struct PointDLess<VectorD<CoeffT, dimension_t>> {
-  bool operator()(const VectorD<CoeffT, dimension_t> &a,
-                  const VectorD<CoeffT, dimension_t> &b) const {
+  bool operator()(const VectorD<CoeffT, dimension_t>& a,
+                  const VectorD<CoeffT, dimension_t>& b) const {
     return a < b;
   }
 };

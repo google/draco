@@ -36,32 +36,32 @@ class PlyDecoder {
   PlyDecoder();
 
   // Decodes an obj file stored in the input file.
-  Status DecodeFromFile(const std::string &file_name, Mesh *out_mesh);
-  Status DecodeFromFile(const std::string &file_name,
-                        PointCloud *out_point_cloud);
+  Status DecodeFromFile(const std::string& file_name, Mesh* out_mesh);
+  Status DecodeFromFile(const std::string& file_name,
+                        PointCloud* out_point_cloud);
 
-  Status DecodeFromBuffer(DecoderBuffer *buffer, Mesh *out_mesh);
-  Status DecodeFromBuffer(DecoderBuffer *buffer, PointCloud *out_point_cloud);
+  Status DecodeFromBuffer(DecoderBuffer* buffer, Mesh* out_mesh);
+  Status DecodeFromBuffer(DecoderBuffer* buffer, PointCloud* out_point_cloud);
 
  protected:
   Status DecodeInternal();
-  DecoderBuffer *buffer() { return &buffer_; }
+  DecoderBuffer* buffer() { return &buffer_; }
 
  private:
-  Status DecodeFaceData(const PlyElement *face_element);
-  Status DecodeVertexData(const PlyElement *vertex_element);
+  Status DecodeFaceData(const PlyElement* face_element);
+  Status DecodeVertexData(const PlyElement* vertex_element);
 
   template <typename DataTypeT>
   bool ReadPropertiesToAttribute(
-      const std::vector<const PlyProperty *> &properties,
-      PointAttribute *attribute, int num_vertices);
+      const std::vector<const PlyProperty*>& properties,
+      PointAttribute* attribute, int num_vertices);
 
   DecoderBuffer buffer_;
 
   // Data structure that stores the decoded data. |out_point_cloud_| must be
   // always set but |out_mesh_| is optional.
-  Mesh *out_mesh_;
-  PointCloud *out_point_cloud_;
+  Mesh* out_mesh_;
+  PointCloud* out_point_cloud_;
 };
 
 }  // namespace draco

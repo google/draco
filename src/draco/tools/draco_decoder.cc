@@ -31,7 +31,7 @@ struct Options {
   std::string output;
 };
 
-Options::Options() {}
+Options::Options() = default;
 
 void Usage() {
   printf("Usage: draco_decoder [options] -i input\n");
@@ -41,14 +41,14 @@ void Usage() {
   printf("  -o <output>           output file name.\n");
 }
 
-int ReturnError(const draco::Status &status) {
+int ReturnError(const draco::Status& status) {
   printf("Failed to decode the input file %s\n", status.error_msg());
   return -1;
 }
 
 }  // namespace
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   Options options;
   const int argc_check = argc - 1;
 
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
   draco::CycleTimer timer;
   // Decode the input data into a geometry.
   std::unique_ptr<draco::PointCloud> pc;
-  draco::Mesh *mesh = nullptr;
+  draco::Mesh* mesh = nullptr;
   auto type_statusor = draco::Decoder::GetEncodedGeometryType(&buffer);
   if (!type_statusor.ok()) {
     return ReturnError(type_statusor.status());

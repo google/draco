@@ -22,9 +22,9 @@
 namespace draco {
 
 template <typename OutStreamT>
-OutStreamT WritePointCloudIntoStream(const PointCloud *pc, OutStreamT &&os,
+OutStreamT WritePointCloudIntoStream(const PointCloud* pc, OutStreamT&& os,
                                      PointCloudEncodingMethod method,
-                                     const EncoderOptions &options) {
+                                     const EncoderOptions& options) {
   EncoderBuffer buffer;
   EncoderOptions local_options = options;
   ExpertEncoder encoder(*pc);
@@ -35,26 +35,26 @@ OutStreamT WritePointCloudIntoStream(const PointCloud *pc, OutStreamT &&os,
     return os;
   }
 
-  os.write(static_cast<const char *>(buffer.data()), buffer.size());
+  os.write(static_cast<const char*>(buffer.data()), buffer.size());
 
   return os;
 }
 
 template <typename OutStreamT>
-OutStreamT WritePointCloudIntoStream(const PointCloud *pc, OutStreamT &&os,
+OutStreamT WritePointCloudIntoStream(const PointCloud* pc, OutStreamT&& os,
                                      PointCloudEncodingMethod method) {
   const EncoderOptions options = EncoderOptions::CreateDefaultOptions();
   return WritePointCloudIntoStream(pc, os, method, options);
 }
 
 template <typename OutStreamT>
-OutStreamT &WritePointCloudIntoStream(const PointCloud *pc, OutStreamT &&os) {
+OutStreamT& WritePointCloudIntoStream(const PointCloud* pc, OutStreamT&& os) {
   return WritePointCloudIntoStream(pc, os, POINT_CLOUD_SEQUENTIAL_ENCODING);
 }
 
 template <typename InStreamT>
-InStreamT &ReadPointCloudFromStream(std::unique_ptr<PointCloud> *point_cloud,
-                                    InStreamT &&is) {
+InStreamT& ReadPointCloudFromStream(std::unique_ptr<PointCloud>* point_cloud,
+                                    InStreamT&& is) {
   // Determine size of stream and write into a vector
   const auto start_pos = is.tellg();
   is.seekg(0, std::ios::end);
@@ -82,7 +82,7 @@ InStreamT &ReadPointCloudFromStream(std::unique_ptr<PointCloud> *point_cloud,
 // draco::PointCloudDecoder.
 // Returns nullptr with an error status if the decoding failed.
 StatusOr<std::unique_ptr<PointCloud>> ReadPointCloudFromFile(
-    const std::string &file_name);
+    const std::string& file_name);
 
 }  // namespace draco
 

@@ -39,17 +39,17 @@ class InstanceArray {
 
   InstanceArray() = default;
 
-  void Copy(const InstanceArray &other);
+  void Copy(const InstanceArray& other);
 
   // Adds one |instance| into this mesh group instance array where the
   // |instance.trs| may have optional translation, rotation, and scale set.
-  Status AddInstance(const Instance &instance);
+  Status AddInstance(const Instance& instance);
 
   // Returns the count of instances in this mesh group instance array.
   int NumInstances() const { return instances_.size(); }
 
   // Returns an instance from this mesh group instance array.
-  const Instance &GetInstance(int index) const { return instances_[index]; }
+  const Instance& GetInstance(int index) const { return instances_[index]; }
 
  private:
   std::vector<Instance> instances_;

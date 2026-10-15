@@ -38,19 +38,19 @@ class PropertyAttribute {
     Property() = default;
 
     // Methods for comparing two properties.
-    bool operator==(const Property &other) const;
-    bool operator!=(const Property &other) const { return !(*this == other); }
+    bool operator==(const Property& other) const;
+    bool operator!=(const Property& other) const { return !(*this == other); }
 
     // Copies all data from |src| property.
-    void Copy(const Property &src);
+    void Copy(const Property& src);
 
     // Name of this property.
-    void SetName(const std::string &name);
-    const std::string &GetName() const;
+    void SetName(const std::string& name);
+    const std::string& GetName() const;
 
     // Name of glTF attribute containing property values, like "_DIRECTION".
-    void SetAttributeName(const std::string &name);
-    const std::string &GetAttributeName() const;
+    void SetAttributeName(const std::string& name);
+    const std::string& GetAttributeName() const;
 
    private:
     // Name of this property as in structural metadata schema class property.
@@ -66,27 +66,27 @@ class PropertyAttribute {
   PropertyAttribute() = default;
 
   // Methods for comparing two property attributes.
-  bool operator==(const PropertyAttribute &other) const;
-  bool operator!=(const PropertyAttribute &other) const {
+  bool operator==(const PropertyAttribute& other) const;
+  bool operator!=(const PropertyAttribute& other) const {
     return !(*this == other);
   }
 
   // Copies all data from |src| property attribute.
-  void Copy(const PropertyAttribute &src);
+  void Copy(const PropertyAttribute& src);
 
   // Name of this property attribute.
-  void SetName(const std::string &value);
-  const std::string &GetName() const;
+  void SetName(const std::string& value);
+  const std::string& GetName() const;
 
   // Class of this property attribute.
-  void SetClass(const std::string &value);
-  const std::string &GetClass() const;
+  void SetClass(const std::string& value);
+  const std::string& GetClass() const;
 
   // Properties.
   int AddProperty(std::unique_ptr<Property> property);
   int NumProperties() const;
-  const Property &GetProperty(int index) const;
-  Property &GetProperty(int index);
+  const Property& GetProperty(int index) const;
+  Property& GetProperty(int index);
   void RemoveProperty(int index);
 
  private:

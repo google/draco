@@ -20,7 +20,7 @@ namespace {
 
 class KeyframeAnimationTest : public ::testing::Test {
  protected:
-  KeyframeAnimationTest() {}
+  KeyframeAnimationTest() = default;
 
   bool CreateAndAddTimestamps(int32_t num_frames) {
     timestamps_.resize(num_frames);

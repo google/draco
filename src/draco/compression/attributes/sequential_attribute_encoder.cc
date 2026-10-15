@@ -22,7 +22,7 @@ SequentialAttributeEncoder::SequentialAttributeEncoder()
       attribute_id_(-1),
       is_parent_encoder_(false) {}
 
-bool SequentialAttributeEncoder::Init(PointCloudEncoder *encoder,
+bool SequentialAttributeEncoder::Init(PointCloudEncoder* encoder,
                                       int attribute_id) {
   encoder_ = encoder;
   attribute_ = encoder_->point_cloud()->attribute(attribute_id);
@@ -31,20 +31,20 @@ bool SequentialAttributeEncoder::Init(PointCloudEncoder *encoder,
 }
 
 bool SequentialAttributeEncoder::InitializeStandalone(
-    PointAttribute *attribute) {
+    PointAttribute* attribute) {
   attribute_ = attribute;
   attribute_id_ = -1;
   return true;
 }
 
 bool SequentialAttributeEncoder::TransformAttributeToPortableFormat(
-    const std::vector<PointIndex> &point_ids) {
+    const std::vector<PointIndex>& point_ids) {
   // Default implementation doesn't transform the input data.
   return true;
 }
 
 bool SequentialAttributeEncoder::EncodePortableAttribute(
-    const std::vector<PointIndex> &point_ids, EncoderBuffer *out_buffer) {
+    const std::vector<PointIndex>& point_ids, EncoderBuffer* out_buffer) {
   // Lossless encoding of the input values.
   if (!EncodeValues(point_ids, out_buffer)) {
     return false;
@@ -53,16 +53,16 @@ bool SequentialAttributeEncoder::EncodePortableAttribute(
 }
 
 bool SequentialAttributeEncoder::EncodeDataNeededByPortableTransform(
-    EncoderBuffer *out_buffer) {
+    EncoderBuffer* out_buffer) {
   // Default implementation doesn't transform the input data.
   return true;
 }
 
 bool SequentialAttributeEncoder::EncodeValues(
-    const std::vector<PointIndex> &point_ids, EncoderBuffer *out_buffer) {
+    const std::vector<PointIndex>& point_ids, EncoderBuffer* out_buffer) {
   const int entry_size = static_cast<int>(attribute_->byte_stride());
   const std::unique_ptr<uint8_t[]> value_data_ptr(new uint8_t[entry_size]);
-  uint8_t *const value_data = value_data_ptr.get();
+  uint8_t* const value_data = value_data_ptr.get();
   // Encode all attribute values in their native raw format.
   for (uint32_t i = 0; i < point_ids.size(); ++i) {
     const AttributeValueIndex entry_id = attribute_->mapped_index(point_ids[i]);
@@ -77,7 +77,7 @@ void SequentialAttributeEncoder::MarkParentAttribute() {
 }
 
 bool SequentialAttributeEncoder::InitPredictionScheme(
-    PredictionSchemeInterface *ps) {
+    PredictionSchemeInterface* ps) {
   for (int i = 0; i < ps->GetNumParentAttributes(); ++i) {
     const int att_id = encoder_->point_cloud()->GetNamedAttributeId(
         ps->GetParentAttributeType(i));
@@ -91,7 +91,7 @@ bool SequentialAttributeEncoder::InitPredictionScheme(
 }
 
 bool SequentialAttributeEncoder::SetPredictionSchemeParentAttributes(
-    PredictionSchemeInterface *ps) {
+    PredictionSchemeInterface* ps) {
   for (int i = 0; i < ps->GetNumParentAttributes(); ++i) {
     const int att_id = encoder_->point_cloud()->GetNamedAttributeId(
         ps->GetParentAttributeType(i));

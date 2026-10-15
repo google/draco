@@ -36,15 +36,15 @@ class ObjDecoder {
   // Decodes an obj file stored in the input file.
   // Optional argument |mesh_files| will be populated with all paths to files
   // relevant to the loaded mesh.
-  Status DecodeFromFile(const std::string &file_name, Mesh *out_mesh);
-  Status DecodeFromFile(const std::string &file_name, Mesh *out_mesh,
-                        std::vector<std::string> *mesh_files);
+  Status DecodeFromFile(const std::string& file_name, Mesh* out_mesh);
+  Status DecodeFromFile(const std::string& file_name, Mesh* out_mesh,
+                        std::vector<std::string>* mesh_files);
 
-  Status DecodeFromFile(const std::string &file_name,
-                        PointCloud *out_point_cloud);
+  Status DecodeFromFile(const std::string& file_name,
+                        PointCloud* out_point_cloud);
 
-  Status DecodeFromBuffer(DecoderBuffer *buffer, Mesh *out_mesh);
-  Status DecodeFromBuffer(DecoderBuffer *buffer, PointCloud *out_point_cloud);
+  Status DecodeFromBuffer(DecoderBuffer* buffer, Mesh* out_mesh);
+  Status DecodeFromBuffer(DecoderBuffer* buffer, PointCloud* out_point_cloud);
 
   // Flag that can be used to turn on/off deduplication of input values.
   // This should be disabled only when we are sure that the input data does not
@@ -59,7 +59,7 @@ class ObjDecoder {
 
  protected:
   Status DecodeInternal();
-  DecoderBuffer *buffer() { return &buffer_; }
+  DecoderBuffer* buffer() { return &buffer_; }
 
  private:
   // Resets internal counters for attributes and faces.
@@ -68,31 +68,31 @@ class ObjDecoder {
   // Parses the next mesh property definition (position, tex coord, normal, or
   // face). If the parsed data is unrecognized, it will be skipped.
   // Returns false when the end of file was reached.
-  bool ParseDefinition(Status *status);
+  bool ParseDefinition(Status* status);
 
   // Attempts to parse definition of position, normal, tex coord, or face
   // respectively.
   // Returns false when the parsed data didn't contain the given definition.
-  bool ParseVertexPosition(Status *status);
-  bool ParseNormal(Status *status);
-  bool ParseTexCoord(Status *status);
-  bool ParseFace(Status *status);
-  bool ParseMaterialLib(Status *status);
-  bool ParseMaterial(Status *status);
-  bool ParseObject(Status *status);
+  bool ParseVertexPosition(Status* status);
+  bool ParseNormal(Status* status);
+  bool ParseTexCoord(Status* status);
+  bool ParseFace(Status* status);
+  bool ParseMaterialLib(Status* status);
+  bool ParseMaterial(Status* status);
+  bool ParseObject(Status* status);
 
   // Parses triplet of position, tex coords and normal indices.
   // Returns false on error.
-  bool ParseVertexIndices(std::array<int32_t, 3> *out_indices);
+  bool ParseVertexIndices(std::array<int32_t, 3>* out_indices);
 
   // Maps specified point index to the parsed vertex indices (triplet of
   // position, texture coordinate, and normal indices) .
-  void MapPointToVertexIndices(PointIndex vert_id,
-                               const std::array<int32_t, 3> &indices);
+  bool MapPointToVertexIndices(PointIndex vert_id,
+                               const std::array<int32_t, 3>& indices);
 
   // Parses material file definitions from a separate file.
-  bool ParseMaterialFile(const std::string &file_name, Status *status);
-  bool ParseMaterialFileDefinition(Status *status);
+  bool ParseMaterialFile(const std::string& file_name, Status* status);
+  bool ParseMaterialFileDefinition(Status* status);
 
   // Methods related to polygon triangulation and preservation.
   static int Triangulate(int tri_index, int tri_corner);
@@ -132,14 +132,14 @@ class ObjDecoder {
   bool preserve_polygons_;
   bool has_polygons_;
 
-  std::vector<std::string> *mesh_files_;
+  std::vector<std::string>* mesh_files_;
 
   DecoderBuffer buffer_;
 
   // Data structure that stores the decoded data. |out_point_cloud_| must be
   // always set but |out_mesh_| is optional.
-  Mesh *out_mesh_;
-  PointCloud *out_point_cloud_;
+  Mesh* out_mesh_;
+  PointCloud* out_point_cloud_;
 };
 
 }  // namespace draco

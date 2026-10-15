@@ -21,27 +21,27 @@ namespace draco {
 namespace parser {
 
 // Skips to first character not included in |skip_chars|.
-void SkipCharacters(DecoderBuffer *buffer, const char *skip_chars);
+void SkipCharacters(DecoderBuffer* buffer, const char* skip_chars);
 
 // Skips any whitespace until a regular character is reached.
-void SkipWhitespace(DecoderBuffer *buffer);
+void SkipWhitespace(DecoderBuffer* buffer);
 
 // Returns true if the next character is a whitespace.
 // |end_reached| is set to true when the end of the stream is reached.
-bool PeekWhitespace(DecoderBuffer *buffer, bool *end_reached);
+bool PeekWhitespace(DecoderBuffer* buffer, bool* end_reached);
 
 // Skips all characters until the end of the line.
-void SkipLine(DecoderBuffer *buffer);
+void SkipLine(DecoderBuffer* buffer);
 
 // Parses signed floating point number or returns false on error.
-bool ParseFloat(DecoderBuffer *buffer, float *value);
+bool ParseFloat(DecoderBuffer* buffer, float* value);
 
 // Parses a signed integer (can be preceded by '-' or '+' characters.
-bool ParseSignedInt(DecoderBuffer *buffer, int32_t *value);
+bool ParseSignedInt(DecoderBuffer* buffer, int32_t* value);
 
 // Parses an unsigned integer. It cannot be preceded by '-' or '+'
 // characters.
-bool ParseUnsignedInt(DecoderBuffer *buffer, uint32_t *value);
+bool ParseUnsignedInt(DecoderBuffer* buffer, uint32_t* value);
 
 // Returns -1 if c == '-'.
 // Returns +1 if c == '+'.
@@ -49,16 +49,16 @@ bool ParseUnsignedInt(DecoderBuffer *buffer, uint32_t *value);
 int GetSignValue(char c);
 
 // Parses a string until a whitespace or end of file is reached.
-bool ParseString(DecoderBuffer *buffer, std::string *out_string);
+bool ParseString(DecoderBuffer* buffer, std::string* out_string);
 
 // Parses the entire line into the buffer (excluding the new line characters).
-void ParseLine(DecoderBuffer *buffer, std::string *out_string);
+void ParseLine(DecoderBuffer* buffer, std::string* out_string);
 
 // Parses line and stores into a new decoder buffer.
-DecoderBuffer ParseLineIntoDecoderBuffer(DecoderBuffer *buffer);
+DecoderBuffer ParseLineIntoDecoderBuffer(DecoderBuffer* buffer);
 
 // Returns a string with all characters converted to lower case.
-std::string ToLower(const std::string &str);
+std::string ToLower(const std::string& str);
 
 }  // namespace parser
 }  // namespace draco

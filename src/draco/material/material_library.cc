@@ -17,12 +17,12 @@
 #ifdef DRACO_TRANSCODER_SUPPORTED
 namespace draco {
 
-void MaterialLibrary::Copy(const MaterialLibrary &src) {
+void MaterialLibrary::Copy(const MaterialLibrary& src) {
   Clear();
   Append(src);
 }
 
-void MaterialLibrary::Append(const MaterialLibrary &src) {
+void MaterialLibrary::Append(const MaterialLibrary& src) {
   const size_t old_num_materials = materials_.size();
   materials_.resize(old_num_materials + src.materials_.size());
   for (int i = 0; i < src.materials_.size(); ++i) {
@@ -47,7 +47,7 @@ void MaterialLibrary::Append(const MaterialLibrary &src) {
   // Remap all texture maps to textures stored in the new texture library.
   for (auto it = texture_map_to_index.begin(); it != texture_map_to_index.end();
        ++it) {
-    TextureMap *const texture_map = it->first;
+    TextureMap* const texture_map = it->first;
     const int texture_index = old_num_textures + it->second;
     texture_map->SetTexture(texture_library_.GetTexture(texture_index));
   }
@@ -79,13 +79,13 @@ void MaterialLibrary::RemoveUnusedTextures() {
   }
 }
 
-std::map<TextureMap *, int>
+std::map<TextureMap*, int>
 MaterialLibrary::ComputeTextureMapToTextureIndexMapping(
-    const TextureLibrary &library) const {
-  std::map<TextureMap *, int> map_to_index;
+    const TextureLibrary& library) const {
+  std::map<TextureMap*, int> map_to_index;
   for (int mi = 0; mi < materials_.size(); ++mi) {
     for (int ti = 0; ti < materials_[mi]->NumTextureMaps(); ++ti) {
-      TextureMap *const texture_map = materials_[mi]->GetTextureMapByIndex(ti);
+      TextureMap* const texture_map = materials_[mi]->GetTextureMapByIndex(ti);
       for (int tli = 0; tli < library.NumTextures(); ++tli) {
         if (library.GetTexture(tli) != texture_map->texture()) {
           continue;
@@ -104,7 +104,7 @@ void MaterialLibrary::Clear() {
   materials_variants_names_.clear();
 }
 
-Material *MaterialLibrary::MutableMaterial(int index) {
+Material* MaterialLibrary::MutableMaterial(int index) {
   if (index < 0) {
     return nullptr;
   }

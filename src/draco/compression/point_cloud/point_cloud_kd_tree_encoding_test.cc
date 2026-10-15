@@ -25,7 +25,7 @@ namespace draco {
 
 class PointCloudKdTreeEncodingTest : public ::testing::Test {
  protected:
-  void ComparePointClouds(const PointCloud &p0, const PointCloud &p1) const {
+  void ComparePointClouds(const PointCloud& p0, const PointCloud& p1) const {
     ASSERT_EQ(p0.num_points(), p1.num_points());
     ASSERT_EQ(p0.num_attributes(), p1.num_attributes());
     // Currently works only with one attribute.
@@ -60,7 +60,7 @@ class PointCloudKdTreeEncodingTest : public ::testing::Test {
     }
   }
 
-  void TestKdTreeEncoding(const PointCloud &pc) {
+  void TestKdTreeEncoding(const PointCloud& pc) {
     EncoderBuffer buffer;
     PointCloudKdTreeEncoder encoder;
     EncoderOptions options = EncoderOptions::CreateDefaultOptions();
@@ -83,7 +83,7 @@ class PointCloudKdTreeEncodingTest : public ::testing::Test {
     }
   }
 
-  void TestFloatEncoding(const std::string &file_name) {
+  void TestFloatEncoding(const std::string& file_name) {
     std::unique_ptr<PointCloud> pc = ReadPointCloudFromTestFile(file_name);
     ASSERT_NE(pc, nullptr);
 
@@ -134,7 +134,7 @@ TEST_F(PointCloudKdTreeEncodingTest, TestRejectMismatchedLegacyPointCount) {
       0x00, 0x0e, 0x18, 0xff, 0xff, 0xff};
 
   DecoderBuffer buffer;
-  buffer.Init(reinterpret_cast<const char *>(data), sizeof(data));
+  buffer.Init(reinterpret_cast<const char*>(data), sizeof(data));
   Decoder decoder;
   decoder.SetSkipAttributeTransform(GeometryAttribute::POSITION);
   EXPECT_FALSE(decoder.DecodePointCloudFromBuffer(&buffer).ok());
@@ -158,7 +158,7 @@ TEST_F(PointCloudKdTreeEncodingTest, TestRejectTruncatedHighDimensionalStream) {
   data.push_back(0);
 
   DecoderBuffer buffer;
-  buffer.Init(reinterpret_cast<const char *>(data.data()), data.size());
+  buffer.Init(reinterpret_cast<const char*>(data.data()), data.size());
   Decoder decoder;
   EXPECT_FALSE(decoder.DecodePointCloudFromBuffer(&buffer).ok());
 }

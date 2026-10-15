@@ -36,10 +36,10 @@ class AttributesDecoder : public AttributesDecoderInterface {
 
   // Called after all attribute decoders are created. It can be used to perform
   // any custom initialization.
-  bool Init(PointCloudDecoder *decoder, PointCloud *pc) override;
+  bool Init(PointCloudDecoder* decoder, PointCloud* pc) override;
 
   // Decodes any attribute decoder specific data from the |in_buffer|.
-  bool DecodeAttributesDecoderData(DecoderBuffer *in_buffer) override;
+  bool DecodeAttributesDecoderData(DecoderBuffer* in_buffer) override;
 
   int32_t GetAttributeId(int i) const override {
     return point_attribute_ids_[i];
@@ -47,12 +47,12 @@ class AttributesDecoder : public AttributesDecoderInterface {
   int32_t GetNumAttributes() const override {
     return static_cast<int32_t>(point_attribute_ids_.size());
   }
-  PointCloudDecoder *GetDecoder() const override {
+  PointCloudDecoder* GetDecoder() const override {
     return point_cloud_decoder_;
   }
 
   // Decodes attribute data from the source buffer.
-  bool DecodeAttributes(DecoderBuffer *in_buffer) override {
+  bool DecodeAttributes(DecoderBuffer* in_buffer) override {
     if (!DecodePortableAttributes(in_buffer)) {
       return false;
     }
@@ -74,8 +74,8 @@ class AttributesDecoder : public AttributesDecoderInterface {
     }
     return point_attribute_to_local_id_map_[point_attribute_id];
   }
-  virtual bool DecodePortableAttributes(DecoderBuffer *in_buffer) = 0;
-  virtual bool DecodeDataNeededByPortableTransforms(DecoderBuffer *in_buffer) {
+  virtual bool DecodePortableAttributes(DecoderBuffer* in_buffer) = 0;
+  virtual bool DecodeDataNeededByPortableTransforms(DecoderBuffer* in_buffer) {
     return true;
   }
   virtual bool TransformAttributesToOriginalFormat() { return true; }
@@ -88,8 +88,8 @@ class AttributesDecoder : public AttributesDecoderInterface {
   // |point_attribute_ids_|.
   std::vector<int32_t> point_attribute_to_local_id_map_;
 
-  PointCloudDecoder *point_cloud_decoder_;
-  PointCloud *point_cloud_;
+  PointCloudDecoder* point_cloud_decoder_;
+  PointCloud* point_cloud_;
 };
 
 }  // namespace draco

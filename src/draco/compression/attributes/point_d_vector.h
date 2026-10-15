@@ -41,29 +41,29 @@ namespace draco {
 template <typename internal_t>
 class PseudoPointD {
  public:
-  PseudoPointD(internal_t *mem, internal_t dimension)
+  PseudoPointD(internal_t* mem, internal_t dimension)
       : mem_(mem), dimension_(dimension) {}
 
   // Specifically copies referenced memory
-  void swap(PseudoPointD &other) noexcept {
+  void swap(PseudoPointD& other) noexcept {
     for (internal_t dim = 0; dim < dimension_; dim += 1) {
       std::swap(mem_[dim], other.mem_[dim]);
     }
   }
 
-  PseudoPointD(const PseudoPointD &other)
+  PseudoPointD(const PseudoPointD& other)
       : mem_(other.mem_), dimension_(other.dimension_) {}
 
-  const internal_t &operator[](const size_t &n) const {
+  const internal_t& operator[](const size_t& n) const {
     DRACO_DCHECK_LT(n, dimension_);
     return mem_[n];
   }
-  internal_t &operator[](const size_t &n) {
+  internal_t& operator[](const size_t& n) {
     DRACO_DCHECK_LT(n, dimension_);
     return mem_[n];
   }
 
-  bool operator==(const PseudoPointD &other) const {
+  bool operator==(const PseudoPointD& other) const {
     for (auto dim = 0; dim < dimension_; dim += 1) {
       if (mem_[dim] != other.mem_[dim]) {
         return false;
@@ -71,24 +71,24 @@ class PseudoPointD {
     }
     return true;
   }
-  bool operator!=(const PseudoPointD &other) const {
+  bool operator!=(const PseudoPointD& other) const {
     return !this->operator==(other);
   }
 
  private:
-  internal_t *const mem_;
+  internal_t* const mem_;
   const internal_t dimension_;
 };
 
 // It seems problematic to bring this inside PointDVector due to templating.
 template <typename internal_t>
-void swap(draco::PseudoPointD<internal_t> &&a,
-          draco::PseudoPointD<internal_t> &&b) noexcept {
+void swap(draco::PseudoPointD<internal_t>&& a,
+          draco::PseudoPointD<internal_t>&& b) noexcept {
   a.swap(b);
 };
 template <typename internal_t>
-void swap(draco::PseudoPointD<internal_t> &a,
-          draco::PseudoPointD<internal_t> &b) noexcept {
+void swap(draco::PseudoPointD<internal_t>& a,
+          draco::PseudoPointD<internal_t>& b) noexcept {
   a.swap(b);
 };
 
@@ -110,8 +110,8 @@ class PointDVector {
     using iterator_category = std::random_access_iterator_tag;
     using value_type = size_t;
     using difference_type = size_t;
-    using pointer = PointDVector *;
-    using reference = PointDVector &;
+    using pointer = PointDVector*;
+    using reference = PointDVector&;
 
     // std::iter_swap is called inside of std::partition and needs this
     // specialized support
@@ -119,11 +119,11 @@ class PointDVector {
       return PseudoPointD<internal_t>(vec_->data0_ + item_ * dimensionality_,
                                       dimensionality_);
     }
-    const PointDVectorIterator &operator++() {
+    const PointDVectorIterator& operator++() {
       item_ += 1;
       return *this;
     }
-    const PointDVectorIterator &operator--() {
+    const PointDVectorIterator& operator--() {
       item_ -= 1;
       return *this;
     }
@@ -137,62 +137,62 @@ class PointDVector {
       item_ -= 1;
       return copy;
     }
-    PointDVectorIterator &operator=(const PointDVectorIterator &other) {
+    PointDVectorIterator& operator=(const PointDVectorIterator& other) {
       this->item_ = other.item_;
       return *this;
     }
 
-    bool operator==(const PointDVectorIterator &ref) const {
+    bool operator==(const PointDVectorIterator& ref) const {
       return item_ == ref.item_;
     }
-    bool operator!=(const PointDVectorIterator &ref) const {
+    bool operator!=(const PointDVectorIterator& ref) const {
       return item_ != ref.item_;
     }
-    bool operator<(const PointDVectorIterator &ref) const {
+    bool operator<(const PointDVectorIterator& ref) const {
       return item_ < ref.item_;
     }
-    bool operator>(const PointDVectorIterator &ref) const {
+    bool operator>(const PointDVectorIterator& ref) const {
       return item_ > ref.item_;
     }
-    bool operator<=(const PointDVectorIterator &ref) const {
+    bool operator<=(const PointDVectorIterator& ref) const {
       return item_ <= ref.item_;
     }
-    bool operator>=(const PointDVectorIterator &ref) const {
+    bool operator>=(const PointDVectorIterator& ref) const {
       return item_ >= ref.item_;
     }
 
-    PointDVectorIterator operator+(const int32_t &add) const {
+    PointDVectorIterator operator+(const int32_t& add) const {
       PointDVectorIterator copy(vec_, item_ + add);
       return copy;
     }
-    PointDVectorIterator &operator+=(const int32_t &add) {
+    PointDVectorIterator& operator+=(const int32_t& add) {
       item_ += add;
       return *this;
     }
-    PointDVectorIterator operator-(const int32_t &sub) const {
+    PointDVectorIterator operator-(const int32_t& sub) const {
       PointDVectorIterator copy(vec_, item_ - sub);
       return copy;
     }
-    size_t operator-(const PointDVectorIterator &sub) const {
+    size_t operator-(const PointDVectorIterator& sub) const {
       return (item_ - sub.item_);
     }
 
-    PointDVectorIterator &operator-=(const int32_t &sub) {
+    PointDVectorIterator& operator-=(const int32_t& sub) {
       item_ -= sub;
       return *this;
     }
 
-    internal_t *operator[](const size_t &n) const {
+    internal_t* operator[](const size_t& n) const {
       return vec_->data0_ + (item_ + n) * dimensionality_;
     }
 
    protected:
-    explicit PointDVectorIterator(PointDVector *vec, size_t start_item)
+    explicit PointDVectorIterator(PointDVector* vec, size_t start_item)
         : item_(start_item), vec_(vec), dimensionality_(vec->dimensionality_) {}
 
    private:
     size_t item_;  // this counts the item that should be referenced.
-    PointDVector *const vec_;        // the thing that we're iterating on
+    PointDVector* const vec_;        // the thing that we're iterating on
     const uint32_t dimensionality_;  // local copy from vec_
   };
 
@@ -201,11 +201,11 @@ class PointDVector {
 
   // operator[] allows for unprotected user-side usage of operator[] on the
   // return value AS IF it were a natively indexable type like Point3*
-  internal_t *operator[](const uint32_t index) {
+  internal_t* operator[](const uint32_t index) {
     DRACO_DCHECK_LT(index, n_items_);
     return data0_ + index * dimensionality_;
   }
-  const internal_t *operator[](const uint32_t index) const {
+  const internal_t* operator[](const uint32_t index) const {
     DRACO_DCHECK_LT(index, n_items_);
     return data0_ + index * dimensionality_;
   }
@@ -214,7 +214,7 @@ class PointDVector {
   size_t GetBufferSize() const { return data_.size(); }
 
   // copy a single contiguous 'item' from one PointDVector into this one.
-  void CopyItem(const PointDVector &source, const internal_t source_index,
+  void CopyItem(const PointDVector& source, const internal_t source_index,
                 const internal_t destination_index) {
     DRACO_DCHECK(&source != this ||
                  (&source == this && source_index != destination_index));
@@ -224,8 +224,8 @@ class PointDVector {
     // DRACO_DCHECK_EQ(source.n_items_, n_items_); // not technically necessary
     DRACO_DCHECK_EQ(source.dimensionality_, dimensionality_);
 
-    const internal_t *ref = source[source_index];
-    internal_t *const dest = this->operator[](destination_index);
+    const internal_t* ref = source[source_index];
+    internal_t* const dest = this->operator[](destination_index);
     std::memcpy(dest, ref, item_size_bytes_);
   }
 
@@ -237,7 +237,7 @@ class PointDVector {
       // The offset in dimensions to insert this attribute.
       const internal_t offset_dimensionality, const internal_t index,
       // The direct pointer to the data
-      const void *const attribute_item_data) {
+      const void* const attribute_item_data) {
     // chunk copy
     const size_t copy_size = sizeof(internal_t) * attribute_dimensionality;
 
@@ -251,7 +251,7 @@ class PointDVector {
       const internal_t attribute_dimensionality,
       // The offset in dimensions to insert this attribute.
       const internal_t offset_dimensionality,
-      const internal_t *const attribute_mem) {
+      const internal_t* const attribute_mem) {
     DRACO_DCHECK_LT(offset_dimensionality,
                     dimensionality_ - attribute_dimensionality);
     // degenerate case block copy the whole buffer.
@@ -262,8 +262,8 @@ class PointDVector {
       std::memcpy(data0_, attribute_mem, copy_size);
     } else {  // chunk copy
       const size_t copy_size = sizeof(internal_t) * attribute_dimensionality;
-      internal_t *internal_data;
-      const internal_t *attribute_data;
+      internal_t* internal_data;
+      const internal_t* attribute_data;
       internal_t item;
       for (internal_data = data0_ + offset_dimensionality,
           attribute_data = attribute_mem, item = 0;
@@ -280,7 +280,7 @@ class PointDVector {
   const uint32_t dimensionality_;  // The dimension of the points in the buffer
   const uint32_t item_size_bytes_;
   std::vector<internal_t> data_;  // contiguously stored data.  Never resized.
-  internal_t *const data0_;       // raw pointer to base data.
+  internal_t* const data0_;       // raw pointer to base data.
 };
 
 }  // namespace draco

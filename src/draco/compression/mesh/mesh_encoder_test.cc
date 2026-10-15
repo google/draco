@@ -23,7 +23,7 @@
 namespace draco {
 
 struct MeshEncoderTestParams {
-  MeshEncoderTestParams(const std::string &encoding_method, int cl)
+  MeshEncoderTestParams(const std::string& encoding_method, int cl)
       : encoding_method(encoding_method), cl(cl) {}
   std::string encoding_method;
   int cl;
@@ -31,11 +31,11 @@ struct MeshEncoderTestParams {
 
 class MeshEncoderTest : public ::testing::TestWithParam<MeshEncoderTestParams> {
  protected:
-  MeshEncoderTest() {}
+  MeshEncoderTest() = default;
 
   // Fills out_method with id of the encoding method used for the test.
   // Returns false if the encoding method is not set properly.
-  bool GetMethod(MeshEncoderMethod *out_method) const {
+  bool GetMethod(MeshEncoderMethod* out_method) const {
     if (GetParam().encoding_method == "sequential") {
       *out_method = MESH_SEQUENTIAL_ENCODING;
       return true;
@@ -47,7 +47,7 @@ class MeshEncoderTest : public ::testing::TestWithParam<MeshEncoderTestParams> {
     return false;
   }
 
-  void TestGolden(const std::string &file_name) {
+  void TestGolden(const std::string& file_name) {
     // This test verifies that a given set of meshes are encoded to an expected
     // output. This is useful for catching bugs in code changes that are not
     // supposed to change the encoding.

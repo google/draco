@@ -57,20 +57,20 @@ struct EXPORT_API Drc2PyMesh {
         uvs_real_num(0),
         uvs(nullptr) {}
   int faces_num;
-  int *faces;
+  int* faces;
   int vertices_num;
-  float *vertices;
+  float* vertices;
   int normals_num;
-  float *normals;
+  float* normals;
   int uvs_num;
   int uvs_real_num;
-  float *uvs;
+  float* uvs;
 };
 
-EXPORT_API DecodeResult drc2py_decode(char *data, unsigned int length,
-                                      Drc2PyMesh **res_mesh);
-EXPORT_API void drc2py_free(Drc2PyMesh **res_mesh);
-EXPORT_API EncodeResult drc2py_encode(Drc2PyMesh *in_mesh, char *file_path);
+EXPORT_API DecodeResult drc2py_decode(char* data, unsigned int length,
+                                      Drc2PyMesh** res_mesh);
+EXPORT_API void drc2py_free(Drc2PyMesh** res_mesh);
+EXPORT_API EncodeResult drc2py_encode(Drc2PyMesh* in_mesh, char* file_path);
 }  // extern "C"
 
 }  // namespace maya

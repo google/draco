@@ -124,12 +124,12 @@ class IntegerPointsKdTreeEncoder {
   // |bit_length| gives the highest bit used for all coordinates.
   template <class RandomAccessIteratorT>
   bool EncodePoints(RandomAccessIteratorT begin, RandomAccessIteratorT end,
-                    const uint32_t &bit_length, EncoderBuffer *buffer);
+                    const uint32_t& bit_length, EncoderBuffer* buffer);
 
   // Encodes an integer point cloud given by [begin,end) into buffer.
   template <class RandomAccessIteratorT>
   bool EncodePoints(RandomAccessIteratorT begin, RandomAccessIteratorT end,
-                    EncoderBuffer *buffer) {
+                    EncoderBuffer* buffer) {
     return EncodePoints(begin, end, 32, buffer);
   }
 
@@ -139,7 +139,7 @@ class IntegerPointsKdTreeEncoder {
   static constexpr int D = PointTraits<PointDiT>::Dimension();
   template <class RandomAccessIteratorT>
   uint32_t GetAxis(RandomAccessIteratorT begin, RandomAccessIteratorT end,
-                   const PointDiT &old_base, std::array<uint32_t, D> levels,
+                   const PointDiT& old_base, std::array<uint32_t, D> levels,
                    uint32_t last_axis);
 
   template <class RandomAccessIteratorT>
@@ -150,7 +150,7 @@ class IntegerPointsKdTreeEncoder {
   class Splitter {
    public:
     Splitter(int axis, uint32_t value) : axis_(axis), value_(value) {}
-    bool operator()(const PointDiT &a) { return a[axis_] < value_; }
+    bool operator()(const PointDiT& a) { return a[axis_] < value_; }
 
    private:
     int axis_;
@@ -165,7 +165,7 @@ class IntegerPointsKdTreeEncoder {
   struct EncodingStatus {
     EncodingStatus(
         RandomAccessIteratorT begin_, RandomAccessIteratorT end_,
-        const PointDiT &old_base_,
+        const PointDiT& old_base_,
         std::array<uint32_t, PointTraits<PointDiT>::Dimension()> levels_,
         uint32_t last_axis_)
         : begin(begin_),
@@ -182,7 +182,7 @@ class IntegerPointsKdTreeEncoder {
     std::array<uint32_t, D> levels;
     uint32_t last_axis;
     uint32_t num_remaining_points;
-    friend bool operator<(const EncodingStatus &l, const EncodingStatus &r) {
+    friend bool operator<(const EncodingStatus& l, const EncodingStatus& r) {
       return l.num_remaining_points < r.num_remaining_points;
     }
   };
@@ -199,7 +199,7 @@ template <class PointDiT, int compression_level_t>
 template <class RandomAccessIteratorT>
 bool IntegerPointsKdTreeEncoder<PointDiT, compression_level_t>::EncodePoints(
     RandomAccessIteratorT begin, RandomAccessIteratorT end,
-    const uint32_t &bit_length, EncoderBuffer *buffer) {
+    const uint32_t& bit_length, EncoderBuffer* buffer) {
   bit_length_ = bit_length;
   num_points_ = end - begin;
 
@@ -228,7 +228,7 @@ template <class PointDiT, int compression_level_t>
 template <class RandomAccessIteratorT>
 uint32_t IntegerPointsKdTreeEncoder<PointDiT, compression_level_t>::GetAxis(
     RandomAccessIteratorT begin, RandomAccessIteratorT end,
-    const PointDiT &old_base, std::array<uint32_t, D> levels,
+    const PointDiT& old_base, std::array<uint32_t, D> levels,
     uint32_t last_axis) {
   if (!Policy::select_axis) {
     return DRACO_INCREMENT_MOD(last_axis, D);
@@ -339,7 +339,7 @@ void IntegerPointsKdTreeEncoder<PointDiT, compression_level_t>::EncodeInternal(
       }
 
       for (uint32_t i = 0; i < num_remaining_points; ++i) {
-        const PointDiT &p = *(begin + i);
+        const PointDiT& p = *(begin + i);
         for (int j = 0; j < D; j++) {
           if (num_remaining_bits[j]) {
             remaining_bits_encoder_.EncodeLeastSignificantBits32(

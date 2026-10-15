@@ -34,40 +34,42 @@ class GltfTestHelper {
   // Adds various mesh feature ID sets (via attributes and via textures),
   // structural metadata schema, property table, and property attributes to the
   // box |scene| loaded from the test file testdata/Box/glTF/Box.gltf.
-  static void AddBoxMetaMeshFeatures(Scene *scene);
-  static void AddBoxMetaStructuralMetadata(Scene *scene);
+  static void AddBoxMetaMeshFeatures(Scene* scene);
+  static void AddBoxMetaStructuralMetadata(Scene* scene);
 
   // Checks the box |geometry| (draco::Mesh or draco::Scene) with  mesh features
   // loaded from one of these test files, with or without Draco compression:
   // 1. testdata/BoxMeta/glTF/BoxMeta.gltf
   // 2. testdata/BoxMetaDraco/glTF/BoxMetaDraco.gltf
   template <typename GeometryT>
-  static void CheckBoxMetaMeshFeatures(const GeometryT &geometry,
-                                       const UseCase &use_case);
+  static void CheckBoxMetaMeshFeatures(const GeometryT& geometry,
+                                       const UseCase& use_case);
 
   // Checks the box |geometry| (draco::Mesh or draco::Scene) with structural
   // metadata that includes schema, property table, and property attributes
   // loaded from test file testdata/BoxMeta/glTF/BoxMeta.gltf.
   template <typename GeometryT>
-  static void CheckBoxMetaStructuralMetadata(const GeometryT &geometry,
-                                             const UseCase &use_case) {
+  static void CheckBoxMetaStructuralMetadata(const GeometryT& geometry,
+                                             const UseCase& use_case) {
     if constexpr (std::is_same_v<GeometryT, Mesh>) {
-      CheckBoxMetaStructuralMetadata(geometry, geometry.GetStructuralMetadata(),
-                                     use_case);
+      CheckBoxMetaStructuralMetadata(
+          geometry, geometry.GetNonMaterialTextureLibrary(),
+          geometry.GetStructuralMetadata(), use_case);
     } else {
       CheckBoxMetaStructuralMetadata(geometry.GetMesh(MeshIndex(0)),
+                                     geometry.GetNonMaterialTextureLibrary(),
                                      geometry.GetStructuralMetadata(),
                                      use_case);
     }
   }
 
  private:
-  static void CheckBoxMetaMeshFeatures(const Mesh &mesh,
-                                       const TextureLibrary &texture_lib,
-                                       const UseCase &use_case);
+  static void CheckBoxMetaMeshFeatures(const Mesh& mesh,
+                                       const TextureLibrary& texture_lib,
+                                       const UseCase& use_case);
   static void CheckBoxMetaStructuralMetadata(
-      const Mesh &mesh, const StructuralMetadata &structural_metadata,
-      const UseCase &use_case);
+      const Mesh& mesh, const TextureLibrary& texture_lib,
+      const StructuralMetadata& structural_metadata, const UseCase& use_case);
 };
 
 }  // namespace draco

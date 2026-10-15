@@ -47,8 +47,8 @@ struct MeshPredictionSchemeDecoderFactory {
             PredictionSchemeTransformType Method>
   struct DispatchFunctor {
     std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>> operator()(
-        PredictionSchemeMethod method, const PointAttribute *attribute,
-        const TransformT &transform, const MeshDataT &mesh_data,
+        PredictionSchemeMethod method, const PointAttribute* attribute,
+        const TransformT& transform, const MeshDataT& mesh_data,
         uint16_t bitstream_version) {
       if (method == MESH_PREDICTION_PARALLELOGRAM) {
         return std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>(
@@ -105,8 +105,8 @@ struct MeshPredictionSchemeDecoderFactory {
   struct DispatchFunctor<TransformT, MeshDataT,
                          PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON_CANONICALIZED> {
     std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>> operator()(
-        PredictionSchemeMethod method, const PointAttribute *attribute,
-        const TransformT &transform, const MeshDataT &mesh_data,
+        PredictionSchemeMethod method, const PointAttribute* attribute,
+        const TransformT& transform, const MeshDataT& mesh_data,
         uint16_t bitstream_version) {
       if (method == MESH_PREDICTION_GEOMETRIC_NORMAL) {
         return std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>(
@@ -121,8 +121,8 @@ struct MeshPredictionSchemeDecoderFactory {
   struct DispatchFunctor<TransformT, MeshDataT,
                          PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON> {
     std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>> operator()(
-        PredictionSchemeMethod method, const PointAttribute *attribute,
-        const TransformT &transform, const MeshDataT &mesh_data,
+        PredictionSchemeMethod method, const PointAttribute* attribute,
+        const TransformT& transform, const MeshDataT& mesh_data,
         uint16_t bitstream_version) {
       if (method == MESH_PREDICTION_GEOMETRIC_NORMAL) {
         return std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>(
@@ -137,8 +137,8 @@ struct MeshPredictionSchemeDecoderFactory {
 
   template <class TransformT, class MeshDataT>
   std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>> operator()(
-      PredictionSchemeMethod method, const PointAttribute *attribute,
-      const TransformT &transform, const MeshDataT &mesh_data,
+      PredictionSchemeMethod method, const PointAttribute* attribute,
+      const TransformT& transform, const MeshDataT& mesh_data,
       uint16_t bitstream_version) {
     return DispatchFunctor<TransformT, MeshDataT, TransformT::GetType()>()(
         method, attribute, transform, mesh_data, bitstream_version);
@@ -151,20 +151,20 @@ struct MeshPredictionSchemeDecoderFactory {
 template <typename DataTypeT, class TransformT>
 std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>
 CreatePredictionSchemeForDecoder(PredictionSchemeMethod method, int att_id,
-                                 const PointCloudDecoder *decoder,
-                                 const TransformT &transform) {
+                                 const PointCloudDecoder* decoder,
+                                 const TransformT& transform) {
   if (method == PREDICTION_NONE) {
     return nullptr;
   }
-  const PointAttribute *const att = decoder->point_cloud()->attribute(att_id);
+  const PointAttribute* const att = decoder->point_cloud()->attribute(att_id);
   if (decoder->GetGeometryType() == TRIANGULAR_MESH) {
     // Cast the decoder to mesh decoder. This is not necessarily safe if there
     // is some other decoder decides to use TRIANGULAR_MESH as the return type,
     // but unfortunately there is not nice work around for this without using
     // RTTI (double dispatch and similar concepts will not work because of the
     // template nature of the prediction schemes).
-    const MeshDecoder *const mesh_decoder =
-        static_cast<const MeshDecoder *>(decoder);
+    const MeshDecoder* const mesh_decoder =
+        static_cast<const MeshDecoder*>(decoder);
 
     auto ret = CreateMeshPredictionScheme<
         MeshDecoder, PredictionSchemeDecoder<DataTypeT, TransformT>,
@@ -184,7 +184,7 @@ CreatePredictionSchemeForDecoder(PredictionSchemeMethod method, int att_id,
 template <typename DataTypeT, class TransformT>
 std::unique_ptr<PredictionSchemeDecoder<DataTypeT, TransformT>>
 CreatePredictionSchemeForDecoder(PredictionSchemeMethod method, int att_id,
-                                 const PointCloudDecoder *decoder) {
+                                 const PointCloudDecoder* decoder) {
   return CreatePredictionSchemeForDecoder<DataTypeT, TransformT>(
       method, att_id, decoder, TransformT());
 }

@@ -23,46 +23,60 @@ namespace draco {
 
 StructuralMetadataSchema::Object::Object() : Object("") {}
 
-StructuralMetadataSchema::Object::Object(const std::string &name)
+StructuralMetadataSchema::Object::Object(const std::string& name)
     : name_(name), type_(OBJECT), integer_(0), boolean_(false) {}
 
-StructuralMetadataSchema::Object::Object(const std::string &name,
-                                         const std::string &value)
+StructuralMetadataSchema::Object::Object(const std::string& name,
+                                         const std::string& value)
     : Object(name) {
   SetString(value);
 }
 
-StructuralMetadataSchema::Object::Object(const std::string &name,
-                                         const char *value)
+StructuralMetadataSchema::Object::Object(const std::string& name,
+                                         const char* value)
     : Object(name) {
   SetString(value);
 }
 
-StructuralMetadataSchema::Object::Object(const std::string &name, int value)
+StructuralMetadataSchema::Object::Object(const std::string& name, int value)
     : Object(name) {
   SetInteger(value);
 }
 
-StructuralMetadataSchema::Object::Object(const std::string &name, bool value)
+StructuralMetadataSchema::Object::Object(const std::string& name, bool value)
     : Object(name) {
   SetBoolean(value);
 }
 
-bool StructuralMetadataSchema::Object::operator==(const Object &other) const {
+bool StructuralMetadataSchema::Object::operator==(const Object& other) const {
   if (type_ != other.type_ || name_ != other.name_) {
     return false;
   }
   switch (type_) {
-    case OBJECT:
+    case OBJECT: {
       if (objects_.size() != other.objects_.size()) {
         return false;
       }
+      // OBJECTs are keyed by name, so order isn't actually important.
+      std::vector<bool> other_matched(other.objects_.size(), false);
       for (int i = 0; i < objects_.size(); ++i) {
-        if (objects_[i] != other.objects_[i]) {
+        bool matched = false;
+        for (int j = 0; j < other.objects_.size(); ++j) {
+          if (other_matched[j]) {
+            // A previous element matched this.
+            continue;
+          }
+          if (objects_[i] == other.objects_[j]) {
+            matched = true;
+            other_matched[j] = true;
+            break;
+          }
+        }
+        if (!matched) {
           return false;
         }
       }
-      break;
+    } break;
     case ARRAY:
       if (array_.size() != other.array_.size()) {
         return false;
@@ -83,20 +97,20 @@ bool StructuralMetadataSchema::Object::operator==(const Object &other) const {
   return true;
 }
 
-bool StructuralMetadataSchema::Object::operator!=(const Object &other) const {
+bool StructuralMetadataSchema::Object::operator!=(const Object& other) const {
   return !(*this == other);
 }
 
-void StructuralMetadataSchema::Object::Copy(const Object &src) {
+void StructuralMetadataSchema::Object::Copy(const Object& src) {
   name_ = src.name_;
   type_ = src.type_;
   objects_.reserve(src.objects_.size());
-  for (const Object &obj : src.objects_) {
+  for (const Object& obj : src.objects_) {
     objects_.emplace_back();
     objects_.back().Copy(obj);
   }
   array_.reserve(src.array_.size());
-  for (const Object &obj : src.array_) {
+  for (const Object& obj : src.array_) {
     array_.emplace_back();
     array_.back().Copy(obj);
   }
@@ -105,10 +119,10 @@ void StructuralMetadataSchema::Object::Copy(const Object &src) {
   boolean_ = src.boolean_;
 }
 
-const StructuralMetadataSchema::Object *
+const StructuralMetadataSchema::Object*
 StructuralMetadataSchema::Object::GetObjectByName(
-    const std::string &name) const {
-  for (const Object &obj : objects_) {
+    const std::string& name) const {
+  for (const Object& obj : objects_) {
     if (obj.GetName() == name) {
       return &obj;
     }
@@ -116,19 +130,19 @@ StructuralMetadataSchema::Object::GetObjectByName(
   return nullptr;
 }
 
-std::vector<StructuralMetadataSchema::Object> &
+std::vector<StructuralMetadataSchema::Object>&
 StructuralMetadataSchema::Object::SetObjects() {
   type_ = OBJECT;
   return objects_;
 }
 
-std::vector<StructuralMetadataSchema::Object> &
+std::vector<StructuralMetadataSchema::Object>&
 StructuralMetadataSchema::Object::SetArray() {
   type_ = ARRAY;
   return array_;
 }
 
-void StructuralMetadataSchema::Object::SetString(const std::string &value) {
+void StructuralMetadataSchema::Object::SetString(const std::string& value) {
   type_ = STRING;
   string_ = value;
 }
@@ -144,12 +158,12 @@ void StructuralMetadataSchema::Object::SetBoolean(bool value) {
 }
 
 bool StructuralMetadataSchema::operator==(
-    const StructuralMetadataSchema &other) const {
+    const StructuralMetadataSchema& other) const {
   return json == other.json;
 }
 
 bool StructuralMetadataSchema::operator!=(
-    const StructuralMetadataSchema &other) const {
+    const StructuralMetadataSchema& other) const {
   return !(*this == other);
 }
 

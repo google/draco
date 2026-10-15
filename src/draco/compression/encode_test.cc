@@ -38,7 +38,7 @@ namespace {
 
 class EncodeTest : public ::testing::Test {
  protected:
-  EncodeTest() {}
+  EncodeTest() = default;
   std::unique_ptr<draco::Mesh> CreateTestMesh() const {
     draco::TriangleSoupMeshBuilder mesh_builder;
 
@@ -137,7 +137,7 @@ class EncodeTest : public ::testing::Test {
     return pc_builder.Finalize(false);
   }
 
-  int GetQuantizationBitsFromAttribute(const draco::PointAttribute *att) const {
+  int GetQuantizationBitsFromAttribute(const draco::PointAttribute* att) const {
     if (att == nullptr) {
       return -1;
     }
@@ -148,7 +148,7 @@ class EncodeTest : public ::testing::Test {
     return transform.quantization_bits();
   }
 
-  void VerifyNumQuantizationBits(const draco::EncoderBuffer &buffer,
+  void VerifyNumQuantizationBits(const draco::EncoderBuffer& buffer,
                                  int pos_quantization,
                                  int tex_coord_0_quantization,
                                  int tex_coord_1_quantization) const {
@@ -173,10 +173,10 @@ class EncodeTest : public ::testing::Test {
 
   // Tests that the encoder returns the correct number of encoded points and
   // faces for a given mesh or point cloud.
-  void TestNumberOfEncodedEntries(const std::string &file_name,
+  void TestNumberOfEncodedEntries(const std::string& file_name,
                                   int32_t encoding_method) {
     std::unique_ptr<draco::PointCloud> geometry;
-    draco::Mesh *mesh = nullptr;
+    draco::Mesh* mesh = nullptr;
 
     if (encoding_method == draco::MESH_EDGEBREAKER_ENCODING ||
         encoding_method == draco::MESH_SEQUENTIAL_ENCODING) {
@@ -595,7 +595,7 @@ TEST_F(EncodeTest, TestDracoCompressionOptionsGridQuantizationWithOffset) {
   ASSERT_NE(mesh, nullptr);
 
   // Move all positions a bit.
-  auto *pos_att = mesh->attribute(
+  auto* pos_att = mesh->attribute(
       mesh->GetNamedAttributeId(draco::GeometryAttribute::POSITION));
   for (draco::AttributeValueIndex avi(0); avi < pos_att->size(); ++avi) {
     draco::Vector3f pos;
@@ -650,14 +650,14 @@ TEST_F(EncodeTest, TestQuantizationRangeWiderThanFloatIsRefused) {
            false, sizeof(float) * 3, 0);
   const int pos_id = mesh.AddAttribute(pos, true, 3);
   const float max = std::numeric_limits<float>::max();
-  const float positions[3][3] = {{-max, 0.f, 0.f}, {max, 1.f, 0.f},
-                                 {0.f, 0.f, 1.f}};
+  const float positions[3][3] = {
+      {-max, 0.f, 0.f}, {max, 1.f, 0.f}, {0.f, 0.f, 1.f}};
   for (int i = 0; i < 3; ++i) {
     mesh.attribute(pos_id)->SetAttributeValue(draco::AttributeValueIndex(i),
                                               positions[i]);
   }
-  mesh.AddFace({draco::PointIndex(0), draco::PointIndex(1),
-                draco::PointIndex(2)});
+  mesh.AddFace(
+      {draco::PointIndex(0), draco::PointIndex(1), draco::PointIndex(2)});
 
   draco::Encoder encoder;
   encoder.SetAttributeQuantization(draco::GeometryAttribute::POSITION, 14);

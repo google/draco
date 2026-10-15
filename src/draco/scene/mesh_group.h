@@ -35,9 +35,9 @@ class MeshGroup {
   // extension KHR_materials_variants for more details.
   struct MaterialsVariantsMapping {
     MaterialsVariantsMapping() = delete;
-    MaterialsVariantsMapping(int material, const std::vector<int> &variants)
+    MaterialsVariantsMapping(int material, const std::vector<int>& variants)
         : material(material), variants(variants) {}
-    bool operator==(const MaterialsVariantsMapping &other) const {
+    bool operator==(const MaterialsVariantsMapping& other) const {
       if (material != other.material) {
         return false;
       }
@@ -46,7 +46,7 @@ class MeshGroup {
       }
       return true;
     }
-    bool operator!=(const MaterialsVariantsMapping &other) const {
+    bool operator!=(const MaterialsVariantsMapping& other) const {
       return !(*this == other);
     }
     int material;
@@ -60,12 +60,12 @@ class MeshGroup {
     MeshInstance(MeshIndex mesh_index, int material_index)
         : MeshInstance(mesh_index, material_index, {}) {}
     MeshInstance(MeshIndex mesh_index, int material_index,
-                 const std::vector<MaterialsVariantsMapping>
-                     &materials_variants_mappings)
+                 const std::vector<MaterialsVariantsMapping>&
+                     materials_variants_mappings)
         : mesh_index(mesh_index),
           material_index(material_index),
           materials_variants_mappings(materials_variants_mappings) {}
-    bool operator==(const MeshInstance &other) const {
+    bool operator==(const MeshInstance& other) const {
       if (mesh_index != other.mesh_index) {
         return false;
       }
@@ -81,7 +81,7 @@ class MeshGroup {
       }
       return true;
     }
-    bool operator!=(const MeshInstance &other) const {
+    bool operator!=(const MeshInstance& other) const {
       return !(*this == other);
     }
     MeshIndex mesh_index;
@@ -91,27 +91,28 @@ class MeshGroup {
 
   MeshGroup() {}
 
-  void Copy(const MeshGroup &mg) {
+  void Copy(const MeshGroup& mg) {
     name_ = mg.name_;
     mesh_instances_ = mg.mesh_instances_;
+    morph_target_weights_ = mg.morph_target_weights_;
   }
 
-  const std::string &GetName() const { return name_; }
-  void SetName(const std::string &name) { name_ = name; }
+  const std::string& GetName() const { return name_; }
+  void SetName(const std::string& name) { name_ = name; }
 
-  void AddMeshInstance(const MeshInstance &instance) {
+  void AddMeshInstance(const MeshInstance& instance) {
     mesh_instances_.push_back(instance);
   }
 
-  void SetMeshInstance(int index, const MeshInstance &instance) {
+  void SetMeshInstance(int index, const MeshInstance& instance) {
     mesh_instances_[index] = instance;
   }
 
-  const MeshInstance &GetMeshInstance(int index) const {
+  const MeshInstance& GetMeshInstance(int index) const {
     return mesh_instances_[index];
   }
 
-  MeshInstance &GetMeshInstance(int index) { return mesh_instances_[index]; }
+  MeshInstance& GetMeshInstance(int index) { return mesh_instances_[index]; }
 
   int NumMeshInstances() const { return mesh_instances_.size(); }
 
@@ -127,9 +128,19 @@ class MeshGroup {
     }
   }
 
+  // Functions for setting and getting morph target weights.
+  void AddMorphTargetWeight(double weight) {
+    morph_target_weights_.push_back(weight);
+  }
+  size_t NumMorphTargetWeights() const { return morph_target_weights_.size(); }
+  double GetMorphTargetWeight(int index) const {
+    return morph_target_weights_[index];
+  }
+
  private:
   std::string name_;
   std::vector<MeshInstance> mesh_instances_;
+  std::vector<double> morph_target_weights_;
 };
 
 }  // namespace draco

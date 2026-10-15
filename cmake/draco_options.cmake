@@ -112,10 +112,6 @@ macro(draco_set_default_options)
     HELPSTRING "Build plugin library for Unity."
     VALUE OFF)
   draco_option(
-    NAME DRACO_ANIMATION_ENCODING
-    HELPSTRING "Enable animation."
-    VALUE OFF)
-  draco_option(
     NAME DRACO_GLTF_BITSTREAM
     HELPSTRING "Draco GLTF extension bitstream specified features only."
     VALUE OFF)
@@ -126,6 +122,10 @@ macro(draco_set_default_options)
   draco_option(
     NAME DRACO_TRANSCODER_SUPPORTED
     HELPSTRING "Enable the Draco transcoder."
+    VALUE OFF)
+  draco_option(
+    NAME DRACO_PMC_SUPPORTED
+    HELPSTRING "Enable the AOMedia PMC codec."
     VALUE OFF)
   draco_option(
     NAME DRACO_DEBUG_COMPILER_WARNINGS
@@ -178,8 +178,6 @@ macro(draco_check_deprecated_options)
   draco_handle_deprecated_option(OLDNAME ENABLE_WASM NEWNAME DRACO_WASM)
   draco_handle_deprecated_option(OLDNAME BUILD_UNITY_PLUGIN NEWNAME
                                  DRACO_UNITY_PLUGIN)
-  draco_handle_deprecated_option(OLDNAME BUILD_ANIMATION_ENCODING NEWNAME
-                                 DRACO_ANIMATION_ENCODING)
   draco_handle_deprecated_option(OLDNAME BUILD_FOR_GLTF NEWNAME DRACO_GLTF)
   draco_handle_deprecated_option(OLDNAME BUILD_MAYA_PLUGIN NEWNAME
                                  DRACO_MAYA_PLUGIN)
@@ -242,6 +240,10 @@ macro(draco_set_optional_features)
 
   if(DRACO_TRANSCODER_SUPPORTED)
     draco_enable_feature(FEATURE "DRACO_TRANSCODER_SUPPORTED")
+  endif()
+
+  if(DRACO_PMC_SUPPORTED)
+    draco_enable_feature(FEATURE "DRACO_PMC_SUPPORTED")
   endif()
 
 

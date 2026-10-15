@@ -18,7 +18,7 @@ namespace draco {
 
 MeshEncoder::MeshEncoder() : mesh_(nullptr), num_encoded_faces_(0) {}
 
-void MeshEncoder::SetMesh(const Mesh &m) {
+void MeshEncoder::SetMesh(const Mesh& m) {
   mesh_ = &m;
   SetPointCloud(m);
 }

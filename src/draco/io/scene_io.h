@@ -31,12 +31,12 @@ namespace draco {
 // The second form returns the files associated with the scene via the
 // |scene_files| argument.
 StatusOr<std::unique_ptr<Scene>> ReadSceneFromFile(
-    const std::string &file_name);
+    const std::string& file_name);
 StatusOr<std::unique_ptr<Scene>> ReadSceneFromFile(
-    const std::string &file_name, std::vector<std::string> *scene_files);
+    const std::string& file_name, std::vector<std::string>* scene_files);
 
 // Writes a scene into a file.
-Status WriteSceneToFile(const std::string &file_name, const Scene &scene);
+Status WriteSceneToFile(const std::string& file_name, const Scene& scene);
 
 // Writes a scene into a file, configurable with |options|.
 //
@@ -46,8 +46,8 @@ Status WriteSceneToFile(const std::string &file_name, const Scene &scene);
 //                             interpolation while exporting to USD
 //                             (default = false)
 //
-Status WriteSceneToFile(const std::string &file_name, const Scene &scene,
-                        const Options &options);
+Status WriteSceneToFile(const std::string& file_name, const Scene& scene,
+                        const Options& options);
 
 }  // namespace draco
 

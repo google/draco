@@ -46,7 +46,7 @@ inline uint32_t ReverseBits32(uint32_t n) {
 
 // Copies the |nbits| from the src integer into the |dst| integer using the
 // provided bit offsets |dst_offset| and |src_offset|.
-inline void CopyBits32(uint32_t *dst, int dst_offset, uint32_t src,
+inline void CopyBits32(uint32_t* dst, int dst_offset, uint32_t src,
                        int src_offset, int nbits) {
   const uint32_t mask = (~static_cast<uint32_t>(0)) >> (32 - nbits)
                                                            << dst_offset;
@@ -59,17 +59,32 @@ inline int MostSignificantBit(uint32_t n) {
 #if defined(__GNUC__)
   return 31 ^ __builtin_clz(n);
 #elif defined(_MSC_VER)
+
   unsigned long where;
   _BitScanReverse(&where, n);
   return (int)where;
 #else
   uint32_t msb = 0;
   if (n) {
-    if (0xFFFF0000 & n) { n >>= (1 << 4); msb |= (1 << 4); }
-    if (0x0000FF00 & n) { n >>= (1 << 3); msb |= (1 << 3); }
-    if (0x000000F0 & n) { n >>= (1 << 2); msb |= (1 << 2); }
-    if (0x0000000C & n) { n >>= (1 << 1); msb |= (1 << 1); }
-    if (0x00000002 & n) { msb |= (1 << 0); }
+    if (0xFFFF0000 & n) {
+      n >>= (1 << 4);
+      msb |= (1 << 4);
+    }
+    if (0x0000FF00 & n) {
+      n >>= (1 << 3);
+      msb |= (1 << 3);
+    }
+    if (0x000000F0 & n) {
+      n >>= (1 << 2);
+      msb |= (1 << 2);
+    }
+    if (0x0000000C & n) {
+      n >>= (1 << 1);
+      msb |= (1 << 1);
+    }
+    if (0x00000002 & n) {
+      msb |= (1 << 0);
+    }
   } else {
     msb = -1;
   }
@@ -79,13 +94,13 @@ inline int MostSignificantBit(uint32_t n) {
 
 // Helper function that converts signed integer values into unsigned integer
 // symbols that can be encoded using an entropy encoder.
-void ConvertSignedIntsToSymbols(const int32_t *in, int in_values,
-                                uint32_t *out);
+void ConvertSignedIntsToSymbols(const int32_t* in, int in_values,
+                                uint32_t* out);
 
 // Converts unsigned integer symbols encoded with an entropy encoder back to
 // signed values.
-void ConvertSymbolsToSignedInts(const uint32_t *in, int in_values,
-                                int32_t *out);
+void ConvertSymbolsToSignedInts(const uint32_t* in, int in_values,
+                                int32_t* out);
 
 // Helper function that converts a single signed integer value into an unsigned
 // integer symbol that can be encoded using an entropy encoder.

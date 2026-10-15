@@ -41,62 +41,67 @@ class SceneUtils {
 
   // Computes all mesh instances in the |scene|.
   static IndexTypeVector<MeshInstanceIndex, MeshInstance> ComputeAllInstances(
-      const Scene &scene);
+      const Scene& scene);
 
   // Computes all mesh instances in the node hierarchy originating from
   // |node_index|. All instance transformations will be relative to the source
   // node. That is transformation of parent nodes will not be included.
   static IndexTypeVector<MeshInstanceIndex, MeshInstance>
-  ComputeAllInstancesFromNode(const Scene &scene, SceneNodeIndex node_index);
+  ComputeAllInstancesFromNode(const Scene& scene, SceneNodeIndex node_index);
 
   // Computes global transform matrix of a |scene| node given by its |index|.
-  static Eigen::Matrix4d ComputeGlobalNodeTransform(const Scene &scene,
+  static Eigen::Matrix4d ComputeGlobalNodeTransform(const Scene& scene,
                                                     SceneNodeIndex index);
 
   // Returns a vector of mesh instance counts for all base meshes.
-  static IndexTypeVector<MeshIndex, int> NumMeshInstances(const Scene &scene);
+  static IndexTypeVector<MeshIndex, int> NumMeshInstances(const Scene& scene);
 
   // Returns the material index of the given |instance| or -1 if the mesh
   // |instance| has a default material.
-  static int GetMeshInstanceMaterialIndex(const Scene &scene,
-                                          const MeshInstance &instance);
+  static int GetMeshInstanceMaterialIndex(const Scene& scene,
+                                          const MeshInstance& instance);
 
   // Returns the total number of faces on all base meshes of the scene (not
   // counting instances).
-  static int NumFacesOnBaseMeshes(const Scene &scene);
+  static int NumFacesOnBaseMeshes(const Scene& scene);
 
   // Returns the total number of faces on all meshes of the scenes, including
   // all instances of the same mesh.
-  static int NumFacesOnInstancedMeshes(const Scene &scene);
+  static int NumFacesOnInstancedMeshes(const Scene& scene);
 
   // Returns the total number of points on all base meshes of the scene (not
   // counting instances).
-  static int NumPointsOnBaseMeshes(const Scene &scene);
+  static int NumPointsOnBaseMeshes(const Scene& scene);
 
   // Returns the total number of points on all meshes of the scenes, including
   // all instances of the same mesh.
-  static int NumPointsOnInstancedMeshes(const Scene &scene);
+  static int NumPointsOnInstancedMeshes(const Scene& scene);
 
   // Returns the total number of attribute entries on all base meshes of the
   // scene (not counting instances) for the first attribute of |att_type|.
-  static int NumAttEntriesOnBaseMeshes(const Scene &scene,
+  static int NumAttEntriesOnBaseMeshes(const Scene& scene,
                                        GeometryAttribute::Type att_type);
 
   // Returns the total number of attribute ent on all meshes of the scenes,
   // including all instances of the same mesh for the first attribute of
   // |att_type|.
-  static int NumAttEntriesOnInstancedMeshes(const Scene &scene,
+  static int NumAttEntriesOnInstancedMeshes(const Scene& scene,
                                             GeometryAttribute::Type att_type);
 
+  // Returns the number of non-visible nodes in the |scene|, counting only the
+  // nodes where visibility flag is explicitly set to false and not inherited
+  // from parent nodes, see KHR_visibility glTF extension.
+  static int NumNonVisibleNodes(const Scene& scene);
+
   // Returns the bounding box of the scene.
-  static BoundingBox ComputeBoundingBox(const Scene &scene);
+  static BoundingBox ComputeBoundingBox(const Scene& scene);
 
   // Returns the bounding box of a mesh instance.
   static BoundingBox ComputeMeshInstanceBoundingBox(
-      const Scene &scene, const MeshInstance &instance);
+      const Scene& scene, const MeshInstance& instance);
 
   // Prints info about input and simplified scenes.
-  static void PrintInfo(const Scene &input, const Scene &simplified,
+  static void PrintInfo(const Scene& input, const Scene& simplified,
                         bool verbose);
 
   // Converts a draco::Mesh into a draco::Scene. If the passed-in `mesh` has
@@ -117,7 +122,7 @@ class SceneUtils {
   // if there is no corresponding base mesh in the |scene| or the base mesh has
   // no valid positions.
   static StatusOr<std::unique_ptr<Mesh>> InstantiateMesh(
-      const Scene &scene, const MeshInstance &instance);
+      const Scene& scene, const MeshInstance& instance);
 
   // Cleans up a |scene| by removing unused base meshes, unused and empty mesh
   // groups, unused materials, unused texture coordinates and unused scene
@@ -131,30 +136,30 @@ class SceneUtils {
     bool remove_unused_tex_coords = false;
     bool remove_unused_materials = true;
   };
-  static void Cleanup(Scene *scene);
-  static void Cleanup(Scene *scene, const CleanupOptions &options);
+  static void Cleanup(Scene* scene);
+  static void Cleanup(Scene* scene, const CleanupOptions& options);
 
   // Removes mesh |instances| from |scene|.
-  static void RemoveMeshInstances(const std::vector<MeshInstance> &instances,
-                                  Scene *scene);
+  static void RemoveMeshInstances(const std::vector<MeshInstance>& instances,
+                                  Scene* scene);
 
   // Removes duplicate mesh groups that have the same name and that contain
   // exactly the same meshes and materials.
-  static void DeduplicateMeshGroups(Scene *scene);
+  static void DeduplicateMeshGroups(Scene* scene);
 
   // Enables geometry compression and sets compression |options| to all meshes
   // in the |scene|. If |options| is nullptr then geometry compression is
   // disabled for all meshes in the |scene|.
-  static void SetDracoCompressionOptions(const DracoCompressionOptions *options,
-                                         Scene *scene);
+  static void SetDracoCompressionOptions(const DracoCompressionOptions* options,
+                                         Scene* scene);
 
   // Returns true if geometry compression is eabled for any of |scene| meshes.
-  static bool IsDracoCompressionEnabled(const Scene &scene);
+  static bool IsDracoCompressionEnabled(const Scene& scene);
 
   // Returns a single tranformation matrix for each base mesh of the |scene|
   // corresponding to the instance with the maximum scale.
   static IndexTypeVector<MeshIndex, Eigen::Matrix4d>
-  FindLargestBaseMeshTransforms(const Scene &scene);
+  FindLargestBaseMeshTransforms(const Scene& scene);
 };
 
 }  // namespace draco

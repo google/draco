@@ -25,17 +25,17 @@ namespace draco {
 class MetadataDecoder {
  public:
   MetadataDecoder();
-  bool DecodeMetadata(DecoderBuffer *in_buffer, Metadata *metadata);
-  bool DecodeGeometryMetadata(DecoderBuffer *in_buffer,
-                              GeometryMetadata *metadata);
+  bool DecodeMetadata(DecoderBuffer* in_buffer, Metadata* metadata);
+  bool DecodeGeometryMetadata(DecoderBuffer* in_buffer,
+                              GeometryMetadata* metadata);
 
  private:
-  bool DecodeMetadata(Metadata *metadata);
-  bool DecodeEntries(Metadata *metadata);
-  bool DecodeEntry(Metadata *metadata);
-  bool DecodeName(std::string *name);
+  bool DecodeMetadata(Metadata* metadata);
+  bool DecodeEntries(Metadata* metadata);
+  bool DecodeEntry(Metadata* metadata);
+  bool DecodeName(std::string* name);
 
-  DecoderBuffer *buffer_;
+  DecoderBuffer* buffer_;
 };
 }  // namespace draco
 

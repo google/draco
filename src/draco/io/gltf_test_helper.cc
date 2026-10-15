@@ -20,26 +20,28 @@
 #include <utility>
 #include <vector>
 
+#include "draco/animation/skin.h"
 #include "draco/attributes/geometry_attribute.h"
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 #include "draco/metadata/property_attribute.h"
 #include "draco/metadata/property_table.h"
+#include "draco/metadata/property_texture.h"
 #include "draco/texture/texture_library.h"
 
 namespace draco {
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 
-void GltfTestHelper::AddBoxMetaMeshFeatures(Scene *scene) {
+void GltfTestHelper::AddBoxMetaMeshFeatures(Scene* scene) {
   // Check the scene.
   ASSERT_NE(scene, nullptr);
   ASSERT_EQ(scene->NumMeshes(), 1);
-  TextureLibrary &texture_library = scene->GetNonMaterialTextureLibrary();
+  TextureLibrary& texture_library = scene->GetNonMaterialTextureLibrary();
   ASSERT_EQ(texture_library.NumTextures(), 0);
 
   // Check the mesh.
-  Mesh &mesh = scene->GetMesh(MeshIndex(0));
+  Mesh& mesh = scene->GetMesh(MeshIndex(0));
   ASSERT_EQ(mesh.num_faces(), 12);
   ASSERT_EQ(mesh.num_attributes(), 2);
   ASSERT_EQ(mesh.num_points(), 24);
@@ -155,7 +157,7 @@ void GltfTestHelper::AddBoxMetaMeshFeatures(Scene *scene) {
   }
 }
 
-void GltfTestHelper::AddBoxMetaStructuralMetadata(Scene *scene) {
+void GltfTestHelper::AddBoxMetaStructuralMetadata(Scene* scene) {
   // Add structural metadata schema in the following JSON:
   // "schema": {
   //   "id": "galaxy",
@@ -172,7 +174,13 @@ void GltfTestHelper::AddBoxMetaStructuralMetadata(Scene *scene) {
   //           "description": "The name.",
   //           "required": true,
   //           "type": "STRING"
-  //         }
+  //         },
+  //         "classification": {
+  //           "description": "The classification."
+  //           "type": "ENUM",
+  //           "enumType": "classification",
+  //           "required": false
+  //         },
   //         "sequence": {
   //           "componentType": "FLOAT32",
   //           "description": "The number sequence.",
@@ -204,6 +212,7 @@ void GltfTestHelper::AddBoxMetaStructuralMetadata(Scene *scene) {
   //     "classifications": {
   //       "description": "Classifications of planets.",
   //       "name": "classifications",
+  //       "valueType": "UINT16",
   //       "values": [
   //         { "name": "Unspecified", "value": 0 },
   //         { "name": "Gas Giant", "value": 1 },
@@ -225,35 +234,53 @@ void GltfTestHelper::AddBoxMetaStructuralMetadata(Scene *scene) {
   //       "attribute": "_MAGNITUDE",
   //     }
   //   }
+  // },
+  // "propertyTextures": [{
+  //   "name": "The movement.",
+  //   "class": "movement",
+  //   "properties": {
+  //     "magnitude": {
+  //       "index": 0,
+  //       "texCoord": 0,
+  //       "channels": [0, 1, 2, 3]
+  //     }
+  //   }
   // }]
   typedef StructuralMetadataSchema::Object Object;
   StructuralMetadataSchema schema;
-  Object &json = schema.json;
+  Object& json = schema.json;
   json.SetObjects().emplace_back("id", "galaxy");
   json.SetObjects().emplace_back("classes");
 
   // Add class "planet" to schema.
   {
     json.SetObjects().back().SetObjects().emplace_back("planet");
-    Object &planet = json.SetObjects().back().SetObjects().back();
+    Object& planet = json.SetObjects().back().SetObjects().back();
     planet.SetObjects().emplace_back("properties");
-    Object &properties = planet.SetObjects().back();
+    Object& properties = planet.SetObjects().back();
 
     properties.SetObjects().emplace_back("color");
-    Object &color = properties.SetObjects().back();
+    Object& color = properties.SetObjects().back();
     color.SetObjects().emplace_back("componentType", "UINT8");
     color.SetObjects().emplace_back("description", "The RGB color.");
     color.SetObjects().emplace_back("required", true);
     color.SetObjects().emplace_back("type", "VEC3");
 
     properties.SetObjects().emplace_back("name");
-    Object &name = properties.SetObjects().back();
+    Object& name = properties.SetObjects().back();
     name.SetObjects().emplace_back("description", "The name.");
     name.SetObjects().emplace_back("required", true);
     name.SetObjects().emplace_back("type", "STRING");
 
+    properties.SetObjects().emplace_back("classification");
+    Object& classn = properties.SetObjects().back();
+    classn.SetObjects().emplace_back("description", "The classification.");
+    classn.SetObjects().emplace_back("required", false);
+    classn.SetObjects().emplace_back("type", "ENUM");
+    classn.SetObjects().emplace_back("enumType", "classification");
+
     properties.SetObjects().emplace_back("sequence");
-    Object &sequence = properties.SetObjects().back();
+    Object& sequence = properties.SetObjects().back();
     sequence.SetObjects().emplace_back("componentType", "FLOAT32");
     sequence.SetObjects().emplace_back("description", "The number sequence.");
     sequence.SetObjects().emplace_back("required", false);
@@ -263,21 +290,21 @@ void GltfTestHelper::AddBoxMetaStructuralMetadata(Scene *scene) {
   // Add class "movement" to schema.
   {
     json.SetObjects().back().SetObjects().emplace_back("movement");
-    Object &movement = json.SetObjects().back().SetObjects().back();
+    Object& movement = json.SetObjects().back().SetObjects().back();
     movement.SetObjects().emplace_back("name", "The movement.");
     movement.SetObjects().emplace_back("description", "Vertex movement.");
     movement.SetObjects().emplace_back("properties");
-    Object &properties = movement.SetObjects().back();
+    Object& properties = movement.SetObjects().back();
 
     properties.SetObjects().emplace_back("direction");
-    Object &direction = properties.SetObjects().back();
+    Object& direction = properties.SetObjects().back();
     direction.SetObjects().emplace_back("componentType", "FLOAT32");
     direction.SetObjects().emplace_back("description", "Movement direction.");
     direction.SetObjects().emplace_back("required", true);
     direction.SetObjects().emplace_back("type", "VEC3");
 
     properties.SetObjects().emplace_back("magnitude");
-    Object &mag = properties.SetObjects().back();
+    Object& mag = properties.SetObjects().back();
     mag.SetObjects().emplace_back("componentType", "FLOAT32");
     mag.SetObjects().emplace_back("description", "Movement magnitude.");
     mag.SetObjects().emplace_back("required", true);
@@ -286,12 +313,13 @@ void GltfTestHelper::AddBoxMetaStructuralMetadata(Scene *scene) {
 
   json.SetObjects().emplace_back("enums");
   json.SetObjects().back().SetObjects().emplace_back("classifications");
-  Object &classifications = json.SetObjects().back().SetObjects().back();
+  Object& classifications = json.SetObjects().back().SetObjects().back();
   classifications.SetObjects().emplace_back("description",
                                             "Classifications of planets.");
   classifications.SetObjects().emplace_back("name", "classifications");
+  classifications.SetObjects().emplace_back("valueType", "UINT16");
   classifications.SetObjects().emplace_back("values");
-  Object &values = classifications.SetObjects().back();
+  Object& values = classifications.SetObjects().back();
 
   values.SetArray().emplace_back();
   values.SetArray().back().SetObjects().emplace_back("name", "Unspecified");
@@ -393,6 +421,31 @@ void GltfTestHelper::AddBoxMetaStructuralMetadata(Scene *scene) {
     table->AddProperty(std::move(property));
   }
 
+  // Add property that contains the classification enum of the planet class.
+  {
+    std::unique_ptr<PropertyTable::Property> property(
+        new PropertyTable::Property());
+    property->SetName("classification");
+    property->GetData().target = 34963;  // ELEMENT_ARRAY_BUFFER.
+    property->GetData().data = {0, 0,    // 0x0000 - Unspecified
+                                1, 0,    // 0x0001 - Gas Giant
+                                2, 0,    // 0x0002 - Waterworld
+                                3, 0,    // 0x0003 - Agriworld
+                                4, 0,    // 0x0004 - Ordnance
+                                0, 0,    // 0x0004 - Unspecified
+                                0, 0,    // 0x0004 - Unspecified
+                                0, 0,    // 0x0004 - Unspecified
+                                0, 0,    // 0x0004 - Unspecified
+                                0, 0,    // 0x0004 - Unspecified
+                                0, 0,    // 0x0004 - Unspecified
+                                0, 0,    // 0x0004 - Unspecified
+                                0, 0,    // 0x0004 - Unspecified
+                                0, 0,    // 0x0004 - Unspecified
+                                0, 0,    // 0x0004 - Unspecified
+                                0, 0};   // 0x0000 - Unspecified
+    table->AddProperty(std::move(property));
+  }
+
   // Add property that contains variable-length number sequence of the planet
   // class.
   {
@@ -416,7 +469,7 @@ void GltfTestHelper::AddBoxMetaStructuralMetadata(Scene *scene) {
         30.5f, 31.5f, 32.5f,                     // Bespin
         33.5f, 34.5f, 35.5f,                     // Yavin
         36.5f, 37.5f, 38.5f, 39.5f, 40.5f        // Geonosis
-    };                                           // UNLABELED (empty array).
+    };  // UNLABELED (empty array).
     property->GetData().data.resize(4 * data.size());
     memcpy(property->GetData().data.data(), data.data(), 4 * data.size());
     property->GetArrayOffsets().type = "UINT8";
@@ -466,7 +519,7 @@ void GltfTestHelper::AddBoxMetaStructuralMetadata(Scene *scene) {
   scene->GetStructuralMetadata().AddPropertyAttribute(std::move(attribute));
 
   // Get mesh element counts.
-  Mesh &mesh = scene->GetMesh(MeshIndex(0));
+  Mesh& mesh = scene->GetMesh(MeshIndex(0));
   ASSERT_EQ(mesh.num_faces(), 12);
   ASSERT_EQ(mesh.num_points(), 36);
   const int num_vertices =
@@ -506,25 +559,25 @@ void GltfTestHelper::AddBoxMetaStructuralMetadata(Scene *scene) {
 }
 
 template <>
-void GltfTestHelper::CheckBoxMetaMeshFeatures(const Mesh &geometry,
-                                              const UseCase &use_case) {
+void GltfTestHelper::CheckBoxMetaMeshFeatures(const Mesh& geometry,
+                                              const UseCase& use_case) {
   CheckBoxMetaMeshFeatures(geometry, geometry.GetNonMaterialTextureLibrary(),
                            use_case);
 }
 
 template <>
-void GltfTestHelper::CheckBoxMetaMeshFeatures(const Scene &geometry,
-                                              const UseCase &use_case) {
+void GltfTestHelper::CheckBoxMetaMeshFeatures(const Scene& geometry,
+                                              const UseCase& use_case) {
   ASSERT_EQ(geometry.NumMeshes(), 1);
   CheckBoxMetaMeshFeatures(geometry.GetMesh(MeshIndex(0)),
                            geometry.GetNonMaterialTextureLibrary(), use_case);
 }
 
-void GltfTestHelper::CheckBoxMetaMeshFeatures(const Mesh &mesh,
-                                              const TextureLibrary &texture_lib,
-                                              const UseCase &use_case) {
+void GltfTestHelper::CheckBoxMetaMeshFeatures(const Mesh& mesh,
+                                              const TextureLibrary& texture_lib,
+                                              const UseCase& use_case) {
   // Check texture library.
-  ASSERT_EQ(texture_lib.NumTextures(), 2);
+  ASSERT_GE(texture_lib.NumTextures(), 2);
 
   // Check basic mesh properties.
   ASSERT_EQ(mesh.NumMeshFeatures(), 5);
@@ -544,14 +597,14 @@ void GltfTestHelper::CheckBoxMetaMeshFeatures(const Mesh &mesh,
   // Check mesh feature ID set at index 0.
   {
     // Check mesh features.
-    const MeshFeatures &features = mesh.GetMeshFeatures(MeshFeaturesIndex(0));
+    const MeshFeatures& features = mesh.GetMeshFeatures(MeshFeaturesIndex(0));
     ASSERT_EQ(features.GetLabel(), "faces");
     ASSERT_EQ(features.GetFeatureCount(), num_faces);
     ASSERT_EQ(features.GetNullFeatureId(), 100);
     ASSERT_EQ(features.GetPropertyTableIndex(), 0);
     ASSERT_EQ(features.GetAttributeIndex(),
               use_case.has_structural_metadata ? 5 : 4);
-    ASSERT_TRUE(features.GetTextureChannels().empty());
+    ASSERT_EQ(features.GetTextureChannels().size(), 1);
     ASSERT_EQ(features.GetTextureMap().texture(), nullptr);
     ASSERT_EQ(features.GetTextureMap().tex_coord_index(), -1);
 
@@ -589,14 +642,14 @@ void GltfTestHelper::CheckBoxMetaMeshFeatures(const Mesh &mesh,
   // Check the 2nd mesh feature ID set at index 1.
   {
     // Check mesh features.
-    const MeshFeatures &features = mesh.GetMeshFeatures(MeshFeaturesIndex(1));
+    const MeshFeatures& features = mesh.GetMeshFeatures(MeshFeaturesIndex(1));
     ASSERT_EQ(features.GetLabel(), "vertices");
     ASSERT_EQ(features.GetFeatureCount(), num_vertices);
     ASSERT_EQ(features.GetNullFeatureId(), 101);
     ASSERT_EQ(features.GetPropertyTableIndex(), 1);
     ASSERT_EQ(features.GetAttributeIndex(),
               use_case.has_structural_metadata ? 6 : 5);
-    ASSERT_TRUE(features.GetTextureChannels().empty());
+    ASSERT_EQ(features.GetTextureChannels().size(), 1);
     ASSERT_EQ(features.GetTextureMap().texture(), nullptr);
     ASSERT_EQ(features.GetTextureMap().tex_coord_index(), -1);
 
@@ -636,14 +689,14 @@ void GltfTestHelper::CheckBoxMetaMeshFeatures(const Mesh &mesh,
   // Check the 3rd mesh feature ID set at index 2.
   {
     // Check mesh features.
-    const MeshFeatures &features = mesh.GetMeshFeatures(MeshFeaturesIndex(2));
+    const MeshFeatures& features = mesh.GetMeshFeatures(MeshFeaturesIndex(2));
     ASSERT_TRUE(features.GetLabel().empty());
     ASSERT_EQ(features.GetFeatureCount(), num_corners);
     ASSERT_EQ(features.GetNullFeatureId(), -1);
     ASSERT_EQ(features.GetPropertyTableIndex(), -1);
     ASSERT_EQ(features.GetAttributeIndex(),
               use_case.has_structural_metadata ? 7 : 6);
-    ASSERT_TRUE(features.GetTextureChannels().empty());
+    ASSERT_EQ(features.GetTextureChannels().size(), 1);
     ASSERT_EQ(features.GetTextureMap().texture(), nullptr);
     ASSERT_EQ(features.GetTextureMap().tex_coord_index(), -1);
 
@@ -690,7 +743,7 @@ void GltfTestHelper::CheckBoxMetaMeshFeatures(const Mesh &mesh,
   // Check mesh feature ID set at index 3.
   {
     // Check mesh features.
-    const MeshFeatures &features = mesh.GetMeshFeatures(MeshFeaturesIndex(3));
+    const MeshFeatures& features = mesh.GetMeshFeatures(MeshFeaturesIndex(3));
     ASSERT_TRUE(features.GetLabel().empty());
     ASSERT_EQ(features.GetFeatureCount(), 6);
     ASSERT_EQ(features.GetNullFeatureId(), -1);
@@ -701,7 +754,7 @@ void GltfTestHelper::CheckBoxMetaMeshFeatures(const Mesh &mesh,
   // Check mesh feature ID set at index 4.
   {
     // Check mesh features.
-    const MeshFeatures &features = mesh.GetMeshFeatures(MeshFeaturesIndex(4));
+    const MeshFeatures& features = mesh.GetMeshFeatures(MeshFeaturesIndex(4));
     ASSERT_EQ(features.GetLabel(), "water");
     ASSERT_EQ(features.GetFeatureCount(), 2);
     ASSERT_EQ(features.GetNullFeatureId(), -1);
@@ -711,13 +764,13 @@ void GltfTestHelper::CheckBoxMetaMeshFeatures(const Mesh &mesh,
 }
 
 void GltfTestHelper::CheckBoxMetaStructuralMetadata(
-    const Mesh &mesh, const StructuralMetadata &structural_metadata,
-    const UseCase &use_case) {
+    const Mesh& mesh, const TextureLibrary& texture_lib,
+    const StructuralMetadata& structural_metadata, const UseCase& use_case) {
   // Check structural metadata schema.
   {
-    const StructuralMetadataSchema &schema = structural_metadata.GetSchema();
+    const StructuralMetadataSchema& schema = structural_metadata.GetSchema();
     ASSERT_FALSE(schema.Empty());
-    const StructuralMetadataSchema::Object &json = schema.json;
+    const StructuralMetadataSchema::Object& json = schema.json;
     ASSERT_EQ(json.GetObjects().size(), 3);
     ASSERT_EQ(json.GetObjects()[0].GetName(), "classes");
     ASSERT_EQ(json.GetObjects()[0].GetObjects().size(), 2);
@@ -728,19 +781,19 @@ void GltfTestHelper::CheckBoxMetaStructuralMetadata(
       ASSERT_EQ(item.GetName(), "movement");
       ASSERT_EQ(item.GetObjects().size(), 3);
 
-      const auto &description = item.GetObjects()[0];
+      const auto& description = item.GetObjects()[0];
       ASSERT_EQ(description.GetName(), "description");
       ASSERT_EQ(description.GetString(), "Vertex movement.");
 
-      const auto &name = item.GetObjects()[1];
+      const auto& name = item.GetObjects()[1];
       ASSERT_EQ(name.GetName(), "name");
       ASSERT_EQ(name.GetString(), "The movement.");
 
-      const auto &properties = item.GetObjects()[2];
+      const auto& properties = item.GetObjects()[2];
       ASSERT_EQ(properties.GetName(), "properties");
       ASSERT_EQ(properties.GetObjects().size(), 2);
 
-      const auto &direction = properties.GetObjects()[0];
+      const auto& direction = properties.GetObjects()[0];
       ASSERT_EQ(direction.GetName(), "direction");
       ASSERT_EQ(direction.GetObjects().size(), 4);
       ASSERT_EQ(direction.GetObjects()[0].GetName(), "componentType");
@@ -752,7 +805,7 @@ void GltfTestHelper::CheckBoxMetaStructuralMetadata(
       ASSERT_EQ(direction.GetObjects()[2].GetBoolean(), true);
       ASSERT_EQ(direction.GetObjects()[3].GetString(), "VEC3");
 
-      const auto &mag = properties.GetObjects()[1];
+      const auto& mag = properties.GetObjects()[1];
       ASSERT_EQ(mag.GetName(), "magnitude");
       ASSERT_EQ(mag.GetObjects().size(), 4);
       ASSERT_EQ(mag.GetObjects()[0].GetName(), "componentType");
@@ -771,11 +824,23 @@ void GltfTestHelper::CheckBoxMetaStructuralMetadata(
       ASSERT_EQ(item.GetName(), "planet");
       ASSERT_EQ(item.GetObjects().size(), 1);
 
-      const auto &properties = item.GetObjects()[0];
+      const auto& properties = item.GetObjects()[0];
       ASSERT_EQ(properties.GetName(), "properties");
-      ASSERT_EQ(properties.GetObjects().size(), 3);
+      ASSERT_EQ(properties.GetObjects().size(), 4);
 
-      const auto &color = properties.GetObjects()[0];
+      const auto& classn = properties.GetObjects()[0];
+      ASSERT_EQ(classn.GetName(), "classification");
+      ASSERT_EQ(classn.GetObjects().size(), 4);
+      ASSERT_EQ(classn.GetObjects()[0].GetName(), "description");
+      ASSERT_EQ(classn.GetObjects()[1].GetName(), "enumType");
+      ASSERT_EQ(classn.GetObjects()[2].GetName(), "required");
+      ASSERT_EQ(classn.GetObjects()[3].GetName(), "type");
+      ASSERT_EQ(classn.GetObjects()[0].GetString(), "The classification.");
+      ASSERT_EQ(classn.GetObjects()[1].GetString(), "classification");
+      ASSERT_FALSE(classn.GetObjects()[2].GetBoolean());
+      ASSERT_EQ(classn.GetObjects()[3].GetString(), "ENUM");
+
+      const auto& color = properties.GetObjects()[1];
       ASSERT_EQ(color.GetName(), "color");
       ASSERT_EQ(color.GetObjects().size(), 4);
       ASSERT_EQ(color.GetObjects()[0].GetName(), "componentType");
@@ -787,7 +852,7 @@ void GltfTestHelper::CheckBoxMetaStructuralMetadata(
       ASSERT_TRUE(color.GetObjects()[2].GetBoolean());
       ASSERT_EQ(color.GetObjects()[3].GetString(), "VEC3");
 
-      const auto &name = properties.GetObjects()[1];
+      const auto& name = properties.GetObjects()[2];
       ASSERT_EQ(name.GetName(), "name");
       ASSERT_EQ(name.GetObjects().size(), 3);
       ASSERT_EQ(name.GetObjects()[0].GetName(), "description");
@@ -797,7 +862,7 @@ void GltfTestHelper::CheckBoxMetaStructuralMetadata(
       ASSERT_TRUE(name.GetObjects()[1].GetBoolean());
       ASSERT_EQ(name.GetObjects()[2].GetString(), "STRING");
 
-      const auto &sequence = properties.GetObjects()[2];
+      const auto& sequence = properties.GetObjects()[3];
       ASSERT_EQ(sequence.GetName(), "sequence");
       ASSERT_EQ(sequence.GetObjects().size(), 4);
       ASSERT_EQ(sequence.GetObjects()[0].GetName(), "componentType");
@@ -810,16 +875,20 @@ void GltfTestHelper::CheckBoxMetaStructuralMetadata(
       ASSERT_EQ(sequence.GetObjects()[3].GetString(), "SCALAR");
     }
 
+    // Check enum "classification".
     ASSERT_EQ(json.GetObjects()[1].GetName(), "enums");
-    const auto &classifications = json.GetObjects()[1].GetObjects()[0];
+    const auto& classifications = json.GetObjects()[1].GetObjects()[0];
     ASSERT_EQ(classifications.GetName(), "classifications");
     ASSERT_EQ(classifications.GetObjects()[0].GetName(), "description");
     ASSERT_EQ(classifications.GetObjects()[0].GetString(),
               "Classifications of planets.");
     ASSERT_EQ(classifications.GetObjects()[1].GetName(), "name");
     ASSERT_EQ(classifications.GetObjects()[1].GetString(), "classifications");
-    ASSERT_EQ(classifications.GetObjects()[2].GetName(), "values");
-    const auto &values = classifications.GetObjects()[2];
+    ASSERT_EQ(classifications.GetObjects()[2].GetName(), "valueType");
+    ASSERT_EQ(classifications.GetObjects()[2].GetString(), "UINT16");
+    ASSERT_EQ(classifications.GetObjects()[3].GetName(), "values");
+    const auto& values = classifications.GetObjects()[3];
+    values.GetArray();
     ASSERT_EQ(values.GetArray()[0].GetObjects()[0].GetName(), "name");
     ASSERT_EQ(values.GetArray()[1].GetObjects()[0].GetName(), "name");
     ASSERT_EQ(values.GetArray()[2].GetObjects()[0].GetName(), "name");
@@ -848,15 +917,47 @@ void GltfTestHelper::CheckBoxMetaStructuralMetadata(
   // Check property table.
   constexpr int kRows = 16;
   ASSERT_EQ(structural_metadata.NumPropertyTables(), 1);
-  const PropertyTable &table = structural_metadata.GetPropertyTable(0);
+  const PropertyTable& table = structural_metadata.GetPropertyTable(0);
   ASSERT_EQ(table.GetName(), "Galaxy far far away.");
   ASSERT_EQ(table.GetClass(), "planet");
   ASSERT_EQ(table.GetCount(), kRows);
-  ASSERT_EQ(table.NumProperties(), 3);
+  ASSERT_EQ(table.NumProperties(), 4);
+
+  // Check property that describes the classification enum of the planet class.
+  {
+    const PropertyTable::Property& property = table.GetProperty(0);
+    ASSERT_EQ(property.GetName(), "classification");
+
+    ASSERT_EQ(property.GetData().data.size(), kRows * 2);  // 2-byte enum.
+    ASSERT_EQ(property.GetData().target, 34963);  // ELEMENT_ARRAY_BUFFER.
+
+    ASSERT_EQ(property.GetData().data[0], 0);  // 0x0000 - Unspecified.
+    ASSERT_EQ(property.GetData().data[1], 0);
+    ASSERT_EQ(property.GetData().data[2], 1);  // 0x0001 - Gas Giant.
+    ASSERT_EQ(property.GetData().data[3], 0);
+    ASSERT_EQ(property.GetData().data[4], 2);  // 0x0002 - Waterworld.
+    ASSERT_EQ(property.GetData().data[5], 0);
+    ASSERT_EQ(property.GetData().data[6], 3);  // 0x0003 - Agriworld.
+    ASSERT_EQ(property.GetData().data[7], 0);
+    ASSERT_EQ(property.GetData().data[8], 4);  // 0x0004 - Ordnance.
+    ASSERT_EQ(property.GetData().data[9], 0);
+    // And a few more Unspecified enum values that fill the table.
+    for (int i = 5; i < kRows; i++) {
+      ASSERT_EQ(property.GetData().data[2 * i], 0);  // 0x0000 - Unspecified.
+      ASSERT_EQ(property.GetData().data[2 * i + 1], 0);
+    }
+
+    ASSERT_TRUE(property.GetArrayOffsets().type.empty());
+    ASSERT_TRUE(property.GetArrayOffsets().data.data.empty());
+    ASSERT_EQ(property.GetArrayOffsets().data.target, 0);
+    ASSERT_TRUE(property.GetStringOffsets().type.empty());
+    ASSERT_TRUE(property.GetStringOffsets().data.data.empty());
+    ASSERT_EQ(property.GetStringOffsets().data.target, 0);
+  }
 
   // Check property that describes RGB color components of the planet class.
   {
-    const PropertyTable::Property &property = table.GetProperty(0);
+    const PropertyTable::Property& property = table.GetProperty(1);
     ASSERT_EQ(property.GetName(), "color");
 
     ASSERT_EQ(property.GetData().data.size(), kRows * 3);  // RGB components.
@@ -882,10 +983,10 @@ void GltfTestHelper::CheckBoxMetaStructuralMetadata(
 
   // Check property that describes names of the planet class.
   {
-    const PropertyTable::Property &property = table.GetProperty(1);
+    const PropertyTable::Property& property = table.GetProperty(2);
     ASSERT_EQ(property.GetName(), "name");
-    const std::vector<uint8_t> &data = property.GetData().data;
-    const std::vector<uint8_t> &offsets = property.GetStringOffsets().data.data;
+    const std::vector<uint8_t>& data = property.GetData().data;
+    const std::vector<uint8_t>& offsets = property.GetStringOffsets().data.data;
 
     ASSERT_EQ(data.size(), 296);                  // Concatenated label strings.
     ASSERT_EQ(property.GetData().target, 34963);  // ELEMENT_ARRAY_BUFFER.
@@ -908,8 +1009,8 @@ void GltfTestHelper::CheckBoxMetaStructuralMetadata(
     ASSERT_EQ(offsets[67], 0);
 
     struct Name {
-      static std::string Extract(const std::vector<uint8_t> &data,
-                                 const std::vector<uint8_t> &offsets, int row) {
+      static std::string Extract(const std::vector<uint8_t>& data,
+                                 const std::vector<uint8_t>& offsets, int row) {
         const int b = offsets[4 * (row + 0)] + 256 * offsets[4 * (row + 0) + 1];
         const int e = offsets[4 * (row + 1)] + 256 * offsets[4 * (row + 1) + 1];
         return std::string(data.begin() + b, data.begin() + e);
@@ -931,10 +1032,10 @@ void GltfTestHelper::CheckBoxMetaStructuralMetadata(
 
   // Check property that describes number sequence of the planet class.
   {
-    const PropertyTable::Property &property = table.GetProperty(2);
+    const PropertyTable::Property& property = table.GetProperty(3);
     ASSERT_EQ(property.GetName(), "sequence");
-    const std::vector<uint8_t> &data = property.GetData().data;
-    const std::vector<uint8_t> &offsets = property.GetArrayOffsets().data.data;
+    const std::vector<uint8_t>& data = property.GetData().data;
+    const std::vector<uint8_t>& offsets = property.GetArrayOffsets().data.data;
 
     ASSERT_EQ(data.size(), 41 * 4);               // Concatenated float arrays.
     ASSERT_EQ(property.GetData().target, 34963);  // ELEMENT_ARRAY_BUFFER.
@@ -951,15 +1052,15 @@ void GltfTestHelper::CheckBoxMetaStructuralMetadata(
     ASSERT_EQ(offsets[16], 41 * 4);  // Beyond UNLABELED (empty array).
 
     struct Sequence {
-      static std::vector<float> Extract(const std::vector<uint8_t> &data,
-                                        const std::vector<uint8_t> &offsets,
+      static std::vector<float> Extract(const std::vector<uint8_t>& data,
+                                        const std::vector<uint8_t>& offsets,
                                         int row) {
         const int n = (offsets[row + 1] - offsets[row]) / 4;
         std::vector<float> result;
         result.reserve(n);
         for (int i = 0; i < n; ++i) {
-          const void *const pointer = &data[offsets[row] + 4 * i];
-          result.push_back(*static_cast<const float *>(pointer));
+          const void* const pointer = &data[offsets[row] + 4 * i];
+          result.push_back(*static_cast<const float*>(pointer));
         }
         return result;
       }
@@ -985,17 +1086,17 @@ void GltfTestHelper::CheckBoxMetaStructuralMetadata(
   // Check property attributes in structural metadata.
   ASSERT_EQ(structural_metadata.NumPropertyAttributes(), 1);
   {
-    const PropertyAttribute &attribute =
+    const PropertyAttribute& attribute =
         structural_metadata.GetPropertyAttribute(0);
     ASSERT_EQ(attribute.GetName(), "The movement.");
     ASSERT_EQ(attribute.GetClass(), "movement");
     ASSERT_EQ(attribute.NumProperties(), 2);
 
-    const PropertyAttribute::Property &direction = attribute.GetProperty(0);
+    const PropertyAttribute::Property& direction = attribute.GetProperty(0);
     ASSERT_EQ(direction.GetName(), "direction");
     ASSERT_EQ(direction.GetAttributeName(), "_DIRECTION");
 
-    const PropertyAttribute::Property &magnitude = attribute.GetProperty(1);
+    const PropertyAttribute::Property& magnitude = attribute.GetProperty(1);
     ASSERT_EQ(magnitude.GetName(), "magnitude");
     ASSERT_EQ(magnitude.GetAttributeName(), "_MAGNITUDE");
   }
@@ -1076,6 +1177,10 @@ void GltfTestHelper::CheckBoxMetaStructuralMetadata(
       ASSERT_EQ(val, expected_values[i]);
     }
   }
+
+  // Check property textures in the |mesh|.
+  ASSERT_EQ(mesh.NumPropertyTexturesIndices(), 1);
+  ASSERT_EQ(mesh.GetPropertyAttributesIndex(0), 0);
 }
 
 #endif  // DRACO_TRANSCODER_SUPPORTED

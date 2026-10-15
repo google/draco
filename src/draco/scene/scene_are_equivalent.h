@@ -29,11 +29,11 @@ class SceneAreEquivalent {
  public:
   // Returns true if both scenes are equivalent up to permutation of
   // the internal order of mesh vertices. This includes all attributes.
-  bool operator()(const Scene &scene0, const Scene &scene1);
+  bool operator()(const Scene& scene0, const Scene& scene1);
 
  private:
-  static bool AreEquivalent(const Mesh &mesh0, const Mesh &mesh1);
-  static bool AreEquivalent(const SceneNode &node0, const SceneNode &node1);
+  static bool AreEquivalent(const Mesh& mesh0, const Mesh& mesh1);
+  static bool AreEquivalent(const SceneNode& node0, const SceneNode& node1);
 };
 
 }  // namespace draco

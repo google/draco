@@ -32,16 +32,16 @@ class ObjEncoder {
   // Encodes the mesh or a point cloud  and saves it into a file.
   // Returns false when either the encoding failed or when the file couldn't be
   // opened.
-  bool EncodeToFile(const PointCloud &pc, const std::string &file_name);
-  bool EncodeToFile(const Mesh &mesh, const std::string &file_name);
+  bool EncodeToFile(const PointCloud& pc, const std::string& file_name);
+  bool EncodeToFile(const Mesh& mesh, const std::string& file_name);
 
   // Encodes the mesh or the point cloud into a buffer.
-  bool EncodeToBuffer(const PointCloud &pc, EncoderBuffer *out_buffer);
-  bool EncodeToBuffer(const Mesh &mesh, EncoderBuffer *out_buffer);
+  bool EncodeToBuffer(const PointCloud& pc, EncoderBuffer* out_buffer);
+  bool EncodeToBuffer(const Mesh& mesh, EncoderBuffer* out_buffer);
 
  protected:
   bool EncodeInternal();
-  EncoderBuffer *buffer() const { return out_buffer_; }
+  EncoderBuffer* buffer() const { return out_buffer_; }
   bool ExitAndCleanup(bool return_value);
 
  private:
@@ -62,32 +62,32 @@ class ObjEncoder {
   bool EncodeFaceCorner(PointIndex vert_index);
 
   void EncodeFloat(float val);
-  void EncodeFloatList(float *vals, int num_vals);
+  void EncodeFloatList(float* vals, int num_vals);
   void EncodeInt(int32_t val);
-  bool IsNewEdge(const CornerTable &ct, CornerIndex ci) const;
+  bool IsNewEdge(const CornerTable& ct, CornerIndex ci) const;
   void FindOriginalFaceEdges(FaceIndex face_index,
-                             const CornerTable &corner_table,
-                             std::vector<bool> *triangle_visited,
-                             PolygonEdges *polygon_edges);
+                             const CornerTable& corner_table,
+                             std::vector<bool>* triangle_visited,
+                             PolygonEdges* polygon_edges);
 
   // Various attributes used by the encoder. If an attribute is not used, it is
   // set to nullptr.
-  const PointAttribute *pos_att_;
-  const PointAttribute *tex_coord_att_;
-  const PointAttribute *normal_att_;
-  const PointAttribute *material_att_;
-  const PointAttribute *sub_obj_att_;
+  const PointAttribute* pos_att_;
+  const PointAttribute* tex_coord_att_;
+  const PointAttribute* normal_att_;
+  const PointAttribute* material_att_;
+  const PointAttribute* sub_obj_att_;
 
   // Stores per-corner triangulation information for polygon reconstruction.
-  const PointAttribute *added_edges_att_;
+  const PointAttribute* added_edges_att_;
 
   // Buffer used for encoding float/int numbers.
   char num_buffer_[20];
 
-  EncoderBuffer *out_buffer_;
+  EncoderBuffer* out_buffer_;
 
-  const PointCloud *in_point_cloud_;
-  const Mesh *in_mesh_;
+  const PointCloud* in_point_cloud_;
+  const Mesh* in_mesh_;
 
   // Store sub object name for each value.
   std::unordered_map<int, std::string> sub_obj_id_to_name_;

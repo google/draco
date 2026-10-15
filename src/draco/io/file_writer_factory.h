@@ -11,11 +11,11 @@ namespace draco {
 class FileWriterFactory {
  public:
   using OpenFunction =
-      std::unique_ptr<FileWriterInterface> (*)(const std::string &file_name);
+      std::unique_ptr<FileWriterInterface> (*)(const std::string& file_name);
 
   FileWriterFactory() = delete;
-  FileWriterFactory(const FileWriterFactory &) = delete;
-  FileWriterFactory &operator=(const FileWriterFactory &) = delete;
+  FileWriterFactory(const FileWriterFactory&) = delete;
+  FileWriterFactory& operator=(const FileWriterFactory&) = delete;
   ~FileWriterFactory() = default;
 
   // Registers the OpenFunction for a FileWriterInterface and returns true when
@@ -26,7 +26,7 @@ class FileWriterFactory {
   // when no writer is found for |file_name|. Otherwise a FileWriterInterface is
   // returned.
   static std::unique_ptr<FileWriterInterface> OpenWriter(
-      const std::string &file_name);
+      const std::string& file_name);
 };
 
 }  // namespace draco

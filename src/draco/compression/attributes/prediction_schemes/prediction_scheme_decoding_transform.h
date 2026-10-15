@@ -36,9 +36,9 @@ class PredictionSchemeDecodingTransform {
 
   // Computes the original value from the input predicted value and the decoded
   // corrections. The default implementation is equal to std:plus.
-  inline void ComputeOriginalValue(const DataTypeT *predicted_vals,
-                                   const CorrTypeT *corr_vals,
-                                   DataTypeT *out_original_vals) const {
+  inline void ComputeOriginalValue(const DataTypeT* predicted_vals,
+                                   const CorrTypeT* corr_vals,
+                                   DataTypeT* out_original_vals) const {
     static_assert(std::is_same<DataTypeT, CorrTypeT>::value,
                   "For the default prediction transform, correction and input "
                   "data must be of the same type.");
@@ -48,7 +48,7 @@ class PredictionSchemeDecodingTransform {
   }
 
   // Decodes any transform specific data. Called before Init() method.
-  bool DecodeTransformData(DecoderBuffer * /* buffer */) { return true; }
+  bool DecodeTransformData(DecoderBuffer* /* buffer */) { return true; }
 
   // Should return true if all corrected values are guaranteed to be positive.
   bool AreCorrectionsPositive() const { return false; }

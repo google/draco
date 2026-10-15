@@ -15,6 +15,9 @@
 #ifndef DRACO_POINT_CLOUD_POINT_CLOUD_H_
 #define DRACO_POINT_CLOUD_POINT_CLOUD_H_
 
+#include <memory>
+#include <vector>
+
 #include "draco/attributes/point_attribute.h"
 #include "draco/core/bounding_box.h"
 #include "draco/core/vector_d.h"
@@ -37,7 +40,7 @@ class PointCloud {
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Copies all data from the |src| point cloud.
-  void Copy(const PointCloud &src);
+  void Copy(const PointCloud& src);
 #endif
 
   // Returns the number of named attributes of a given type.
@@ -52,30 +55,30 @@ class PointCloud {
 
   // Returns the first named attribute of a given type or nullptr if the
   // attribute is not used by the point cloud.
-  const PointAttribute *GetNamedAttribute(GeometryAttribute::Type type) const;
+  const PointAttribute* GetNamedAttribute(GeometryAttribute::Type type) const;
 
   // Returns the i-th named attribute of a given type.
-  const PointAttribute *GetNamedAttribute(GeometryAttribute::Type type,
+  const PointAttribute* GetNamedAttribute(GeometryAttribute::Type type,
                                           int i) const;
 
   // Returns the named attribute of a given unique id.
-  const PointAttribute *GetNamedAttributeByUniqueId(
+  const PointAttribute* GetNamedAttributeByUniqueId(
       GeometryAttribute::Type type, uint32_t id) const;
 
   // Returns the attribute of a given unique id.
-  const PointAttribute *GetAttributeByUniqueId(uint32_t id) const;
+  const PointAttribute* GetAttributeByUniqueId(uint32_t id) const;
   int32_t GetAttributeIdByUniqueId(uint32_t unique_id) const;
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Returns the named attribute with a given name.
-  const PointAttribute *GetNamedAttributeByName(GeometryAttribute::Type type,
-                                                const std::string &name) const;
+  const PointAttribute* GetNamedAttributeByName(GeometryAttribute::Type type,
+                                                const std::string& name) const;
 #endif  // DRACO_TRANSCODER_SUPPORTED
 
   int32_t num_attributes() const {
     return static_cast<int32_t>(attributes_.size());
   }
-  const PointAttribute *attribute(int32_t att_id) const {
+  const PointAttribute* attribute(int32_t att_id) const {
     DRACO_DCHECK_LE(0, att_id);
     DRACO_DCHECK_LT(att_id, static_cast<int32_t>(attributes_.size()));
     return attributes_[att_id].get();
@@ -83,7 +86,7 @@ class PointCloud {
 
   // Returned attribute can be modified, but it's caller's responsibility to
   // maintain the attribute's consistency with draco::PointCloud.
-  PointAttribute *attribute(int32_t att_id) {
+  PointAttribute* attribute(int32_t att_id) {
     DRACO_DCHECK_LE(0, att_id);
     DRACO_DCHECK_LT(att_id, static_cast<int32_t>(attributes_.size()));
     return attributes_[att_id].get();
@@ -104,14 +107,14 @@ class PointCloud {
   // used to specify the number of attribute values that are going to be
   // stored in the newly created attribute. Returns attribute id of the newly
   // created attribute or -1 in case of failure.
-  int AddAttribute(const GeometryAttribute &att, bool identity_mapping,
+  int AddAttribute(const GeometryAttribute& att, bool identity_mapping,
                    AttributeValueIndex::ValueType num_attribute_values);
 
   // Creates and returns a new attribute or nullptr in case of failure. This
   // method is similar to AddAttribute(), except that it returns the new
   // attribute instead of adding it to the point cloud.
   std::unique_ptr<PointAttribute> CreateAttribute(
-      const GeometryAttribute &att, bool identity_mapping,
+      const GeometryAttribute& att, bool identity_mapping,
       AttributeValueIndex::ValueType num_attribute_values) const;
 
   // Assigns an attribute id to a given PointAttribute. If an attribute with
@@ -153,7 +156,7 @@ class PointCloud {
     metadata_->AddAttributeMetadata(std::move(metadata));
   }
 
-  const AttributeMetadata *GetAttributeMetadataByAttributeId(
+  const AttributeMetadata* GetAttributeMetadataByAttributeId(
       int32_t att_id) const {
     if (metadata_ == nullptr) {
       return nullptr;
@@ -163,8 +166,8 @@ class PointCloud {
   }
 
   // Returns the attribute metadata that has the requested metadata entry.
-  const AttributeMetadata *GetAttributeMetadataByStringEntry(
-      const std::string &name, const std::string &value) const {
+  const AttributeMetadata* GetAttributeMetadataByStringEntry(
+      const std::string& name, const std::string& value) const {
     if (metadata_ == nullptr) {
       return nullptr;
     }
@@ -172,12 +175,12 @@ class PointCloud {
   }
 
   // Returns the first attribute that has the requested metadata entry.
-  int GetAttributeIdByMetadataEntry(const std::string &name,
-                                    const std::string &value) const {
+  int GetAttributeIdByMetadataEntry(const std::string& name,
+                                    const std::string& value) const {
     if (metadata_ == nullptr) {
       return -1;
     }
-    const AttributeMetadata *att_metadata =
+    const AttributeMetadata* att_metadata =
         metadata_->GetAttributeMetadataByStringEntry(name, value);
     if (!att_metadata) {
       return -1;
@@ -186,10 +189,10 @@ class PointCloud {
   }
 
   // Get a const pointer of the metadata of the point cloud.
-  const GeometryMetadata *GetMetadata() const { return metadata_.get(); }
+  const GeometryMetadata* GetMetadata() const { return metadata_.get(); }
 
   // Get a pointer to the metadata of the point cloud.
-  GeometryMetadata *metadata() { return metadata_.get(); }
+  GeometryMetadata* metadata() { return metadata_.get(); }
 
   // Returns the number of n-dimensional points stored within the point cloud.
   PointIndex::ValueType num_points() const { return num_points_; }
@@ -202,32 +205,48 @@ class PointCloud {
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Enables or disables Draco geometry compression for this mesh.
   void SetCompressionEnabled(bool enabled) { compression_enabled_ = enabled; }
-  bool IsCompressionEnabled() const { return compression_enabled_; }
+  bool IsCompressionEnabled() const {
+    if (num_morph_targets() > 0) {
+      // Morph targets are not supported by Draco compression.
+      return false;
+    }
+    return compression_enabled_;
+  }
 
   // Sets |options| that configure Draco geometry compression. This does not
   // enable or disable compression.
-  void SetCompressionOptions(const DracoCompressionOptions &options) {
+  void SetCompressionOptions(const DracoCompressionOptions& options) {
     compression_options_ = options;
   }
-  const DracoCompressionOptions &GetCompressionOptions() const {
+  const DracoCompressionOptions& GetCompressionOptions() const {
     return compression_options_;
   }
-  DracoCompressionOptions &GetCompressionOptions() {
+  DracoCompressionOptions& GetCompressionOptions() {
     return compression_options_;
+  }
+
+  size_t num_morph_targets() const { return morph_targets_.size(); }
+
+  const PointCloud& GetMorphTarget(size_t i) const {
+    return *morph_targets_[i];
+  }
+
+  void AddMorphTarget(std::unique_ptr<PointCloud> morph_target) {
+    morph_targets_.push_back(std::move(morph_target));
   }
 #endif  // DRACO_TRANSCODER_SUPPORTED
 
  protected:
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Copies metadata from the |src| point cloud.
-  void CopyMetadata(const PointCloud &src);
+  void CopyMetadata(const PointCloud& src);
 #endif
 
 #ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
   // Applies id mapping of deduplicated points (called by DeduplicatePointIds).
   virtual void ApplyPointIdDeduplication(
-      const IndexTypeVector<PointIndex, PointIndex> &id_map,
-      const std::vector<PointIndex> &unique_point_ids);
+      const IndexTypeVector<PointIndex, PointIndex>& id_map,
+      const std::vector<PointIndex>& unique_point_ids);
 #endif
 
  private:
@@ -250,6 +269,10 @@ class PointCloud {
   // TODO(vytyaz): Store encoded bitstream that this geometry compresses into.
   bool compression_enabled_ = false;
   DracoCompressionOptions compression_options_;
+
+  // Morph targets for this geometry. All morph targets must have the same
+  // indices as the base geometry.
+  std::vector<std::unique_ptr<PointCloud>> morph_targets_;
 #endif  // DRACO_TRANSCODER_SUPPORTED
 
   friend struct PointCloudHasher;
@@ -260,7 +283,7 @@ class PointCloud {
 // only when all points have the same order and when all attribute values are
 // exactly the same.
 struct PointCloudHasher {
-  size_t operator()(const PointCloud &pc) const {
+  size_t operator()(const PointCloud& pc) const {
     size_t hash = pc.num_points_;
     hash = HashCombine(pc.attributes_.size(), hash);
     for (int i = 0; i < GeometryAttribute::NAMED_ATTRIBUTES_COUNT; ++i) {

@@ -7,8 +7,8 @@
 
 namespace draco {
 
-int64_t ComputeShannonEntropy(const uint32_t *symbols, int num_symbols,
-                              int max_value, int *out_num_unique_symbols) {
+int64_t ComputeShannonEntropy(const uint32_t* symbols, int num_symbols,
+                              int max_value, int* out_num_unique_symbols) {
   // First find frequency of all unique symbols in the input array.
   int num_unique_symbols = 0;
   std::vector<int> symbol_frequencies(max_value + 1, 0);
@@ -51,20 +51,20 @@ double ComputeBinaryShannonEntropy(uint32_t num_values,
            false_freq * std::log2(false_freq));
 }
 
-ShannonEntropyTracker::ShannonEntropyTracker() {}
+ShannonEntropyTracker::ShannonEntropyTracker() = default;
 
 ShannonEntropyTracker::EntropyData ShannonEntropyTracker::Peek(
-    const uint32_t *symbols, int num_symbols) {
+    const uint32_t* symbols, int num_symbols) {
   return UpdateSymbols(symbols, num_symbols, false);
 }
 
 ShannonEntropyTracker::EntropyData ShannonEntropyTracker::Push(
-    const uint32_t *symbols, int num_symbols) {
+    const uint32_t* symbols, int num_symbols) {
   return UpdateSymbols(symbols, num_symbols, true);
 }
 
 ShannonEntropyTracker::EntropyData ShannonEntropyTracker::UpdateSymbols(
-    const uint32_t *symbols, int num_symbols, bool push_changes) {
+    const uint32_t* symbols, int num_symbols, bool push_changes) {
   EntropyData ret_data = entropy_data_;
   ret_data.num_values += num_symbols;
   for (int i = 0; i < num_symbols; ++i) {
@@ -92,7 +92,7 @@ ShannonEntropyTracker::EntropyData ShannonEntropyTracker::UpdateSymbols(
     //  entropy = log2(N) - entropy_norm / N
     //
     double old_symbol_entropy_norm = 0;
-    int &frequency = frequencies_[symbol];
+    int& frequency = frequencies_[symbol];
     if (frequency > 1) {
       old_symbol_entropy_norm = frequency * std::log2(frequency);
     } else if (frequency == 0) {
@@ -122,7 +122,7 @@ ShannonEntropyTracker::EntropyData ShannonEntropyTracker::UpdateSymbols(
 }
 
 int64_t ShannonEntropyTracker::GetNumberOfDataBits(
-    const EntropyData &entropy_data) {
+    const EntropyData& entropy_data) {
   if (entropy_data.num_values < 2) {
     return 0;
   }
@@ -139,7 +139,7 @@ int64_t ShannonEntropyTracker::GetNumberOfDataBits(
 }
 
 int64_t ShannonEntropyTracker::GetNumberOfRAnsTableBits(
-    const EntropyData &entropy_data) {
+    const EntropyData& entropy_data) {
   return ApproximateRAnsFrequencyTableBits(entropy_data.max_symbol + 1,
                                            entropy_data.num_unique_symbols);
 }

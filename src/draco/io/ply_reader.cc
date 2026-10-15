@@ -16,7 +16,6 @@
 
 #include <algorithm>
 #include <array>
-#include <regex>
 
 #include "draco/core/status.h"
 #include "draco/io/parser_utils.h"
@@ -24,19 +23,19 @@
 
 namespace draco {
 
-PlyProperty::PlyProperty(const std::string &name, DataType data_type,
+PlyProperty::PlyProperty(const std::string& name, DataType data_type,
                          DataType list_type)
     : name_(name), data_type_(data_type), list_data_type_(list_type) {
   data_type_num_bytes_ = DataTypeLength(data_type);
   list_data_type_num_bytes_ = DataTypeLength(list_type);
 }
 
-PlyElement::PlyElement(const std::string &name, int64_t num_entries)
+PlyElement::PlyElement(const std::string& name, int64_t num_entries)
     : name_(name), num_entries_(num_entries) {}
 
 PlyReader::PlyReader() : format_(kLittleEndian) {}
 
-Status PlyReader::Read(DecoderBuffer *buffer) {
+Status PlyReader::Read(DecoderBuffer* buffer) {
   std::string value;
   // The first line needs to by "ply".
   if (!parser::ParseString(buffer, &value) || value != "ply") {
@@ -71,7 +70,7 @@ Status PlyReader::Read(DecoderBuffer *buffer) {
   return OkStatus();
 }
 
-Status PlyReader::ParseHeader(DecoderBuffer *buffer) {
+Status PlyReader::ParseHeader(DecoderBuffer* buffer) {
   while (true) {
     DRACO_ASSIGN_OR_RETURN(bool end, ParseEndHeader(buffer));
     if (end) {
@@ -89,7 +88,7 @@ Status PlyReader::ParseHeader(DecoderBuffer *buffer) {
   return OkStatus();
 }
 
-StatusOr<bool> PlyReader::ParseEndHeader(DecoderBuffer *buffer) {
+StatusOr<bool> PlyReader::ParseEndHeader(DecoderBuffer* buffer) {
   parser::SkipWhitespace(buffer);
   std::array<char, 10> c;
   if (!buffer->Peek(&c)) {
@@ -103,7 +102,7 @@ StatusOr<bool> PlyReader::ParseEndHeader(DecoderBuffer *buffer) {
   return true;
 }
 
-bool PlyReader::ParseElement(DecoderBuffer *buffer) {
+bool PlyReader::ParseElement(DecoderBuffer* buffer) {
   DecoderBuffer line_buffer(*buffer);
   std::string line;
   parser::ParseLine(&line_buffer, &line);
@@ -114,7 +113,7 @@ bool PlyReader::ParseElement(DecoderBuffer *buffer) {
   if (words.size() >= 3 && words[0] == "element") {
     element_name = words[1];
     const std::string count_str = words[2];
-    count = strtoll(count_str.c_str(), nullptr, 10);
+    count = strtoll(count_str.c_str(), nullptr, 10);  // NOLINT
   } else {
     return false;
   }
@@ -124,7 +123,7 @@ bool PlyReader::ParseElement(DecoderBuffer *buffer) {
   return true;
 }
 
-StatusOr<bool> PlyReader::ParseProperty(DecoderBuffer *buffer) {
+StatusOr<bool> PlyReader::ParseProperty(DecoderBuffer* buffer) {
   if (elements_.empty()) {
     return false;  // Ignore properties if there is no active element.
   }
@@ -168,7 +167,7 @@ StatusOr<bool> PlyReader::ParseProperty(DecoderBuffer *buffer) {
   return true;
 }
 
-bool PlyReader::ParsePropertiesData(DecoderBuffer *buffer) {
+bool PlyReader::ParsePropertiesData(DecoderBuffer* buffer) {
   for (int i = 0; i < static_cast<int>(elements_.size()); ++i) {
     if (format_ == kLittleEndian || format_ == kBigEndian) {
       if (!ParseElementData(buffer, i)) {
@@ -183,18 +182,18 @@ bool PlyReader::ParsePropertiesData(DecoderBuffer *buffer) {
   return true;
 }
 
-void PlyReader::SwapBytes(uint8_t *data, int num_bytes) {
+void PlyReader::SwapBytes(uint8_t* data, int num_bytes) {
   for (int i = 0; i < num_bytes / 2; ++i) {
     std::swap(data[i], data[num_bytes - 1 - i]);
   }
 }
 
-bool PlyReader::ParseElementData(DecoderBuffer *buffer, int element_index) {
-  PlyElement &element = elements_[element_index];
+bool PlyReader::ParseElementData(DecoderBuffer* buffer, int element_index) {
+  PlyElement& element = elements_[element_index];
   const bool swap_bytes = (format_ == kBigEndian);
   for (int entry = 0; entry < element.num_entries(); ++entry) {
     for (int i = 0; i < element.num_properties(); ++i) {
-      PlyProperty &prop = element.property(i);
+      PlyProperty& prop = element.property(i);
       if (prop.is_list()) {
         // Parse the number of entries for the list element.
         int64_t num_entries = 0;
@@ -202,7 +201,7 @@ bool PlyReader::ParseElementData(DecoderBuffer *buffer, int element_index) {
           return false;
         }
         if (swap_bytes && prop.list_data_type_num_bytes() > 1) {
-          SwapBytes(reinterpret_cast<uint8_t *>(&num_entries),
+          SwapBytes(reinterpret_cast<uint8_t*>(&num_entries),
                     prop.list_data_type_num_bytes());
         }
         // Store offset to the main data entry.
@@ -247,12 +246,12 @@ bool PlyReader::ParseElementData(DecoderBuffer *buffer, int element_index) {
   return true;
 }
 
-bool PlyReader::ParseElementDataAscii(DecoderBuffer *buffer,
+bool PlyReader::ParseElementDataAscii(DecoderBuffer* buffer,
                                       int element_index) {
-  PlyElement &element = elements_[element_index];
+  PlyElement& element = elements_[element_index];
   for (int entry = 0; entry < element.num_entries(); ++entry) {
     for (int i = 0; i < element.num_properties(); ++i) {
-      PlyProperty &prop = element.property(i);
+      PlyProperty& prop = element.property(i);
       PlyPropertyWriter<double> prop_writer(&prop);
       int32_t num_entries = 1;
       if (prop.is_list()) {
@@ -290,7 +289,7 @@ bool PlyReader::ParseElementDataAscii(DecoderBuffer *buffer,
   return true;
 }
 
-std::vector<std::string> PlyReader::SplitWords(const std::string &line) {
+std::vector<std::string> PlyReader::SplitWords(const std::string& line) {
   std::vector<std::string> output;
   std::string::size_type start = 0;
   std::string::size_type end = 0;
@@ -312,7 +311,7 @@ std::vector<std::string> PlyReader::SplitWords(const std::string &line) {
   return output;
 }
 
-DataType PlyReader::GetDataTypeFromString(const std::string &name) const {
+DataType PlyReader::GetDataTypeFromString(const std::string& name) const {
   if (name == "char" || name == "int8") {
     return DT_INT8;
   }

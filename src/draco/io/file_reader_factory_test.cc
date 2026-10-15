@@ -13,22 +13,22 @@ namespace {
 class AlwaysFailFileReader : public FileReaderInterface {
  public:
   static std::unique_ptr<FileReaderInterface> Open(
-      const std::string & /*file_name*/) {
+      const std::string& /*file_name*/) {
     return nullptr;
   }
 
   AlwaysFailFileReader() = delete;
-  AlwaysFailFileReader(const AlwaysFailFileReader &) = delete;
-  AlwaysFailFileReader &operator=(const AlwaysFailFileReader &) = delete;
+  AlwaysFailFileReader(const AlwaysFailFileReader&) = delete;
+  AlwaysFailFileReader& operator=(const AlwaysFailFileReader&) = delete;
   // Note this isn't overridden as the class can never be instantiated. This
   // avoids an unused function warning.
   // ~AlwaysFailFileReader() override = default;
 
-  bool ReadFileToBuffer(std::vector<char> * /*buffer*/) override {
+  bool ReadFileToBuffer(std::vector<char>* /*buffer*/) override {
     return false;
   }
 
-  bool ReadFileToBuffer(std::vector<uint8_t> * /*buffer*/) override {
+  bool ReadFileToBuffer(std::vector<uint8_t>* /*buffer*/) override {
     return false;
   }
 
@@ -41,19 +41,17 @@ class AlwaysFailFileReader : public FileReaderInterface {
 class AlwaysOkFileReader : public FileReaderInterface {
  public:
   static std::unique_ptr<FileReaderInterface> Open(
-      const std::string & /*file_name*/) {
+      const std::string& /*file_name*/) {
     return std::unique_ptr<AlwaysOkFileReader>(new AlwaysOkFileReader());
   }
 
-  AlwaysOkFileReader(const AlwaysOkFileReader &) = delete;
-  AlwaysOkFileReader &operator=(const AlwaysOkFileReader &) = delete;
+  AlwaysOkFileReader(const AlwaysOkFileReader&) = delete;
+  AlwaysOkFileReader& operator=(const AlwaysOkFileReader&) = delete;
   ~AlwaysOkFileReader() override = default;
 
-  bool ReadFileToBuffer(std::vector<char> * /*buffer*/) override {
-    return true;
-  }
+  bool ReadFileToBuffer(std::vector<char>* /*buffer*/) override { return true; }
 
-  bool ReadFileToBuffer(std::vector<uint8_t> * /*buffer*/) override {
+  bool ReadFileToBuffer(std::vector<uint8_t>* /*buffer*/) override {
     return true;
   }
 
@@ -77,7 +75,7 @@ TEST(FileReaderFactoryTest, RegistrationFail) {
 TEST(FileReaderFactoryTest, OpenReader) {
   auto reader = FileReaderFactory::OpenReader("fake file");
   EXPECT_NE(reader, nullptr);
-  std::vector<char> *buffer = nullptr;
+  std::vector<char>* buffer = nullptr;
   EXPECT_TRUE(reader->ReadFileToBuffer(buffer));
 }
 

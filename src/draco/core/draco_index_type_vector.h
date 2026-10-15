@@ -38,7 +38,7 @@ class IndexTypeVector {
 
   IndexTypeVector() {}
   explicit IndexTypeVector(size_t size) : vector_(size) {}
-  IndexTypeVector(size_t size, const ValueTypeT &val) : vector_(size, val) {}
+  IndexTypeVector(size_t size, const ValueTypeT& val) : vector_(size, val) {}
 
   iterator begin() { return vector_.begin(); }
   const_iterator begin() const { return vector_.begin(); }
@@ -48,38 +48,38 @@ class IndexTypeVector {
   void clear() { vector_.clear(); }
   void reserve(size_t size) { vector_.reserve(size); }
   void resize(size_t size) { vector_.resize(size); }
-  void resize(size_t size, const ValueTypeT &val) { vector_.resize(size, val); }
-  void assign(size_t size, const ValueTypeT &val) { vector_.assign(size, val); }
+  void resize(size_t size, const ValueTypeT& val) { vector_.resize(size, val); }
+  void assign(size_t size, const ValueTypeT& val) { vector_.assign(size, val); }
   iterator erase(iterator position) { return vector_.erase(position); }
 
-  void swap(IndexTypeVector<IndexTypeT, ValueTypeT> &arg) {
+  void swap(IndexTypeVector<IndexTypeT, ValueTypeT>& arg) {
     vector_.swap(arg.vector_);
   }
 
   size_t size() const { return vector_.size(); }
   bool empty() const { return vector_.empty(); }
 
-  void push_back(const ValueTypeT &val) { vector_.push_back(val); }
-  void push_back(ValueTypeT &&val) { vector_.push_back(std::move(val)); }
+  void push_back(const ValueTypeT& val) { vector_.push_back(val); }
+  void push_back(ValueTypeT&& val) { vector_.push_back(std::move(val)); }
 
   template <typename... Args>
-  void emplace_back(Args &&...args) {
+  void emplace_back(Args&&... args) {
     vector_.emplace_back(std::forward<Args>(args)...);
   }
 
-  inline reference operator[](const IndexTypeT &index) {
+  inline reference operator[](const IndexTypeT& index) {
     return vector_[index.value()];
   }
-  inline const_reference operator[](const IndexTypeT &index) const {
+  inline const_reference operator[](const IndexTypeT& index) const {
     return vector_[index.value()];
   }
-  inline reference at(const IndexTypeT &index) {
+  inline reference at(const IndexTypeT& index) {
     return vector_[index.value()];
   }
-  inline const_reference at(const IndexTypeT &index) const {
+  inline const_reference at(const IndexTypeT& index) const {
     return vector_[index.value()];
   }
-  const ValueTypeT *data() const { return vector_.data(); }
+  const ValueTypeT* data() const { return vector_.data(); }
 
  private:
   std::vector<ValueTypeT> vector_;

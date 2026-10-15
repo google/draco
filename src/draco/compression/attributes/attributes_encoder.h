@@ -37,17 +37,17 @@ class AttributesEncoder {
   // any custom initialization, including setting up attribute dependencies.
   // Note: no data should be encoded in this function, because the decoder may
   // process encoders in a different order from the decoder.
-  virtual bool Init(PointCloudEncoder *encoder, const PointCloud *pc);
+  virtual bool Init(PointCloudEncoder* encoder, const PointCloud* pc);
 
   // Encodes data needed by the target attribute decoder.
-  virtual bool EncodeAttributesEncoderData(EncoderBuffer *out_buffer);
+  virtual bool EncodeAttributesEncoderData(EncoderBuffer* out_buffer);
 
   // Returns a unique identifier of the given encoder type, that is used during
   // decoding to construct the corresponding attribute decoder.
   virtual uint8_t GetUniqueId() const = 0;
 
   // Encode attribute data to the target buffer.
-  virtual bool EncodeAttributes(EncoderBuffer *out_buffer) {
+  virtual bool EncodeAttributes(EncoderBuffer* out_buffer) {
     if (!TransformAttributesToPortableFormat()) {
       return false;
     }
@@ -83,7 +83,7 @@ class AttributesEncoder {
   // Returns an attribute containing data processed by the attribute transform.
   // (see TransformToPortableFormat() method). This data is guaranteed to be
   // encoded losslessly and it can be safely used for predictors.
-  virtual const PointAttribute *GetPortableAttribute(
+  virtual const PointAttribute* GetPortableAttribute(
       int32_t /* point_attribute_id */) {
     return nullptr;
   }
@@ -98,7 +98,7 @@ class AttributesEncoder {
   }
 
   // Sets new attribute point ids (replacing the existing ones).
-  void SetAttributeIds(const std::vector<int32_t> &point_attribute_ids) {
+  void SetAttributeIds(const std::vector<int32_t>& point_attribute_ids) {
     point_attribute_ids_.clear();
     point_attribute_to_local_id_map_.clear();
     for (int32_t att_id : point_attribute_ids) {
@@ -110,7 +110,7 @@ class AttributesEncoder {
   uint32_t num_attributes() const {
     return static_cast<uint32_t>(point_attribute_ids_.size());
   }
-  PointCloudEncoder *encoder() const { return point_cloud_encoder_; }
+  PointCloudEncoder* encoder() const { return point_cloud_encoder_; }
 
  protected:
   // Transforms the input attribute data into a form that should be losslessly
@@ -120,11 +120,11 @@ class AttributesEncoder {
   // Losslessly encodes data of all portable attributes.
   // Precondition: All attributes must have been transformed into portable
   // format at this point (see TransformAttributesToPortableFormat() method).
-  virtual bool EncodePortableAttributes(EncoderBuffer *out_buffer) = 0;
+  virtual bool EncodePortableAttributes(EncoderBuffer* out_buffer) = 0;
 
   // Encodes any data needed to revert the transform to portable format for each
   // attribute (e.g. data needed for dequantization of quantized values).
-  virtual bool EncodeDataNeededByPortableTransforms(EncoderBuffer *out_buffer) {
+  virtual bool EncodeDataNeededByPortableTransforms(EncoderBuffer* out_buffer) {
     return true;
   }
 
@@ -145,8 +145,8 @@ class AttributesEncoder {
   // |point_attribute_ids_|.
   std::vector<int32_t> point_attribute_to_local_id_map_;
 
-  PointCloudEncoder *point_cloud_encoder_;
-  const PointCloud *point_cloud_;
+  PointCloudEncoder* point_cloud_encoder_;
+  const PointCloud* point_cloud_;
 };
 
 }  // namespace draco

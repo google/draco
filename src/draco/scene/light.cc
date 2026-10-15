@@ -30,7 +30,7 @@ Light::Light()
       inner_cone_angle_(0.0),
       outer_cone_angle_(DRACO_PI / 4.0) {}
 
-void Light::Copy(const Light &light) {
+void Light::Copy(const Light& light) {
   name_ = light.name_;
   color_ = light.color_;
   intensity_ = light.intensity_;

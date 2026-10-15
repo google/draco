@@ -42,7 +42,7 @@ class PredictionSchemeNormalOctahedronDecodingTransform
 
   // Dummy function to fulfill concept.
   void Init(int num_components) {}
-  bool DecodeTransformData(DecoderBuffer *buffer) {
+  bool DecodeTransformData(DecoderBuffer* buffer) {
     DataTypeT max_quantized_value, center_value;
     if (!buffer->Decode(&max_quantized_value)) {
       return false;
@@ -56,9 +56,9 @@ class PredictionSchemeNormalOctahedronDecodingTransform
     return this->set_max_quantized_value(max_quantized_value);
   }
 
-  inline void ComputeOriginalValue(const DataType *pred_vals,
-                                   const CorrType *corr_vals,
-                                   DataType *out_orig_vals) const {
+  inline void ComputeOriginalValue(const DataType* pred_vals,
+                                   const CorrType* corr_vals,
+                                   DataType* out_orig_vals) const {
     DRACO_DCHECK_LE(pred_vals[0], 2 * this->center_value());
     DRACO_DCHECK_LE(pred_vals[1], 2 * this->center_value());
     DRACO_DCHECK_LE(corr_vals[0], 2 * this->center_value());
@@ -78,7 +78,7 @@ class PredictionSchemeNormalOctahedronDecodingTransform
   }
 
  private:
-  Point2 ComputeOriginalValue(Point2 pred, const Point2 &corr) const {
+  Point2 ComputeOriginalValue(Point2 pred, const Point2& corr) const {
     const Point2 t(this->center_value(), this->center_value());
     typedef typename std::make_unsigned<DataTypeT>::type UnsignedDataTypeT;
     typedef VectorD<UnsignedDataTypeT, 2> Point2u;

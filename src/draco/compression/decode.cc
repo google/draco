@@ -53,7 +53,7 @@ StatusOr<std::unique_ptr<MeshDecoder>> CreateMeshDecoder(uint8_t method) {
 #endif
 
 StatusOr<EncodedGeometryType> Decoder::GetEncodedGeometryType(
-    DecoderBuffer *in_buffer) {
+    DecoderBuffer* in_buffer) {
   DecoderBuffer temp_buffer(*in_buffer);
   DracoHeader header;
   DRACO_RETURN_IF_ERROR(PointCloudDecoder::DecodeHeader(&temp_buffer, &header));
@@ -64,7 +64,7 @@ StatusOr<EncodedGeometryType> Decoder::GetEncodedGeometryType(
 }
 
 StatusOr<std::unique_ptr<PointCloud>> Decoder::DecodePointCloudFromBuffer(
-    DecoderBuffer *in_buffer) {
+    DecoderBuffer* in_buffer) {
   DRACO_ASSIGN_OR_RETURN(EncodedGeometryType type,
                          GetEncodedGeometryType(in_buffer))
   if (type == POINT_CLOUD) {
@@ -84,14 +84,14 @@ StatusOr<std::unique_ptr<PointCloud>> Decoder::DecodePointCloudFromBuffer(
 }
 
 StatusOr<std::unique_ptr<Mesh>> Decoder::DecodeMeshFromBuffer(
-    DecoderBuffer *in_buffer) {
+    DecoderBuffer* in_buffer) {
   std::unique_ptr<Mesh> mesh(new Mesh());
   DRACO_RETURN_IF_ERROR(DecodeBufferToGeometry(in_buffer, mesh.get()))
   return std::move(mesh);
 }
 
-Status Decoder::DecodeBufferToGeometry(DecoderBuffer *in_buffer,
-                                       PointCloud *out_geometry) {
+Status Decoder::DecodeBufferToGeometry(DecoderBuffer* in_buffer,
+                                       PointCloud* out_geometry) {
 #ifdef DRACO_POINT_CLOUD_COMPRESSION_SUPPORTED
   DecoderBuffer temp_buffer(*in_buffer);
   DracoHeader header;
@@ -109,8 +109,8 @@ Status Decoder::DecodeBufferToGeometry(DecoderBuffer *in_buffer,
 #endif
 }
 
-Status Decoder::DecodeBufferToGeometry(DecoderBuffer *in_buffer,
-                                       Mesh *out_geometry) {
+Status Decoder::DecodeBufferToGeometry(DecoderBuffer* in_buffer,
+                                       Mesh* out_geometry) {
 #ifdef DRACO_MESH_COMPRESSION_SUPPORTED
   DecoderBuffer temp_buffer(*in_buffer);
   DracoHeader header;

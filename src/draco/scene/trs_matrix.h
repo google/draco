@@ -37,9 +37,9 @@ class TrsMatrix {
         rotation_set_(false),
         scale_set_(false) {}
 
-  void Copy(const TrsMatrix &tm);
+  void Copy(const TrsMatrix& tm);
 
-  TrsMatrix &SetMatrix(const Eigen::Matrix4d &matrix) {
+  TrsMatrix& SetMatrix(const Eigen::Matrix4d& matrix) {
     matrix_ = matrix;
     matrix_set_ = true;
     return *this;
@@ -47,12 +47,13 @@ class TrsMatrix {
   bool MatrixSet() const { return matrix_set_; }
   StatusOr<const Eigen::Matrix4d> Matrix() const {
     if (!matrix_set_) {
-      return Status(Status::DRACO_ERROR, "Matrix is not set.");
+      return StatusOr<const Eigen::Matrix4d>(
+          Status(Status::DRACO_ERROR, "Matrix is not set."), {});
     }
     return matrix_;
   }
 
-  TrsMatrix &SetTranslation(const Eigen::Vector3d &translation) {
+  TrsMatrix& SetTranslation(const Eigen::Vector3d& translation) {
     translation_ = translation;
     translation_set_ = true;
     return *this;
@@ -60,12 +61,13 @@ class TrsMatrix {
   bool TranslationSet() const { return translation_set_; }
   StatusOr<const Eigen::Vector3d> Translation() const {
     if (!translation_set_) {
-      return Status(Status::DRACO_ERROR, "Translation is not set.");
+      return StatusOr<const Eigen::Vector3d>(
+          Status(Status::DRACO_ERROR, "Translation is not set."), {});
     }
     return translation_;
   }
 
-  TrsMatrix &SetRotation(const Eigen::Quaterniond &rotation) {
+  TrsMatrix& SetRotation(const Eigen::Quaterniond& rotation) {
     rotation_ = rotation;
     rotation_set_ = true;
     return *this;
@@ -78,7 +80,7 @@ class TrsMatrix {
     return rotation_;
   }
 
-  TrsMatrix &SetScale(const Eigen::Vector3d &scale) {
+  TrsMatrix& SetScale(const Eigen::Vector3d& scale) {
     scale_ = scale;
     scale_set_ = true;
     return *this;
@@ -86,7 +88,8 @@ class TrsMatrix {
   bool ScaleSet() const { return scale_set_; }
   StatusOr<const Eigen::Vector3d> Scale() const {
     if (!scale_set_) {
-      return Status(Status::DRACO_ERROR, "Scale is not set.");
+      return StatusOr<const Eigen::Vector3d>(
+          Status(Status::DRACO_ERROR, "Scale is not set."), {});
     }
     return scale_;
   }
@@ -109,7 +112,7 @@ class TrsMatrix {
     return matrix_set_ || translation_set_ || rotation_set_ || scale_set_;
   }
 
-  bool operator==(const TrsMatrix &trs_matrix) const;
+  bool operator==(const TrsMatrix& trs_matrix) const;
 
  private:
   Eigen::Matrix4d matrix_;

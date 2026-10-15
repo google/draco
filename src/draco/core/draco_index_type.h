@@ -67,39 +67,39 @@ class IndexType {
   typedef ValueTypeT ValueType;
 
   constexpr IndexType() : value_(ValueTypeT()) {}
-  constexpr IndexType(const IndexType &i) : value_(i.value_) {}
+  constexpr IndexType(const IndexType& i) : value_(i.value_) {}
   constexpr explicit IndexType(ValueTypeT value) : value_(value) {}
 
   constexpr ValueTypeT value() const { return value_; }
 
-  constexpr bool operator==(const IndexType &i) const {
+  constexpr bool operator==(const IndexType& i) const {
     return value_ == i.value_;
   }
-  constexpr bool operator==(const ValueTypeT &val) const {
+  constexpr bool operator==(const ValueTypeT& val) const {
     return value_ == val;
   }
-  constexpr bool operator!=(const IndexType &i) const {
+  constexpr bool operator!=(const IndexType& i) const {
     return value_ != i.value_;
   }
-  constexpr bool operator!=(const ValueTypeT &val) const {
+  constexpr bool operator!=(const ValueTypeT& val) const {
     return value_ != val;
   }
-  constexpr bool operator<(const IndexType &i) const {
+  constexpr bool operator<(const IndexType& i) const {
     return value_ < i.value_;
   }
-  constexpr bool operator<(const ValueTypeT &val) const { return value_ < val; }
-  constexpr bool operator>(const IndexType &i) const {
+  constexpr bool operator<(const ValueTypeT& val) const { return value_ < val; }
+  constexpr bool operator>(const IndexType& i) const {
     return value_ > i.value_;
   }
-  constexpr bool operator>(const ValueTypeT &val) const { return value_ > val; }
-  constexpr bool operator>=(const IndexType &i) const {
+  constexpr bool operator>(const ValueTypeT& val) const { return value_ > val; }
+  constexpr bool operator>=(const IndexType& i) const {
     return value_ >= i.value_;
   }
-  constexpr bool operator>=(const ValueTypeT &val) const {
+  constexpr bool operator>=(const ValueTypeT& val) const {
     return value_ >= val;
   }
 
-  inline ThisIndexType &operator++() {
+  inline ThisIndexType& operator++() {
     ++value_;
     return *this;
   }
@@ -109,7 +109,7 @@ class IndexType {
     return ret;
   }
 
-  inline ThisIndexType &operator--() {
+  inline ThisIndexType& operator--() {
     --value_;
     return *this;
   }
@@ -119,40 +119,40 @@ class IndexType {
     return ret;
   }
 
-  constexpr ThisIndexType operator+(const IndexType &i) const {
+  constexpr ThisIndexType operator+(const IndexType& i) const {
     return ThisIndexType(value_ + i.value_);
   }
-  constexpr ThisIndexType operator+(const ValueTypeT &val) const {
+  constexpr ThisIndexType operator+(const ValueTypeT& val) const {
     return ThisIndexType(value_ + val);
   }
-  constexpr ThisIndexType operator-(const IndexType &i) const {
+  constexpr ThisIndexType operator-(const IndexType& i) const {
     return ThisIndexType(value_ - i.value_);
   }
-  constexpr ThisIndexType operator-(const ValueTypeT &val) const {
+  constexpr ThisIndexType operator-(const ValueTypeT& val) const {
     return ThisIndexType(value_ - val);
   }
 
-  inline ThisIndexType &operator+=(const IndexType &i) {
+  inline ThisIndexType& operator+=(const IndexType& i) {
     value_ += i.value_;
     return *this;
   }
-  inline ThisIndexType operator+=(const ValueTypeT &val) {
+  inline ThisIndexType operator+=(const ValueTypeT& val) {
     value_ += val;
     return *this;
   }
-  inline ThisIndexType &operator-=(const IndexType &i) {
+  inline ThisIndexType& operator-=(const IndexType& i) {
     value_ -= i.value_;
     return *this;
   }
-  inline ThisIndexType operator-=(const ValueTypeT &val) {
+  inline ThisIndexType operator-=(const ValueTypeT& val) {
     value_ -= val;
     return *this;
   }
-  inline ThisIndexType &operator=(const ThisIndexType &i) {
+  inline ThisIndexType& operator=(const ThisIndexType& i) {
     value_ = i.value_;
     return *this;
   }
-  inline ThisIndexType &operator=(const ValueTypeT &val) {
+  inline ThisIndexType& operator=(const ValueTypeT& val) {
     value_ = val;
     return *this;
   }
@@ -163,7 +163,7 @@ class IndexType {
 
 // Stream operator << provided for logging purposes.
 template <class ValueTypeT, class TagT>
-std::ostream &operator<<(std::ostream &os, IndexType<ValueTypeT, TagT> index) {
+std::ostream& operator<<(std::ostream& os, IndexType<ValueTypeT, TagT> index) {
   return os << index.value();
 }
 
@@ -174,7 +174,7 @@ namespace std {
 
 template <class ValueTypeT, class TagT>
 struct hash<draco::IndexType<ValueTypeT, TagT>> {
-  size_t operator()(const draco::IndexType<ValueTypeT, TagT> &i) const {
+  size_t operator()(const draco::IndexType<ValueTypeT, TagT>& i) const {
     return static_cast<size_t>(i.value());
   }
 };

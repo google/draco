@@ -11,7 +11,7 @@ namespace draco {
 
 class CornerTableTest : public ::testing::Test {
  protected:
-  std::unique_ptr<Mesh> DecodeObj(const std::string &file_name) const {
+  std::unique_ptr<Mesh> DecodeObj(const std::string& file_name) const {
     const std::string path = GetTestFileFullPath(file_name);
     ObjDecoder decoder;
     std::unique_ptr<Mesh> mesh(new Mesh());
@@ -29,12 +29,12 @@ class CornerTableTest : public ::testing::Test {
     const std::string file_name = "cube_att.obj";
     std::unique_ptr<draco::Mesh> in_mesh = DecodeObj(file_name);
     ASSERT_NE(in_mesh, nullptr) << "Failed to load test model " << file_name;
-    draco::Mesh *mesh = nullptr;
+    draco::Mesh* mesh = nullptr;
     mesh = in_mesh.get();
 
     std::unique_ptr<CornerTable> utable =
         draco::CreateCornerTableFromPositionAttribute(mesh);
-    draco::CornerTable *table = utable.get();
+    draco::CornerTable* table = utable.get();
 
     table->GetValenceCache().CacheValences();
     table->GetValenceCache().CacheValencesInaccurate();

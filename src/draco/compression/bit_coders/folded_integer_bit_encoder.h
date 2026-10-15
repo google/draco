@@ -58,7 +58,7 @@ class FoldedBit32Encoder {
   }
 
   // Ends the bit encoding and stores the result into the target_buffer.
-  void EndEncoding(EncoderBuffer *target_buffer) {
+  void EndEncoding(EncoderBuffer* target_buffer) {
     for (int i = 0; i < 32; i++) {
       folded_number_encoders_[i].EndEncoding(target_buffer);
     }

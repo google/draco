@@ -40,10 +40,10 @@ class Material {
   };
 
   Material();
-  explicit Material(TextureLibrary *texture_library);
+  explicit Material(TextureLibrary* texture_library);
 
   // Copies all material data from the |src| material to this material.
-  void Copy(const Material &src);
+  void Copy(const Material& src);
 
   // Deletes all texture maps and resets all material properties to default
   // values.
@@ -53,10 +53,10 @@ class Material {
   // properties unchanged.
   void ClearTextureMaps();
 
-  const std::string &GetName() const { return name_; }
-  void SetName(const std::string &name) { name_ = name; }
+  const std::string& GetName() const { return name_; }
+  void SetName(const std::string& name) { name_ = name; }
   Vector4f GetColorFactor() const { return color_factor_; }
-  void SetColorFactor(const Vector4f &color_factor) {
+  void SetColorFactor(const Vector4f& color_factor) {
     color_factor_ = color_factor;
   }
   float GetMetallicFactor() const { return metallic_factor_; }
@@ -68,7 +68,7 @@ class Material {
     roughness_factor_ = roughness_factor;
   }
   Vector3f GetEmissiveFactor() const { return emissive_factor_; }
-  void SetEmissiveFactor(const Vector3f &emissive_factor) {
+  void SetEmissiveFactor(const Vector3f& emissive_factor) {
     emissive_factor_ = emissive_factor;
   }
   bool GetDoubleSided() const { return double_sided_; }
@@ -88,7 +88,7 @@ class Material {
   bool HasSheen() const { return has_sheen_; }
   void SetHasSheen(bool value) { has_sheen_ = value; }
   Vector3f GetSheenColorFactor() const { return sheen_color_factor_; }
-  void SetSheenColorFactor(const Vector3f &value) {
+  void SetSheenColorFactor(const Vector3f& value) {
     sheen_color_factor_ = value;
   }
   float GetSheenRoughnessFactor() const { return sheen_roughness_factor_; }
@@ -120,7 +120,7 @@ class Material {
   float GetAttenuationDistance() const { return attenuation_distance_; }
   void SetAttenuationDistance(float value) { attenuation_distance_ = value; }
   Vector3f GetAttenuationColor() const { return attenuation_color_; }
-  void SetAttenuationColor(const Vector3f &value) {
+  void SetAttenuationColor(const Vector3f& value) {
     attenuation_color_ = value;
   }
 
@@ -136,26 +136,78 @@ class Material {
   float GetSpecularFactor() const { return specular_factor_; }
   void SetSpecularFactor(float value) { specular_factor_ = value; }
   Vector3f GetSpecularColorFactor() const { return specular_color_factor_; }
-  void SetSpecularColorFactor(const Vector3f &value) {
+  void SetSpecularColorFactor(const Vector3f& value) {
     specular_color_factor_ = value;
+  }
+
+  // Properties of glTF material extension KHR_materials_emissive_strength.
+  bool HasEmissiveStrength() const { return has_emissive_strength_; }
+  void SetHasEmissiveStrength(bool value) { has_emissive_strength_ = value; }
+  float GetEmissiveStrength() const { return emissive_strength_; }
+  void SetEmissiveStrength(float value) { emissive_strength_ = value; }
+
+  // Properties of glTF material extension KHR_materials_iridescence.
+  bool HasIridescence() const { return has_iridescence_; }
+  void SetHasIridescence(bool value) { has_iridescence_ = value; }
+  float GetIridescenceFactor() const { return iridescence_factor_; }
+  void SetIridescenceFactor(float value) { iridescence_factor_ = value; }
+  float GetIridescenceIor() const { return iridescence_ior_; }
+  void SetIridescenceIor(float value) { iridescence_ior_ = value; }
+  float GetIridescenceThicknessMinimum() const {
+    return iridescence_thickness_minimum_;
+  }
+  void SetIridescenceThicknessMinimum(float value) {
+    iridescence_thickness_minimum_ = value;
+  }
+  float GetIridescenceThicknessMaximum() const {
+    return iridescence_thickness_maximum_;
+  }
+  void SetIridescenceThicknessMaximum(float value) {
+    iridescence_thickness_maximum_ = value;
+  }
+
+  // Properties of glTF material extension KHR_materials_anisotropy.
+  bool HasAnisotropy() const { return has_anisotropy_; }
+  void SetHasAnisotropy(bool value) { has_anisotropy_ = value; }
+  float GetAnisotropyStrength() const { return anisotropy_strength_; }
+  void SetAnisotropyStrength(float value) { anisotropy_strength_ = value; }
+  float GetAnisotropyRotation() const { return anisotropy_rotation_; }
+  void SetAnisotropyRotation(float value) { anisotropy_rotation_ = value; }
+
+  // Properties of glTF material extension KHR_materials_diffuse_transmission.
+  bool HasDiffuseTransmission() const { return has_diffuse_transmission_; }
+  void SetHasDiffuseTransmission(bool value) {
+    has_diffuse_transmission_ = value;
+  }
+  float GetDiffuseTransmissionFactor() const {
+    return diffuse_transmission_factor_;
+  }
+  void SetDiffuseTransmissionFactor(float value) {
+    diffuse_transmission_factor_ = value;
+  }
+  Vector3f GetDiffuseTransmissionColorFactor() const {
+    return diffuse_transmission_color_factor_;
+  }
+  void SetDiffuseTransmissionColorFactor(const Vector3f& value) {
+    diffuse_transmission_color_factor_ = value;
   }
 
   // Methods for working with texture maps.
   size_t NumTextureMaps() const { return texture_maps_.size(); }
-  const TextureMap *GetTextureMapByIndex(int index) const {
+  const TextureMap* GetTextureMapByIndex(int index) const {
     return texture_maps_[index].get();
   }
-  TextureMap *GetTextureMapByIndex(int index) {
+  TextureMap* GetTextureMapByIndex(int index) {
     return texture_maps_[index].get();
   }
-  const TextureMap *GetTextureMapByType(TextureMap::Type texture_type) const {
+  const TextureMap* GetTextureMapByType(TextureMap::Type texture_type) const {
     const auto it = texture_map_type_to_index_map_.find(texture_type);
     if (it == texture_map_type_to_index_map_.end()) {
       return nullptr;
     }
     return GetTextureMapByIndex(it->second);
   }
-  TextureMap *GetTextureMapByType(TextureMap::Type texture_type) {
+  TextureMap* GetTextureMapByType(TextureMap::Type texture_type) {
     const auto it = texture_map_type_to_index_map_.find(texture_type);
     if (it == texture_map_type_to_index_map_.end()) {
       return nullptr;
@@ -180,20 +232,20 @@ class Material {
   // |texture_library_|). |transform| is the texture map's transform if set.
   // |min_filter| and |mag_filter| are the texture filter types. Returns error
   // status if provided |texture| is not owned by the material.
-  Status SetTextureMap(Texture *texture, TextureMap::Type texture_map_type,
+  Status SetTextureMap(Texture* texture, TextureMap::Type texture_map_type,
                        int tex_coord_index);
-  Status SetTextureMap(Texture *texture, TextureMap::Type texture_map_type,
+  Status SetTextureMap(Texture* texture, TextureMap::Type texture_map_type,
                        TextureMap::WrappingMode wrapping_mode,
                        int tex_coord_index);
-  Status SetTextureMap(Texture *texture, TextureMap::Type texture_map_type,
+  Status SetTextureMap(Texture* texture, TextureMap::Type texture_map_type,
                        TextureMap::WrappingMode wrapping_mode,
                        TextureMap::FilterType min_filter,
                        TextureMap::FilterType mag_filter, int tex_coord_index);
-  Status SetTextureMap(Texture *texture, TextureMap::Type texture_map_type,
+  Status SetTextureMap(Texture* texture, TextureMap::Type texture_map_type,
                        TextureMap::WrappingMode wrapping_mode,
                        TextureMap::FilterType min_filter,
                        TextureMap::FilterType mag_filter,
-                       const TextureTransform &transform, int tex_coord_index);
+                       const TextureTransform& transform, int tex_coord_index);
 
   // Removes a texture map from the material based on its index or texture type.
   // The material releases the ownership of the texture map and returns it as
@@ -203,16 +255,16 @@ class Material {
       TextureMap::Type texture_type);
 
  private:
-  void SetTextureMap(TextureMap &&texture_map);
+  void SetTextureMap(TextureMap&& texture_map);
   void SetTextureMap(std::unique_ptr<TextureMap> texture_map);
   Status SetTextureMap(std::unique_ptr<TextureMap> texture_map,
-                       Texture *texture, TextureMap::Type texture_map_type,
+                       Texture* texture, TextureMap::Type texture_map_type,
                        TextureMap::WrappingMode wrapping_mode,
                        TextureMap::FilterType min_filter,
                        TextureMap::FilterType mag_filter, int tex_coord_index);
 
   // Returns true if the |texture| is owned by the material.
-  bool IsTextureOwned(const Texture &texture);
+  bool IsTextureOwned(const Texture& texture);
 
  private:
   std::string name_;
@@ -257,6 +309,27 @@ class Material {
   float specular_factor_;
   Vector3f specular_color_factor_;
 
+  // Properties of glTF material extension KHR_materials_emissive_strength.
+  bool has_emissive_strength_;
+  float emissive_strength_;
+
+  // Properties of glTF material extension KHR_materials_iridescence.
+  bool has_iridescence_;
+  float iridescence_factor_;
+  float iridescence_ior_;
+  float iridescence_thickness_minimum_;
+  float iridescence_thickness_maximum_;
+
+  // Properties of glTF material extension KHR_materials_anisotropy.
+  bool has_anisotropy_;
+  float anisotropy_strength_;
+  float anisotropy_rotation_;
+
+  // Properties of glTF material extension KHR_materials_diffuse_transmission.
+  bool has_diffuse_transmission_;
+  float diffuse_transmission_factor_;
+  Vector3f diffuse_transmission_color_factor_;
+
   // Texture maps.
   std::vector<std::unique_ptr<TextureMap>> texture_maps_;
 
@@ -267,7 +340,7 @@ class Material {
   // Optional pointer to a library that holds ownership of textures used for
   // this material. If set to nullptr, the texture ownership will be assigned
   // to the newly created TextureMaps directly.
-  TextureLibrary *texture_library_;
+  TextureLibrary* texture_library_;
 };
 
 }  // namespace draco

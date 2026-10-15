@@ -28,13 +28,14 @@
 #include "draco/core/vector_d.h"
 #include "draco/mesh/mesh_splitter.h"
 #include "draco/mesh/mesh_utils.h"
+#include "draco/scene/scene.h"
 #include "draco/scene/scene_indices.h"
 #include "draco/texture/texture_utils.h"
 
 namespace draco {
 
 IndexTypeVector<MeshInstanceIndex, SceneUtils::MeshInstance>
-SceneUtils::ComputeAllInstances(const Scene &scene) {
+SceneUtils::ComputeAllInstances(const Scene& scene) {
   IndexTypeVector<MeshInstanceIndex, MeshInstance> instances;
   for (int i = 0; i < scene.NumRootNodes(); ++i) {
     const auto node_instances =
@@ -49,7 +50,7 @@ SceneUtils::ComputeAllInstances(const Scene &scene) {
 }
 
 IndexTypeVector<MeshInstanceIndex, SceneUtils::MeshInstance>
-SceneUtils::ComputeAllInstancesFromNode(const Scene &scene,
+SceneUtils::ComputeAllInstancesFromNode(const Scene& scene,
                                         SceneNodeIndex node_index) {
   IndexTypeVector<MeshInstanceIndex, MeshInstance> instances;
 
@@ -66,7 +67,7 @@ SceneUtils::ComputeAllInstancesFromNode(const Scene &scene,
   while (!nodes.empty()) {
     const Node node = nodes.back();
     nodes.pop_back();
-    const SceneNode &scene_node = *scene.GetNode(node.scene_node_index);
+    const SceneNode& scene_node = *scene.GetNode(node.scene_node_index);
     const Eigen::Matrix4d combined_transform =
         node.transform *
         scene_node.GetTrsMatrix().ComputeTransformationMatrix();
@@ -74,7 +75,7 @@ SceneUtils::ComputeAllInstancesFromNode(const Scene &scene,
     // Create instances from node meshes.
     const MeshGroupIndex mesh_group_index = scene_node.GetMeshGroupIndex();
     if (mesh_group_index != kInvalidMeshGroupIndex) {
-      const MeshGroup &mesh_group = *scene.GetMeshGroup(mesh_group_index);
+      const MeshGroup& mesh_group = *scene.GetMeshGroup(mesh_group_index);
       for (int i = 0; i < mesh_group.NumMeshInstances(); i++) {
         const MeshIndex mesh_index = mesh_group.GetMeshInstance(i).mesh_index;
         if (mesh_index != kInvalidMeshIndex) {
@@ -92,11 +93,11 @@ SceneUtils::ComputeAllInstancesFromNode(const Scene &scene,
   return instances;
 }
 
-Eigen::Matrix4d SceneUtils::ComputeGlobalNodeTransform(const Scene &scene,
+Eigen::Matrix4d SceneUtils::ComputeGlobalNodeTransform(const Scene& scene,
                                                        SceneNodeIndex index) {
   Eigen::Matrix4d transform = Eigen::Matrix4d::Identity();
   while (index != kInvalidSceneNodeIndex) {
-    const SceneNode *const node = scene.GetNode(index);
+    const SceneNode* const node = scene.GetNode(index);
     transform = node->GetTrsMatrix().ComputeTransformationMatrix() * transform;
     index = node->NumParents() == 1 ? node->Parent(0) : kInvalidSceneNodeIndex;
   }
@@ -104,25 +105,25 @@ Eigen::Matrix4d SceneUtils::ComputeGlobalNodeTransform(const Scene &scene,
 }
 
 IndexTypeVector<MeshIndex, int> SceneUtils::NumMeshInstances(
-    const Scene &scene) {
+    const Scene& scene) {
   const auto instances = ComputeAllInstances(scene);
   IndexTypeVector<MeshIndex, int> num_mesh_instances(scene.NumMeshes(), 0);
   for (MeshInstanceIndex i(0); i < instances.size(); i++) {
-    const MeshInstance &instance = instances[i];
+    const MeshInstance& instance = instances[i];
     num_mesh_instances[instance.mesh_index]++;
   }
   return num_mesh_instances;
 }
 
-int SceneUtils::GetMeshInstanceMaterialIndex(const Scene &scene,
-                                             const MeshInstance &instance) {
-  const auto *const node = scene.GetNode(instance.scene_node_index);
+int SceneUtils::GetMeshInstanceMaterialIndex(const Scene& scene,
+                                             const MeshInstance& instance) {
+  const auto* const node = scene.GetNode(instance.scene_node_index);
   return scene.GetMeshGroup(node->GetMeshGroupIndex())
       ->GetMeshInstance(instance.mesh_group_mesh_index)
       .material_index;
 }
 
-int SceneUtils::NumFacesOnBaseMeshes(const Scene &scene) {
+int SceneUtils::NumFacesOnBaseMeshes(const Scene& scene) {
   int num_faces = 0;
   for (MeshIndex i(0); i < scene.NumMeshes(); ++i) {
     num_faces += scene.GetMesh(i).num_faces();
@@ -130,17 +131,17 @@ int SceneUtils::NumFacesOnBaseMeshes(const Scene &scene) {
   return num_faces;
 }
 
-int SceneUtils::NumFacesOnInstancedMeshes(const Scene &scene) {
+int SceneUtils::NumFacesOnInstancedMeshes(const Scene& scene) {
   const auto instances = ComputeAllInstances(scene);
   int num_faces = 0;
   for (MeshInstanceIndex i(0); i < instances.size(); i++) {
-    const MeshInstance &instance = instances[i];
+    const MeshInstance& instance = instances[i];
     num_faces += scene.GetMesh(instance.mesh_index).num_faces();
   }
   return num_faces;
 }
 
-int SceneUtils::NumPointsOnBaseMeshes(const Scene &scene) {
+int SceneUtils::NumPointsOnBaseMeshes(const Scene& scene) {
   int num_points = 0;
   for (MeshIndex i(0); i < scene.NumMeshes(); ++i) {
     num_points += scene.GetMesh(i).num_points();
@@ -148,22 +149,22 @@ int SceneUtils::NumPointsOnBaseMeshes(const Scene &scene) {
   return num_points;
 }
 
-int SceneUtils::NumPointsOnInstancedMeshes(const Scene &scene) {
+int SceneUtils::NumPointsOnInstancedMeshes(const Scene& scene) {
   const auto instances = ComputeAllInstances(scene);
   int num_points = 0;
   for (MeshInstanceIndex i(0); i < instances.size(); i++) {
-    const MeshInstance &instance = instances[i];
+    const MeshInstance& instance = instances[i];
     num_points += scene.GetMesh(instance.mesh_index).num_points();
   }
   return num_points;
 }
 
-int SceneUtils::NumAttEntriesOnBaseMeshes(const Scene &scene,
+int SceneUtils::NumAttEntriesOnBaseMeshes(const Scene& scene,
                                           GeometryAttribute::Type att_type) {
   int num_att_entries = 0;
   for (MeshIndex i(0); i < scene.NumMeshes(); ++i) {
-    const Mesh &mesh = scene.GetMesh(i);
-    const PointAttribute *att = mesh.GetNamedAttribute(att_type);
+    const Mesh& mesh = scene.GetMesh(i);
+    const PointAttribute* att = mesh.GetNamedAttribute(att_type);
     if (att != nullptr) {
       num_att_entries += att->size();
     }
@@ -172,13 +173,13 @@ int SceneUtils::NumAttEntriesOnBaseMeshes(const Scene &scene,
 }
 
 int SceneUtils::NumAttEntriesOnInstancedMeshes(
-    const Scene &scene, GeometryAttribute::Type att_type) {
+    const Scene& scene, GeometryAttribute::Type att_type) {
   const auto instances = ComputeAllInstances(scene);
   int num_att_entries = 0;
   for (MeshInstanceIndex i(0); i < instances.size(); i++) {
-    const MeshInstance &instance = instances[i];
-    const Mesh &mesh = scene.GetMesh(instance.mesh_index);
-    const PointAttribute *att = mesh.GetNamedAttribute(att_type);
+    const MeshInstance& instance = instances[i];
+    const Mesh& mesh = scene.GetMesh(instance.mesh_index);
+    const PointAttribute* att = mesh.GetNamedAttribute(att_type);
     if (att != nullptr) {
       num_att_entries += att->size();
     }
@@ -186,12 +187,22 @@ int SceneUtils::NumAttEntriesOnInstancedMeshes(
   return num_att_entries;
 }
 
-BoundingBox SceneUtils::ComputeBoundingBox(const Scene &scene) {
+int SceneUtils::NumNonVisibleNodes(const Scene& scene) {
+  int num_non_visible_nodes = 0;
+  for (SceneNodeIndex sni(0); sni < scene.NumNodes(); ++sni) {
+    if (scene.GetNode(sni)->HasVisible() && !scene.GetNode(sni)->GetVisible()) {
+      num_non_visible_nodes++;
+    }
+  }
+  return num_non_visible_nodes;
+}
+
+BoundingBox SceneUtils::ComputeBoundingBox(const Scene& scene) {
   // Compute bounding box that includes all scene mesh instances.
   const auto instances = ComputeAllInstances(scene);
   BoundingBox scene_bbox;
   for (MeshInstanceIndex i(0); i < instances.size(); i++) {
-    const MeshInstance &instance = instances[i];
+    const MeshInstance& instance = instances[i];
     const BoundingBox mesh_bbox =
         ComputeMeshInstanceBoundingBox(scene, instance);
     scene_bbox.Update(mesh_bbox);
@@ -200,8 +211,8 @@ BoundingBox SceneUtils::ComputeBoundingBox(const Scene &scene) {
 }
 
 BoundingBox SceneUtils::ComputeMeshInstanceBoundingBox(
-    const Scene &scene, const MeshInstance &instance) {
-  const Mesh &mesh = scene.GetMesh(instance.mesh_index);
+    const Scene& scene, const MeshInstance& instance) {
+  const Mesh& mesh = scene.GetMesh(instance.mesh_index);
   BoundingBox mesh_bbox;
   auto pc_att = mesh.GetNamedAttribute(GeometryAttribute::POSITION);
   Eigen::Vector4d position;
@@ -215,22 +226,6 @@ BoundingBox SceneUtils::ComputeMeshInstanceBoundingBox(
   }
   return mesh_bbox;
 }
-
-namespace {
-
-// Updates texture pointers in mesh features of |mesh| to texture pointers
-// stored in |new_texture_library|. |texture_to_index_map| stores texture
-// indices of the old texture pointers within |mesh|.
-void UpdateMeshFeaturesTexturesOnMesh(
-    const std::unordered_map<const Texture *, int> &texture_to_index_map,
-    TextureLibrary *new_texture_library, Mesh *mesh) {
-  for (MeshFeaturesIndex mfi(0); mfi < mesh->NumMeshFeatures(); ++mfi) {
-    mesh->UpdateMeshFeaturesTexturePointer(
-        texture_to_index_map, new_texture_library, &mesh->GetMeshFeatures(mfi));
-  }
-}
-
-}  // namespace
 
 StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
     std::unique_ptr<Mesh> mesh, bool deduplicate_vertices) {
@@ -247,7 +242,7 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
   // Copy structural metadata.
   scene->GetStructuralMetadata().Copy(mesh->GetStructuralMetadata());
 
-  // Copy mesh feature textures.
+  // Copy mesh feature ID textures and property textures.
   scene->GetNonMaterialTextureLibrary().Copy(
       mesh->GetNonMaterialTextureLibrary());
 
@@ -255,9 +250,10 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
       mesh->GetNonMaterialTextureLibrary().ComputeTextureToIndexMap();
 
   const SceneNodeIndex scene_node_index = scene->AddNode();
-  SceneNode *const scene_node = scene->GetNode(scene_node_index);
+  SceneNode* const scene_node = scene->GetNode(scene_node_index);
   const MeshGroupIndex mesh_group_index = scene->AddMeshGroup();
-  MeshGroup *const mesh_group = scene->GetMeshGroup(mesh_group_index);
+  MeshGroup* const mesh_group = scene->GetMeshGroup(mesh_group_index);
+  mesh_group->SetName(mesh->GetName());
 
   if (num_mesh_materials <= 1) {
     const MeshIndex mesh_index = scene->AddMesh(std::move(mesh));
@@ -267,9 +263,9 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
     }
     mesh_group->AddMeshInstance({mesh_index, 0, {}});
 
-    UpdateMeshFeaturesTexturesOnMesh(old_texture_to_index_map,
-                                     &scene->GetNonMaterialTextureLibrary(),
-                                     &scene->GetMesh(mesh_index));
+    Mesh::UpdateNonMaterialTexturePointers(
+        old_texture_to_index_map, &scene->GetNonMaterialTextureLibrary(),
+        &scene->GetMesh(mesh_index), &scene->GetStructuralMetadata());
 
     // The non-material texture library is now in the scene. The non-material
     // texture library of the mesh must be cleared, because mesh features may
@@ -284,7 +280,7 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
                     "Internal error in MeshToScene: "
                     "GetNamedAttributeId(MATERIAL) returned -1");
     }
-    const PointAttribute *const mat_att =
+    const PointAttribute* const mat_att =
         mesh->GetNamedAttribute(GeometryAttribute::MATERIAL);
     if (mat_att == nullptr) {
       // Probably dead code, not covered by any unit test.
@@ -295,6 +291,9 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
 
     MeshSplitter splitter;
     splitter.SetDeduplicateVertices(deduplicate_vertices);
+    splitter.SetPreserveMeshFeatures(true);
+    splitter.SetPreserveStructuralMetadata(
+        MeshSplitter::PreserveStructuralMetadata::INDICES);
     DRACO_ASSIGN_OR_RETURN(MeshSplitter::MeshVector split_meshes,
                            splitter.SplitMesh(*mesh, mat_att_id));
     // Note: cannot clear mesh here, since mat_att points into it.
@@ -314,34 +313,19 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
       mat_att->GetValue(AttributeValueIndex(i), &material_index);
       mesh_group->AddMeshInstance({mesh_index, material_index, {}});
 
-      // Copy over mesh features that were associated with the |material_index|.
-      Mesh &scene_mesh = scene->GetMesh(mesh_index);
-      Mesh::CopyMeshFeaturesForMaterial(*mesh, &scene_mesh, material_index);
-
-      // Update mesh features attribute indices if needed.
-      for (MeshFeaturesIndex mfi(0); mfi < scene_mesh.NumMeshFeatures();
-           ++mfi) {
-        auto &mesh_features = scene_mesh.GetMeshFeatures(mfi);
-        if (mesh_features.GetAttributeIndex() != -1) {
-          mesh_features.SetAttributeIndex(splitter.GetSplitMeshAttributeIndex(
-              mesh_features.GetAttributeIndex()));
-        }
-      }
-
-      UpdateMeshFeaturesTexturesOnMesh(old_texture_to_index_map,
-                                       &scene->GetNonMaterialTextureLibrary(),
-                                       &scene_mesh);
-
-      // Copy over property attibutes indices that were associated with the
-      // |material_index|.
-      Mesh::CopyPropertyAttributesIndicesForMaterial(*mesh, &scene_mesh,
-                                                     material_index);
-
-      // The non-material texture library is now in the scene. The non-material
-      // texture library of the mesh must be cleared, because mesh features may
-      // contain texture pointers invalid for this non-material texture library.
-      scene_mesh.GetNonMaterialTextureLibrary().Clear();
+      // Update texture pointers in mesh feature ID textures, so that they point
+      // to the |scene| non-material texture library, shared by all meshes.
+      Mesh& scene_mesh = scene->GetMesh(mesh_index);
+      Mesh::UpdateNonMaterialTexturePointers(
+          old_texture_to_index_map, &scene->GetNonMaterialTextureLibrary(),
+          &scene_mesh, nullptr);
     }
+
+    // Update texture pointers in property textures, so that they point to the
+    // |scene| non-material texture library.
+    Mesh::UpdateNonMaterialTexturePointers(
+        old_texture_to_index_map, &scene->GetNonMaterialTextureLibrary(),
+        nullptr, &scene->GetStructuralMetadata());
   }
 
   scene_node->SetMeshGroupIndex(mesh_group_index);
@@ -349,10 +333,10 @@ StatusOr<std::unique_ptr<Scene>> SceneUtils::MeshToScene(
   return scene;
 }
 
-void SceneUtils::PrintInfo(const Scene &input, const Scene &simplified,
+void SceneUtils::PrintInfo(const Scene& input, const Scene& simplified,
                            bool verbose) {
   struct Printer {
-    Printer(const Scene &input, const Scene &simplified)
+    Printer(const Scene& input, const Scene& simplified)
         : input(input), simplified(simplified), print_instanced_info(false) {
       // Info about the instanced meshes is printed if some of the meshes have
       // multiple instances and also if the number of base meshes has changed.
@@ -379,7 +363,7 @@ void SceneUtils::PrintInfo(const Scene &input, const Scene &simplified,
       printf("\n");
     }
 
-    void PrintInfoRow(const std::string &label, int count_input_base,
+    void PrintInfoRow(const std::string& label, int count_input_base,
                       int count_input_instanced, int count_simplified_base,
                       int count_simplified_instanced) const {
       // Do not clutter the printout with empty info.
@@ -403,8 +387,8 @@ void SceneUtils::PrintInfo(const Scene &input, const Scene &simplified,
       printf("\n");
     }
 
-    void PrintAttInfoRow(const std::string &label, const draco::Scene &input,
-                         const draco::Scene &simplified,
+    void PrintAttInfoRow(const std::string& label, const draco::Scene& input,
+                         const draco::Scene& simplified,
                          draco::GeometryAttribute::Type att_type) const {
       PrintInfoRow(label, NumAttEntriesOnBaseMeshes(input, att_type),
                    NumAttEntriesOnInstancedMeshes(input, att_type),
@@ -412,8 +396,8 @@ void SceneUtils::PrintInfo(const Scene &input, const Scene &simplified,
                    NumAttEntriesOnInstancedMeshes(simplified, att_type));
     }
 
-    const Scene &input;
-    const Scene &simplified;
+    const Scene& input;
+    const Scene& simplified;
     bool print_instanced_info;
   };
 
@@ -454,17 +438,17 @@ void SceneUtils::PrintInfo(const Scene &input, const Scene &simplified,
 }
 
 StatusOr<std::unique_ptr<Mesh>> SceneUtils::InstantiateMesh(
-    const Scene &scene, const MeshInstance &instance) {
+    const Scene& scene, const MeshInstance& instance) {
   // Check if the |scene| has base mesh corresponding to mesh |instance|.
   if (scene.NumMeshes() <= instance.mesh_index.value()) {
     return Status(Status::DRACO_ERROR, "Scene has no corresponding base mesh.");
   }
 
   // Check that mesh has valid positions.
-  const Mesh &base_mesh = scene.GetMesh(instance.mesh_index);
+  const Mesh& base_mesh = scene.GetMesh(instance.mesh_index);
   const int32_t pos_id =
       base_mesh.GetNamedAttributeId(GeometryAttribute::POSITION);
-  const PointAttribute *const pos_att = base_mesh.attribute(pos_id);
+  const PointAttribute* const pos_att = base_mesh.attribute(pos_id);
   if (pos_att == nullptr) {
     return Status(Status::DRACO_ERROR, "Mesh has no positions.");
   }
@@ -489,7 +473,7 @@ namespace {
 class SceneUnusedNodeRemover {
  public:
   // Removes unused nodes from the |scene|.
-  void RemoveUnusedNodes(Scene *scene) {
+  void RemoveUnusedNodes(Scene* scene) {
     // Finds all unused nodes and initializes |node_map_| that maps old node
     // indices to new node indices.
     const int num_unused_nodes = FindUnusedNodes(*scene);
@@ -505,7 +489,7 @@ class SceneUnusedNodeRemover {
 
  private:
   // Returns the number of unused nodes.
-  int FindUnusedNodes(const Scene &scene) {
+  int FindUnusedNodes(const Scene& scene) {
     // First all nodes are considered unused (mapped to invalid index).
     // Initially if a node is used, we just map it to its own index. The final
     // mapping will be updated once we know all used nodes.
@@ -519,7 +503,7 @@ class SceneUnusedNodeRemover {
 
     // Preserve nodes used by animations.
     for (AnimationIndex i(0); i < scene.NumAnimations(); i++) {
-      const Animation &animation = *scene.GetAnimation(i);
+      const Animation& animation = *scene.GetAnimation(i);
       for (int channel_i = 0; channel_i < animation.NumChannels();
            channel_i++) {
         const SceneNodeIndex node_index(
@@ -528,7 +512,7 @@ class SceneUnusedNodeRemover {
       }
     }
     for (SkinIndex i(0); i < scene.NumSkins(); i++) {
-      const Skin &skin = *scene.GetSkin(i);
+      const Skin& skin = *scene.GetSkin(i);
       for (int j = 0; j < skin.NumJoints(); j++) {
         const SceneNodeIndex node_index = skin.GetJoint(j);
         node_map_[node_index] = node_index;
@@ -558,8 +542,8 @@ class SceneUnusedNodeRemover {
 
   // Recursively traverse node |sni| and mark it as used as long as it has a
   // used child node. The function returns true when |sni| is a used node.
-  bool UpdateUsedNodesFromSceneGraph(const Scene &scene, SceneNodeIndex sni) {
-    const auto &node = scene.GetNode(sni);
+  bool UpdateUsedNodesFromSceneGraph(const Scene& scene, SceneNodeIndex sni) {
+    const auto& node = scene.GetNode(sni);
     bool is_any_child_node_used = false;
     for (int c = 0; c < node->NumChildren(); ++c) {
       const SceneNodeIndex cni = node->Child(c);
@@ -579,7 +563,7 @@ class SceneUnusedNodeRemover {
 
   // Remaps existing node indices at various scene elements to new node indices
   // defined by |node_map_|.
-  void UpdateNodeIndices(Scene *scene) const {
+  void UpdateNodeIndices(Scene* scene) const {
     // Update node indices on child / parent nodes.
     std::vector<SceneNodeIndex> indices;
     for (SceneNodeIndex sni(0); sni < scene->NumNodes(); ++sni) {
@@ -613,14 +597,14 @@ class SceneUnusedNodeRemover {
 
     // Update node indices used by animations.
     for (AnimationIndex i(0); i < scene->NumAnimations(); i++) {
-      Animation &animation = *scene->GetAnimation(i);
+      Animation& animation = *scene->GetAnimation(i);
       for (int i = 0; i < animation.NumChannels(); i++) {
         const SceneNodeIndex node_index(animation.GetChannel(i)->target_index);
         animation.GetChannel(i)->target_index = node_map_[node_index].value();
       }
     }
     for (SkinIndex i(0); i < scene->NumSkins(); i++) {
-      Skin &skin = *scene->GetSkin(i);
+      Skin& skin = *scene->GetSkin(i);
       for (int j = 0; j < skin.NumJoints(); j++) {
         const SceneNodeIndex node_index = skin.GetJoint(j);
         skin.GetJoint(j) = node_map_[node_index];
@@ -633,7 +617,7 @@ class SceneUnusedNodeRemover {
   }
 
   // Removes all unused nodes from the scene.
-  void RemoveUnusedNodesFromScene(Scene *scene) const {
+  void RemoveUnusedNodesFromScene(Scene* scene) const {
     int num_valid_nodes = 0;
     // Copy over nodes to their new position in the nodes array.
     for (SceneNodeIndex sni(0); sni < scene->NumNodes(); ++sni) {
@@ -658,9 +642,9 @@ class SceneUnusedNodeRemover {
 
 }  // namespace
 
-void SceneUtils::Cleanup(Scene *scene) { Cleanup(scene, CleanupOptions()); }
+void SceneUtils::Cleanup(Scene* scene) { Cleanup(scene, CleanupOptions()); }
 
-void SceneUtils::Cleanup(Scene *scene, const CleanupOptions &options) {
+void SceneUtils::Cleanup(Scene* scene, const CleanupOptions& options) {
   // Remove invalid mesh indices from mesh groups.
   if (options.remove_invalid_mesh_instances) {
     for (MeshGroupIndex i(0); i < scene->NumMeshGroups(); i++) {
@@ -671,7 +655,7 @@ void SceneUtils::Cleanup(Scene *scene, const CleanupOptions &options) {
   // Find references to mesh groups.
   std::vector<bool> is_mesh_group_referenced(scene->NumMeshGroups(), false);
   for (SceneNodeIndex i(0); i < scene->NumNodes(); i++) {
-    const SceneNode &node = *scene->GetNode(i);
+    const SceneNode& node = *scene->GetNode(i);
     const MeshGroupIndex mesh_group_index = node.GetMeshGroupIndex();
     if (mesh_group_index != kInvalidMeshGroupIndex) {
       is_mesh_group_referenced[mesh_group_index.value()] = true;
@@ -686,7 +670,7 @@ void SceneUtils::Cleanup(Scene *scene, const CleanupOptions &options) {
     if (!is_mesh_group_referenced[i.value()]) {
       continue;
     }
-    const MeshGroup &mesh_group = *scene->GetMeshGroup(i);
+    const MeshGroup& mesh_group = *scene->GetMeshGroup(i);
     bool mesh_group_is_empty = true;
     for (int j = 0; j < mesh_group.NumMeshInstances(); j++) {
       const MeshIndex mesh_index = mesh_group.GetMeshInstance(j).mesh_index;
@@ -720,7 +704,7 @@ void SceneUtils::Cleanup(Scene *scene, const CleanupOptions &options) {
   }
 
   // Find materials that reference a texture.
-  MaterialLibrary &material_library = scene->GetMaterialLibrary();
+  MaterialLibrary& material_library = scene->GetMaterialLibrary();
   std::vector<bool> materials_with_textures(material_library.NumMaterials(),
                                             false);
   for (int i = 0; i < material_library.NumMaterials(); ++i) {
@@ -743,7 +727,7 @@ void SceneUtils::Cleanup(Scene *scene, const CleanupOptions &options) {
 
   // Populate the maps that will be used to remove unused texture coordinates.
   for (int mgi = 0; mgi < scene->NumMeshGroups(); ++mgi) {
-    const MeshGroup *const mesh_group =
+    const MeshGroup* const mesh_group =
         scene->GetMeshGroup(MeshGroupIndex(mgi));
     for (int mi = 0; mi < mesh_group->NumMeshInstances(); ++mi) {
       const MeshIndex mesh_index = mesh_group->GetMeshInstance(mi).mesh_index;
@@ -759,9 +743,48 @@ void SceneUtils::Cleanup(Scene *scene, const CleanupOptions &options) {
       // Populate texture coordinate indices referenced by material textures.
       const auto material = material_library.GetMaterial(material_index);
       for (int i = 0; i < material->NumTextureMaps(); i++) {
-        const TextureMap *const texture_map = material->GetTextureMapByIndex(i);
+        const TextureMap* const texture_map = material->GetTextureMapByIndex(i);
         const int tex_coord_index = texture_map->tex_coord_index();
         tex_coord_referenced[mesh_index].insert(tex_coord_index);
+      }
+    }
+  }
+
+  const StructuralMetadata& scene_structural_metadata =
+      scene->GetStructuralMetadata();
+
+  // Maps property texture index to a set of meshes that use that property
+  // texture.
+  std::vector<std::unordered_set<MeshIndex>> property_texture_meshes(
+      scene_structural_metadata.NumPropertyTextures());
+
+  // Populate texture coordinate indices referenced by mesh features and
+  // property textures. Also track which property textures are used by which
+  // meshes to avoid corrupting shared property textures during cleanup.
+  for (MeshIndex mi(0); mi < scene->NumMeshes(); ++mi) {
+    const Mesh& mesh = scene->GetMesh(mi);
+    for (MeshFeaturesIndex mfi(0); mfi < mesh.NumMeshFeatures(); ++mfi) {
+      const MeshFeatures& mf = mesh.GetMeshFeatures(mfi);
+      if (mf.GetAttributeIndex() == -1) {
+        // Texture-mapped feature ID.
+        const int tex_coord_index = mf.GetTextureMap().tex_coord_index();
+        tex_coord_referenced[mi].insert(tex_coord_index);
+      }
+    }
+    for (int pti = 0; pti < mesh.NumPropertyTexturesIndices(); ++pti) {
+      const int property_texture_index = mesh.GetPropertyTexturesIndex(pti);
+      if (property_texture_index >= 0 &&
+          property_texture_index <
+              scene_structural_metadata.NumPropertyTextures()) {
+        property_texture_meshes[property_texture_index].insert(mi);
+        const PropertyTexture& pt =
+            scene_structural_metadata.GetPropertyTexture(
+                property_texture_index);
+        for (int pi = 0; pi < pt.NumProperties(); ++pi) {
+          const PropertyTexture::Property& prop = pt.GetProperty(pi);
+          const int tex_coord_index = prop.GetTextureMap().tex_coord_index();
+          tex_coord_referenced[mi].insert(tex_coord_index);
+        }
       }
     }
   }
@@ -770,9 +793,13 @@ void SceneUtils::Cleanup(Scene *scene, const CleanupOptions &options) {
   // referenced by any materials and decrement texture coordinate indices in
   // texture maps of the mesh materials accordingly.
   if (options.remove_unused_tex_coords) {
+    StructuralMetadata& scene_structural_metadata =
+        scene->GetStructuralMetadata();
     for (MeshIndex mi(0); mi < scene->NumMeshes(); ++mi) {
+      Mesh& mesh = scene->GetMesh(mi);
       // Do not remove unreferenced texture coordinates when the mesh materials
-      // are used by any other meshes to avoid corrupting those other meshes.
+      // or property textures are used by any other meshes to avoid corrupting
+      // those other meshes.
       // TODO(vytyaz): Consider removing this limitation.
       bool remove_tex_coord = true;
       for (const int material_index : mesh_materials[mi]) {
@@ -782,12 +809,25 @@ void SceneUtils::Cleanup(Scene *scene, const CleanupOptions &options) {
           break;
         }
       }
+      if (remove_tex_coord) {
+        for (int pti = 0; pti < mesh.NumPropertyTexturesIndices(); ++pti) {
+          const int property_texture_index = mesh.GetPropertyTexturesIndex(pti);
+          if (property_texture_index >= 0 &&
+              property_texture_index <
+                  scene_structural_metadata.NumPropertyTextures()) {
+            if (property_texture_meshes[property_texture_index].size() != 1) {
+              // Property textures of this mesh are used by other meshes.
+              remove_tex_coord = false;
+              break;
+            }
+          }
+        }
+      }
       if (!remove_tex_coord) {
         continue;
       }
 
       // Remove unreferenced texture coordinate sets from this mesh.
-      Mesh &mesh = scene->GetMesh(mi);
       const int tex_coord_count =
           mesh.NumNamedAttributes(GeometryAttribute::TEX_COORD);
       for (int tci = tex_coord_count - 1; tci >= 0; tci--) {
@@ -805,8 +845,47 @@ void SceneUtils::Cleanup(Scene *scene, const CleanupOptions &options) {
             auto texture_map = material->GetTextureMapByIndex(i);
             // Decrement the indices that are greater than the removed index.
             if (texture_map->tex_coord_index() > tci) {
-              texture_map->SetProperties(texture_map->type(),
-                                         texture_map->tex_coord_index() - 1);
+              texture_map->SetProperties(
+                  texture_map->type(), texture_map->wrapping_mode(),
+                  texture_map->tex_coord_index() - 1, texture_map->min_filter(),
+                  texture_map->mag_filter());
+            }
+          }
+        }
+
+        // Decrement texture coordinate indices in all mesh features of this
+        // mesh.
+        for (MeshFeaturesIndex mfi(0); mfi < mesh.NumMeshFeatures(); ++mfi) {
+          MeshFeatures& mf = mesh.GetMeshFeatures(mfi);
+          if (mf.GetAttributeIndex() == -1) {
+            TextureMap& texture_map = mf.GetTextureMap();
+            if (texture_map.tex_coord_index() > tci) {
+              texture_map.SetProperties(
+                  texture_map.type(), texture_map.wrapping_mode(),
+                  texture_map.tex_coord_index() - 1, texture_map.min_filter(),
+                  texture_map.mag_filter());
+            }
+          }
+        }
+
+        // Decrement texture coordinate indices in all property textures of this
+        // mesh.
+        for (int pti = 0; pti < mesh.NumPropertyTexturesIndices(); ++pti) {
+          const int property_texture_index = mesh.GetPropertyTexturesIndex(pti);
+          if (property_texture_index >= 0 &&
+              property_texture_index <
+                  scene_structural_metadata.NumPropertyTextures()) {
+            PropertyTexture& pt = scene_structural_metadata.GetPropertyTexture(
+                property_texture_index);
+            for (int pi = 0; pi < pt.NumProperties(); ++pi) {
+              PropertyTexture::Property& prop = pt.GetProperty(pi);
+              TextureMap& texture_map = prop.GetTextureMap();
+              if (texture_map.tex_coord_index() > tci) {
+                texture_map.SetProperties(
+                    texture_map.type(), texture_map.wrapping_mode(),
+                    texture_map.tex_coord_index() - 1, texture_map.min_filter(),
+                    texture_map.mag_filter());
+              }
             }
           }
         }
@@ -830,10 +909,10 @@ void SceneUtils::Cleanup(Scene *scene, const CleanupOptions &options) {
   }
 }
 
-void SceneUtils::RemoveMeshInstances(const std::vector<MeshInstance> &instances,
-                                     Scene *scene) {
+void SceneUtils::RemoveMeshInstances(const std::vector<MeshInstance>& instances,
+                                     Scene* scene) {
   // Remove mesh instances from the scene.
-  for (const SceneUtils::MeshInstance &instance : instances) {
+  for (const SceneUtils::MeshInstance& instance : instances) {
     const MeshGroupIndex mgi =
         scene->GetNode(instance.scene_node_index)->GetMeshGroupIndex();
 
@@ -841,7 +920,7 @@ void SceneUtils::RemoveMeshInstances(const std::vector<MeshInstance> &instances,
     // instance from the mesh group directly, because the same mesh group may
     // be used by multiple scene nodes).
     const MeshGroupIndex new_mesh_group_index = scene->AddMeshGroup();
-    MeshGroup &new_mesh_group = *scene->GetMeshGroup(new_mesh_group_index);
+    MeshGroup& new_mesh_group = *scene->GetMeshGroup(new_mesh_group_index);
 
     new_mesh_group.Copy(*scene->GetMeshGroup(mgi));
     new_mesh_group.RemoveMeshInstances(instance.mesh_index);
@@ -857,7 +936,7 @@ void SceneUtils::RemoveMeshInstances(const std::vector<MeshInstance> &instances,
   DeduplicateMeshGroups(scene);
 }
 
-void SceneUtils::DeduplicateMeshGroups(Scene *scene) {
+void SceneUtils::DeduplicateMeshGroups(Scene* scene) {
   if (scene->NumMeshGroups() <= 1) {
     return;
   }
@@ -865,11 +944,11 @@ void SceneUtils::DeduplicateMeshGroups(Scene *scene) {
   // Signature of a mesh group used for detecting duplicates.
   struct MeshGroupSignature {
     const MeshGroupIndex mesh_group_index;
-    const MeshGroup &mesh_group;
-    MeshGroupSignature(MeshGroupIndex mgi, const MeshGroup &mesh_group)
+    const MeshGroup& mesh_group;
+    MeshGroupSignature(MeshGroupIndex mgi, const MeshGroup& mesh_group)
         : mesh_group_index(mgi), mesh_group(mesh_group) {}
 
-    bool operator==(const MeshGroupSignature &signature) const {
+    bool operator==(const MeshGroupSignature& signature) const {
       if (mesh_group.GetName() != signature.mesh_group.GetName()) {
         return false;
       }
@@ -890,21 +969,21 @@ void SceneUtils::DeduplicateMeshGroups(Scene *scene) {
       return true;
     }
     struct Hash {
-      size_t operator()(const MeshGroupSignature &signature) const {
+      size_t operator()(const MeshGroupSignature& signature) const {
         size_t hash = 79;  // Magic number.
-        const MeshGroup &group = signature.mesh_group;
+        const MeshGroup& group = signature.mesh_group;
         hash = HashCombine(group.GetName(), hash);
         hash = HashCombine(group.NumMeshInstances(), hash);
         for (int i = 0; i < group.NumMeshInstances(); ++i) {
-          const MeshGroup::MeshInstance &instance = group.GetMeshInstance(i);
+          const MeshGroup::MeshInstance& instance = group.GetMeshInstance(i);
           hash = HashCombine(instance.mesh_index, hash);
           hash = HashCombine(instance.material_index, hash);
           hash = HashCombine(instance.materials_variants_mappings.size(), hash);
-          for (const MeshGroup::MaterialsVariantsMapping &mapping :
+          for (const MeshGroup::MaterialsVariantsMapping& mapping :
                instance.materials_variants_mappings) {
             hash = HashCombine(mapping.material, hash);
             hash = HashCombine(mapping.variants.size(), hash);
-            for (const int &variant : mapping.variants) {
+            for (const int& variant : mapping.variants) {
               hash = HashCombine(variant, hash);
             }
           }
@@ -920,7 +999,7 @@ void SceneUtils::DeduplicateMeshGroups(Scene *scene) {
   IndexTypeVector<MeshGroupIndex, MeshGroupIndex> parent_mesh_group(
       scene->NumMeshGroups());
   for (MeshGroupIndex mgi(0); mgi < scene->NumMeshGroups(); ++mgi) {
-    const MeshGroup *mg = scene->GetMeshGroup(mgi);
+    const MeshGroup* mg = scene->GetMeshGroup(mgi);
     const MeshGroupSignature signature(mgi, *mg);
     auto it = unique_mesh_groups.find(signature);
     if (it != unique_mesh_groups.end()) {
@@ -946,9 +1025,9 @@ void SceneUtils::DeduplicateMeshGroups(Scene *scene) {
 }
 
 void SceneUtils::SetDracoCompressionOptions(
-    const DracoCompressionOptions *options, Scene *scene) {
+    const DracoCompressionOptions* options, Scene* scene) {
   for (MeshIndex i(0); i < scene->NumMeshes(); ++i) {
-    Mesh &mesh = scene->GetMesh(i);
+    Mesh& mesh = scene->GetMesh(i);
     if (options == nullptr) {
       mesh.SetCompressionEnabled(false);
     } else {
@@ -958,7 +1037,7 @@ void SceneUtils::SetDracoCompressionOptions(
   }
 }
 
-bool SceneUtils::IsDracoCompressionEnabled(const Scene &scene) {
+bool SceneUtils::IsDracoCompressionEnabled(const Scene& scene) {
   for (MeshIndex i(0); i < scene.NumMeshes(); ++i) {
     if (scene.GetMesh(i).IsCompressionEnabled()) {
       return true;
@@ -968,7 +1047,7 @@ bool SceneUtils::IsDracoCompressionEnabled(const Scene &scene) {
 }
 
 IndexTypeVector<MeshIndex, Eigen::Matrix4d>
-SceneUtils::FindLargestBaseMeshTransforms(const Scene &scene) {
+SceneUtils::FindLargestBaseMeshTransforms(const Scene& scene) {
   IndexTypeVector<MeshIndex, Eigen::Matrix4d> transforms(
       scene.NumMeshes(), Eigen::Matrix4d::Identity());
 
@@ -978,7 +1057,7 @@ SceneUtils::FindLargestBaseMeshTransforms(const Scene &scene) {
 
   const auto instances = SceneUtils::ComputeAllInstances(scene);
   for (MeshInstanceIndex i(0); i < instances.size(); ++i) {
-    const auto &instance = instances[i];
+    const auto& instance = instances[i];
 
     // Compute the scale of the transform.
     const Vector3f scale_vec(instance.transform.col(0).norm(),

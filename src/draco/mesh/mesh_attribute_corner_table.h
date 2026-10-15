@@ -30,9 +30,9 @@ namespace draco {
 class MeshAttributeCornerTable {
  public:
   MeshAttributeCornerTable();
-  bool InitEmpty(const CornerTable *table);
-  bool InitFromAttribute(const Mesh *mesh, const CornerTable *table,
-                         const PointAttribute *att);
+  bool InitEmpty(const CornerTable* table);
+  bool InitFromAttribute(const Mesh* mesh, const CornerTable* table,
+                         const PointAttribute* att);
 
   void AddSeamEdge(CornerIndex opp_corner);
 
@@ -40,7 +40,7 @@ class MeshAttributeCornerTable {
   // whenever the seam edges are updated).
   // |mesh| and |att| can be null, in which case mapping between vertices and
   // attribute value ids is set to identity.
-  bool RecomputeVertices(const Mesh *mesh, const PointAttribute *att);
+  bool RecomputeVertices(const Mesh* mesh, const PointAttribute* att);
 
   inline bool IsCornerOppositeToSeamEdge(CornerIndex corner) const {
     return is_edge_on_seam_[corner.value()];
@@ -137,7 +137,7 @@ class MeshAttributeCornerTable {
   }
 
   bool no_interior_seams() const { return no_interior_seams_; }
-  const CornerTable *corner_table() const { return corner_table_; }
+  const CornerTable* corner_table() const { return corner_table_; }
 
   // TODO(draco-eng): extract valence functions into a reusable class/object
   // also from 'corner_table.*'
@@ -166,13 +166,13 @@ class MeshAttributeCornerTable {
   // qualities.  If the mesh or table is modified the cache should be discarded
   // and not relied on as it does not automatically update or invalidate for
   // performance reasons.
-  const ValenceCache<MeshAttributeCornerTable> &GetValenceCache() const {
+  const ValenceCache<MeshAttributeCornerTable>& GetValenceCache() const {
     return valence_cache_;
   }
 
  private:
   template <bool init_vertex_to_attribute_entry_map>
-  bool RecomputeVerticesInternal(const Mesh *mesh, const PointAttribute *att);
+  bool RecomputeVerticesInternal(const Mesh* mesh, const PointAttribute* att);
 
   std::vector<bool> is_edge_on_seam_;
   std::vector<bool> is_vertex_on_seam_;
@@ -194,7 +194,7 @@ class MeshAttributeCornerTable {
   // the attribute buffer). The attribute entry id can be retrieved using the
   // VertexParent() method.
   std::vector<AttributeValueIndex> vertex_to_attribute_entry_id_map_;
-  const CornerTable *corner_table_;
+  const CornerTable* corner_table_;
   ValenceCache<MeshAttributeCornerTable> valence_cache_;
 };
 

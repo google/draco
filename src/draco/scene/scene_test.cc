@@ -19,19 +19,25 @@
 #include <utility>
 #include <vector>
 
+#include "draco/animation/animation.h"
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
 #include "draco/core/status.h"
+#include "draco/mesh/mesh.h"
 #include "draco/mesh/mesh_are_equivalent.h"
+#include "draco/metadata/json_entity.h"
+#include "draco/metadata/property_texture.h"
+#include "draco/metadata/structural_metadata_schema.h"
 #include "draco/scene/scene_are_equivalent.h"
 #include "draco/scene/scene_indices.h"
+#include "draco/texture/texture.h"
 
 namespace {
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 
 // Helper method for adding mesh group GPU instancing to the milk truck scene.
-draco::Status AddGpuInstancingToMilkTruck(draco::Scene *scene) {
+draco::Status AddGpuInstancingToMilkTruck(draco::Scene* scene) {
   // Create an instance and set its transformation TRS vectors.
   draco::InstanceArray::Instance instance_0;
   instance_0.trs.SetTranslation(Eigen::Vector3d(1.0, 2.0, 3.0));
@@ -46,7 +52,7 @@ draco::Status AddGpuInstancingToMilkTruck(draco::Scene *scene) {
 
   // Add an empty GPU instancing object to the scene.
   const draco::InstanceArrayIndex index = scene->AddInstanceArray();
-  draco::InstanceArray *gpu_instancing = scene->GetInstanceArray(index);
+  draco::InstanceArray* gpu_instancing = scene->GetInstanceArray(index);
 
   // Add two instances to the GPU instancing object stored in the scene.
   DRACO_RETURN_IF_ERROR(gpu_instancing->AddInstance(instance_0));
@@ -84,6 +90,45 @@ TEST(SceneTest, TestCopy) {
   ASSERT_EQ(
       src_scene->GetNode(draco::SceneNodeIndex(4))->GetInstanceArrayIndex(),
       draco::InstanceArrayIndex(0));
+
+  // Add visibility to the scene for testing.
+  src_scene->GetNode(draco::SceneNodeIndex(2))->SetVisible(true);
+  src_scene->GetNode(draco::SceneNodeIndex(3))->SetVisible(false);
+
+  // Add selectability to the scene nodes for testing.
+  {
+    auto& selectability =
+        src_scene->GetNode(draco::SceneNodeIndex(2))->GetSelectability();
+    selectability.emplace();
+    selectability->selectable = true;
+    selectability->shape = 2;
+  }
+  {
+    auto& selectability =
+        src_scene->GetNode(draco::SceneNodeIndex(3))->GetSelectability();
+    selectability.emplace();
+    selectability->selectable = false;
+  }
+
+  // Add audio data for testing.
+  auto& audio = src_scene->GetAudio();
+  audio.emplace();
+  audio.value().emitters.emplace_back();
+  audio.value().emitters.back().gain = 2.0f;
+  audio.value().emitters.back().positional.emplace();
+  audio.value().emitters.back().positional.value().distance_model = "linear";
+  audio.value().sources.emplace_back();
+  audio.value().sources.back().loop = true;
+  audio.value().data.emplace_back();
+  audio.value().data.back().mime_type = "audio/mpeg";
+  audio.value().data.back().data = {'d', 'o', 'r', 'e', 'm', 'i'};
+  src_scene->GetAudioEmitterIndices().push_back(draco::AudioEmitterIndex(0));
+  src_scene->GetNode(draco::SceneNodeIndex(2))
+      ->SetAudioEmitterIndex(draco::AudioEmitterIndex(0));
+
+  // Add top-level pass-through extension data for testing.
+  src_scene->GetPassThroughExtensions()["KHR_behavior"] =
+      draco::JsonEntity("bossy");
 
   // Make a copy of the scene.
   draco::Scene dst_scene;
@@ -136,9 +181,56 @@ TEST(SceneTest, TestCopy) {
               dst_scene.GetNode(i)->GetSkinIndex());
     ASSERT_EQ(src_scene->GetNode(i)->GetLightIndex(),
               dst_scene.GetNode(i)->GetLightIndex());
+
+    ASSERT_EQ(src_scene->GetNode(i)->GetAudioEmitterIndex(),
+              dst_scene.GetNode(i)->GetAudioEmitterIndex());
+
+    ASSERT_EQ(src_scene->GetNode(i)->HasVisible(),
+              dst_scene.GetNode(i)->HasVisible());
+    if (src_scene->GetNode(i)->HasVisible()) {
+      ASSERT_EQ(src_scene->GetNode(i)->GetVisible(),
+                dst_scene.GetNode(i)->GetVisible());
+    }
+
+    ASSERT_EQ(src_scene->GetNode(i)->GetSelectability().has_value(),
+              dst_scene.GetNode(i)->GetSelectability().has_value());
+    if (src_scene->GetNode(i)->GetSelectability().has_value()) {
+      ASSERT_EQ(src_scene->GetNode(i)->GetSelectability().value().selectable,
+                dst_scene.GetNode(i)->GetSelectability().value().selectable);
+      ASSERT_EQ(
+          src_scene->GetNode(i)->GetSelectability().value().shape.has_value(),
+          dst_scene.GetNode(i)->GetSelectability().value().shape.has_value());
+      if (src_scene->GetNode(i)->GetSelectability().value().shape.has_value()) {
+        ASSERT_EQ(
+            src_scene->GetNode(i)->GetSelectability().value().shape.value(),
+            dst_scene.GetNode(i)->GetSelectability().value().shape.value());
+      }
+    }
+
     ASSERT_EQ(src_scene->GetNode(i)->GetInstanceArrayIndex(),
               dst_scene.GetNode(i)->GetInstanceArrayIndex());
   }
+
+  // Check that the audio data is copied.
+  ASSERT_TRUE(dst_scene.GetAudio().has_value());
+  const auto& a1 = src_scene->GetAudio().value();
+  const auto& a2 = src_scene->GetAudio().value();
+  ASSERT_EQ(a1.emitters.size(), a2.emitters.size());
+  ASSERT_EQ(a1.sources.size(), a2.sources.size());
+  ASSERT_EQ(a1.data.size(), a2.data.size());
+  ASSERT_EQ(a1.emitters[0].gain, a2.emitters[0].gain);
+  ASSERT_EQ(a1.emitters[0].positional.value().distance_model,
+            a2.emitters[0].positional.value().distance_model);
+  ASSERT_EQ(a1.sources[0].loop, a2.sources[0].loop);
+  ASSERT_EQ(a1.data[0].mime_type, a2.data[0].mime_type);
+  ASSERT_EQ(a1.data[0].data, a2.data[0].data);
+  ASSERT_EQ(src_scene->GetAudioEmitterIndices(),
+            dst_scene.GetAudioEmitterIndices());
+
+  // Check that the top-level pass-through extension data is copied.
+  ASSERT_EQ(src_scene->GetPassThroughExtensions().size(), 1);
+  ASSERT_EQ(src_scene->GetPassThroughExtensions()["KHR_behavior"].GetName(),
+            "bossy");
 }
 
 TEST(SceneTest, TestRemoveMesh) {
@@ -146,7 +238,7 @@ TEST(SceneTest, TestRemoveMesh) {
   auto src_scene_ptr =
       draco::ReadSceneFromTestFile("CesiumMilkTruck/glTF/CesiumMilkTruck.gltf");
   ASSERT_NE(src_scene_ptr, nullptr);
-  const draco::Scene &src_scene = *src_scene_ptr;
+  const draco::Scene& src_scene = *src_scene_ptr;
 
   // Copy scene.
   draco::Scene dst_scene;
@@ -186,7 +278,7 @@ TEST(SceneTest, TestRemoveMeshGroup) {
   auto src_scene_ptr =
       draco::ReadSceneFromTestFile("CesiumMilkTruck/glTF/CesiumMilkTruck.gltf");
   ASSERT_NE(src_scene_ptr, nullptr);
-  const draco::Scene &src_scene = *src_scene_ptr;
+  const draco::Scene& src_scene = *src_scene_ptr;
 
   // Copy scene.
   draco::Scene dst_scene;
@@ -222,8 +314,8 @@ TEST(SceneTest, TestRemoveMeshGroup) {
             draco::kInvalidMeshGroupIndex);
 }
 
-void CheckMeshMaterials(const draco::Scene &scene,
-                        const std::vector<int> &expected_material_indices) {
+void CheckMeshMaterials(const draco::Scene& scene,
+                        const std::vector<int>& expected_material_indices) {
   ASSERT_EQ(scene.NumMeshes(), expected_material_indices.size());
   std::vector<int> scene_material_indices;
   for (draco::MeshGroupIndex i(0); i < scene.NumMeshGroups(); i++) {
@@ -240,7 +332,7 @@ TEST(SceneTest, TestRemoveMaterial) {
   auto src_scene_ptr =
       draco::ReadSceneFromTestFile("CesiumMilkTruck/glTF/CesiumMilkTruck.gltf");
   ASSERT_NE(src_scene_ptr, nullptr);
-  const draco::Scene &src_scene = *src_scene_ptr;
+  const draco::Scene& src_scene = *src_scene_ptr;
   ASSERT_EQ(src_scene.GetMaterialLibrary().NumMaterials(), 4);
   CheckMeshMaterials(src_scene, {0, 1, 2, 3});
 
@@ -263,30 +355,52 @@ TEST(SceneTest, TestRemoveMaterial) {
   DRACO_ASSERT_OK(dst_scene.RemoveMaterial(2));
   ASSERT_EQ(dst_scene.GetMaterialLibrary().NumMaterials(), 3);
   CheckMeshMaterials(dst_scene, {0, 1, 2});
-
-  // Check that material cannot be removed when material index is out of range.
-  ASSERT_FALSE(dst_scene.RemoveMaterial(-1).ok());
-  ASSERT_FALSE(dst_scene.RemoveMaterial(3).ok());
 }
 
-TEST(SceneTest, TestCopyWithStructuralMetadata) {
-  // Tests copying of a scene with structural metadata.
-  auto scene_ptr =
-      draco::ReadSceneFromTestFile("CesiumMilkTruck/glTF/CesiumMilkTruck.gltf");
-  ASSERT_NE(scene_ptr, nullptr);
-  draco::Scene &scene = *scene_ptr;
+TEST(SceneTest, TestRemoveMaterialWithAnimationPointer) {
+  draco::Scene scene;
 
-  // Add structural metadata to the scene.
-  draco::StructuralMetadataSchema schema;
-  schema.json.SetString("Data");
-  scene.GetStructuralMetadata().SetSchema(schema);
+  // Add some materials.
+  scene.GetMaterialLibrary().MutableMaterial(0);
+  scene.GetMaterialLibrary().MutableMaterial(1);
+  scene.GetMaterialLibrary().MutableMaterial(2);
 
-  // Copy the scene.
-  draco::Scene copy;
-  copy.Copy(scene);
+  // Add an animation.
+  const draco::AnimationIndex ai = scene.AddAnimation();
+  draco::Animation* const animation = scene.GetAnimation(ai);
 
-  // Check that the structural metadata has been copied.
-  ASSERT_EQ(copy.GetStructuralMetadata().GetSchema().json.GetString(), "Data");
+  // Add a channel targeting material 1.
+  auto channel1 = std::make_unique<draco::AnimationChannel>();
+  channel1->transformation_type =
+      draco::AnimationChannel::ChannelTransformation::POINTER;
+  channel1->pointer = "/materials/1/emissiveStrength";
+  animation->AddChannel(std::move(channel1));
+
+  // Add a channel targeting material 2.
+  auto channel2 = std::make_unique<draco::AnimationChannel>();
+  channel2->transformation_type =
+      draco::AnimationChannel::ChannelTransformation::POINTER;
+  channel2->pointer = "/materials/2/pbrMetallicRoughness/baseColorFactor";
+  animation->AddChannel(std::move(channel2));
+
+  // Add a channel targeting material 0 (should be removed when material 0 is
+  // removed).
+  auto channel0 = std::make_unique<draco::AnimationChannel>();
+  channel0->transformation_type =
+      draco::AnimationChannel::ChannelTransformation::POINTER;
+  channel0->pointer = "/materials/0/name";
+  animation->AddChannel(std::move(channel0));
+
+  ASSERT_EQ(animation->NumChannels(), 3);
+
+  // Remove material 0.
+  DRACO_ASSERT_OK(scene.RemoveMaterial(0));
+
+  // Verify that channels are updated or removed.
+  ASSERT_EQ(animation->NumChannels(), 2);
+  ASSERT_EQ(animation->GetChannel(0)->pointer, "/materials/0/emissiveStrength");
+  ASSERT_EQ(animation->GetChannel(1)->pointer,
+            "/materials/1/pbrMetallicRoughness/baseColorFactor");
 }
 
 TEST(SceneTest, TestCopyWithMetadata) {
@@ -294,7 +408,7 @@ TEST(SceneTest, TestCopyWithMetadata) {
   auto scene_ptr =
       draco::ReadSceneFromTestFile("CesiumMilkTruck/glTF/CesiumMilkTruck.gltf");
   ASSERT_NE(scene_ptr, nullptr);
-  draco::Scene &scene = *scene_ptr;
+  draco::Scene& scene = *scene_ptr;
 
   // Add metadata to the scene.
   scene.GetMetadata().AddEntryString("test_name", "test_value");

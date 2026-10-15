@@ -42,18 +42,18 @@ class MeshPredictionSchemeParallelogramEncoder
       typename PredictionSchemeEncoder<DataTypeT, TransformT>::CorrType;
   using CornerTable = typename MeshDataT::CornerTable;
   explicit MeshPredictionSchemeParallelogramEncoder(
-      const PointAttribute *attribute)
+      const PointAttribute* attribute)
       : MeshPredictionSchemeEncoder<DataTypeT, TransformT, MeshDataT>(
             attribute) {}
-  MeshPredictionSchemeParallelogramEncoder(const PointAttribute *attribute,
-                                           const TransformT &transform,
-                                           const MeshDataT &mesh_data)
+  MeshPredictionSchemeParallelogramEncoder(const PointAttribute* attribute,
+                                           const TransformT& transform,
+                                           const MeshDataT& mesh_data)
       : MeshPredictionSchemeEncoder<DataTypeT, TransformT, MeshDataT>(
             attribute, transform, mesh_data) {}
 
   bool ComputeCorrectionValues(
-      const DataTypeT *in_data, CorrType *out_corr, int size,
-      int num_components, const PointIndex *entry_to_point_id_map) override;
+      const DataTypeT* in_data, CorrType* out_corr, int size,
+      int num_components, const PointIndex* entry_to_point_id_map) override;
   PredictionSchemeMethod GetPredictionMethod() const override {
     return MESH_PREDICTION_PARALLELOGRAM;
   }
@@ -66,17 +66,17 @@ class MeshPredictionSchemeParallelogramEncoder
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeParallelogramEncoder<DataTypeT, TransformT,
                                               MeshDataT>::
-    ComputeCorrectionValues(const DataTypeT *in_data, CorrType *out_corr,
+    ComputeCorrectionValues(const DataTypeT* in_data, CorrType* out_corr,
                             int size, int num_components,
-                            const PointIndex * /* entry_to_point_id_map */) {
+                            const PointIndex* /* entry_to_point_id_map */) {
   this->transform().Init(in_data, size, num_components);
   // For storage of prediction values (already initialized to zero).
   std::unique_ptr<DataTypeT[]> pred_vals(new DataTypeT[num_components]());
 
   // We start processing from the end because this prediction uses data from
   // previous entries that could be overwritten when an entry is processed.
-  const CornerTable *const table = this->mesh_data().corner_table();
-  const std::vector<int32_t> *const vertex_to_data_map =
+  const CornerTable* const table = this->mesh_data().corner_table();
+  const std::vector<int32_t>* const vertex_to_data_map =
       this->mesh_data().vertex_to_data_map();
   for (int p =
            static_cast<int>(this->mesh_data().data_to_corner_map()->size() - 1);

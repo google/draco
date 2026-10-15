@@ -24,7 +24,7 @@ namespace {
 
 class MetadataEncoderTest : public ::testing::Test {
  protected:
-  MetadataEncoderTest() {}
+  MetadataEncoderTest() = default;
 
   void TestEncodingMetadata() {
     ASSERT_TRUE(encoder.EncodeMetadata(&encoder_buffer, &metadata));
@@ -46,8 +46,8 @@ class MetadataEncoderTest : public ::testing::Test {
     CheckGeometryMetadatasAreEqual(geometry_metadata, decoded_metadata);
   }
 
-  void CheckBlobOfDataAreEqual(const std::vector<uint8_t> &data0,
-                               const std::vector<uint8_t> &data1) {
+  void CheckBlobOfDataAreEqual(const std::vector<uint8_t>& data0,
+                               const std::vector<uint8_t>& data1) {
     ASSERT_EQ(data0.size(), data1.size());
     for (int i = 0; i < data0.size(); ++i) {
       ASSERT_EQ(data0[i], data1[i]);
@@ -55,47 +55,47 @@ class MetadataEncoderTest : public ::testing::Test {
   }
 
   void CheckGeometryMetadatasAreEqual(
-      const draco::GeometryMetadata &metadata0,
-      const draco::GeometryMetadata &metadata1) {
+      const draco::GeometryMetadata& metadata0,
+      const draco::GeometryMetadata& metadata1) {
     ASSERT_EQ(metadata0.attribute_metadatas().size(),
               metadata1.attribute_metadatas().size());
-    const std::vector<std::unique_ptr<draco::AttributeMetadata>>
-        &att_metadatas0 = metadata0.attribute_metadatas();
-    const std::vector<std::unique_ptr<draco::AttributeMetadata>>
-        &att_metadatas1 = metadata1.attribute_metadatas();
+    const std::vector<std::unique_ptr<draco::AttributeMetadata>>&
+        att_metadatas0 = metadata0.attribute_metadatas();
+    const std::vector<std::unique_ptr<draco::AttributeMetadata>>&
+        att_metadatas1 = metadata1.attribute_metadatas();
     // Compare each attribute metadata.
     for (int i = 0; i < metadata0.attribute_metadatas().size(); ++i) {
       CheckMetadatasAreEqual(
-          static_cast<const draco::Metadata &>(*att_metadatas0[i]),
-          static_cast<const draco::Metadata &>(*att_metadatas1[i]));
+          static_cast<const draco::Metadata&>(*att_metadatas0[i]),
+          static_cast<const draco::Metadata&>(*att_metadatas1[i]));
     }
     // Compare entries and sub metadata.
-    CheckMetadatasAreEqual(static_cast<const draco::Metadata &>(metadata0),
-                           static_cast<const draco::Metadata &>(metadata1));
+    CheckMetadatasAreEqual(static_cast<const draco::Metadata&>(metadata0),
+                           static_cast<const draco::Metadata&>(metadata1));
   }
 
-  void CheckMetadatasAreEqual(const draco::Metadata &metadata0,
-                              const draco::Metadata &metadata1) {
+  void CheckMetadatasAreEqual(const draco::Metadata& metadata0,
+                              const draco::Metadata& metadata1) {
     ASSERT_EQ(metadata0.num_entries(), metadata1.num_entries());
-    const std::map<std::string, draco::EntryValue> &entries0 =
+    const std::map<std::string, draco::EntryValue>& entries0 =
         metadata0.entries();
-    const std::map<std::string, draco::EntryValue> &entries1 =
+    const std::map<std::string, draco::EntryValue>& entries1 =
         metadata1.entries();
-    for (const auto &entry : entries0) {
-      const std::string &entry_name = entry.first;
-      const std::vector<uint8_t> &data0 = entry.second.data();
+    for (const auto& entry : entries0) {
+      const std::string& entry_name = entry.first;
+      const std::vector<uint8_t>& data0 = entry.second.data();
       const auto entry1_ptr = entries1.find(entry_name);
       ASSERT_NE(entry1_ptr, entries1.end());
-      const std::vector<uint8_t> &data1 = entry1_ptr->second.data();
+      const std::vector<uint8_t>& data1 = entry1_ptr->second.data();
       CheckBlobOfDataAreEqual(data0, data1);
     }
     // Check nested metadata.
     ASSERT_EQ(metadata0.sub_metadatas().size(),
               metadata1.sub_metadatas().size());
-    const std::map<std::string, std::unique_ptr<draco::Metadata>>
-        &sub_metadatas0 = metadata0.sub_metadatas();
+    const std::map<std::string, std::unique_ptr<draco::Metadata>>&
+        sub_metadatas0 = metadata0.sub_metadatas();
     // Encode each sub-metadata
-    for (auto &&sub_metadata_entry0 : sub_metadatas0) {
+    for (auto&& sub_metadata_entry0 : sub_metadatas0) {
       const auto sub_metadata_ptr1 =
           metadata1.GetSubMetadata(sub_metadata_entry0.first);
       ASSERT_NE(sub_metadata_ptr1, nullptr);

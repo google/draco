@@ -28,6 +28,12 @@
 #include "draco/scene/scene_utils.h"
 #endif
 
+#if defined DRACO_PMC_SUPPORTED
+#include "draco/compression/pmc/pmc_draco_mesh_decoder.h"
+#include "draco/compression/pmc/pmc_draco_mesh_encoder.h"
+#include "draco/mesh/mesh.h"
+#endif
+
 int main(int /*argc*/, char** /*argv*/) {
   std::vector<char> empty_buffer;
   draco::DecoderBuffer buffer;
@@ -37,6 +43,13 @@ int main(int /*argc*/, char** /*argv*/) {
   draco::Scene empty_scene;
   const int num_meshes = empty_scene.NumMeshes();
   (void)num_meshes;
+#endif
+
+#if defined DRACO_PMC_SUPPORTED
+  draco::Mesh empty_mesh;
+  draco::PmcDracoMeshDecoder pmc_decoder;
+  const draco::Status pmc_status = pmc_decoder.Decode(&buffer, &empty_mesh);
+  (void)pmc_status;
 #endif
 
   printf("Partial sanity test passed.\n");

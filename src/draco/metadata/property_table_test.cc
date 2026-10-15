@@ -39,13 +39,13 @@ TEST(PropertyTableTest, TestPropertyDefaults) {
   ASSERT_TRUE(property.GetName().empty());
   ASSERT_TRUE(property.GetData().data.empty());
   {
-    const auto &offsets = property.GetArrayOffsets();
+    const auto& offsets = property.GetArrayOffsets();
     ASSERT_TRUE(offsets.type.empty());
     ASSERT_TRUE(offsets.data.data.empty());
     ASSERT_EQ(offsets.data.target, 0);
   }
   {
-    const auto &offsets = property.GetStringOffsets();
+    const auto& offsets = property.GetStringOffsets();
     ASSERT_TRUE(offsets.type.empty());
     ASSERT_TRUE(offsets.data.data.empty());
     ASSERT_EQ(offsets.data.target, 0);

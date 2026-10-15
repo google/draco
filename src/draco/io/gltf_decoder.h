@@ -18,6 +18,8 @@
 #include "draco/draco_features.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <cstddef>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
@@ -25,14 +27,19 @@
 #include <unordered_set>
 #include <vector>
 
+#include "draco/attributes/geometry_attribute.h"
 #include "draco/core/decoder_buffer.h"
 #include "draco/core/status.h"
 #include "draco/core/status_or.h"
 #include "draco/io/tiny_gltf_utils.h"
 #include "draco/mesh/mesh.h"
 #include "draco/mesh/triangle_soup_mesh_builder.h"
+#include "draco/metadata/json_entity.h"
+#include "draco/metadata/structural_metadata_schema.h"
 #include "draco/point_cloud/point_cloud_builder.h"
+#include "draco/scene/audio.h"
 #include "draco/scene/scene.h"
+#include "draco/texture/texture_library.h"
 
 namespace draco {
 
@@ -45,20 +52,20 @@ class GltfDecoder {
   // Decodes a glTF file stored in the input |file_name| or |buffer| to a Mesh.
   // The second form returns a vector of files used as input to the mesh during
   // the decoding process. Returns nullptr when decode fails.
-  StatusOr<std::unique_ptr<Mesh>> DecodeFromFile(const std::string &file_name);
+  StatusOr<std::unique_ptr<Mesh>> DecodeFromFile(const std::string& file_name);
   StatusOr<std::unique_ptr<Mesh>> DecodeFromFile(
-      const std::string &file_name, std::vector<std::string> *mesh_files);
-  StatusOr<std::unique_ptr<Mesh>> DecodeFromBuffer(DecoderBuffer *buffer);
+      const std::string& file_name, std::vector<std::string>* mesh_files);
+  StatusOr<std::unique_ptr<Mesh>> DecodeFromBuffer(DecoderBuffer* buffer);
 
   // Decodes a glTF file stored in the input |file_name| or |buffer| to a Scene.
   // The second form returns a vector of files used as input to the scene during
   // the decoding process. Returns nullptr if the decode fails.
   StatusOr<std::unique_ptr<Scene>> DecodeFromFileToScene(
-      const std::string &file_name);
+      const std::string& file_name);
   StatusOr<std::unique_ptr<Scene>> DecodeFromFileToScene(
-      const std::string &file_name, std::vector<std::string> *scene_files);
+      const std::string& file_name, std::vector<std::string>* scene_files);
   StatusOr<std::unique_ptr<Scene>> DecodeFromBufferToScene(
-      DecoderBuffer *buffer);
+      DecoderBuffer* buffer);
 
   // Scene graph can be loaded either as a tree or a general directed acyclic
   // graph (DAG) that allows multiple parent nodes. By default. we decode the
@@ -69,6 +76,14 @@ class GltfDecoder {
   enum class GltfSceneGraphMode { TREE, DAG };
   void SetSceneGraphMode(GltfSceneGraphMode mode) {
     gltf_scene_graph_mode_ = mode;
+  }
+
+  // If set to true, the order of materials in the loaded model will be
+  // identical to the order of materials in the original glTF file. Otherwise,
+  // materials may be reordered in the order they are processed by the decoder
+  // and unused materials may be removed.
+  void SetPreserveMaterialIndices(bool flag) {
+    preserve_material_indices_ = flag;
   }
 
   // By default, the decoder will attempt to deduplicate vertices after decoding
@@ -86,11 +101,11 @@ class GltfDecoder {
  private:
   // Loads |file_name| into |gltf_model_|. Fills |input_files| with paths to all
   // input files when non-null.
-  Status LoadFile(const std::string &file_name,
-                  std::vector<std::string> *input_files);
+  Status LoadFile(const std::string& file_name,
+                  std::vector<std::string>* input_files);
 
   // Loads |gltf_model_| from |buffer| in GLB format.
-  Status LoadBuffer(const DecoderBuffer &buffer);
+  Status LoadBuffer(const DecoderBuffer& buffer);
 
   // Builds mesh from |gltf_model_|.
   StatusOr<std::unique_ptr<Mesh>> BuildMesh();
@@ -102,67 +117,67 @@ class GltfDecoder {
 
   // Decodes a glTF Node as well as any child Nodes. If |node| contains a mesh
   // it will process all of the mesh's primitives.
-  Status DecodeNode(int node_index, const Eigen::Matrix4d &parent_matrix);
+  Status DecodeNode(int node_index, const Eigen::Matrix4d& parent_matrix);
 
   // Decodes the number of entries in the first attribute of a given glTF
   // |primitive|. Note that all attributes have the same entry count according
   // to glTF 2.0 spec.
   StatusOr<int> DecodePrimitiveAttributeCount(
-      const tinygltf::Primitive &primitive) const;
+      const tinygltf::Primitive& primitive) const;
 
   // Decodes the number of indices in a given glTF |primitive|. If primitive's
   // indices property is not defined, the index count is implied from the entry
   // count of a primitive attribute.
   StatusOr<int> DecodePrimitiveIndicesCount(
-      const tinygltf::Primitive &primitive) const;
+      const tinygltf::Primitive& primitive) const;
 
   // Decodes indices property of a given glTF |primitive|. If primitive's
   // indices property is not defined, the indices are generated based on entry
   // count of a primitive attribute.
   StatusOr<std::vector<uint32_t>> DecodePrimitiveIndices(
-      const tinygltf::Primitive &primitive) const;
+      const tinygltf::Primitive& primitive) const;
 
   // Decodes a glTF Primitive. All of the |primitive|'s attributes will be
   // merged into the draco::Mesh output if they are of the same type that
   // already has been decoded.
-  Status DecodePrimitive(const tinygltf::Primitive &primitive,
-                         const Eigen::Matrix4d &transform_matrix);
+  Status DecodePrimitive(const tinygltf::Primitive& primitive,
+                         const Eigen::Matrix4d& transform_matrix);
 
   // Sums the number of elements per attribute for |node|'s mesh and any of
   // |node|'s children. Fills out the material index map.
-  Status NodeGatherAttributeAndMaterialStats(const tinygltf::Node &node);
+  Status NodeGatherAttributeAndMaterialStats(const tinygltf::Node& node);
 
   // Sums the number of elements per attribute for all of the meshes and
   // primitives.
   Status GatherAttributeAndMaterialStats();
 
   // Sums the attribute counts into total_attribute_counts_.
-  void SumAttributeStats(const std::string &attribute_name, int count);
+  void SumAttributeStats(const std::string& attribute_name, int count);
 
   // Checks that all the same glTF attribute types in different meshes and
   // primitives contain the same characteristics.
-  Status CheckTypes(const std::string &attribute_name, int component_type,
+  Status CheckTypes(const std::string& attribute_name, int component_type,
                     int type, bool normalized);
 
   // Accumulates the number of elements per attribute for |primitive|.
-  Status AccumulatePrimitiveStats(const tinygltf::Primitive &primitive);
+  Status AccumulatePrimitiveStats(const tinygltf::Primitive& primitive);
 
   // Adds all of the attributes from the glTF file to a Draco mesh.
   // GatherAttributeAndMaterialStats() must be called before this function. The
   // GeometryAttribute::MATERIAL attribute will be created only if the glTF file
   // contains more than one material.
   template <typename BuilderT>
-  Status AddAttributesToDracoMesh(BuilderT *builder);
+  Status AddAttributesToDracoMesh(BuilderT* builder);
 
   // Copies attribute data from |accessor| and adds it to a Draco mesh using the
   // geometry builder |builder|.
   template <typename BuilderT>
-  Status AddAttributeValuesToBuilder(const std::string &attribute_name,
-                                     const tinygltf::Accessor &accessor,
-                                     const std::vector<uint32_t> &indices_data,
+  Status AddAttributeValuesToBuilder(const std::string& attribute_name,
+                                     const tinygltf::Accessor& accessor,
+                                     const std::vector<uint32_t>& indices_data,
                                      int att_id, int number_of_elements,
-                                     const Eigen::Matrix4d &transform_matrix,
-                                     BuilderT *builder);
+                                     const Eigen::Matrix4d& transform_matrix,
+                                     bool is_morph_target, BuilderT* builder);
 
   // Copies the tangent attribute data from |accessor| and adds it to a Draco
   // mesh. This function will transform all of the data by |transform_matrix|
@@ -172,11 +187,12 @@ class GltfDecoder {
   // |number_of_elements| is the number of faces or points this function will
   // process. |reverse_winding| if set will change the orientation of the data.
   template <typename BuilderT>
-  Status AddTangentToBuilder(const tinygltf::Accessor &accessor,
-                             const std::vector<uint32_t> &indices_data,
+  Status AddTangentToBuilder(const tinygltf::Accessor& accessor,
+                             const std::vector<uint32_t>& indices_data,
                              int att_id, int number_of_elements,
-                             const Eigen::Matrix4d &transform_matrix,
-                             bool reverse_winding, BuilderT *builder);
+                             const Eigen::Matrix4d& transform_matrix,
+                             bool reverse_winding, bool is_morph_target,
+                             BuilderT* builder);
 
   // Copies the texture coordinate attribute data from |accessor| and adds it to
   // a Draco mesh. This function will flip the data on the horizontal axis as
@@ -186,10 +202,16 @@ class GltfDecoder {
   // |number_of_elements| is the number of faces or points this function will
   // process. |reverse_winding| if set will change the orientation of the data.
   template <typename BuilderT>
-  Status AddTexCoordToBuilder(const tinygltf::Accessor &accessor,
-                              const std::vector<uint32_t> &indices_data,
+  Status AddTexCoordToBuilder(const tinygltf::Accessor& accessor,
+                              const std::vector<uint32_t>& indices_data,
                               int att_id, int number_of_elements,
-                              bool reverse_winding, BuilderT *builder);
+                              bool reverse_winding, bool is_morph_target,
+                              BuilderT* builder);
+  template <typename BuilderT, typename T>
+  Status AddTexCoordToBuilderTyped(const tinygltf::Accessor& accessor,
+                                   const std::vector<uint32_t>& indices_data,
+                                   int att_id, int number_of_elements,
+                                   bool reverse_winding, BuilderT* builder);
 
   // Copies the mesh feature ID attribute data from |accessor| and adds it to a
   // Draco mesh. |indices_data| is the indices data from the glTF file. |att_id|
@@ -197,12 +219,12 @@ class GltfDecoder {
   // |number_of_elements| is the number of faces or points this function will
   // process. |reverse_winding| if set will change the orientation of the data.
   template <typename BuilderT>
-  Status AddFeatureIdToBuilder(const tinygltf::Accessor &accessor,
-                               const std::vector<uint32_t> &indices_data,
+  Status AddFeatureIdToBuilder(const tinygltf::Accessor& accessor,
+                               const std::vector<uint32_t>& indices_data,
                                int att_id, int number_of_elements,
                                bool reverse_winding,
-                               const std::string &attribute_name,
-                               BuilderT *builder);
+                               const std::string& attribute_name,
+                               BuilderT* builder);
 
   // Copies the property attribute data from |accessor| and adds it to a
   // Draco mesh. |indices_data| is the indices data from the glTF file. |att_id|
@@ -211,10 +233,10 @@ class GltfDecoder {
   // process. |reverse_winding| if set will change the orientation of the data.
   template <typename BuilderT>
   Status AddPropertyAttributeToBuilder(
-      const tinygltf::Accessor &accessor,
-      const std::vector<uint32_t> &indices_data, int att_id,
+      const tinygltf::Accessor& accessor,
+      const std::vector<uint32_t>& indices_data, int att_id,
       int number_of_elements, bool reverse_winding,
-      const std::string &attribute_name, BuilderT *builder);
+      const std::string& attribute_name, BuilderT* builder);
 
   // Copies the attribute data from |accessor| and adds it to a Draco mesh.
   // This function will transform all of the data by |transform_matrix| before
@@ -225,79 +247,79 @@ class GltfDecoder {
   // data after transformation. |reverse_winding| if set will change the
   // orientation of the data.
   template <typename BuilderT>
-  Status AddTransformedDataToBuilder(const tinygltf::Accessor &accessor,
-                                     const std::vector<uint32_t> &indices_data,
+  Status AddTransformedDataToBuilder(const tinygltf::Accessor& accessor,
+                                     const std::vector<uint32_t>& indices_data,
                                      int att_id, int number_of_elements,
-                                     const Eigen::Matrix4d &transform_matrix,
+                                     const Eigen::Matrix4d& transform_matrix,
                                      bool normalize, bool reverse_winding,
-                                     BuilderT *builder);
+                                     BuilderT* builder);
 
   // Sets values in |data| into the builder |builder| for |att_id|.
   template <typename T>
-  void SetValuesForBuilder(const std::vector<uint32_t> &indices_data,
-                           int att_id, int number_of_elements,
-                           const std::vector<T> &data, bool reverse_winding,
-                           TriangleSoupMeshBuilder *builder);
+  Status SetValuesForBuilder(const std::vector<uint32_t>& indices_data,
+                             int att_id, int number_of_elements,
+                             const std::vector<T>& data, bool reverse_winding,
+                             TriangleSoupMeshBuilder* builder);
   template <typename T>
-  void SetValuesForBuilder(const std::vector<uint32_t> &indices_data,
-                           int att_id, int number_of_elements,
-                           const std::vector<T> &data, bool reverse_winding,
-                           PointCloudBuilder *builder);
+  Status SetValuesForBuilder(const std::vector<uint32_t>& indices_data,
+                             int att_id, int number_of_elements,
+                             const std::vector<T>& data, bool reverse_winding,
+                             PointCloudBuilder* builder);
 
   // Sets colors of for all vertices to white.
   template <typename BuilderT>
   void SetWhiteVertexColor(int color_att_id, draco::DataType type,
-                           BuilderT *builder);
+                           BuilderT* builder);
   template <typename ComponentT>
   void SetWhiteVertexColorOfType(int color_att_id,
-                                 TriangleSoupMeshBuilder *builder);
+                                 TriangleSoupMeshBuilder* builder);
   template <typename ComponentT>
-  void SetWhiteVertexColorOfType(int color_att_id, PointCloudBuilder *builder);
+  void SetWhiteVertexColorOfType(int color_att_id, PointCloudBuilder* builder);
 
   // Sets values in |data| into the mesh builder |mb| for |att_id|.
   // |reverse_winding| if set will change the orientation of the data.
   template <typename T>
-  void SetValuesPerFace(const std::vector<uint32_t> &indices_data, int att_id,
-                        int number_of_faces, const std::vector<T> &data,
-                        bool reverse_winding, TriangleSoupMeshBuilder *mb);
+  Status SetValuesPerFace(const std::vector<uint32_t>& indices_data, int att_id,
+                          int number_of_faces, const std::vector<T>& data,
+                          bool reverse_winding, TriangleSoupMeshBuilder* mb);
 
   // Returns an address pointing to the content stored in |data|. This is used
   // when passing values to mesh / point cloud builder when the input type can
   // be either a VectorD or an arithmetic type.
   template <typename T>
-  const void *GetDataContentAddress(const T &data) const;
+  const void* GetDataContentAddress(const T& data) const;
 
   // Adds the attribute data in |accessor| to |mb| for unique attribute
   // |att_id|. |indices_data| is the mesh's indices data. |reverse_winding| if
   // set will change the orientation of the data.
   template <typename BuilderT>
-  Status AddAttributeDataByTypes(const tinygltf::Accessor &accessor,
-                                 const std::vector<uint32_t> &indices_data,
+  Status AddAttributeDataByTypes(const tinygltf::Accessor& accessor,
+                                 const std::vector<uint32_t>& indices_data,
                                  int att_id, int number_of_elements,
-                                 bool reverse_winding, BuilderT *builder);
+                                 bool reverse_winding, BuilderT* builder);
 
   // Adds the textures to |owner|.
   template <typename T>
-  Status CopyTextures(T *owner);
+  Status CopyTextures(T* owner);
 
   // Sets extra attribute properties on a constructed draco mesh.
-  void SetAttributePropertiesOnDracoMesh(Mesh *mesh);
+  void SetAttributePropertiesOnDracoMesh(Mesh* mesh);
 
   // Adds the materials to |mesh|.
-  Status AddMaterialsToDracoMesh(Mesh *mesh);
+  Status AddMaterialsToDracoMesh(Mesh* mesh);
 
   // Adds the material data for the GeometryAttribute::MATERIAL attribute to the
   // Draco mesh.
   template <typename BuilderT>
   Status AddMaterialDataToBuilder(int material_value, int number_of_elements,
-                                  BuilderT *builder);
+                                  BuilderT* builder);
   template <typename T>
   Status AddMaterialDataToBuilderInternal(T material_value, int number_of_faces,
-                                          TriangleSoupMeshBuilder *builder);
+                                          TriangleSoupMeshBuilder* builder);
   template <typename T>
   Status AddMaterialDataToBuilderInternal(T material_value,
                                           int number_of_points,
-                                          PointCloudBuilder *builder);
+                                          PointCloudBuilder* builder);
 
   // Checks if the glTF file contains a texture. If there is a texture, this
   // function will read the texture data and add it to the Draco |material|. If
@@ -307,13 +329,13 @@ class GltfDecoder {
   // as the texture coordinate attribute id.
   Status CheckAndAddTextureToDracoMaterial(
       int texture_index, int tex_coord_attribute_index,
-      const tinygltf::ExtensionMap &tex_info_ext, Material *material,
+      const tinygltf::ExtensionMap& tex_info_ext, Material* material,
       TextureMap::Type type);
 
-  // Decode glTF file to scene.
+  // Decodes glTF file to scene.
   Status DecodeGltfToScene();
 
-  // Decode glTF lights into a scene.
+  // Decodes glTF lights into a scene.
   Status AddLightsToScene();
 
   // Decodes glTF materials variants names into a scene.
@@ -325,162 +347,228 @@ class GltfDecoder {
 
   // Decode glTF node into a Draco scene. |parent_index| is the index of the
   // parent node. If |node| is a root node set |parent_index| to
-  // |kInvalidSceneNodeIndex|. All glTF lights must be decoded to the scene
-  // before this function is called.
+  // |kInvalidSceneNodeIndex|. All glTF lights and audio must be decoded to the
+  // scene before this function is called.
   Status DecodeNodeForScene(int node_index, SceneNodeIndex parent_index);
 
   // Decode glTF primitive into a Draco scene.
-  Status DecodePrimitiveForScene(const tinygltf::Primitive &primitive,
-                                 MeshGroup *mesh_group);
+  Status DecodePrimitiveForScene(const tinygltf::Primitive& primitive,
+                                 MeshGroup* mesh_group);
+
+#ifdef DRACO_PMC_SUPPORTED
+  // Decodes a PMC-compressed glTF |primitive| from |pmc_extension|.
+  StatusOr<std::unique_ptr<Mesh>> DecodePrimitiveFromPmc(
+      const tinygltf::Primitive& primitive,
+      const tinygltf::Value& pmc_extension);
+#endif  // DRACO_PMC_SUPPORTED
+
+  // Decodes a glTF |primitive| from standard glTF buffer accessors.
+  StatusOr<std::unique_ptr<Mesh>> DecodePrimitiveFromGltfBuffer(
+      const tinygltf::Primitive& primitive);
+
+  // Adds attributes and builds mesh for a given scene primitive.
+  StatusOr<std::unique_ptr<Mesh>> AddAttributesAndBuildMesh(
+      const std::map<std::string, int>& attribute_name_to_accessor_map,
+      bool use_mesh_builder, bool is_morph_target, TriangleSoupMeshBuilder* mb,
+      PointCloudBuilder* pb, bool deduplicate_vertices,
+      const std::vector<uint32_t>& indices_data, int number_of_faces,
+      int number_of_points);
 
   // Decodes glTF materials variants from |extension| and adds it into materials
   // variants |mappings|. Before calling this function, all materials variants
   // names must be decoded by calling AddMaterialsVariantsNamesToScene().
   Status DecodeMaterialsVariantsMappings(
-      const tinygltf::Value::Object &extension,
-      std::vector<MeshGroup::MaterialsVariantsMapping> *mappings);
+      const tinygltf::Value::Object& extension,
+      std::vector<MeshGroup::MaterialsVariantsMapping>* mappings);
 
   // Decode extensions on all primitives of all scenes, such as mesh features
   // and structural metadata extensions, and add their contents to |mesh|.
-  Status AddPrimitiveExtensionsToDracoMesh(Mesh *mesh);
-  Status AddPrimitiveExtensionsToDracoMesh(int node_index, Mesh *mesh);
-  Status AddPrimitiveExtensionsToDracoMesh(const tinygltf::Primitive &primitive,
-                                           TextureLibrary *texture_library,
-                                           Mesh *mesh);
+  Status AddPrimitiveExtensionsToDracoMesh(Mesh* mesh);
+  Status AddPrimitiveExtensionsToDracoMesh(int node_index, Mesh* mesh);
+  Status AddPrimitiveExtensionsToDracoMesh(const tinygltf::Primitive& primitive,
+                                           TextureLibrary* texture_library,
+                                           Mesh* mesh);
 
   // Decodes glTF structural metadata from glTF model and adds it to |geometry|.
   template <typename GeometryT>
-  Status AddStructuralMetadataToGeometry(GeometryT *geometry);
+  Status AddStructuralMetadataToGeometry(GeometryT* geometry);
+
+  // Copies JSON contents of top-level pass-through glTF extensions to |scene|.
+  Status AddTopLevelPassThroughExtensionsToScene(Scene* scene);
+
+  // Converts TinyGLTF |value| to Draco JSON |entity|.
+  Status ConvertValue(const tinygltf::Value& value, JsonEntity& entity);
+
+  // Convert glTF node indices in KHR_interactivity to Draco scene node indices.
+  Status FinalizeInteractivityExtension(JsonEntity& extension);
+
+  // Checks validity of parsed structural metadata schema.
+  static Status CheckStructuralMetadataSchema(
+      const StructuralMetadataSchema& schema);
 
   // Decodes glTF structural metadata schema from |extension| and adds it to
   // |geometry|.
   template <typename GeometryT>
   Status AddStructuralMetadataSchemaToGeometry(
-      const tinygltf::Value::Object &extension, GeometryT *geometry);
+      const tinygltf::Value::Object& extension, GeometryT* geometry);
 
   // Decodes glTF structural metadata property tables from |extension| and adds
   // them to |geometry|.
   template <typename GeometryT>
-  Status AddPropertyTablesToGeometry(const tinygltf::Value::Object &extension,
-                                     GeometryT *geometry);
+  Status AddPropertyTablesToGeometry(const tinygltf::Value::Object& extension,
+                                     GeometryT* geometry);
 
   // Decodes glTF structural metadata property attributes from |extension| and
   // adds them to |geometry|.
   template <typename GeometryT>
   Status AddPropertyAttributesToGeometry(
-      const tinygltf::Value::Object &extension, GeometryT *geometry);
+      const tinygltf::Value::Object& extension, GeometryT* geometry);
+
+  // Decodes glTF structural metadata property textures from |extension| and
+  // adds them to |geometry|.
+  template <typename GeometryT>
+  Status AddPropertyTexturesToGeometry(const tinygltf::Value::Object& extension,
+                                       GeometryT* geometry);
 
   // Decodes glTF mesh feature ID sets from |primitive| and adds them to |mesh|.
-  Status DecodeMeshFeatures(const tinygltf::Primitive &primitive,
-                            TextureLibrary *texture_library, Mesh *mesh);
+  Status DecodeMeshFeatures(const tinygltf::Primitive& primitive,
+                            TextureLibrary* texture_library, Mesh* mesh);
 
   // Decodes glTF structural metadata from |primitive| and adds it to |mesh|.
-  Status DecodeStructuralMetadata(const tinygltf::Primitive &primitive,
-                                  Mesh *mesh);
+  Status DecodeStructuralMetadata(const tinygltf::Primitive& primitive,
+                                  Mesh* mesh);
 
   // Decodes glTF mesh feature ID sets from |extension| and adds them to the
   // |mesh_features| vector.
   Status DecodeMeshFeatures(
-      const tinygltf::Value::Object &extension, TextureLibrary *texture_library,
-      std::vector<std::unique_ptr<MeshFeatures>> *mesh_features);
+      const tinygltf::Value::Object& extension, TextureLibrary* texture_library,
+      std::vector<std::unique_ptr<MeshFeatures>>* mesh_features);
 
   // Decodes glTF structural metadata from |extension| of a glTF primitive and
-  // adds its property attribute indices to the |property_attributes| vector.
-  Status DecodeStructuralMetadata(const tinygltf::Value::Object &extension,
-                                  std::vector<int> *property_attributes);
+  // adds its property attribute indices to the |property_attributes| vector and
+  // adds its property texture indices to the |property_textures| vector.
+  Status DecodeStructuralMetadata(const tinygltf::Value::Object& extension,
+                                  std::vector<int>* property_attributes,
+                                  std::vector<int>* property_textures);
 
   // Adds an attribute of type |attribute_name| to |builder|. Returns the
   // attribute id.
   template <typename BuilderT>
-  StatusOr<int> AddAttribute(const std::string &attribute_name,
-                             int component_type, int type, BuilderT *builder);
+  StatusOr<int> AddAttribute(const std::string& attribute_name,
+                             int component_type, int type, bool normalized,
+                             BuilderT* builder);
 
   // Adds an attribute of |attribute_type| to |builder|. Returns the attribute
   // id.
   template <typename BuilderT>
   StatusOr<int> AddAttribute(GeometryAttribute::Type attribute_type,
-                             int component_type, int type, BuilderT *builder);
+                             int component_type, int type, bool normalized,
+                             BuilderT* builder);
 
   // Returns true if the KHR_texture_transform extension is set in |extension|.
   // If the KHR_texture_transform extension is set then the values are returned
   // in |transform|.
   StatusOr<bool> CheckKhrTextureTransform(
-      const tinygltf::ExtensionMap &extension, TextureTransform *transform);
+      const tinygltf::ExtensionMap& extension, TextureTransform* transform);
 
   // Adds glTF material |input_material_index| to |output_material|.
-  Status AddGltfMaterial(int input_material_index, Material *output_material);
+  Status AddGltfMaterial(int input_material_index, Material* output_material);
 
   // Adds unlit property from glTF |input_material| to |output_material|.
-  void DecodeMaterialUnlitExtension(const tinygltf::Material &input_material,
-                                    Material *output_material);
+  void DecodeMaterialUnlitExtension(const tinygltf::Material& input_material,
+                                    Material* output_material);
 
   // Adds sheen properties from glTF |input_material| to |output_material|.
-  Status DecodeMaterialSheenExtension(const tinygltf::Material &input_material,
-                                      Material *output_material);
+  Status DecodeMaterialSheenExtension(const tinygltf::Material& input_material,
+                                      Material* output_material);
 
   // Adds transmission from glTF |input_material| to |output_material|.
   Status DecodeMaterialTransmissionExtension(
-      const tinygltf::Material &input_material, Material *output_material);
+      const tinygltf::Material& input_material, Material* output_material);
 
   // Adds clearcoat properties from glTF |input_material| to |output_material|.
   Status DecodeMaterialClearcoatExtension(
-      const tinygltf::Material &input_material, Material *output_material);
+      const tinygltf::Material& input_material, Material* output_material);
 
   // Adds volume properties from glTF |input_material| to |output_material|.
-  Status DecodeMaterialVolumeExtension(const tinygltf::Material &input_material,
+  Status DecodeMaterialVolumeExtension(const tinygltf::Material& input_material,
                                        int input_material_index,
-                                       Material *output_material);
+                                       Material* output_material);
 
   // Adds ior properties from glTF |input_material| to |output_material|.
-  Status DecodeMaterialIorExtension(const tinygltf::Material &input_material,
-                                    Material *output_material);
+  Status DecodeMaterialIorExtension(const tinygltf::Material& input_material,
+                                    Material* output_material);
 
   // Adds specular properties from glTF |input_material| to |output_material|.
   Status DecodeMaterialSpecularExtension(
-      const tinygltf::Material &input_material, Material *output_material);
+      const tinygltf::Material& input_material, Material* output_material);
+
+  // Adds emissive strength properties from glTF |input_material| to
+  // |output_material|.
+  Status DecodeMaterialEmissiveStrengthExtension(
+      const tinygltf::Material& input_material, Material* output_material);
+
+  // Adds iridescence properties from glTF |input_material| to
+  // |output_material|.
+  Status DecodeMaterialIridescenceExtension(
+      const tinygltf::Material& input_material, Material* output_material);
+
+  // Adds anisotropy properties from glTF |input_material| to |output_material|.
+  Status DecodeMaterialAnisotropyExtension(
+      const tinygltf::Material& input_material, Material* output_material);
+
+  // Adds diffuse transmission properties from glTF |input_material| to
+  // |output_material|.
+  Status DecodeMaterialDiffuseTransmissionExtension(
+      const tinygltf::Material& input_material, Material* output_material);
 
   // Decodes a float value with |name| from |object| to |value| and returns true
   // if a well-formed value with such |name| is present.
-  static StatusOr<bool> DecodeFloat(const std::string &name,
-                                    const tinygltf::Value::Object &object,
-                                    float *value);
+  static StatusOr<bool> DecodeFloat(const std::string& name,
+                                    const tinygltf::Value::Object& object,
+                                    float* value);
 
   // Decodes an integer value with |name| from |object| to |value| and returns
   // true if a well-formed value with such |name| is present.
-  static StatusOr<bool> DecodeInt(const std::string &name,
-                                  const tinygltf::Value::Object &object,
-                                  int *value);
+  static StatusOr<bool> DecodeInt(const std::string& name,
+                                  const tinygltf::Value::Object& object,
+                                  int* value);
 
   // Decodes a string value with |name| from |object| to |value| and returns
   // true if a well-formed value with such |name| is present.
-  static StatusOr<bool> DecodeString(const std::string &name,
-                                     const tinygltf::Value::Object &object,
-                                     std::string *value);
+  static StatusOr<bool> DecodeString(const std::string& name,
+                                     const tinygltf::Value::Object& object,
+                                     std::string* value);
+
+  // Decodes a vector of integer indices in the "channels" property of |value|
+  // used by the KHR_mesh_features and KHR_structural_metadata glTF extensions.
+  static StatusOr<std::vector<int>> DecodeTextureChannelIndices(
+      const tinygltf::Value& value);
 
   // Decodes data and data target from buffer view index with |name| in |object|
   // to |data| and returns true if a well-formed data is present.
-  StatusOr<bool> DecodePropertyTableData(const std::string &name,
-                                         const tinygltf::Value::Object &object,
-                                         PropertyTable::Property::Data *data);
+  StatusOr<bool> DecodePropertyTableData(const std::string& name,
+                                         const tinygltf::Value::Object& object,
+                                         PropertyTable::Property::Data* data);
 
   // Decodes a 3D vector with |name| from |object| to |value| and returns true
   // if a well-formed vector with such |name| is present.
-  static StatusOr<bool> DecodeVector3f(const std::string &name,
-                                       const tinygltf::Value::Object &object,
-                                       Vector3f *value);
+  static StatusOr<bool> DecodeVector3f(const std::string& name,
+                                       const tinygltf::Value::Object& object,
+                                       Vector3f* value);
 
   // Decodes a texture with |name| from |object| and adds it to |material| as a
   // texture map of |type|.
-  Status DecodeTexture(const std::string &name, TextureMap::Type type,
-                       const tinygltf::Value::Object &object,
-                       Material *material);
+  Status DecodeTexture(const std::string& name, TextureMap::Type type,
+                       const tinygltf::Value::Object& object,
+                       Material* material);
 
   // Reads texture with |texture_name| from |container_object| into
   // |texture_info|.
   static Status ParseTextureInfo(
-      const std::string &texture_name,
-      const tinygltf::Value::Object &container_object,
-      tinygltf::TextureInfo *texture_info);
+      const std::string& texture_name,
+      const tinygltf::Value::Object& container_object,
+      tinygltf::TextureInfo* texture_info);
 
   // Adds the materials to the scene.
   Status AddMaterialsToScene();
@@ -489,26 +577,37 @@ class GltfDecoder {
   Status AddSkinsToScene();
 
   // Adds various asset metadata to the scene or mesh.
-  Status AddAssetMetadata(Scene *scene);
-  Status AddAssetMetadata(Mesh *mesh);
-  Status AddAssetMetadata(Metadata *metadata);
+  Status AddAssetMetadata(Scene* scene);
+  Status AddAssetMetadata(Mesh* mesh);
+  Status AddAssetMetadata(Metadata* metadata);
 
   // All material and non-material textures (e.g., from EXT_mesh_features) are
   // initially loaded into a texture library inside the the material library.
   // These methods move |non_material_textures| from material texture library
   // |material_tl| to non-material texture library |non_material_tl|.
-  static void MoveNonMaterialTextures(Mesh *mesh);
-  static void MoveNonMaterialTextures(Scene *scene);
+  static void MoveNonMaterialTextures(Mesh* mesh);
+  static void MoveNonMaterialTextures(Scene* scene);
   static void MoveNonMaterialTextures(
-      const std::unordered_set<Texture *> &non_material_textures,
-      TextureLibrary *material_tl, TextureLibrary *non_material_tl);
+      const std::unordered_set<Texture*>& non_material_textures,
+      TextureLibrary* material_tl, TextureLibrary* non_material_tl);
+
+  // Adds feature ID textures of the |mesh| to |textures|.
+  static void CollectFeatureIdTextures(Mesh& mesh,
+                                       std::unordered_set<Texture*>& textures);
+
+  // Adds property textures of the |structural_metadata| to |textures|.
+  static void CollectPropertyTextures(StructuralMetadata& structural_metadata,
+                                      std::unordered_set<Texture*>& textures);
 
   // Builds and returns a mesh constructed from either mesh builder |mb| or
   // point cloud builder |pb|. Mesh builder is used if |use_mesh_builder| is set
   // to true.
   static StatusOr<std::unique_ptr<Mesh>> BuildMeshFromBuilder(
-      bool use_mesh_builder, TriangleSoupMeshBuilder *mb, PointCloudBuilder *pb,
+      bool use_mesh_builder, TriangleSoupMeshBuilder* mb, PointCloudBuilder* pb,
       bool deduplicate_vertices);
+
+  // Indicates whether a |primitive| has a "JOINTS_0" attribute.
+  static bool HasJoints(const tinygltf::Primitive& primitive);
 
   // Map of glTF Mesh to Draco scene mesh group.
   std::map<int, MeshGroupIndex> gltf_mesh_to_scene_mesh_group_;
@@ -564,7 +663,7 @@ class GltfDecoder {
   std::map<int, std::vector<float>> gltf_primitive_material_to_scales_;
 
   // Map of glTF image to Draco textures.
-  std::map<int, Texture *> gltf_image_to_draco_texture_;
+  std::map<int, Texture*> gltf_image_to_draco_texture_;
 
   std::unique_ptr<Scene> scene_;
 
@@ -577,14 +676,17 @@ class GltfDecoder {
   // Whether vertices should be deduplicated after loading.
   bool deduplicate_vertices_ = true;
 
+  // Can be used to ensure material order stays the same as in the glTF file.
+  bool preserve_material_indices_ = false;
+
   // Functionality for deduping primitives on decode.
   struct PrimitiveSignature {
-    const tinygltf::Primitive &primitive;
-    explicit PrimitiveSignature(const tinygltf::Primitive &primitive)
+    const tinygltf::Primitive& primitive;
+    explicit PrimitiveSignature(const tinygltf::Primitive& primitive)
         : primitive(primitive) {}
-    bool operator==(const PrimitiveSignature &signature) const;
+    bool operator==(const PrimitiveSignature& signature) const;
     struct Hash {
-      size_t operator()(const PrimitiveSignature &signature) const;
+      size_t operator()(const PrimitiveSignature& signature) const;
     };
   };
   std::unordered_map<PrimitiveSignature, MeshIndex, PrimitiveSignature::Hash>

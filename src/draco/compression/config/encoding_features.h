@@ -30,8 +30,8 @@
 namespace draco {
 namespace features {
 
-constexpr const char *kEdgebreaker = "standard_edgebreaker";
-constexpr const char *kPredictiveEdgebreaker = "predictive_edgebreaker";
+constexpr const char* kEdgebreaker = "standard_edgebreaker";
+constexpr const char* kPredictiveEdgebreaker = "predictive_edgebreaker";
 
 }  // namespace features
 }  // namespace draco

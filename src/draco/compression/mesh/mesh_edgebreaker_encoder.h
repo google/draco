@@ -31,16 +31,16 @@ class MeshEdgebreakerEncoder : public MeshEncoder {
  public:
   MeshEdgebreakerEncoder();
 
-  const CornerTable *GetCornerTable() const override {
+  const CornerTable* GetCornerTable() const override {
     return impl_->GetCornerTable();
   }
 
-  const MeshAttributeCornerTable *GetAttributeCornerTable(
+  const MeshAttributeCornerTable* GetAttributeCornerTable(
       int att_id) const override {
     return impl_->GetAttributeCornerTable(att_id);
   }
 
-  const MeshAttributeIndicesEncodingData *GetAttributeEncodingData(
+  const MeshAttributeIndicesEncodingData* GetAttributeEncodingData(
       int att_id) const override {
     return impl_->GetAttributeEncodingData(att_id);
   }

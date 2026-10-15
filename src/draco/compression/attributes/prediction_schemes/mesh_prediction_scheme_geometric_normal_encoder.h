@@ -32,18 +32,18 @@ class MeshPredictionSchemeGeometricNormalEncoder
  public:
   using CorrType = typename MeshPredictionSchemeEncoder<DataTypeT, TransformT,
                                                         MeshDataT>::CorrType;
-  MeshPredictionSchemeGeometricNormalEncoder(const PointAttribute *attribute,
-                                             const TransformT &transform,
-                                             const MeshDataT &mesh_data)
+  MeshPredictionSchemeGeometricNormalEncoder(const PointAttribute* attribute,
+                                             const TransformT& transform,
+                                             const MeshDataT& mesh_data)
       : MeshPredictionSchemeEncoder<DataTypeT, TransformT, MeshDataT>(
             attribute, transform, mesh_data),
         predictor_(mesh_data) {}
 
   bool ComputeCorrectionValues(
-      const DataTypeT *in_data, CorrType *out_corr, int size,
-      int num_components, const PointIndex *entry_to_point_id_map) override;
+      const DataTypeT* in_data, CorrType* out_corr, int size,
+      int num_components, const PointIndex* entry_to_point_id_map) override;
 
-  bool EncodePredictionData(EncoderBuffer *buffer) override;
+  bool EncodePredictionData(EncoderBuffer* buffer) override;
 
   PredictionSchemeMethod GetPredictionMethod() const override {
     return MESH_PREDICTION_GEOMETRIC_NORMAL;
@@ -67,7 +67,7 @@ class MeshPredictionSchemeGeometricNormalEncoder
     return GeometryAttribute::POSITION;
   }
 
-  bool SetParentAttribute(const PointAttribute *att) override {
+  bool SetParentAttribute(const PointAttribute* att) override {
     if (att->attribute_type() != GeometryAttribute::POSITION) {
       return false;  // Invalid attribute type.
     }
@@ -95,9 +95,9 @@ class MeshPredictionSchemeGeometricNormalEncoder
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeGeometricNormalEncoder<DataTypeT, TransformT,
                                                 MeshDataT>::
-    ComputeCorrectionValues(const DataTypeT *in_data, CorrType *out_corr,
+    ComputeCorrectionValues(const DataTypeT* in_data, CorrType* out_corr,
                             int size, int num_components,
-                            const PointIndex *entry_to_point_id_map) {
+                            const PointIndex* entry_to_point_id_map) {
   this->SetQuantizationBits(this->transform().quantization_bits());
   predictor_.SetEntryToPointIdMap(entry_to_point_id_map);
   DRACO_DCHECK(this->IsInitialized());
@@ -164,8 +164,8 @@ bool MeshPredictionSchemeGeometricNormalEncoder<DataTypeT, TransformT,
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeGeometricNormalEncoder<
-    DataTypeT, TransformT, MeshDataT>::EncodePredictionData(EncoderBuffer
-                                                                *buffer) {
+    DataTypeT, TransformT, MeshDataT>::EncodePredictionData(EncoderBuffer*
+                                                                buffer) {
   if (!this->transform().EncodeTransformData(buffer)) {
     return false;
   }

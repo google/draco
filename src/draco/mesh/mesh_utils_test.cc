@@ -21,11 +21,11 @@
 namespace {
 
 // Compare normal vector rotated by |angle| around the x-axis.
-void CompareRotatedNormals(const draco::Mesh &mesh_0, const draco::Mesh &mesh_1,
+void CompareRotatedNormals(const draco::Mesh& mesh_0, const draco::Mesh& mesh_1,
                            float angle) {
-  const draco::PointAttribute *const norm_att_0 =
+  const draco::PointAttribute* const norm_att_0 =
       mesh_0.GetNamedAttribute(draco::GeometryAttribute::NORMAL);
-  const draco::PointAttribute *const norm_att_1 =
+  const draco::PointAttribute* const norm_att_1 =
       mesh_1.GetNamedAttribute(draco::GeometryAttribute::NORMAL);
   ASSERT_EQ(norm_att_0->size(), norm_att_1->size());
   for (draco::AttributeValueIndex avi(0); avi < norm_att_0->size(); ++avi) {
@@ -88,7 +88,7 @@ TEST(MeshUtilsTest, TestTextureUvFlips) {
   ASSERT_NE(mesh, nullptr);
 
   // Check that FlipTextureUvValues() only works on texture coordinates.
-  draco::PointAttribute *att = mesh->attribute(0);
+  draco::PointAttribute* att = mesh->attribute(0);
   ASSERT_EQ(att->attribute_type(), draco::GeometryAttribute::POSITION);
   ASSERT_FALSE(draco::MeshUtils::FlipTextureUvValues(false, true, att));
 
@@ -136,17 +136,17 @@ TEST(MeshUtilsTest, CountDegenerateValuesLantern) {
   ASSERT_NE(scene, nullptr);
 
   for (int mgi = 0; mgi < scene->NumMeshGroups(); ++mgi) {
-    const draco::MeshGroup *const mesh_group =
+    const draco::MeshGroup* const mesh_group =
         scene->GetMeshGroup(draco::MeshGroupIndex(mgi));
     ASSERT_NE(mesh_group, nullptr);
 
     for (int mi = 0; mi < mesh_group->NumMeshInstances(); ++mi) {
       const draco::MeshIndex mesh_index =
           mesh_group->GetMeshInstance(mi).mesh_index;
-      const draco::Mesh &m = scene->GetMesh(mesh_index);
+      const draco::Mesh& m = scene->GetMesh(mesh_index);
 
       for (int i = 0; i < m.num_attributes(); ++i) {
-        const draco::PointAttribute *const att = m.attribute(i);
+        const draco::PointAttribute* const att = m.attribute(i);
         ASSERT_NE(att, nullptr);
 
         if (att->attribute_type() == draco::GeometryAttribute::Type::POSITION) {
@@ -167,7 +167,7 @@ TEST(MeshUtilsTest, CountDegenerateValuesLantern) {
       draco::ReadMeshFromTestFile("Lantern/glTF/Lantern.gltf");
   ASSERT_NE(mesh, nullptr);
   for (int i = 0; i < mesh->num_attributes(); ++i) {
-    const draco::PointAttribute *const att = mesh->attribute(i);
+    const draco::PointAttribute* const att = mesh->attribute(i);
     ASSERT_NE(att, nullptr);
     if (att->attribute_type() == draco::GeometryAttribute::Type::POSITION) {
       EXPECT_EQ(draco::MeshUtils::CountDegenerateFaces(*mesh, i),
@@ -188,11 +188,11 @@ TEST(MeshUtilsTest, FindLowsetTextureQuantizationLanternMesh) {
   ASSERT_NE(mesh, nullptr);
 
   const int pos_quantization_bits = 11;
-  const draco::PointAttribute *const pos_att =
+  const draco::PointAttribute* const pos_att =
       mesh->GetNamedAttribute(draco::GeometryAttribute::Type::POSITION, 0);
   ASSERT_NE(pos_att, nullptr);
 
-  const draco::PointAttribute *const tex_att =
+  const draco::PointAttribute* const tex_att =
       mesh->GetNamedAttribute(draco::GeometryAttribute::Type::TEX_COORD, 0);
   ASSERT_NE(tex_att, nullptr);
 
@@ -233,14 +233,14 @@ TEST(MeshUtilsTest, FindLowsetTextureQuantizationLanternScene) {
 
   const std::vector<int> expected_mesh_quantization_bits{11, 8, 14};
   for (int mi = 0; mi < scene->NumMeshes(); ++mi) {
-    const draco::Mesh &mesh = scene->GetMesh(draco::MeshIndex(mi));
+    const draco::Mesh& mesh = scene->GetMesh(draco::MeshIndex(mi));
 
     const int pos_quantization_bits = 11;
-    const draco::PointAttribute *const pos_att =
+    const draco::PointAttribute* const pos_att =
         mesh.GetNamedAttribute(draco::GeometryAttribute::Type::POSITION, 0);
     ASSERT_NE(pos_att, nullptr);
 
-    const draco::PointAttribute *const tex_att =
+    const draco::PointAttribute* const tex_att =
         mesh.GetNamedAttribute(draco::GeometryAttribute::Type::TEX_COORD, 0);
     ASSERT_NE(tex_att, nullptr);
 
@@ -296,7 +296,7 @@ TEST(MeshUtilsTest, CheckMergeMetadata) {
 
   // Add dummy tangent attribute to the |other_mesh|.
   std::unique_ptr<draco::PointAttribute> tang_att(new draco::PointAttribute());
-  draco::PointAttribute *const tang_att_ptr = tang_att.get();
+  draco::PointAttribute* const tang_att_ptr = tang_att.get();
   tang_att->set_attribute_type(draco::GeometryAttribute::TANGENT);
   other_mesh->AddAttribute(std::move(tang_att));
 
@@ -355,16 +355,16 @@ TEST(MeshUtilsTest, RemoveUnusedMeshFeatures) {
 
   // The input mesh should have five mesh features and two features textures.
   ASSERT_EQ(mesh->NumMeshFeatures(), 5);
-  ASSERT_EQ(mesh->GetNonMaterialTextureLibrary().NumTextures(), 2);
+  ASSERT_EQ(mesh->GetNonMaterialTextureLibrary().NumTextures(), 4);
 
   // All of those features and textures should be used so calling the method
   // below shouldn't do anything.
   draco::MeshUtils::RemoveUnusedMeshFeatures(mesh.get());
   ASSERT_EQ(mesh->NumMeshFeatures(), 5);
-  ASSERT_EQ(mesh->GetNonMaterialTextureLibrary().NumTextures(), 2);
+  ASSERT_EQ(mesh->GetNonMaterialTextureLibrary().NumTextures(), 4);
 
   // Now remove material 1 that is mapped to first two mesh features.
-  draco::PointAttribute *mat_att = mesh->attribute(
+  draco::PointAttribute* mat_att = mesh->attribute(
       mesh->GetNamedAttributeId(draco::GeometryAttribute::MATERIAL));
 
   // This basically remaps all faces from material 1 to material 0.
@@ -373,11 +373,12 @@ TEST(MeshUtilsTest, RemoveUnusedMeshFeatures) {
 
   // Try to remove the mesh features again.
   draco::MeshUtils::RemoveUnusedMeshFeatures(mesh.get());
+  draco::MeshUtils::RemoveUnusedNonMaterialTextures(mesh.get());
 
   // Three of the mesh features should have been removed as well as one mesh
   // features texture.
   ASSERT_EQ(mesh->NumMeshFeatures(), 2);
-  ASSERT_EQ(mesh->GetNonMaterialTextureLibrary().NumTextures(), 1);
+  ASSERT_EQ(mesh->GetNonMaterialTextureLibrary().NumTextures(), 3);
 
   // Ensure the remaining mesh features are mapped to the correct material.
   for (draco::MeshFeaturesIndex mfi(0); mfi < mesh->NumMeshFeatures(); ++mfi) {
@@ -386,7 +387,7 @@ TEST(MeshUtilsTest, RemoveUnusedMeshFeatures) {
   }
 }
 
-TEST(MeshUtilsTest, RemoveUnusedPropertyAttributesIndices) {
+TEST(MeshUtilsTest, RemoveUnusedPropertyAttributes) {
   // Test verifies that MeshUtils::RemoveUnusedPropertyAttributesIndices works
   // as intended.
   std::unique_ptr<draco::Mesh> mesh =
@@ -402,13 +403,17 @@ TEST(MeshUtilsTest, RemoveUnusedPropertyAttributesIndices) {
   ASSERT_EQ(mesh->GetPropertyAttributesIndexMaterialMask(0, 0), 0);
   ASSERT_EQ(mesh->GetPropertyAttributesIndexMaterialMask(1, 0), 1);
 
-  // Both indices should be used so calling the method below shouldn't do
-  // anything.
+  // The input mesh structural metadata has two property attributes.
+  ASSERT_EQ(mesh->GetStructuralMetadata().NumPropertyAttributes(), 2);
+
+  // Both indices are used so nothing should be removed.
   draco::MeshUtils::RemoveUnusedPropertyAttributesIndices(mesh.get());
+  draco::MeshUtils::RemoveUnusedPropertyAttributes(mesh.get());
   ASSERT_EQ(mesh->NumPropertyAttributesIndices(), 2);
+  ASSERT_EQ(mesh->GetStructuralMetadata().NumPropertyAttributes(), 2);
 
   // Now remove material 1 that is mapped to second property attributes index.
-  draco::PointAttribute *mat_att = mesh->attribute(
+  draco::PointAttribute* mat_att = mesh->attribute(
       mesh->GetNamedAttributeId(draco::GeometryAttribute::MATERIAL));
 
   // This basically remaps all faces from material 1 to material 0.
@@ -417,14 +422,69 @@ TEST(MeshUtilsTest, RemoveUnusedPropertyAttributesIndices) {
 
   // Try to remove the property attributes indices again.
   draco::MeshUtils::RemoveUnusedPropertyAttributesIndices(mesh.get());
+  draco::MeshUtils::RemoveUnusedPropertyAttributes(mesh.get());
 
-  // One of the property attributes indices should have been removed.
+  // One of the property attributes should have been removed.
   ASSERT_EQ(mesh->NumPropertyAttributesIndices(), 1);
+  ASSERT_EQ(mesh->GetStructuralMetadata().NumPropertyAttributes(), 1);
 
   // Ensure the remaining property attributes index is mapped to the correct
   // material.
   ASSERT_EQ(mesh->NumPropertyAttributesIndexMaterialMasks(0), 1);
   ASSERT_EQ(mesh->GetPropertyAttributesIndexMaterialMask(0, 0), 0);
+}
+
+TEST(MeshUtilsTest, RemoveUnusedPropertyTextures) {
+  // Test verifies that MeshUtils::RemoveUnusedPropertyTexturesIndices works
+  // as intended.
+  std::unique_ptr<draco::Mesh> mesh =
+      draco::ReadMeshFromTestFile("BoxesMeta/glTF/BoxesMeta.gltf");
+  ASSERT_NE(mesh, nullptr);
+
+  // The input mesh has two property textures indices.
+  ASSERT_EQ(mesh->NumPropertyTexturesIndices(), 2);
+  ASSERT_EQ(mesh->GetPropertyTexturesIndex(0), 0);
+  ASSERT_EQ(mesh->GetPropertyTexturesIndex(1), 1);
+  ASSERT_EQ(mesh->NumPropertyTexturesIndexMaterialMasks(0), 1);
+  ASSERT_EQ(mesh->NumPropertyTexturesIndexMaterialMasks(1), 1);
+  ASSERT_EQ(mesh->GetPropertyTexturesIndexMaterialMask(0, 0), 0);
+  ASSERT_EQ(mesh->GetPropertyTexturesIndexMaterialMask(1, 0), 1);
+
+  // The input mesh structural metadata has two property textures.
+  ASSERT_EQ(mesh->GetStructuralMetadata().NumPropertyTextures(), 2);
+
+  // The input mesh has four non-material textures (two property textures).
+  ASSERT_EQ(mesh->GetNonMaterialTextureLibrary().NumTextures(), 4);
+
+  // Both indices are used so nothing should be removed.
+  draco::MeshUtils::RemoveUnusedPropertyTexturesIndices(mesh.get());
+  draco::MeshUtils::RemoveUnusedPropertyTextures(mesh.get());
+  draco::MeshUtils::RemoveUnusedNonMaterialTextures(mesh.get());
+  ASSERT_EQ(mesh->NumPropertyTexturesIndices(), 2);
+  ASSERT_EQ(mesh->GetStructuralMetadata().NumPropertyTextures(), 2);
+
+  // Now remove material 1 that is mapped to second property textures index.
+  draco::PointAttribute* mat_att = mesh->attribute(
+      mesh->GetNamedAttributeId(draco::GeometryAttribute::MATERIAL));
+
+  // This basically remaps all faces from material 1 to material 0.
+  uint32_t mat_index = 0;
+  mat_att->SetAttributeValue(draco::AttributeValueIndex(1), &mat_index);
+
+  // Try to remove the property textures indices again.
+  draco::MeshUtils::RemoveUnusedPropertyTexturesIndices(mesh.get());
+  draco::MeshUtils::RemoveUnusedPropertyTextures(mesh.get());
+  draco::MeshUtils::RemoveUnusedNonMaterialTextures(mesh.get());
+
+  // One of the property textures should have been removed.
+  ASSERT_EQ(mesh->NumPropertyTexturesIndices(), 1);
+  ASSERT_EQ(mesh->GetStructuralMetadata().NumPropertyTextures(), 1);
+  ASSERT_EQ(mesh->GetNonMaterialTextureLibrary().NumTextures(), 3);
+
+  // Ensure the remaining property textures index is mapped to the correct
+  // material.
+  ASSERT_EQ(mesh->NumPropertyTexturesIndexMaterialMasks(0), 1);
+  ASSERT_EQ(mesh->GetPropertyTexturesIndexMaterialMask(0, 0), 0);
 }
 
 }  // namespace

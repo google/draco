@@ -14,6 +14,22 @@ delays can result in transient errors that can be difficult to diagnose when
 new Draco releases are launched. To avoid the issue pin your sites to a
 versioned release.
 
+### Version 1.5.8 release:
+* Using the versioned www.gstatic.com WASM and Javascript decoders continues
+  to be recommended. To use v1.5.8, use this URL:
+  * https://www.gstatic.com/draco/versioned/decoders/1.5.8/*
+* Polygonal Mesh Coding (PMC) compression by AOMedia in glTF and the
+  `draco_transcoder` tool with the `-pmc` flag (experimental).
+* Support for additional glTF extensions `KHR_materials_emissive_strength`,
+  `KHR_materials_iridescence`, `KHR_materials_anisotropy`,
+  `KHR_materials_diffuse_transmission`, `KHR_animation_pointer`, and
+  `KHR_interactivity`.
+* Reading big-endian binary PLY files.
+* Signed integer attribute types and normalized attributes in glTF.
+* Support for unbounded number of texture coordinate attributes.
+* Security fixes.
+* Bug fixes.
+
 ### Version 1.5.7 release:
 * Using the versioned www.gstatic.com WASM and Javascript decoders continues
   to be recommended. To use v1.5.7, use this URL:

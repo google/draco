@@ -34,7 +34,7 @@ class MeshEdgebreakerTraversalEncoder {
       : encoder_impl_(nullptr),
         attribute_connectivity_encoders_(nullptr),
         num_attribute_data_(0) {}
-  bool Init(MeshEdgebreakerEncoderImplInterface *encoder) {
+  bool Init(MeshEdgebreakerEncoderImplInterface* encoder) {
     encoder_impl_ = encoder;
     return true;
   }
@@ -89,7 +89,7 @@ class MeshEdgebreakerTraversalEncoder {
   // Returns the number of encoded symbols.
   int NumEncodedSymbols() const { return static_cast<int>(symbols_.size()); }
 
-  const EncoderBuffer &buffer() const { return traversal_buffer_; }
+  const EncoderBuffer& buffer() const { return traversal_buffer_; }
 
  protected:
   void EncodeTraversalSymbols() {
@@ -117,15 +117,15 @@ class MeshEdgebreakerTraversalEncoder {
     }
   }
 
-  EncoderBuffer *GetOutputBuffer() { return &traversal_buffer_; }
-  const MeshEdgebreakerEncoderImplInterface *encoder_impl() const {
+  EncoderBuffer* GetOutputBuffer() { return &traversal_buffer_; }
+  const MeshEdgebreakerEncoderImplInterface* encoder_impl() const {
     return encoder_impl_;
   }
 
  private:
   BinaryEncoder start_face_encoder_;
   EncoderBuffer traversal_buffer_;
-  const MeshEdgebreakerEncoderImplInterface *encoder_impl_;
+  const MeshEdgebreakerEncoderImplInterface* encoder_impl_;
   // Symbols collected during the traversal.
   std::vector<EdgebreakerTopologyBitPattern> symbols_;
   // Arithmetic encoder for encoding attribute seams.

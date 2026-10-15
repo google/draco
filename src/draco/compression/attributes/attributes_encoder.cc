@@ -27,18 +27,18 @@ AttributesEncoder::AttributesEncoder(int point_attrib_id)
   AddAttributeId(point_attrib_id);
 }
 
-bool AttributesEncoder::Init(PointCloudEncoder *encoder, const PointCloud *pc) {
+bool AttributesEncoder::Init(PointCloudEncoder* encoder, const PointCloud* pc) {
   point_cloud_encoder_ = encoder;
   point_cloud_ = pc;
   return true;
 }
 
-bool AttributesEncoder::EncodeAttributesEncoderData(EncoderBuffer *out_buffer) {
+bool AttributesEncoder::EncodeAttributesEncoderData(EncoderBuffer* out_buffer) {
   // Encode data about all attributes.
   EncodeVarint(num_attributes(), out_buffer);
   for (uint32_t i = 0; i < num_attributes(); ++i) {
     const int32_t att_id = point_attribute_ids_[i];
-    const PointAttribute *const pa = point_cloud_->attribute(att_id);
+    const PointAttribute* const pa = point_cloud_->attribute(att_id);
     GeometryAttribute::Type type = pa->attribute_type();
 #ifdef DRACO_TRANSCODER_SUPPORTED
     // Attribute types TANGENT, MATERIAL, JOINTS, and WEIGHTS are not supported

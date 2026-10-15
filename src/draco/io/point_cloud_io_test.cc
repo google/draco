@@ -26,7 +26,7 @@ class IoPointCloudIoTest : public ::testing::Test {
  protected:
   void test_compression_method(PointCloudEncodingMethod method,
                                int expected_num_attributes,
-                               const std::string &file_name) {
+                               const std::string& file_name) {
     const std::unique_ptr<PointCloud> encoded_pc =
         ReadPointCloudFromTestFile(file_name);
     ASSERT_NE(encoded_pc, nullptr) << "Failed to load test model " << file_name;

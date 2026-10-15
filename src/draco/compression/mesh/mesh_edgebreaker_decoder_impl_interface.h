@@ -28,18 +28,18 @@ class MeshEdgebreakerDecoder;
 class MeshEdgebreakerDecoderImplInterface {
  public:
   virtual ~MeshEdgebreakerDecoderImplInterface() = default;
-  virtual bool Init(MeshEdgebreakerDecoder *decoder) = 0;
+  virtual bool Init(MeshEdgebreakerDecoder* decoder) = 0;
 
-  virtual const MeshAttributeCornerTable *GetAttributeCornerTable(
+  virtual const MeshAttributeCornerTable* GetAttributeCornerTable(
       int att_id) const = 0;
-  virtual const MeshAttributeIndicesEncodingData *GetAttributeEncodingData(
+  virtual const MeshAttributeIndicesEncodingData* GetAttributeEncodingData(
       int att_id) const = 0;
   virtual bool CreateAttributesDecoder(int32_t att_decoder_id) = 0;
   virtual bool DecodeConnectivity() = 0;
   virtual bool OnAttributesDecoded() = 0;
 
-  virtual MeshEdgebreakerDecoder *GetDecoder() const = 0;
-  virtual const CornerTable *GetCornerTable() const = 0;
+  virtual MeshEdgebreakerDecoder* GetDecoder() const = 0;
+  virtual const CornerTable* GetCornerTable() const = 0;
 };
 
 }  // namespace draco

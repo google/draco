@@ -51,6 +51,18 @@ TEST(TextureUtilsTest, TestGetTargetNameForNewTexture) {
             draco::ImageFormat::PNG);
 }
 
+TEST(TextureUtilsTest, TestGetTargetNameForNewTextureWithTextureStem) {
+  std::unique_ptr<draco::Texture> texture(new draco::Texture());
+  ASSERT_NE(texture, nullptr);
+  texture->set_texture_stem("test_texture");
+  ASSERT_EQ(draco::TextureUtils::GetTargetStem(*texture), "test_texture");
+  ASSERT_EQ(draco::TextureUtils::GetOrGenerateTargetStem(*texture, 5, ""),
+            "test_texture");
+  ASSERT_EQ(draco::TextureUtils::GetTargetExtension(*texture), "png");
+  ASSERT_EQ(draco::TextureUtils::GetTargetFormat(*texture),
+            draco::ImageFormat::PNG);
+}
+
 TEST(TextureUtilsTest, TestGetSourceFormat) {
   // Tests that the source format is determined correctly for new textures and
   // for textures loaded from file.
@@ -140,21 +152,21 @@ TEST(TextureUtilsTest, TestComputeRequiredNumChannels) {
       auto texture0, draco::ReadTextureFromFile(
                          draco::GetTestFileFullPath("fully_transparent.png")));
   ASSERT_NE(texture0, nullptr);
-  draco::Texture *texture0_ptr = texture0.get();
+  draco::Texture* texture0_ptr = texture0.get();
   DRACO_ASSIGN_OR_ASSERT(
       auto texture1,
       draco::ReadTextureFromFile(draco::GetTestFileFullPath("squares.png")));
   ASSERT_NE(texture1, nullptr);
-  const draco::Texture *texture1_ptr = texture1.get();
+  const draco::Texture* texture1_ptr = texture1.get();
   DRACO_ASSIGN_OR_ASSERT(
       auto texture2, draco::ReadTextureFromFile(
                          draco::GetTestFileFullPath("fully_transparent.png")));
   ASSERT_NE(texture2, nullptr);
-  const draco::Texture *texture2_ptr = texture2.get();
+  const draco::Texture* texture2_ptr = texture2.get();
 
   // Compute number of channels for occlusion-only texture.
   draco::MaterialLibrary library;
-  draco::Material *const material0 = library.MutableMaterial(0);
+  draco::Material* const material0 = library.MutableMaterial(0);
   material0->SetTextureMap(std::move(texture0),
                            draco::TextureMap::AMBIENT_OCCLUSION, 0);
   ASSERT_EQ(
@@ -163,7 +175,7 @@ TEST(TextureUtilsTest, TestComputeRequiredNumChannels) {
 
   // Compute number of channels for occlusion-only texture with MR present but
   // not using the same texture.
-  draco::Material *const material1 = library.MutableMaterial(1);
+  draco::Material* const material1 = library.MutableMaterial(1);
   material1->SetTextureMap(std::move(texture1),
                            draco::TextureMap::METALLIC_ROUGHNESS, 0);
   ASSERT_EQ(
@@ -175,9 +187,9 @@ TEST(TextureUtilsTest, TestComputeRequiredNumChannels) {
       draco::TextureUtils::ComputeRequiredNumChannels(*texture1_ptr, library),
       3);
 
-  // Compute number of channels texture that is used for occlusin map in one
+  // Compute number of channels texture that is used for occlusion map in one
   // material and also shared with metallic-roughness map in another material.
-  draco::Material *const material2 = library.MutableMaterial(2);
+  draco::Material* const material2 = library.MutableMaterial(2);
   DRACO_ASSERT_OK(material2->SetTextureMap(
       texture0_ptr, draco::TextureMap::METALLIC_ROUGHNESS, 0));
   ASSERT_EQ(
@@ -189,6 +201,16 @@ TEST(TextureUtilsTest, TestComputeRequiredNumChannels) {
   ASSERT_EQ(
       draco::TextureUtils::ComputeRequiredNumChannels(*texture2_ptr, library),
       4);
+}
+
+TEST(TextureUtilsTest, TestCreateTexture16Bit) {
+  // Tests that textures with 16 bits per channel can be read.
+  DRACO_ASSIGN_OR_ASSERT(
+      auto texture, draco::ReadTextureFromFile(
+                        draco::GetTestFileFullPath("baseColor_16bit.png")));
+  ASSERT_NE(texture, nullptr);
+  ASSERT_EQ(texture->width(), 16);
+  ASSERT_EQ(texture->height(), 16);
 }
 
 }  // namespace

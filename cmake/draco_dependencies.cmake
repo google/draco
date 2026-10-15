@@ -44,6 +44,11 @@ draco_track_configuration_variable(DRACO_GOOGLETEST_PATH)
 set(DRACO_TINYGLTF_PATH)
 draco_track_configuration_variable(DRACO_TINYGLTF_PATH)
 
+# Path to the AOMedia PMC installation. The path must be to the root of the
+# project directory.
+set(DRACO_PMC_PATH)
+draco_track_configuration_variable(DRACO_PMC_PATH)
+
 # Utility macro for killing the build due to a missing submodule directory.
 macro(draco_die_missing_submodule dir)
   message(FATAL_ERROR "${dir} missing, run git submodule update --init")
@@ -133,4 +138,67 @@ macro(draco_setup_tinygltf)
   endif()
 
   list(APPEND draco_include_paths "${tinygltf_path}")
+endmacro()
+
+# Determines the PMC location and updates the build configuration accordingly.
+macro(draco_setup_pmc)
+  if(DRACO_PMC_PATH)
+    set(pmc_path "${DRACO_PMC_PATH}")
+
+    if(NOT IS_DIRECTORY "${pmc_path}")
+      message(FATAL_ERROR "DRACO_PMC_PATH does not exist.")
+    endif()
+  else()
+    set(pmc_path "${draco_root}/third_party/pmc")
+
+    if(NOT IS_DIRECTORY "${pmc_path}")
+      draco_die_missing_submodule("${pmc_path}")
+    endif()
+  endif()
+
+  include(ExternalProject)
+
+  set(pmc_build_dir "${draco_build}/pmc-build")
+
+  # Determine library file name extension
+  if(MSVC)
+    set(pmc_lib_name "pmc.lib")
+  else()
+    set(pmc_lib_name "libpmc.a")
+  endif()
+  set(pmc_lib_path "${pmc_build_dir}/lib/${pmc_lib_name}")
+
+  # Configure PMC as an external project.
+  # This avoids path issues (PMC using CMAKE_SOURCE_DIR) when built in-tree.
+  ExternalProject_Add(pmc_ext
+    SOURCE_DIR "${pmc_path}"
+    BINARY_DIR "${pmc_build_dir}"
+    BUILD_COMMAND
+      ${CMAKE_COMMAND} --build <BINARY_DIR> --config $<CONFIG> --target genversion
+      COMMAND
+      ${CMAKE_COMMAND} --build <BINARY_DIR> --config $<CONFIG> --target pmc
+    BUILD_BYPRODUCTS "${pmc_lib_path}"
+    INSTALL_COMMAND ""
+    CMAKE_ARGS
+      -DPMC_LIB_ONLY=ON
+      "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
+      "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+      -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+      "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${pmc_build_dir}/lib"
+      "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG=${pmc_build_dir}/lib"
+      "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE=${pmc_build_dir}/lib"
+      "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL=${pmc_build_dir}/lib"
+      "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO=${pmc_build_dir}/lib"
+  )
+
+  # Define the imported target that Draco can link against.
+  add_library(pmc STATIC IMPORTED GLOBAL)
+  set_target_properties(pmc PROPERTIES
+    IMPORTED_LOCATION "${pmc_lib_path}"
+    INTERFACE_INCLUDE_DIRECTORIES "${pmc_path}/lib/public"
+  )
+  add_dependencies(pmc pmc_ext)
+
+  list(APPEND draco_include_paths "${pmc_path}/lib/public")
 endmacro()

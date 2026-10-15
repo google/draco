@@ -14,6 +14,7 @@
 //
 #include "draco/mesh/mesh_features.h"
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -25,9 +26,12 @@ MeshFeatures::MeshFeatures()
     : feature_count_(0),
       null_feature_id_(-1),
       attribute_index_(-1),
-      property_table_index_(-1) {}
+      property_table_index_(-1) {
+  // EXT_mesh_features defines default texture channels as [0].
+  texture_channels_.push_back(0);
+}
 
-void MeshFeatures::Copy(const MeshFeatures &src) {
+void MeshFeatures::Copy(const MeshFeatures& src) {
   label_ = src.label_;
   feature_count_ = src.feature_count_;
   null_feature_id_ = src.null_feature_id_;
@@ -37,9 +41,9 @@ void MeshFeatures::Copy(const MeshFeatures &src) {
   property_table_index_ = src.property_table_index_;
 }
 
-void MeshFeatures::SetLabel(const std::string &label) { label_ = label; }
+void MeshFeatures::SetLabel(const std::string& label) { label_ = label; }
 
-const std::string &MeshFeatures::GetLabel() const { return label_; }
+const std::string& MeshFeatures::GetLabel() const { return label_; }
 
 void MeshFeatures::SetFeatureCount(int feature_count) {
   feature_count_ = feature_count;
@@ -59,29 +63,29 @@ void MeshFeatures::SetAttributeIndex(int attribute_index) {
 
 int MeshFeatures::GetAttributeIndex() const { return attribute_index_; }
 
-void MeshFeatures::SetTextureMap(const TextureMap &texture_map) {
+void MeshFeatures::SetTextureMap(const TextureMap& texture_map) {
   texture_map_.Copy(texture_map);
 }
 
-void MeshFeatures::SetTextureMap(Texture *texture, int tex_coord_index) {
+void MeshFeatures::SetTextureMap(Texture* texture, int tex_coord_index) {
   texture_map_.SetProperties(TextureMap::GENERIC, tex_coord_index);
   texture_map_.SetTexture(texture);
 }
 
-const TextureMap &MeshFeatures::GetTextureMap() const { return texture_map_; }
+const TextureMap& MeshFeatures::GetTextureMap() const { return texture_map_; }
 
-TextureMap &MeshFeatures::GetTextureMap() { return texture_map_; }
+TextureMap& MeshFeatures::GetTextureMap() { return texture_map_; }
 
 void MeshFeatures::SetTextureChannels(
-    const std::vector<int> &texture_channels) {
+    const std::vector<int>& texture_channels) {
   texture_channels_ = texture_channels;
 }
 
-const std::vector<int> &MeshFeatures::GetTextureChannels() const {
+const std::vector<int>& MeshFeatures::GetTextureChannels() const {
   return texture_channels_;
 }
 
-std::vector<int> &MeshFeatures::GetTextureChannels() {
+std::vector<int>& MeshFeatures::GetTextureChannels() {
   return texture_channels_;
 }
 

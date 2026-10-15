@@ -52,7 +52,7 @@ class PointDVectorTest : public ::testing::Test {
                 att[val * att_dimensionality + att_dim] = val;
               }
             }
-            const PT *const attribute_data = att.data();
+            const PT* const attribute_data = att.data();
 
             var.CopyAttribute(att_dimensionality, offset_dimensionality,
                               attribute_data);
@@ -85,7 +85,7 @@ class PointDVectorTest : public ::testing::Test {
                 att[val * att_dimensionality + att_dim] = val;
               }
             }
-            const PT *const attribute_data = att.data();
+            const PT* const attribute_data = att.data();
 
             for (PT item = 0; item < n_items; item += 1) {
               var.CopyAttribute(att_dimensionality, offset_dimensionality, item,
@@ -122,7 +122,7 @@ class PointDVectorTest : public ::testing::Test {
                 att[val * att_dimensionality + att_dim] = val;
               }
             }
-            const PT *const attribute_data = att.data();
+            const PT* const attribute_data = att.data();
 
             var.CopyAttribute(att_dimensionality, offset_dimensionality,
                               attribute_data);
@@ -161,7 +161,7 @@ class PointDVectorTest : public ::testing::Test {
                 att[val * att_dimensionality + att_dim] = val;
               }
             }
-            const PT *const attribute_data = att.data();
+            const PT* const attribute_data = att.data();
 
             var.CopyAttribute(att_dimensionality, offset_dimensionality,
                               attribute_data);
@@ -221,7 +221,7 @@ class PointDVectorTest : public ::testing::Test {
             att[val * att_dimensionality + att_dim] = val;
           }
         }
-        const PT *const attribute_data = att.data();
+        const PT* const attribute_data = att.data();
 
         var.CopyAttribute(att_dimensionality, offset_dimensionality,
                           attribute_data);

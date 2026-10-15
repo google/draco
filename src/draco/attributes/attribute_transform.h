@@ -31,44 +31,44 @@ class AttributeTransform {
   // Return attribute transform type.
   virtual AttributeTransformType Type() const = 0;
   // Try to init transform from attribute.
-  virtual bool InitFromAttribute(const PointAttribute &attribute) = 0;
+  virtual bool InitFromAttribute(const PointAttribute& attribute) = 0;
   // Copy parameter values into the provided AttributeTransformData instance.
   virtual void CopyToAttributeTransformData(
-      AttributeTransformData *out_data) const = 0;
-  bool TransferToAttribute(PointAttribute *attribute) const;
+      AttributeTransformData* out_data) const = 0;
+  bool TransferToAttribute(PointAttribute* attribute) const;
 
   // Applies the transform to |attribute| and stores the result in
   // |target_attribute|. |point_ids| is an optional vector that can be used to
   // remap values during the transform.
-  virtual bool TransformAttribute(const PointAttribute &attribute,
-                                  const std::vector<PointIndex> &point_ids,
-                                  PointAttribute *target_attribute) = 0;
+  virtual bool TransformAttribute(const PointAttribute& attribute,
+                                  const std::vector<PointIndex>& point_ids,
+                                  PointAttribute* target_attribute) = 0;
 
   // Applies an inverse transform to |attribute| and stores the result in
   // |target_attribute|. In this case, |attribute| is an attribute that was
   // already transformed (e.g. quantized) and |target_attribute| is the
   // attribute before the transformation.
-  virtual bool InverseTransformAttribute(const PointAttribute &attribute,
-                                         PointAttribute *target_attribute) = 0;
+  virtual bool InverseTransformAttribute(const PointAttribute& attribute,
+                                         PointAttribute* target_attribute) = 0;
 
   // Encodes all data needed by the transformation into the |encoder_buffer|.
-  virtual bool EncodeParameters(EncoderBuffer *encoder_buffer) const = 0;
+  virtual bool EncodeParameters(EncoderBuffer* encoder_buffer) const = 0;
 
   // Decodes all data needed to transform |attribute| back to the original
   // format.
-  virtual bool DecodeParameters(const PointAttribute &attribute,
-                                DecoderBuffer *decoder_buffer) = 0;
+  virtual bool DecodeParameters(const PointAttribute& attribute,
+                                DecoderBuffer* decoder_buffer) = 0;
 
   // Initializes a transformed attribute that can be used as target in the
   // TransformAttribute() function call.
   virtual std::unique_ptr<PointAttribute> InitTransformedAttribute(
-      const PointAttribute &src_attribute, int num_entries);
+      const PointAttribute& src_attribute, int num_entries);
 
  protected:
   virtual DataType GetTransformedDataType(
-      const PointAttribute &attribute) const = 0;
+      const PointAttribute& attribute) const = 0;
   virtual int GetTransformedNumComponents(
-      const PointAttribute &attribute) const = 0;
+      const PointAttribute& attribute) const = 0;
 };
 
 }  // namespace draco

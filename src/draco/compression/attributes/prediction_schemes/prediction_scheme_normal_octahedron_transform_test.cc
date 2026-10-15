@@ -23,7 +23,7 @@ class PredictionSchemeNormalOctahedronTransformTest : public ::testing::Test {
       Transform;
   typedef Transform::Point2 Point2;
 
-  void TestComputeCorrection(const Transform &transform, const int32_t ox,
+  void TestComputeCorrection(const Transform& transform, const int32_t ox,
                              const int32_t oy, const int32_t px,
                              const int32_t py, const int32_t cx,
                              const int32_t cy) {

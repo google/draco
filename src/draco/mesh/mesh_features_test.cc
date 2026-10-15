@@ -14,7 +14,9 @@
 //
 #include "draco/mesh/mesh_features.h"
 
+#include <cstdint>
 #include <memory>
+#include <set>
 #include <vector>
 
 #include "draco/core/draco_test_base.h"
@@ -33,7 +35,7 @@ TEST(MeshFeaturesTest, TestDefaults) {
   ASSERT_EQ(mesh_features.GetNullFeatureId(), -1);
   ASSERT_EQ(mesh_features.GetAttributeIndex(), -1);
   ASSERT_EQ(mesh_features.GetPropertyTableIndex(), -1);
-  ASSERT_TRUE(mesh_features.GetTextureChannels().empty());
+  ASSERT_EQ(mesh_features.GetTextureChannels().size(), 1);
   ASSERT_EQ(mesh_features.GetTextureMap().texture(), nullptr);
   ASSERT_EQ(mesh_features.GetTextureMap().type(), draco::TextureMap::GENERIC);
 }

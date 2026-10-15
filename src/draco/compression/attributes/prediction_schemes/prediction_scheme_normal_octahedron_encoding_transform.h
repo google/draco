@@ -55,16 +55,16 @@ class PredictionSchemeNormalOctahedronEncodingTransform
       DataType max_quantized_value)
       : Base(max_quantized_value) {}
 
-  void Init(const DataTypeT *orig_data, int size, int num_components) {}
+  void Init(const DataTypeT* orig_data, int size, int num_components) {}
 
-  bool EncodeTransformData(EncoderBuffer *buffer) {
+  bool EncodeTransformData(EncoderBuffer* buffer) {
     buffer->Encode(this->max_quantized_value());
     return true;
   }
 
-  inline void ComputeCorrection(const DataType *orig_vals,
-                                const DataType *pred_vals,
-                                CorrType *out_corr_vals) const {
+  inline void ComputeCorrection(const DataType* orig_vals,
+                                const DataType* pred_vals,
+                                CorrType* out_corr_vals) const {
     DRACO_DCHECK_LE(pred_vals[0], this->center_value() * 2);
     DRACO_DCHECK_LE(pred_vals[1], this->center_value() * 2);
     DRACO_DCHECK_LE(orig_vals[0], this->center_value() * 2);

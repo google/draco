@@ -15,6 +15,8 @@
 #ifndef DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_TEX_COORDS_PORTABLE_DECODER_H_
 #define DRACO_COMPRESSION_ATTRIBUTES_PREDICTION_SCHEMES_MESH_PREDICTION_SCHEME_TEX_COORDS_PORTABLE_DECODER_H_
 
+#include <cstdint>
+
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_decoder.h"
 #include "draco/compression/attributes/prediction_schemes/mesh_prediction_scheme_tex_coords_portable_predictor.h"
 #include "draco/compression/bit_coders/rans_bit_decoder.h"
@@ -30,18 +32,18 @@ class MeshPredictionSchemeTexCoordsPortableDecoder
  public:
   using CorrType = typename MeshPredictionSchemeDecoder<DataTypeT, TransformT,
                                                         MeshDataT>::CorrType;
-  MeshPredictionSchemeTexCoordsPortableDecoder(const PointAttribute *attribute,
-                                               const TransformT &transform,
-                                               const MeshDataT &mesh_data)
+  MeshPredictionSchemeTexCoordsPortableDecoder(const PointAttribute* attribute,
+                                               const TransformT& transform,
+                                               const MeshDataT& mesh_data)
       : MeshPredictionSchemeDecoder<DataTypeT, TransformT, MeshDataT>(
             attribute, transform, mesh_data),
         predictor_(mesh_data) {}
 
-  bool ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
+  bool ComputeOriginalValues(const CorrType* in_corr, DataTypeT* out_data,
                              int size, int num_components,
-                             const PointIndex *entry_to_point_id_map) override;
+                             const PointIndex* entry_to_point_id_map) override;
 
-  bool DecodePredictionData(DecoderBuffer *buffer) override;
+  bool DecodePredictionData(DecoderBuffer* buffer) override;
 
   PredictionSchemeMethod GetPredictionMethod() const override {
     return MESH_PREDICTION_TEX_COORDS_PORTABLE;
@@ -65,7 +67,7 @@ class MeshPredictionSchemeTexCoordsPortableDecoder
     return GeometryAttribute::POSITION;
   }
 
-  bool SetParentAttribute(const PointAttribute *att) override {
+  bool SetParentAttribute(const PointAttribute* att) override {
     if (!att || att->attribute_type() != GeometryAttribute::POSITION) {
       return false;  // Invalid attribute type.
     }
@@ -76,18 +78,23 @@ class MeshPredictionSchemeTexCoordsPortableDecoder
     return true;
   }
 
+  virtual void SetMaxNumPredictedValues(int32_t num) {
+    max_num_predicted_values_ = num;
+  }
+
  private:
   MeshPredictionSchemeTexCoordsPortablePredictor<DataTypeT, MeshDataT>
       predictor_;
+  int32_t max_num_predicted_values_ = -1;
 };
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeTexCoordsPortableDecoder<
     DataTypeT, TransformT,
-    MeshDataT>::ComputeOriginalValues(const CorrType *in_corr,
-                                      DataTypeT *out_data, int size,
+    MeshDataT>::ComputeOriginalValues(const CorrType* in_corr,
+                                      DataTypeT* out_data, int size,
                                       int num_components,
-                                      const PointIndex *entry_to_point_id_map) {
+                                      const PointIndex* entry_to_point_id_map) {
   if (num_components != MeshPredictionSchemeTexCoordsPortablePredictor<
                             DataTypeT, MeshDataT>::kNumComponents) {
     return false;
@@ -117,13 +124,20 @@ bool MeshPredictionSchemeTexCoordsPortableDecoder<
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeTexCoordsPortableDecoder<
-    DataTypeT, TransformT, MeshDataT>::DecodePredictionData(DecoderBuffer
-                                                                *buffer) {
+    DataTypeT, TransformT, MeshDataT>::DecodePredictionData(DecoderBuffer*
+                                                                buffer) {
   // Decode the delta coded orientations.
   int32_t num_orientations = 0;
   if (!buffer->Decode(&num_orientations) || num_orientations < 0) {
     return false;
   }
+
+  // Check that the decoded number of orientations is not unreasonably high.
+  const int32_t max_num_orientations = max_num_predicted_values_;
+  if (max_num_orientations != -1 && num_orientations > max_num_orientations) {
+    return false;
+  }
+
   predictor_.ResizeOrientations(num_orientations);
   bool last_orientation = true;
   RAnsBitDecoder decoder;

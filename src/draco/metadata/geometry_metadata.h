@@ -25,8 +25,8 @@ namespace draco {
 class AttributeMetadata : public Metadata {
  public:
   AttributeMetadata() : att_unique_id_(0) {}
-  AttributeMetadata(const AttributeMetadata &metadata);
-  explicit AttributeMetadata(const Metadata &metadata)
+  AttributeMetadata(const AttributeMetadata& metadata);
+  explicit AttributeMetadata(const Metadata& metadata)
       : Metadata(metadata), att_unique_id_(0) {}
 
   void set_att_unique_id(uint32_t att_unique_id) {
@@ -44,10 +44,10 @@ class AttributeMetadata : public Metadata {
 
 // Functor for computing a hash from data stored in a AttributeMetadata class.
 struct AttributeMetadataHasher {
-  size_t operator()(const AttributeMetadata &metadata) const {
+  size_t operator()(const AttributeMetadata& metadata) const {
     size_t hash = metadata.att_unique_id_;
     MetadataHasher metadata_hasher;
-    hash = HashCombine(metadata_hasher(static_cast<const Metadata &>(metadata)),
+    hash = HashCombine(metadata_hasher(static_cast<const Metadata&>(metadata)),
                        hash);
     return hash;
   }
@@ -58,11 +58,11 @@ struct AttributeMetadataHasher {
 class GeometryMetadata : public Metadata {
  public:
   GeometryMetadata() {}
-  GeometryMetadata(const GeometryMetadata &metadata);
-  explicit GeometryMetadata(const Metadata &metadata) : Metadata(metadata) {}
+  GeometryMetadata(const GeometryMetadata& metadata);
+  explicit GeometryMetadata(const Metadata& metadata) : Metadata(metadata) {}
 
-  const AttributeMetadata *GetAttributeMetadataByStringEntry(
-      const std::string &entry_name, const std::string &entry_value) const;
+  const AttributeMetadata* GetAttributeMetadataByStringEntry(
+      const std::string& entry_name, const std::string& entry_value) const;
   bool AddAttributeMetadata(std::unique_ptr<AttributeMetadata> att_metadata);
 
   void DeleteAttributeMetadataByUniqueId(int32_t att_unique_id) {
@@ -78,7 +78,7 @@ class GeometryMetadata : public Metadata {
     }
   }
 
-  const AttributeMetadata *GetAttributeMetadataByUniqueId(
+  const AttributeMetadata* GetAttributeMetadataByUniqueId(
       int32_t att_unique_id) const {
     if (att_unique_id < 0) {
       return nullptr;
@@ -86,7 +86,7 @@ class GeometryMetadata : public Metadata {
 
     // TODO(draco-eng): Consider using unordered_map instead of vector to store
     // attribute metadata.
-    for (auto &&att_metadata : att_metadatas_) {
+    for (auto&& att_metadata : att_metadatas_) {
       if (att_metadata->att_unique_id() ==
           static_cast<uint32_t>(att_unique_id)) {
         return att_metadata.get();
@@ -95,14 +95,14 @@ class GeometryMetadata : public Metadata {
     return nullptr;
   }
 
-  AttributeMetadata *attribute_metadata(int32_t att_unique_id) {
+  AttributeMetadata* attribute_metadata(int32_t att_unique_id) {
     if (att_unique_id < 0) {
       return nullptr;
     }
 
     // TODO(draco-eng): Consider use unordered_map instead of vector to store
     // attribute metadata.
-    for (auto &&att_metadata : att_metadatas_) {
+    for (auto&& att_metadata : att_metadatas_) {
       if (att_metadata->att_unique_id() ==
           static_cast<uint32_t>(att_unique_id)) {
         return att_metadata.get();
@@ -111,7 +111,7 @@ class GeometryMetadata : public Metadata {
     return nullptr;
   }
 
-  const std::vector<std::unique_ptr<AttributeMetadata>> &attribute_metadatas()
+  const std::vector<std::unique_ptr<AttributeMetadata>>& attribute_metadatas()
       const {
     return att_metadatas_;
   }
@@ -124,14 +124,14 @@ class GeometryMetadata : public Metadata {
 
 // Functor for computing a hash from data stored in a GeometryMetadata class.
 struct GeometryMetadataHasher {
-  size_t operator()(const GeometryMetadata &metadata) const {
+  size_t operator()(const GeometryMetadata& metadata) const {
     size_t hash = metadata.att_metadatas_.size();
     AttributeMetadataHasher att_metadata_hasher;
-    for (auto &&att_metadata : metadata.att_metadatas_) {
+    for (auto&& att_metadata : metadata.att_metadatas_) {
       hash = HashCombine(att_metadata_hasher(*att_metadata), hash);
     }
     MetadataHasher metadata_hasher;
-    hash = HashCombine(metadata_hasher(static_cast<const Metadata &>(metadata)),
+    hash = HashCombine(metadata_hasher(static_cast<const Metadata&>(metadata)),
                        hash);
     return hash;
   }

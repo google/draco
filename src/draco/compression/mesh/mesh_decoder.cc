@@ -18,8 +18,8 @@ namespace draco {
 
 MeshDecoder::MeshDecoder() : mesh_(nullptr) {}
 
-Status MeshDecoder::Decode(const DecoderOptions &options,
-                           DecoderBuffer *in_buffer, Mesh *out_mesh) {
+Status MeshDecoder::Decode(const DecoderOptions& options,
+                           DecoderBuffer* in_buffer, Mesh* out_mesh) {
   mesh_ = out_mesh;
   return PointCloudDecoder::Decode(options, in_buffer, out_mesh);
 }

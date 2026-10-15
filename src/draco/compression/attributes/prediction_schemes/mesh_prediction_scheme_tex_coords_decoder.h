@@ -38,9 +38,9 @@ class MeshPredictionSchemeTexCoordsDecoder
  public:
   using CorrType = typename MeshPredictionSchemeDecoder<DataTypeT, TransformT,
                                                         MeshDataT>::CorrType;
-  MeshPredictionSchemeTexCoordsDecoder(const PointAttribute *attribute,
-                                       const TransformT &transform,
-                                       const MeshDataT &mesh_data, int version)
+  MeshPredictionSchemeTexCoordsDecoder(const PointAttribute* attribute,
+                                       const TransformT& transform,
+                                       const MeshDataT& mesh_data, int version)
       : MeshPredictionSchemeDecoder<DataTypeT, TransformT, MeshDataT>(
             attribute, transform, mesh_data),
         pos_attribute_(nullptr),
@@ -48,11 +48,11 @@ class MeshPredictionSchemeTexCoordsDecoder
         num_components_(0),
         version_(version) {}
 
-  bool ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
+  bool ComputeOriginalValues(const CorrType* in_corr, DataTypeT* out_data,
                              int size, int num_components,
-                             const PointIndex *entry_to_point_id_map) override;
+                             const PointIndex* entry_to_point_id_map) override;
 
-  bool DecodePredictionData(DecoderBuffer *buffer) override;
+  bool DecodePredictionData(DecoderBuffer* buffer) override;
 
   PredictionSchemeMethod GetPredictionMethod() const override {
     return MESH_PREDICTION_TEX_COORDS_DEPRECATED;
@@ -76,7 +76,7 @@ class MeshPredictionSchemeTexCoordsDecoder
     return GeometryAttribute::POSITION;
   }
 
-  bool SetParentAttribute(const PointAttribute *att) override {
+  bool SetParentAttribute(const PointAttribute* att) override {
     if (att == nullptr) {
       return false;
     }
@@ -99,18 +99,18 @@ class MeshPredictionSchemeTexCoordsDecoder
     return pos;
   }
 
-  Vector2f GetTexCoordForEntryId(int entry_id, const DataTypeT *data) const {
+  Vector2f GetTexCoordForEntryId(int entry_id, const DataTypeT* data) const {
     const int data_offset = entry_id * num_components_;
     return Vector2f(static_cast<float>(data[data_offset]),
                     static_cast<float>(data[data_offset + 1]));
   }
 
-  bool ComputePredictedValue(CornerIndex corner_id, const DataTypeT *data,
+  bool ComputePredictedValue(CornerIndex corner_id, const DataTypeT* data,
                              int data_id);
 
  private:
-  const PointAttribute *pos_attribute_;
-  const PointIndex *entry_to_point_id_map_;
+  const PointAttribute* pos_attribute_;
+  const PointIndex* entry_to_point_id_map_;
   std::unique_ptr<DataTypeT[]> predicted_value_;
   int num_components_;
   // Encoded / decoded array of UV flips.
@@ -120,9 +120,9 @@ class MeshPredictionSchemeTexCoordsDecoder
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
-    ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
+    ComputeOriginalValues(const CorrType* in_corr, DataTypeT* out_data,
                           int size, int num_components,
-                          const PointIndex *entry_to_point_id_map) {
+                          const PointIndex* entry_to_point_id_map) {
   if (num_components != 2) {
     // Corrupt/malformed input. Two output components are req'd.
     return false;
@@ -153,7 +153,7 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
-    DecodePredictionData(DecoderBuffer *buffer) {
+    DecodePredictionData(DecoderBuffer* buffer) {
   // Decode the delta coded orientations.
   uint32_t num_orientations = 0;
   if (buffer->bitstream_version() < DRACO_BITSTREAM_VERSION(2, 2)) {
@@ -192,7 +192,7 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
 bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
-    ComputePredictedValue(CornerIndex corner_id, const DataTypeT *data,
+    ComputePredictedValue(CornerIndex corner_id, const DataTypeT* data,
                           int data_id) {
   // Compute the predicted UV coordinate from the positions on all corners
   // of the processed triangle. For the best prediction, the UV coordinates

@@ -37,7 +37,7 @@ TEST_F(BufferBitCodingTest, TestBitCodersByteAligned) {
   }
 
   BitDecoder decoder;
-  decoder.reset(static_cast<const void *>(buffer), bytes_to_encode);
+  decoder.reset(static_cast<const void*>(buffer), bytes_to_encode);
   for (int i = 0; i < bytes_to_encode; ++i) {
     uint32_t x = 0;
     ASSERT_TRUE(decoder.GetBits(8, &x));
@@ -63,7 +63,7 @@ TEST_F(BufferBitCodingTest, TestBitCodersNonByte) {
   }
 
   BitDecoder decoder;
-  decoder.reset(static_cast<const void *>(buffer), bytes_to_encode);
+  decoder.reset(static_cast<const void*>(buffer), bytes_to_encode);
   int64_t bits_to_decode = encoder.Bits();
   for (int i = 0; i < bytes_to_encode; ++i) {
     uint32_t x = 0;
@@ -83,7 +83,7 @@ TEST_F(BufferBitCodingTest, TestSingleBits) {
   const int data = 0xaaaa;
 
   BitDecoder decoder;
-  decoder.reset(static_cast<const void *>(&data), sizeof(data));
+  decoder.reset(static_cast<const void*>(&data), sizeof(data));
 
   for (uint32_t i = 0; i < 16; ++i) {
     uint32_t x = 0;
@@ -98,7 +98,7 @@ TEST_F(BufferBitCodingTest, TestMultipleBits) {
   const uint8_t data[] = {0x76, 0x54, 0x32, 0x10, 0x76, 0x54, 0x32, 0x10};
 
   BitDecoder decoder;
-  decoder.reset(static_cast<const void *>(data), sizeof(data));
+  decoder.reset(static_cast<const void*>(data), sizeof(data));
 
   uint32_t x = 0;
   for (uint32_t i = 0; i < 2; ++i) {

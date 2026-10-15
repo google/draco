@@ -25,7 +25,7 @@ namespace draco {
 // Encodes a specified integer as varint. Note that different coding is used
 // when IntTypeT is an unsigned data type.
 template <typename IntTypeT>
-bool EncodeVarint(IntTypeT val, EncoderBuffer *out_buffer) {
+bool EncodeVarint(IntTypeT val, EncoderBuffer* out_buffer) {
   if (std::is_unsigned<IntTypeT>::value) {
     // Coding of unsigned values.
     // 0-6 bit - data

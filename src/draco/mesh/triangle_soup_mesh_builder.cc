@@ -26,7 +26,7 @@ void TriangleSoupMeshBuilder::Start(int num_faces) {
 }
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
-void TriangleSoupMeshBuilder::SetName(const std::string &name) {
+void TriangleSoupMeshBuilder::SetName(const std::string& name) {
   mesh_->SetName(name);
 }
 #endif  // DRACO_TRANSCODER_SUPPORTED
@@ -48,10 +48,10 @@ int TriangleSoupMeshBuilder::AddAttribute(
 }
 
 void TriangleSoupMeshBuilder::SetAttributeValuesForFace(
-    int att_id, FaceIndex face_id, const void *corner_value_0,
-    const void *corner_value_1, const void *corner_value_2) {
+    int att_id, FaceIndex face_id, const void* corner_value_0,
+    const void* corner_value_1, const void* corner_value_2) {
   const int start_index = 3 * face_id.value();
-  PointAttribute *const att = mesh_->attribute(att_id);
+  PointAttribute* const att = mesh_->attribute(att_id);
   att->SetAttributeValue(AttributeValueIndex(start_index), corner_value_0);
   att->SetAttributeValue(AttributeValueIndex(start_index + 1), corner_value_1);
   att->SetAttributeValue(AttributeValueIndex(start_index + 2), corner_value_2);
@@ -62,16 +62,16 @@ void TriangleSoupMeshBuilder::SetAttributeValuesForFace(
 }
 
 void TriangleSoupMeshBuilder::SetPerFaceAttributeValueForFace(
-    int att_id, FaceIndex face_id, const void *value) {
+    int att_id, FaceIndex face_id, const void* value) {
   const int start_index = 3 * face_id.value();
-  PointAttribute *const att = mesh_->attribute(att_id);
+  PointAttribute* const att = mesh_->attribute(att_id);
   att->SetAttributeValue(AttributeValueIndex(start_index), value);
   att->SetAttributeValue(AttributeValueIndex(start_index + 1), value);
   att->SetAttributeValue(AttributeValueIndex(start_index + 2), value);
   mesh_->SetFace(face_id,
                  {{PointIndex(start_index), PointIndex(start_index + 1),
                    PointIndex(start_index + 2)}});
-  int8_t &element_type = attribute_element_types_[att_id];
+  int8_t& element_type = attribute_element_types_[att_id];
   if (element_type < 0) {
     element_type = MESH_FACE_ATTRIBUTE;
   }
@@ -105,7 +105,7 @@ void TriangleSoupMeshBuilder::SetAttributeUniqueId(int att_id,
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
 void TriangleSoupMeshBuilder::SetAttributeName(int att_id,
-                                               const std::string &name) {
+                                               const std::string& name) {
   mesh_->attribute(att_id)->set_name(name);
 }
 #endif  // DRACO_TRANSCODER_SUPPORTED

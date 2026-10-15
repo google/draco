@@ -11,11 +11,11 @@ namespace draco {
 class FileReaderFactory {
  public:
   using OpenFunction =
-      std::unique_ptr<FileReaderInterface> (*)(const std::string &file_name);
+      std::unique_ptr<FileReaderInterface> (*)(const std::string& file_name);
 
   FileReaderFactory() = delete;
-  FileReaderFactory(const FileReaderFactory &) = delete;
-  FileReaderFactory &operator=(const FileReaderFactory &) = delete;
+  FileReaderFactory(const FileReaderFactory&) = delete;
+  FileReaderFactory& operator=(const FileReaderFactory&) = delete;
   ~FileReaderFactory() = default;
 
   // Registers the OpenFunction for a FileReaderInterface and returns true when
@@ -26,7 +26,7 @@ class FileReaderFactory {
   // when no reader is found for |file_name|. Otherwise a FileReaderInterface is
   // returned.
   static std::unique_ptr<FileReaderInterface> OpenReader(
-      const std::string &file_name);
+      const std::string& file_name);
 };
 
 }  // namespace draco

@@ -19,6 +19,10 @@
 
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
+#include "draco/metadata/property_attribute.h"
+#include "draco/metadata/property_table.h"
+#include "draco/metadata/property_texture.h"
+#include "draco/metadata/structural_metadata_schema.h"
 
 namespace {
 
@@ -89,7 +93,7 @@ TEST(StructuralMetadataTest, TestPropertyTables) {
     table->SetName("Of Course I Still Love You");
     ASSERT_EQ(structural_metadata.AddPropertyTable(std::move(table)), 2);
   }
-  draco::StructuralMetadata &sm = structural_metadata;
+  draco::StructuralMetadata& sm = structural_metadata;
 
   // Check that the property tables can be removed.
   ASSERT_EQ(sm.NumPropertyTables(), 3);
@@ -114,6 +118,7 @@ TEST(StructuralMetadataTest, TestCompare) {
   // Test comparison of two structural metadata objects.
   typedef draco::PropertyTable PropertyTable;
   typedef draco::PropertyAttribute PropertyAttribute;
+  typedef draco::PropertyTexture PropertyTexture;
   {
     // Compare the same structural metadata object.
     draco::StructuralMetadata a;
@@ -190,7 +195,7 @@ TEST(StructuralMetadataTest, TestCompare) {
     ASSERT_FALSE(a != b);
   }
   {
-    // Compare two objects with identical property attributes.
+    // Compare two objects with different property attributes.
     draco::StructuralMetadata a;
     draco::StructuralMetadata b;
     auto p1 = std::unique_ptr<PropertyAttribute>(new PropertyAttribute());
@@ -199,6 +204,32 @@ TEST(StructuralMetadataTest, TestCompare) {
     p2->SetName("two");
     a.AddPropertyAttribute(std::move(p1));
     b.AddPropertyAttribute(std::move(p2));
+    ASSERT_FALSE(a == b);
+    ASSERT_TRUE(a != b);
+  }
+  {
+    // Compare two objects with identical property textures.
+    draco::StructuralMetadata a;
+    draco::StructuralMetadata b;
+    auto p1 = std::unique_ptr<PropertyTexture>(new PropertyTexture());
+    auto p2 = std::unique_ptr<PropertyTexture>(new PropertyTexture());
+    p1->SetName("one");
+    p2->SetName("one");
+    a.AddPropertyTexture(std::move(p1));
+    b.AddPropertyTexture(std::move(p2));
+    ASSERT_TRUE(a == b);
+    ASSERT_FALSE(a != b);
+  }
+  {
+    // Compare two objects with different property textures.
+    draco::StructuralMetadata a;
+    draco::StructuralMetadata b;
+    auto p1 = std::unique_ptr<PropertyTexture>(new PropertyTexture());
+    auto p2 = std::unique_ptr<PropertyTexture>(new PropertyTexture());
+    p1->SetName("one");
+    p2->SetName("two");
+    a.AddPropertyTexture(std::move(p1));
+    b.AddPropertyTexture(std::move(p2));
     ASSERT_FALSE(a == b);
     ASSERT_TRUE(a != b);
   }

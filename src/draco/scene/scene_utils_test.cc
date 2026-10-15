@@ -31,14 +31,14 @@ namespace {
 using draco::MeshIndex;
 using draco::MeshInstanceIndex;
 
-void AssertMatrixNear(const Eigen::Matrix4d &a, const Eigen::Matrix4d &b,
+void AssertMatrixNear(const Eigen::Matrix4d& a, const Eigen::Matrix4d& b,
                       float tolerance) {
   Eigen::Matrix4d diff = a - b;
   ASSERT_NEAR(diff.norm(), 0.f, tolerance) << a << " vs " << b;
 }
 
 // TODO(fgalligan): Re-factor this code with gltf_encoder_test.
-void CompareScenes(const draco::Scene *scene0, const draco::Scene *scene1) {
+void CompareScenes(const draco::Scene* scene0, const draco::Scene* scene1) {
   ASSERT_EQ(scene0->NumMeshGroups(), scene1->NumMeshGroups());
   ASSERT_EQ(scene0->NumMeshes(), scene1->NumMeshes());
   ASSERT_EQ(scene0->GetMaterialLibrary().NumMaterials(),
@@ -46,8 +46,8 @@ void CompareScenes(const draco::Scene *scene0, const draco::Scene *scene1) {
   ASSERT_EQ(scene0->NumAnimations(), scene1->NumAnimations());
   ASSERT_EQ(scene0->NumSkins(), scene1->NumSkins());
   for (draco::AnimationIndex i(0); i < scene0->NumAnimations(); ++i) {
-    const draco::Animation *const animation0 = scene0->GetAnimation(i);
-    const draco::Animation *const animation1 = scene1->GetAnimation(i);
+    const draco::Animation* const animation0 = scene0->GetAnimation(i);
+    const draco::Animation* const animation1 = scene1->GetAnimation(i);
     ASSERT_NE(animation0, nullptr);
     ASSERT_NE(animation1, nullptr);
     ASSERT_EQ(animation0->NumSamplers(), animation1->NumSamplers());
@@ -289,6 +289,7 @@ TEST(SceneUtilsTest, TestMeshToSceneZeroMaterials) {
   std::unique_ptr<draco::Mesh> mesh = draco::ReadMeshFromTestFile(filename);
   ASSERT_NE(mesh, nullptr);
   ASSERT_EQ(mesh->GetMaterialLibrary().NumMaterials(), 0);
+  mesh->SetName("mesh_name");
 
   DRACO_ASSIGN_OR_ASSERT(const std::unique_ptr<draco::Scene> scene_from_mesh,
                          draco::SceneUtils::MeshToScene(std::move(mesh)));
@@ -296,9 +297,10 @@ TEST(SceneUtilsTest, TestMeshToSceneZeroMaterials) {
   ASSERT_EQ(scene_from_mesh->NumMeshes(), 1);
   ASSERT_EQ(scene_from_mesh->GetMaterialLibrary().NumMaterials(), 1);
   ASSERT_EQ(scene_from_mesh->NumMeshGroups(), 1);
-  const draco::MeshGroup *const mesh_group =
+  const draco::MeshGroup* const mesh_group =
       scene_from_mesh->GetMeshGroup(draco::MeshGroupIndex(0));
   ASSERT_EQ(mesh_group->NumMeshInstances(), 1);
+  ASSERT_EQ(mesh_group->GetName(), "mesh_name");
 }
 
 TEST(SceneUtilsTest, TestMeshToSceneOneMaterial) {
@@ -318,7 +320,7 @@ TEST(SceneUtilsTest, TestMeshToSceneOneMaterial) {
   ASSERT_EQ(scene_from_mesh->NumMeshes(), 1);
   ASSERT_EQ(scene_from_mesh->GetMaterialLibrary().NumMaterials(), 1);
   ASSERT_EQ(scene_from_mesh->NumMeshGroups(), 1);
-  const draco::MeshGroup *const mesh_group =
+  const draco::MeshGroup* const mesh_group =
       scene_from_mesh->GetMeshGroup(draco::MeshGroupIndex(0));
   ASSERT_EQ(mesh_group->NumMeshInstances(), 1);
 
@@ -340,7 +342,7 @@ TEST(SceneUtilsTest, TestMeshToSceneMultipleMaterials) {
   ASSERT_EQ(scene_from_mesh->NumMeshes(), 4);
   ASSERT_EQ(scene_from_mesh->GetMaterialLibrary().NumMaterials(), 4);
   ASSERT_EQ(scene_from_mesh->NumMeshGroups(), 1);
-  const draco::MeshGroup *const mesh_group =
+  const draco::MeshGroup* const mesh_group =
       scene_from_mesh->GetMeshGroup(draco::MeshGroupIndex(0));
   ASSERT_EQ(mesh_group->NumMeshInstances(), 4);
 
@@ -363,7 +365,7 @@ TEST(SceneUtilsTest, TestMeshToSceneMultipleMeshFeatures) {
   ASSERT_EQ(scene_from_mesh->NumMeshes(), 2);
   ASSERT_EQ(scene_from_mesh->GetMaterialLibrary().NumMaterials(), 2);
   ASSERT_EQ(scene_from_mesh->NumMeshGroups(), 1);
-  const draco::MeshGroup *const mesh_group =
+  const draco::MeshGroup* const mesh_group =
       scene_from_mesh->GetMeshGroup(draco::MeshGroupIndex(0));
   ASSERT_EQ(mesh_group->NumMeshInstances(), 2);
 
@@ -374,8 +376,8 @@ TEST(SceneUtilsTest, TestMeshToSceneMultipleMeshFeatures) {
               scene_from_mesh->GetMesh(mi).NumMeshFeatures());
     for (draco::MeshFeaturesIndex mfi(0);
          mfi < scene->GetMesh(mi).NumMeshFeatures(); ++mfi) {
-      const auto &scene_mf = scene->GetMesh(mi).GetMeshFeatures(mfi);
-      const auto &scene_from_mesh_mf =
+      const auto& scene_mf = scene->GetMesh(mi).GetMeshFeatures(mfi);
+      const auto& scene_from_mesh_mf =
           scene_from_mesh->GetMesh(mi).GetMeshFeatures(mfi);
       const int att_index_0 = scene_mf.GetAttributeIndex();
       const int att_index_1 = scene_from_mesh_mf.GetAttributeIndex();
@@ -430,7 +432,7 @@ TEST(SceneUtilsTest, TestMeshToSceneMeshFeaturesWithAttributes) {
   for (draco::MeshIndex mi(0); mi < scene_from_mesh->NumMeshes(); ++mi) {
     for (draco::MeshFeaturesIndex mfi(0);
          mfi < scene_from_mesh->GetMesh(mi).NumMeshFeatures(); ++mfi) {
-      const auto &mf = scene_from_mesh->GetMesh(mi).GetMeshFeatures(mfi);
+      const auto& mf = scene_from_mesh->GetMesh(mi).GetMeshFeatures(mfi);
       ASSERT_EQ(mf.GetAttributeIndex(), mf_att_id - 1);
     }
   }
@@ -446,7 +448,7 @@ TEST(SceneUtilsTest, TestMeshToSceneStructuralMetadata) {
   //   "classes": []
   // }
   draco::StructuralMetadataSchema sample_schema;
-  auto &classes_json = sample_schema.json.SetObjects().emplace_back("classes");
+  auto& classes_json = sample_schema.json.SetObjects().emplace_back("classes");
   classes_json.SetArray();
 
   mesh->GetStructuralMetadata().SetSchema(sample_schema);
@@ -477,7 +479,7 @@ TEST(SceneUtilsTest, TestInstantiateMeshWithIdentityTransformation) {
   // Instantiate this mesh instance.
   DRACO_ASSIGN_OR_ASSERT(auto mesh,
                          draco::SceneUtils::InstantiateMesh(*scene, instance));
-  const draco::Mesh &base_mesh = scene->GetMesh(instance.mesh_index);
+  const draco::Mesh& base_mesh = scene->GetMesh(instance.mesh_index);
 
   // Check that bounding box of the instanced mesh is same as box of base mesh.
   const draco::BoundingBox instanced_bbox = mesh->ComputeBoundingBox();
@@ -507,7 +509,7 @@ TEST(SceneUtilsTest, TestInstantiateMesh) {
   // Instantiate this mesh instance.
   DRACO_ASSIGN_OR_ASSERT(auto mesh,
                          draco::SceneUtils::InstantiateMesh(*scene, instance));
-  const draco::Mesh &base_mesh = scene->GetMesh(instance.mesh_index);
+  const draco::Mesh& base_mesh = scene->GetMesh(instance.mesh_index);
 
   // Check bounding box of the base mesh.
   constexpr float tolerance = 1e-4f;
@@ -552,7 +554,7 @@ TEST(SceneUtilsTest, TestCleanupEmptyMeshGroup) {
             draco::MeshGroupIndex(0));
 
   // Invalidate references to the three truck body parts in mesh group.
-  draco::MeshGroup &mesh_group = *scene->GetMeshGroup(draco::MeshGroupIndex(0));
+  draco::MeshGroup& mesh_group = *scene->GetMeshGroup(draco::MeshGroupIndex(0));
   mesh_group.SetMeshInstance(0, {draco::kInvalidMeshIndex, 0});
   mesh_group.SetMeshInstance(1, {draco::kInvalidMeshIndex, 0});
   mesh_group.SetMeshInstance(2, {draco::kInvalidMeshIndex, 0});
@@ -602,7 +604,7 @@ TEST(SceneUtilsTest, TestCleanupInvalidMeshIndex) {
             draco::MeshGroupIndex(0));
 
   // Invalidate references to two truck body parts in mesh group.
-  draco::MeshGroup &mesh_group = *scene->GetMeshGroup(draco::MeshGroupIndex(0));
+  draco::MeshGroup& mesh_group = *scene->GetMeshGroup(draco::MeshGroupIndex(0));
   ASSERT_EQ(mesh_group.NumMeshInstances(), 3);
   mesh_group.SetMeshInstance(0, {draco::kInvalidMeshIndex, 0});
   mesh_group.SetMeshInstance(2, {draco::kInvalidMeshIndex, 0});
@@ -654,7 +656,7 @@ TEST(SceneUtilsTest, TestCleanupUnusedNodes) {
 
   // Ensure all node indices are remapped to the new values.
   for (draco::SceneNodeIndex sni(0); sni < scene->NumNodes(); ++sni) {
-    const auto *node = scene->GetNode(sni);
+    const auto* node = scene->GetNode(sni);
     for (int i = 0; i < node->NumChildren(); ++i) {
       ASSERT_LT(node->Child(i).value(), 3);
     }
@@ -719,11 +721,11 @@ TEST(SceneUtilsTest, TestCleanupUnusedTexCoords0NoReferences) {
   ASSERT_NE(scene, nullptr);
   typedef draco::GeometryAttribute Att;
 
-  draco::Mesh &mesh = scene->GetMesh(draco::MeshIndex(0));
+  draco::Mesh& mesh = scene->GetMesh(draco::MeshIndex(0));
   ASSERT_EQ(mesh.NumNamedAttributes(Att::TEX_COORD), 2);
   ASSERT_EQ(mesh.GetNamedAttribute(Att::TEX_COORD, 0)->size(), 14);
   ASSERT_EQ(mesh.GetNamedAttribute(Att::TEX_COORD, 1)->size(), 4);
-  auto &ml = scene->GetMaterialLibrary();
+  auto& ml = scene->GetMaterialLibrary();
   ASSERT_EQ(ml.NumMaterials(), 1);
   ASSERT_EQ(ml.GetMaterial(0)->NumTextureMaps(), 1);
   ASSERT_EQ(ml.GetMaterial(0)->GetTextureMapByIndex(0)->tex_coord_index(), 1);
@@ -747,11 +749,11 @@ TEST(SceneUtilsTest, TestCleanupUnusedTexCoords1NoReferences) {
   ASSERT_NE(scene, nullptr);
   typedef draco::GeometryAttribute Att;
 
-  draco::Mesh &mesh = scene->GetMesh(draco::MeshIndex(0));
+  draco::Mesh& mesh = scene->GetMesh(draco::MeshIndex(0));
   ASSERT_EQ(mesh.NumNamedAttributes(Att::TEX_COORD), 2);
   ASSERT_EQ(mesh.GetNamedAttribute(Att::TEX_COORD, 0)->size(), 14);
   ASSERT_EQ(mesh.GetNamedAttribute(Att::TEX_COORD, 1)->size(), 4);
-  auto &ml = scene->GetMaterialLibrary();
+  auto& ml = scene->GetMaterialLibrary();
   ASSERT_EQ(ml.NumMaterials(), 1);
   ASSERT_EQ(ml.GetMaterial(0)->NumTextureMaps(), 1);
   ASSERT_EQ(ml.GetMaterial(0)->GetTextureMapByIndex(0)->tex_coord_index(), 0);
@@ -767,6 +769,329 @@ TEST(SceneUtilsTest, TestCleanupUnusedTexCoords1NoReferences) {
   ASSERT_EQ(ml.NumMaterials(), 1);
   ASSERT_EQ(ml.GetMaterial(0)->NumTextureMaps(), 1);
   ASSERT_EQ(ml.GetMaterial(0)->GetTextureMapByIndex(0)->tex_coord_index(), 0);
+}
+
+TEST(SceneUtilsTest, TestCleanupUnusedTexCoordsWithMeshFeatures) {
+  // Test that texture coordinates used by MeshFeatures are not cleaned up.
+  auto scene = std::make_unique<draco::Scene>();
+  auto mesh = std::make_unique<draco::Mesh>();
+
+  // Add POSITION attribute.
+  auto pos_att = std::make_unique<draco::PointAttribute>();
+  pos_att->Init(draco::GeometryAttribute::POSITION, 3, draco::DT_FLOAT32, false,
+                4);
+  mesh->AddAttribute(std::move(pos_att));
+
+  // Add 2 texture coordinate attributes.
+  auto tex_coord_0 = std::make_unique<draco::PointAttribute>();
+  tex_coord_0->Init(draco::GeometryAttribute::TEX_COORD, 2, draco::DT_FLOAT32,
+                    false, 4);
+  mesh->AddAttribute(std::move(tex_coord_0));
+
+  auto tex_coord_1 = std::make_unique<draco::PointAttribute>();
+  tex_coord_1->Init(draco::GeometryAttribute::TEX_COORD, 2, draco::DT_FLOAT32,
+                    false, 4);
+  mesh->AddAttribute(std::move(tex_coord_1));
+
+  ASSERT_EQ(mesh->NumNamedAttributes(draco::GeometryAttribute::TEX_COORD), 2);
+
+  // Add a texture-mapped MeshFeatures referencing TEX_COORD 1.
+  auto mf = std::make_unique<draco::MeshFeatures>();
+  mf->SetTextureMap(nullptr, 1);  // tex_coord_index = 1
+  mesh->AddMeshFeatures(std::move(mf));
+
+  // Add mesh to scene.
+  const draco::MeshIndex mesh_index = scene->AddMesh(std::move(mesh));
+
+  // Add a dummy mesh group node to make it referenced in scene.
+  const draco::MeshGroupIndex mg_index = scene->AddMeshGroup();
+  draco::MeshGroup& mesh_group = *scene->GetMeshGroup(mg_index);
+  mesh_group.AddMeshInstance({mesh_index, -1});
+
+  const draco::SceneNodeIndex node_index = scene->AddNode();
+  draco::SceneNode& node = *scene->GetNode(node_index);
+  node.SetMeshGroupIndex(mg_index);
+
+  // Cleanup unused texture coordinates.
+  draco::SceneUtils::CleanupOptions options;
+  options.remove_unused_tex_coords = true;
+  draco::SceneUtils::Cleanup(scene.get(), options);
+
+  // Verify that:
+  // 1. One TEX_COORD attribute remains.
+  // 2. The remaining attribute's tex_coord_index in MeshFeatures's texture map
+  //    has decremented from 1 to 0.
+  const draco::Mesh& cleaned_mesh = scene->GetMesh(mesh_index);
+  ASSERT_EQ(
+      cleaned_mesh.NumNamedAttributes(draco::GeometryAttribute::TEX_COORD), 1);
+  ASSERT_EQ(cleaned_mesh.NumMeshFeatures(), 1);
+  const draco::MeshFeatures& cleaned_mf =
+      cleaned_mesh.GetMeshFeatures(draco::MeshFeaturesIndex(0));
+  ASSERT_EQ(cleaned_mf.GetTextureMap().tex_coord_index(), 0);
+}
+
+TEST(SceneUtilsTest, TestCleanupUnusedTexCoordsWithPropertyTextures) {
+  // Test that texture coordinates used by PropertyTextures are not cleaned up.
+  auto scene = std::make_unique<draco::Scene>();
+  auto mesh = std::make_unique<draco::Mesh>();
+
+  // Add POSITION attribute.
+  auto pos_att = std::make_unique<draco::PointAttribute>();
+  pos_att->Init(draco::GeometryAttribute::POSITION, 3, draco::DT_FLOAT32, false,
+                4);
+  mesh->AddAttribute(std::move(pos_att));
+
+  // Add 2 texture coordinate attributes.
+  auto tex_coord_0 = std::make_unique<draco::PointAttribute>();
+  tex_coord_0->Init(draco::GeometryAttribute::TEX_COORD, 2, draco::DT_FLOAT32,
+                    false, 4);
+  mesh->AddAttribute(std::move(tex_coord_0));
+
+  auto tex_coord_1 = std::make_unique<draco::PointAttribute>();
+  tex_coord_1->Init(draco::GeometryAttribute::TEX_COORD, 2, draco::DT_FLOAT32,
+                    false, 4);
+  mesh->AddAttribute(std::move(tex_coord_1));
+
+  ASSERT_EQ(mesh->NumNamedAttributes(draco::GeometryAttribute::TEX_COORD), 2);
+
+  // Set up structural metadata property texture in the scene.
+  draco::StructuralMetadataSchema schema;
+  schema.json.SetString("Data");
+  scene->GetStructuralMetadata().SetSchema(schema);
+
+  auto property_texture = std::make_unique<draco::PropertyTexture>();
+  property_texture->SetClass("Motion");
+  auto property = std::make_unique<draco::PropertyTexture::Property>();
+  property->SetName("Magnitude");
+  const std::vector<int> channels = {0};
+  property->SetTextureChannels(channels);
+  property->SetTextureMap(nullptr, 1);  // tex_coord_index = 1
+  property_texture->AddProperty(std::move(property));
+  scene->GetStructuralMetadata().AddPropertyTexture(
+      std::move(property_texture));
+
+  // Mesh uses the property texture.
+  mesh->AddPropertyTexturesIndex(0);
+
+  // Add mesh to scene.
+  const draco::MeshIndex mesh_index = scene->AddMesh(std::move(mesh));
+
+  // Add a dummy mesh group node to make it referenced in scene.
+  const draco::MeshGroupIndex mg_index = scene->AddMeshGroup();
+  draco::MeshGroup& mesh_group = *scene->GetMeshGroup(mg_index);
+  mesh_group.AddMeshInstance({mesh_index, -1});
+
+  const draco::SceneNodeIndex node_index = scene->AddNode();
+  draco::SceneNode& node = *scene->GetNode(node_index);
+  node.SetMeshGroupIndex(mg_index);
+
+  // Cleanup unused texture coordinates.
+  draco::SceneUtils::CleanupOptions options;
+  options.remove_unused_tex_coords = true;
+  draco::SceneUtils::Cleanup(scene.get(), options);
+
+  // Verify that:
+  // 1. One TEX_COORD attribute remains.
+  // 2. The remaining attribute's tex_coord_index in PropertyTexture
+  //    has decremented from 1 to 0.
+  const draco::Mesh& cleaned_mesh = scene->GetMesh(mesh_index);
+  ASSERT_EQ(
+      cleaned_mesh.NumNamedAttributes(draco::GeometryAttribute::TEX_COORD), 1);
+  ASSERT_EQ(cleaned_mesh.NumPropertyTexturesIndices(), 1);
+  ASSERT_EQ(cleaned_mesh.GetPropertyTexturesIndex(0), 0);
+
+  const auto& property_texture_result =
+      scene->GetStructuralMetadata().GetPropertyTexture(0);
+  ASSERT_EQ(property_texture_result.NumProperties(), 1);
+  const auto& property_result = property_texture_result.GetProperty(0);
+  ASSERT_EQ(property_result.GetTextureMap().tex_coord_index(), 0);
+}
+
+TEST(SceneUtilsTest, TestCleanupUnusedTexCoordsWithSharedPropertyTextures) {
+  // Setup a scene with two meshes that share the same PropertyTexture:
+  // - Mesh 0 has 2 TEX_COORDs.
+  //   Attribute 0: unused.
+  //   Attribute 1: used by shared PropertyTexture (referenced at index 1).
+  // - Mesh 1 has 2 TEX_COORDs.
+  //   Attribute 0: unused.
+  //   Attribute 1: used by shared PropertyTexture (referenced at index 1).
+  //
+  // Because they share the same PropertyTexture, we must NOT clean up their
+  // texture coordinates, because we cannot safely decrement the shared
+  // PropertyTexture.
+  auto scene = std::make_unique<draco::Scene>();
+
+  // Set up structural metadata property texture in the scene.
+  draco::StructuralMetadataSchema schema;
+  schema.json.SetString("Data");
+  scene->GetStructuralMetadata().SetSchema(schema);
+
+  auto property_texture = std::make_unique<draco::PropertyTexture>();
+  property_texture->SetClass("Motion");
+  auto property = std::make_unique<draco::PropertyTexture::Property>();
+  property->SetName("Magnitude");
+  const std::vector<int> channels = {0};
+  property->SetTextureChannels(channels);
+  property->SetTextureMap(nullptr, 1);  // tex_coord_index = 1
+  property_texture->AddProperty(std::move(property));
+  scene->GetStructuralMetadata().AddPropertyTexture(
+      std::move(property_texture));
+
+  // Build Mesh 0.
+  auto mesh_0 = std::make_unique<draco::Mesh>();
+  auto pos_0 = std::make_unique<draco::PointAttribute>();
+  pos_0->Init(draco::GeometryAttribute::POSITION, 3, draco::DT_FLOAT32, false,
+              4);
+  mesh_0->AddAttribute(std::move(pos_0));
+
+  auto tc0_0 = std::make_unique<draco::PointAttribute>();
+  tc0_0->Init(draco::GeometryAttribute::TEX_COORD, 2, draco::DT_FLOAT32, false,
+              4);
+  mesh_0->AddAttribute(std::move(tc0_0));
+
+  auto tc0_1 = std::make_unique<draco::PointAttribute>();
+  tc0_1->Init(draco::GeometryAttribute::TEX_COORD, 2, draco::DT_FLOAT32, false,
+              4);
+  mesh_0->AddAttribute(std::move(tc0_1));
+
+  mesh_0->AddPropertyTexturesIndex(0);  // Uses PT 0
+  const draco::MeshIndex m0_idx = scene->AddMesh(std::move(mesh_0));
+
+  // Build Mesh 1.
+  auto mesh_1 = std::make_unique<draco::Mesh>();
+  auto pos_1 = std::make_unique<draco::PointAttribute>();
+  pos_1->Init(draco::GeometryAttribute::POSITION, 3, draco::DT_FLOAT32, false,
+              4);
+  mesh_1->AddAttribute(std::move(pos_1));
+
+  auto tc1_0 = std::make_unique<draco::PointAttribute>();
+  tc1_0->Init(draco::GeometryAttribute::TEX_COORD, 2, draco::DT_FLOAT32, false,
+              4);
+  mesh_1->AddAttribute(std::move(tc1_0));
+
+  auto tc1_1 = std::make_unique<draco::PointAttribute>();
+  tc1_1->Init(draco::GeometryAttribute::TEX_COORD, 2, draco::DT_FLOAT32, false,
+              4);
+  mesh_1->AddAttribute(std::move(tc1_1));
+
+  mesh_1->AddPropertyTexturesIndex(0);  // Uses PT 0 (shared!)
+  const draco::MeshIndex m1_idx = scene->AddMesh(std::move(mesh_1));
+
+  // Setup instances and nodes so meshes are referenced.
+  const draco::MeshGroupIndex mg_index = scene->AddMeshGroup();
+  draco::MeshGroup& mesh_group = *scene->GetMeshGroup(mg_index);
+  mesh_group.AddMeshInstance({m0_idx, -1});
+  mesh_group.AddMeshInstance({m1_idx, -1});
+
+  const draco::SceneNodeIndex node_index = scene->AddNode();
+  draco::SceneNode& node = *scene->GetNode(node_index);
+  node.SetMeshGroupIndex(mg_index);
+
+  // Cleanup.
+  draco::SceneUtils::CleanupOptions options;
+  options.remove_unused_tex_coords = true;
+  draco::SceneUtils::Cleanup(scene.get(), options);
+
+  // Verify that:
+  // Both meshes keep their 2 TEX_COORD attributes, because they share the PT.
+  const draco::Mesh& cleaned_m0 = scene->GetMesh(m0_idx);
+  const draco::Mesh& cleaned_m1 = scene->GetMesh(m1_idx);
+
+  ASSERT_EQ(cleaned_m0.NumNamedAttributes(draco::GeometryAttribute::TEX_COORD),
+            2);
+  ASSERT_EQ(cleaned_m1.NumNamedAttributes(draco::GeometryAttribute::TEX_COORD),
+            2);
+
+  // PropertyTexture's tex_coord_index is still 1.
+  const auto& property_texture_result =
+      scene->GetStructuralMetadata().GetPropertyTexture(0);
+  const auto& property_result = property_texture_result.GetProperty(0);
+  ASSERT_EQ(property_result.GetTextureMap().tex_coord_index(), 1);
+}
+
+TEST(SceneUtilsTest, TestCleanupUnusedTexCoordsPreservesWrappingAndFiltering) {
+  // Test that cleanup preserves custom wrapping and filtering modes when
+  // shifting.
+  auto scene = std::make_unique<draco::Scene>();
+  auto mesh = std::make_unique<draco::Mesh>();
+
+  // Add POSITION attribute.
+  auto pos_att = std::make_unique<draco::PointAttribute>();
+  pos_att->Init(draco::GeometryAttribute::POSITION, 3, draco::DT_FLOAT32, false,
+                4);
+  mesh->AddAttribute(std::move(pos_att));
+
+  // Add 2 texture coordinate attributes.
+  auto tex_coord_0 = std::make_unique<draco::PointAttribute>();
+  tex_coord_0->Init(draco::GeometryAttribute::TEX_COORD, 2, draco::DT_FLOAT32,
+                    false, 4);
+  mesh->AddAttribute(std::move(tex_coord_0));
+
+  auto tex_coord_1 = std::make_unique<draco::PointAttribute>();
+  tex_coord_1->Init(draco::GeometryAttribute::TEX_COORD, 2, draco::DT_FLOAT32,
+                    false, 4);
+  mesh->AddAttribute(std::move(tex_coord_1));
+
+  ASSERT_EQ(mesh->NumNamedAttributes(draco::GeometryAttribute::TEX_COORD), 2);
+
+  // Set up a material that uses TEX_COORD 1, but with custom wrapping (REPEAT)
+  // and filtering (LINEAR).
+  auto material = scene->GetMaterialLibrary().MutableMaterial(0);
+  auto texture = std::make_unique<draco::Texture>();
+
+  // Set up the texture library and push the texture so material owns it.
+  const int texture_index =
+      scene->GetMaterialLibrary().MutableTextureLibrary().PushTexture(
+          std::move(texture));
+  draco::Texture* texture_ptr =
+      scene->GetMaterialLibrary().MutableTextureLibrary().GetTexture(
+          texture_index);
+
+  draco::TextureMap::WrappingMode wrapping_mode(draco::TextureMap::REPEAT);
+  DRACO_ASSERT_OK(material->SetTextureMap(
+      texture_ptr, draco::TextureMap::COLOR, wrapping_mode,
+      draco::TextureMap::LINEAR, draco::TextureMap::LINEAR, 1));
+
+  // Add mesh to scene.
+  const draco::MeshIndex mesh_index = scene->AddMesh(std::move(mesh));
+
+  // Add a dummy mesh group node to make it referenced in scene.
+  const draco::MeshGroupIndex mg_index = scene->AddMeshGroup();
+  draco::MeshGroup& mesh_group = *scene->GetMeshGroup(mg_index);
+  mesh_group.AddMeshInstance({mesh_index, 0});
+
+  const draco::SceneNodeIndex node_index = scene->AddNode();
+  draco::SceneNode& node = *scene->GetNode(node_index);
+  node.SetMeshGroupIndex(mg_index);
+
+  // Cleanup unused texture coordinates.
+  draco::SceneUtils::CleanupOptions options;
+  options.remove_unused_tex_coords = true;
+  draco::SceneUtils::Cleanup(scene.get(), options);
+
+  // Verify that:
+  // 1. One TEX_COORD attribute remains.
+  // 2. The remaining attribute index in the material has shifted from 1 to 0.
+  // 3. The wrapping mode (REPEAT) is preserved!
+  // 4. The min/mag filters (LINEAR) are preserved!
+  const draco::Mesh& cleaned_mesh = scene->GetMesh(mesh_index);
+  ASSERT_EQ(
+      cleaned_mesh.NumNamedAttributes(draco::GeometryAttribute::TEX_COORD), 1);
+
+  const auto& material_library = scene->GetMaterialLibrary();
+  ASSERT_EQ(material_library.NumMaterials(), 1);
+  const auto& material_result = material_library.GetMaterial(0);
+  ASSERT_EQ(material_result->NumTextureMaps(), 1);
+  const auto* texture_map_result = material_result->GetTextureMapByIndex(0);
+
+  // Check index shifting:
+  ASSERT_EQ(texture_map_result->tex_coord_index(), 0);
+
+  // Check preservation:
+  ASSERT_EQ(texture_map_result->wrapping_mode().s, draco::TextureMap::REPEAT);
+  ASSERT_EQ(texture_map_result->wrapping_mode().t, draco::TextureMap::REPEAT);
+  ASSERT_EQ(texture_map_result->min_filter(), draco::TextureMap::LINEAR);
+  ASSERT_EQ(texture_map_result->mag_filter(), draco::TextureMap::LINEAR);
 }
 
 TEST(SceneUtilsTest, TestComputeGlobalNodeTransform) {

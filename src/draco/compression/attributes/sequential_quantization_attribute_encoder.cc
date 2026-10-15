@@ -19,15 +19,15 @@
 namespace draco {
 
 SequentialQuantizationAttributeEncoder::
-    SequentialQuantizationAttributeEncoder() {}
+    SequentialQuantizationAttributeEncoder() = default;
 
-bool SequentialQuantizationAttributeEncoder::Init(PointCloudEncoder *encoder,
+bool SequentialQuantizationAttributeEncoder::Init(PointCloudEncoder* encoder,
                                                   int attribute_id) {
   if (!SequentialIntegerAttributeEncoder::Init(encoder, attribute_id)) {
     return false;
   }
   // This encoder currently works only for floating point attributes.
-  const PointAttribute *const attribute =
+  const PointAttribute* const attribute =
       encoder->point_cloud()->attribute(attribute_id);
   if (attribute->data_type() != DT_FLOAT32) {
     return false;
@@ -66,12 +66,12 @@ bool SequentialQuantizationAttributeEncoder::Init(PointCloudEncoder *encoder,
 }
 
 bool SequentialQuantizationAttributeEncoder::
-    EncodeDataNeededByPortableTransform(EncoderBuffer *out_buffer) {
+    EncodeDataNeededByPortableTransform(EncoderBuffer* out_buffer) {
   return attribute_quantization_transform_.EncodeParameters(out_buffer);
 }
 
 bool SequentialQuantizationAttributeEncoder::PrepareValues(
-    const std::vector<PointIndex> &point_ids, int num_points) {
+    const std::vector<PointIndex>& point_ids, int num_points) {
   auto portable_attribute =
       attribute_quantization_transform_.InitTransformedAttribute(
           *attribute(), point_ids.size());

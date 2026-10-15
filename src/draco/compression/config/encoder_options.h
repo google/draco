@@ -73,15 +73,15 @@ class EncoderOptionsBase : public DracoOptions<AttributeKeyT> {
   // Sets a given feature as supported or unsupported by the target decoder.
   // Encoder will always use only supported features when encoding the input
   // geometry.
-  void SetSupportedFeature(const std::string &name, bool supported) {
+  void SetSupportedFeature(const std::string& name, bool supported) {
     feature_options_.SetBool(name, supported);
   }
-  bool IsFeatureSupported(const std::string &name) const {
+  bool IsFeatureSupported(const std::string& name) const {
     return feature_options_.GetBool(name);
   }
 
-  void SetFeatureOptions(const Options &options) { feature_options_ = options; }
-  const Options &GetFeaturelOptions() const { return feature_options_; }
+  void SetFeatureOptions(const Options& options) { feature_options_ = options; }
+  const Options& GetFeaturelOptions() const { return feature_options_; }
 
  private:
   // Use helper methods to construct the encoder options.

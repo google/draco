@@ -35,8 +35,8 @@ namespace draco {
 // TODO(ostava): This should be renamed or the return value should be changed to
 // return the actual entropy and not the number of bits needed to represent the
 // input symbols.
-int64_t ComputeShannonEntropy(const uint32_t *symbols, int num_symbols,
-                              int max_value, int *out_num_unique_symbols);
+int64_t ComputeShannonEntropy(const uint32_t* symbols, int num_symbols,
+                              int max_value, int* out_num_unique_symbols);
 
 // Computes the Shannon entropy of |num_values| Boolean entries, where
 // |num_true_values| are set to true.
@@ -72,11 +72,11 @@ class ShannonEntropyTracker {
   };
 
   // Adds new symbols to the tracker and recomputes the entropy accordingly.
-  EntropyData Push(const uint32_t *symbols, int num_symbols);
+  EntropyData Push(const uint32_t* symbols, int num_symbols);
 
   // Returns new entropy data for the tracker as if |symbols| were added to the
   // tracker without actually changing the status of the tracker.
-  EntropyData Peek(const uint32_t *symbols, int num_symbols);
+  EntropyData Peek(const uint32_t* symbols, int num_symbols);
 
   // Gets the number of bits needed for encoding symbols added to the tracker.
   int64_t GetNumberOfDataBits() const {
@@ -90,14 +90,14 @@ class ShannonEntropyTracker {
   }
 
   // Gets the number of bits needed for encoding given |entropy_data|.
-  static int64_t GetNumberOfDataBits(const EntropyData &entropy_data);
+  static int64_t GetNumberOfDataBits(const EntropyData& entropy_data);
 
   // Gets the number of bits needed for encoding frequency table using the rans
   // encoder for the given |entropy_data|.
-  static int64_t GetNumberOfRAnsTableBits(const EntropyData &entropy_data);
+  static int64_t GetNumberOfRAnsTableBits(const EntropyData& entropy_data);
 
  private:
-  EntropyData UpdateSymbols(const uint32_t *symbols, int num_symbols,
+  EntropyData UpdateSymbols(const uint32_t* symbols, int num_symbols,
                             bool push_changes);
 
   std::vector<int32_t> frequencies_;

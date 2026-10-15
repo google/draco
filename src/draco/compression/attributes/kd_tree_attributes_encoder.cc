@@ -35,7 +35,7 @@ bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
   int num_components = 0;
   for (uint32_t i = 0; i < num_attributes(); ++i) {
     const int att_id = GetAttributeId(i);
-    const PointAttribute *const att =
+    const PointAttribute* const att =
         encoder()->point_cloud()->attribute(att_id);
     num_components += att->num_components();
   }
@@ -44,7 +44,7 @@ bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
   // Go over all attributes and quantize them if needed.
   for (uint32_t i = 0; i < num_attributes(); ++i) {
     const int att_id = GetAttributeId(i);
-    const PointAttribute *const att =
+    const PointAttribute* const att =
         encoder()->point_cloud()->attribute(att_id);
     if (att->data_type() == DT_FLOAT32) {
       // Quantization path.
@@ -112,7 +112,7 @@ bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
 }
 
 bool KdTreeAttributesEncoder::EncodeDataNeededByPortableTransforms(
-    EncoderBuffer *out_buffer) {
+    EncoderBuffer* out_buffer) {
   // Store quantization settings for all attributes that need it.
   for (int i = 0; i < attribute_quantization_transforms_.size(); ++i) {
     attribute_quantization_transforms_[i].EncodeParameters(out_buffer);
@@ -126,7 +126,7 @@ bool KdTreeAttributesEncoder::EncodeDataNeededByPortableTransforms(
 }
 
 bool KdTreeAttributesEncoder::EncodePortableAttributes(
-    EncoderBuffer *out_buffer) {
+    EncoderBuffer* out_buffer) {
   // Encode the data using the kd tree encoder algorithm. The data is first
   // copied to a PointDVector that provides all the API expected by the core
   // encoding algorithm.
@@ -156,9 +156,9 @@ bool KdTreeAttributesEncoder::EncodePortableAttributes(
   // Copy data to the point vector.
   for (uint32_t i = 0; i < num_attributes(); ++i) {
     const int att_id = GetAttributeId(i);
-    const PointAttribute *const att =
+    const PointAttribute* const att =
         encoder()->point_cloud()->attribute(att_id);
-    const PointAttribute *source_att = nullptr;
+    const PointAttribute* source_att = nullptr;
     if (att->data_type() == DT_UINT32 || att->data_type() == DT_UINT16 ||
         att->data_type() == DT_UINT8 || att->data_type() == DT_INT32 ||
         att->data_type() == DT_INT16 || att->data_type() == DT_INT8) {
@@ -185,7 +185,7 @@ bool KdTreeAttributesEncoder::EncodePortableAttributes(
       // can directly copy individual elements.
       for (PointIndex pi(0); pi < num_points; ++pi) {
         const AttributeValueIndex avi = source_att->mapped_index(pi);
-        const uint8_t *const att_value_address = source_att->GetAddress(avi);
+        const uint8_t* const att_value_address = source_att->GetAddress(avi);
         point_vector.CopyAttribute(source_att->num_components(),
                                    num_processed_components, pi.value(),
                                    att_value_address);
@@ -228,7 +228,7 @@ bool KdTreeAttributesEncoder::EncodePortableAttributes(
 
   // Compute the maximum bit length needed for the kd tree encoding.
   int num_bits = 0;
-  const uint32_t *data = point_vector[0];
+  const uint32_t* data = point_vector[0];
   for (int i = 0; i < num_points * num_components_; ++i) {
     if (data[i] > 0) {
       const int msb = MostSignificantBit(data[i]) + 1;

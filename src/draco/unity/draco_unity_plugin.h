@@ -39,7 +39,7 @@ struct EXPORT_API DracoData {
   DracoData() : data_type(DT_INVALID), data(nullptr) {}
 
   DataType data_type;
-  void *data;
+  void* data;
 };
 
 // Struct representing a Draco attribute within Unity.
@@ -55,7 +55,7 @@ struct EXPORT_API DracoAttribute {
   DataType data_type;
   int num_components;
   int unique_id;
-  const void *private_attribute;
+  const void* private_attribute;
 };
 
 // Struct representing a Draco mesh within Unity.
@@ -69,47 +69,47 @@ struct EXPORT_API DracoMesh {
   int num_faces;
   int num_vertices;
   int num_attributes;
-  void *private_mesh;
+  void* private_mesh;
 };
 
 // Release data associated with DracoMesh.
-void EXPORT_API ReleaseDracoMesh(DracoMesh **mesh_ptr);
+void EXPORT_API ReleaseDracoMesh(DracoMesh** mesh_ptr);
 // Release data associated with DracoAttribute.
-void EXPORT_API ReleaseDracoAttribute(DracoAttribute **attr_ptr);
+void EXPORT_API ReleaseDracoAttribute(DracoAttribute** attr_ptr);
 // Release attribute data.
-void EXPORT_API ReleaseDracoData(DracoData **data_ptr);
+void EXPORT_API ReleaseDracoData(DracoData** data_ptr);
 
 // Decodes compressed Draco mesh in |data| and returns |mesh|. On input, |mesh|
 // must be null. The returned |mesh| must be released with ReleaseDracoMesh.
-int EXPORT_API DecodeDracoMesh(char *data, unsigned int length,
-                               DracoMesh **mesh);
+int EXPORT_API DecodeDracoMesh(char* data, unsigned int length,
+                               DracoMesh** mesh);
 
 // Returns |attribute| at |index| in |mesh|.  On input, |attribute| must be
 // null. The returned |attribute| must be released with ReleaseDracoAttribute.
-bool EXPORT_API GetAttribute(const DracoMesh *mesh, int index,
-                             DracoAttribute **attribute);
+bool EXPORT_API GetAttribute(const DracoMesh* mesh, int index,
+                             DracoAttribute** attribute);
 // Returns |attribute| of |type| at |index| in |mesh|. E.g. If the mesh has
 // two texture coordinates then GetAttributeByType(mesh,
 // AttributeType.TEX_COORD, 1, &attr); will return the second TEX_COORD
 // attribute. On input, |attribute| must be null. The returned |attribute| must
 // be released with ReleaseDracoAttribute.
-bool EXPORT_API GetAttributeByType(const DracoMesh *mesh,
+bool EXPORT_API GetAttributeByType(const DracoMesh* mesh,
                                    GeometryAttribute::Type type, int index,
-                                   DracoAttribute **attribute);
+                                   DracoAttribute** attribute);
 // Returns |attribute| with |unique_id| in |mesh|. On input, |attribute| must be
 // null. The returned |attribute| must be released with ReleaseDracoAttribute.
-bool EXPORT_API GetAttributeByUniqueId(const DracoMesh *mesh, int unique_id,
-                                       DracoAttribute **attribute);
+bool EXPORT_API GetAttributeByUniqueId(const DracoMesh* mesh, int unique_id,
+                                       DracoAttribute** attribute);
 // Returns the indices as well as the type of data in |indices|. On input,
 // |indices| must be null. The returned |indices| must be released with
 // ReleaseDracoData.
-bool EXPORT_API GetMeshIndices(const DracoMesh *mesh, DracoData **indices);
+bool EXPORT_API GetMeshIndices(const DracoMesh* mesh, DracoData** indices);
 // Returns the attribute data from attribute as well as the type of data in
 // |data|. On input, |data| must be null. The returned |data| must be released
 // with ReleaseDracoData.
-bool EXPORT_API GetAttributeData(const DracoMesh *mesh,
-                                 const DracoAttribute *attribute,
-                                 DracoData **data);
+bool EXPORT_API GetAttributeData(const DracoMesh* mesh,
+                                 const DracoAttribute* attribute,
+                                 DracoData** data);
 
 // DracoToUnityMesh is deprecated.
 struct EXPORT_API DracoToUnityMesh {
@@ -126,25 +126,25 @@ struct EXPORT_API DracoToUnityMesh {
         color(nullptr) {}
 
   int num_faces;
-  int *indices;
+  int* indices;
   int num_vertices;
-  float *position;
+  float* position;
   bool has_normal;
-  float *normal;
+  float* normal;
   bool has_texcoord;
-  float *texcoord;
+  float* texcoord;
   bool has_color;
-  float *color;
+  float* color;
 };
 
 // ReleaseUnityMesh is deprecated.
-void EXPORT_API ReleaseUnityMesh(DracoToUnityMesh **mesh_ptr);
+void EXPORT_API ReleaseUnityMesh(DracoToUnityMesh** mesh_ptr);
 
 // To use this function, you do not allocate memory for |tmp_mesh|, just
 // define and pass a null pointer. Otherwise there will be memory leak.
 // DecodeMeshForUnity is deprecated.
-int EXPORT_API DecodeMeshForUnity(char *data, unsigned int length,
-                                  DracoToUnityMesh **tmp_mesh);
+int EXPORT_API DecodeMeshForUnity(char* data, unsigned int length,
+                                  DracoToUnityMesh** tmp_mesh);
 }  // extern "C"
 
 }  // namespace draco

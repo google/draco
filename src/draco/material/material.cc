@@ -20,12 +20,12 @@ namespace draco {
 
 Material::Material() : Material(nullptr) {}
 
-Material::Material(TextureLibrary *texture_library)
+Material::Material(TextureLibrary* texture_library)
     : texture_library_(texture_library) {
   Clear();
 }
 
-void Material::Copy(const Material &src) {
+void Material::Copy(const Material& src) {
   name_ = src.name_;
   color_factor_ = src.color_factor_;
   metallic_factor_ = src.metallic_factor_;
@@ -55,6 +55,22 @@ void Material::Copy(const Material &src) {
   has_specular_ = src.has_specular_;
   specular_factor_ = src.specular_factor_;
   specular_color_factor_ = src.specular_color_factor_;
+  has_emissive_strength_ = src.has_emissive_strength_;
+  emissive_strength_ = src.emissive_strength_;
+
+  has_iridescence_ = src.has_iridescence_;
+  iridescence_factor_ = src.iridescence_factor_;
+  iridescence_ior_ = src.iridescence_ior_;
+  iridescence_thickness_minimum_ = src.iridescence_thickness_minimum_;
+  iridescence_thickness_maximum_ = src.iridescence_thickness_maximum_;
+
+  has_anisotropy_ = src.has_anisotropy_;
+  anisotropy_strength_ = src.anisotropy_strength_;
+  anisotropy_rotation_ = src.anisotropy_rotation_;
+
+  has_diffuse_transmission_ = src.has_diffuse_transmission_;
+  diffuse_transmission_factor_ = src.diffuse_transmission_factor_;
+  diffuse_transmission_color_factor_ = src.diffuse_transmission_color_factor_;
 
   // Copy texture maps.
   texture_map_type_to_index_map_ = src.texture_map_type_to_index_map_;
@@ -98,6 +114,22 @@ void Material::Clear() {
   has_specular_ = false;
   specular_factor_ = 1.f;
   specular_color_factor_ = Vector3f(1.f, 1.f, 1.f);
+  has_emissive_strength_ = false;
+  emissive_strength_ = 1.f;
+
+  has_iridescence_ = false;
+  iridescence_factor_ = 0.f;
+  iridescence_ior_ = 1.3f;
+  iridescence_thickness_minimum_ = 100.f;
+  iridescence_thickness_maximum_ = 400.f;
+
+  has_anisotropy_ = false;
+  anisotropy_strength_ = 0.f;
+  anisotropy_rotation_ = 0.f;
+
+  has_diffuse_transmission_ = false;
+  diffuse_transmission_factor_ = 0.f;
+  diffuse_transmission_color_factor_ = Vector3f(1.f, 1.f, 1.f);
 }
 
 void Material::ClearTextureMaps() {
@@ -105,7 +137,7 @@ void Material::ClearTextureMaps() {
   texture_map_type_to_index_map_.clear();
 }
 
-void Material::SetTextureMap(TextureMap &&texture_map) {
+void Material::SetTextureMap(TextureMap&& texture_map) {
   std::unique_ptr<TextureMap> new_texture_map(new TextureMap);
   *new_texture_map = std::move(texture_map);
   SetTextureMap(std::move(new_texture_map));
@@ -147,7 +179,7 @@ void Material::SetTextureMap(std::unique_ptr<Texture> texture,
   SetTextureMap(std::move(texture_map));
 }
 
-Status Material::SetTextureMap(Texture *texture,
+Status Material::SetTextureMap(Texture* texture,
                                TextureMap::Type texture_map_type,
                                int tex_coord_index) {
   return SetTextureMap(texture, texture_map_type,
@@ -156,7 +188,7 @@ Status Material::SetTextureMap(Texture *texture,
                        tex_coord_index);
 }
 
-Status Material::SetTextureMap(Texture *texture,
+Status Material::SetTextureMap(Texture* texture,
                                TextureMap::Type texture_map_type,
                                TextureMap::WrappingMode wrapping_mode,
                                int tex_coord_index) {
@@ -166,7 +198,7 @@ Status Material::SetTextureMap(Texture *texture,
                        TextureMap::UNSPECIFIED, tex_coord_index);
 }
 
-Status Material::SetTextureMap(Texture *texture,
+Status Material::SetTextureMap(Texture* texture,
                                TextureMap::Type texture_map_type,
                                TextureMap::WrappingMode wrapping_mode,
                                TextureMap::FilterType min_filter,
@@ -177,12 +209,12 @@ Status Material::SetTextureMap(Texture *texture,
                        wrapping_mode, min_filter, mag_filter, tex_coord_index);
 }
 
-Status Material::SetTextureMap(Texture *texture,
+Status Material::SetTextureMap(Texture* texture,
                                TextureMap::Type texture_map_type,
                                TextureMap::WrappingMode wrapping_mode,
                                TextureMap::FilterType min_filter,
                                TextureMap::FilterType mag_filter,
-                               const TextureTransform &transform,
+                               const TextureTransform& transform,
                                int tex_coord_index) {
   std::unique_ptr<TextureMap> texture_map(new TextureMap);
   texture_map->SetTransform(transform);
@@ -191,7 +223,7 @@ Status Material::SetTextureMap(Texture *texture,
 }
 
 Status Material::SetTextureMap(std::unique_ptr<TextureMap> texture_map,
-                               Texture *texture,
+                               Texture* texture,
                                TextureMap::Type texture_map_type,
                                TextureMap::WrappingMode wrapping_mode,
                                TextureMap::FilterType min_filter,
@@ -208,7 +240,7 @@ Status Material::SetTextureMap(std::unique_ptr<TextureMap> texture_map,
   return OkStatus();
 }
 
-bool Material::IsTextureOwned(const Texture &texture) {
+bool Material::IsTextureOwned(const Texture& texture) {
   if (texture_library_) {
     // Ensure the texture is owned by the texture library.
     for (int ti = 0; ti < texture_library_->NumTextures(); ++ti) {

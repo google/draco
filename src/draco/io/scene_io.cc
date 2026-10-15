@@ -27,7 +27,7 @@ namespace draco {
 
 enum SceneFileFormat { UNKNOWN, GLTF, USD, PLY, OBJ };
 
-SceneFileFormat GetSceneFileFormat(const std::string &file_name) {
+SceneFileFormat GetSceneFileFormat(const std::string& file_name) {
   const std::string extension = LowercaseFileExtension(file_name);
   if (extension == "gltf" || extension == "glb") {
     return GLTF;
@@ -46,12 +46,12 @@ SceneFileFormat GetSceneFileFormat(const std::string &file_name) {
 }
 
 StatusOr<std::unique_ptr<Scene>> ReadSceneFromFile(
-    const std::string &file_name) {
+    const std::string& file_name) {
   return ReadSceneFromFile(file_name, nullptr);
 }
 
 StatusOr<std::unique_ptr<Scene>> ReadSceneFromFile(
-    const std::string &file_name, std::vector<std::string> *scene_files) {
+    const std::string& file_name, std::vector<std::string>* scene_files) {
   std::unique_ptr<Scene> scene(new Scene());
   switch (GetSceneFileFormat(file_name)) {
     case GLTF: {
@@ -67,13 +67,13 @@ StatusOr<std::unique_ptr<Scene>> ReadSceneFromFile(
   }
 }
 
-Status WriteSceneToFile(const std::string &file_name, const Scene &scene) {
+Status WriteSceneToFile(const std::string& file_name, const Scene& scene) {
   Options options;
   return WriteSceneToFile(file_name, scene, options);
 }
 
-Status WriteSceneToFile(const std::string &file_name, const Scene &scene,
-                        const Options &options) {
+Status WriteSceneToFile(const std::string& file_name, const Scene& scene,
+                        const Options& options) {
   const std::string extension = LowercaseFileExtension(file_name);
   std::string folder_path;
   std::string out_file_name;

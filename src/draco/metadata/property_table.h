@@ -40,8 +40,8 @@ class PropertyTable {
     // Describes glTF buffer view data.
     struct Data {
       // Methods for comparing two data objects.
-      bool operator==(const Data &other) const;
-      bool operator!=(const Data &other) const { return !(*this == other); }
+      bool operator==(const Data& other) const;
+      bool operator!=(const Data& other) const { return !(*this == other); }
 
       // Buffer view data.
       std::vector<uint8_t> data;
@@ -56,8 +56,8 @@ class PropertyTable {
     // arrays.
     struct Offsets {
       // Methods for comparing two offsets.
-      bool operator==(const Offsets &other) const;
-      bool operator!=(const Offsets &other) const { return !(*this == other); }
+      bool operator==(const Offsets& other) const;
+      bool operator!=(const Offsets& other) const { return !(*this == other); }
 
       // Data containing the offset entries.
       Data data;
@@ -68,7 +68,7 @@ class PropertyTable {
       // Builds a new Offsets object given the offsets in |ints|. The resultant
       // offsets will choose the smallest possible result.type that can contain
       // all of the input |ints|.
-      static Offsets MakeFromInts(const std::vector<uint64_t> &ints) {
+      static Offsets MakeFromInts(const std::vector<uint64_t>& ints) {
         uint64_t max_value = 0;
         for (uint64_t i = 0; i < ints.size(); ++i) {
           if (ints[i] > max_value) {
@@ -136,22 +136,22 @@ class PropertyTable {
     Property() = default;
 
     // Methods for comparing two properties.
-    bool operator==(const Property &other) const;
-    bool operator!=(const Property &other) const { return !(*this == other); }
+    bool operator==(const Property& other) const;
+    bool operator!=(const Property& other) const { return !(*this == other); }
 
     // Copies all data from |src| property.
-    void Copy(const Property &src);
+    void Copy(const Property& src);
 
     // Name of this property.
-    void SetName(const std::string &name);
-    const std::string &GetName() const;
+    void SetName(const std::string& name);
+    const std::string& GetName() const;
 
     // Property data stores one table column worth of data. For example, when
     // the data of type UINT8 is [11, 22] then the property values are 11 and 22
     // for the first and second table rows. See EXT_structural_metadata glTF
     // extension documentation for more details.
-    Data &GetData();
-    const Data &GetData() const;
+    Data& GetData();
+    const Data& GetData() const;
 
     // Array offsets are used when property data contains a variable-length
     // number arrays. For example, when the data is [0, 1, 2, 3, 4] and the
@@ -159,16 +159,16 @@ class PropertyTable {
     // arrays are [0, 1] and [2, 3, 4] for the first and second table rows,
     // respectively. See EXT_structural_metadata glTF extension documentation
     // for more details.
-    const Offsets &GetArrayOffsets() const;
-    Offsets &GetArrayOffsets();
+    const Offsets& GetArrayOffsets() const;
+    Offsets& GetArrayOffsets();
 
     // String offsets are used when property data contains strings. For example,
     // when the data is "SeaLand" and the array offsets are [0, 3, 7] for a
     // two-row table, then the property strings are "Sea"  and "Land" for the
     // first and second table rows, respectively. See EXT_structural_metadata
     // glTF extension documentation for more details.
-    const Offsets &GetStringOffsets() const;
-    Offsets &GetStringOffsets();
+    const Offsets& GetStringOffsets() const;
+    Offsets& GetStringOffsets();
 
    private:
     std::string name_;
@@ -182,21 +182,21 @@ class PropertyTable {
   PropertyTable();
 
   // Methods for comparing two property tables.
-  bool operator==(const PropertyTable &other) const;
-  bool operator!=(const PropertyTable &other) const {
+  bool operator==(const PropertyTable& other) const;
+  bool operator!=(const PropertyTable& other) const {
     return !(*this == other);
   }
 
   // Copies all data from |src| property table.
-  void Copy(const PropertyTable &src);
+  void Copy(const PropertyTable& src);
 
   // Name of this property table.
-  void SetName(const std::string &value);
-  const std::string &GetName() const;
+  void SetName(const std::string& value);
+  const std::string& GetName() const;
 
   // Class of this property table.
-  void SetClass(const std::string &value);
-  const std::string &GetClass() const;
+  void SetClass(const std::string& value);
+  const std::string& GetClass() const;
 
   // Number of rows in this property table.
   void SetCount(int count);
@@ -205,8 +205,8 @@ class PropertyTable {
   // Table properties (columns).
   int AddProperty(std::unique_ptr<Property> property);
   int NumProperties() const;
-  const Property &GetProperty(int index) const;
-  Property &GetProperty(int index);
+  const Property& GetProperty(int index) const;
+  Property& GetProperty(int index);
   void RemoveProperty(int index);
 
  private:

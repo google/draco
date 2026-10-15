@@ -26,7 +26,7 @@ namespace draco {
 template <typename WriteTypeT>
 class PlyPropertyWriter {
  public:
-  explicit PlyPropertyWriter(PlyProperty *property) : property_(property) {
+  explicit PlyPropertyWriter(PlyProperty* property) : property_(property) {
     // Find the suitable function for converting values.
     switch (property->data_type()) {
       case DT_UINT8:
@@ -85,7 +85,7 @@ class PlyPropertyWriter {
     property_->push_back_value(&src_val);
   }
 
-  PlyProperty *property_;
+  PlyProperty* property_;
   std::function<void(WriteTypeT)> convert_value_func_;
 };
 

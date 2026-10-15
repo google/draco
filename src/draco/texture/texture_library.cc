@@ -20,12 +20,12 @@
 
 namespace draco {
 
-void TextureLibrary::Copy(const TextureLibrary &src) {
+void TextureLibrary::Copy(const TextureLibrary& src) {
   Clear();
   Append(src);
 }
 
-void TextureLibrary::Append(const TextureLibrary &src) {
+void TextureLibrary::Append(const TextureLibrary& src) {
   const size_t old_num_textures = textures_.size();
   textures_.resize(old_num_textures + src.textures_.size());
   for (int i = 0; i < src.textures_.size(); ++i) {
@@ -41,9 +41,9 @@ int TextureLibrary::PushTexture(std::unique_ptr<Texture> texture) {
   return textures_.size() - 1;
 }
 
-std::unordered_map<const Texture *, int>
+std::unordered_map<const Texture*, int>
 TextureLibrary::ComputeTextureToIndexMap() const {
-  std::unordered_map<const Texture *, int> ret;
+  std::unordered_map<const Texture*, int> ret;
   for (int i = 0; i < textures_.size(); ++i) {
     ret[textures_[i].get()] = i;
   }

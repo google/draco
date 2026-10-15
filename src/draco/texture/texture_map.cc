@@ -26,7 +26,7 @@ TextureMap::TextureMap()
       mag_filter_(UNSPECIFIED),
       texture_(nullptr) {}
 
-void TextureMap::Copy(const TextureMap &src) {
+void TextureMap::Copy(const TextureMap& src) {
   type_ = src.type_;
   wrapping_mode_ = src.wrapping_mode_;
   tex_coord_index_ = src.tex_coord_index_;
@@ -72,12 +72,12 @@ void TextureMap::SetTexture(std::unique_ptr<Texture> texture) {
   texture_ = owned_texture_.get();
 }
 
-void TextureMap::SetTexture(Texture *texture) {
+void TextureMap::SetTexture(Texture* texture) {
   owned_texture_ = nullptr;
   texture_ = texture;
 }
 
-void TextureMap::SetTransform(const TextureTransform &transform) {
+void TextureMap::SetTransform(const TextureTransform& transform) {
   texture_transform_.Copy(transform);
 }
 

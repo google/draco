@@ -21,8 +21,8 @@
 namespace draco {
 
 bool AttributeOctahedronTransform::InitFromAttribute(
-    const PointAttribute &attribute) {
-  const AttributeTransformData *const transform_data =
+    const PointAttribute& attribute) {
+  const AttributeTransformData* const transform_data =
       attribute.GetAttributeTransformData();
   if (!transform_data ||
       transform_data->transform_type() != ATTRIBUTE_OCTAHEDRON_TRANSFORM) {
@@ -33,20 +33,20 @@ bool AttributeOctahedronTransform::InitFromAttribute(
 }
 
 void AttributeOctahedronTransform::CopyToAttributeTransformData(
-    AttributeTransformData *out_data) const {
+    AttributeTransformData* out_data) const {
   out_data->set_transform_type(ATTRIBUTE_OCTAHEDRON_TRANSFORM);
   out_data->AppendParameterValue(quantization_bits_);
 }
 
 bool AttributeOctahedronTransform::TransformAttribute(
-    const PointAttribute &attribute, const std::vector<PointIndex> &point_ids,
-    PointAttribute *target_attribute) {
+    const PointAttribute& attribute, const std::vector<PointIndex>& point_ids,
+    PointAttribute* target_attribute) {
   return GeneratePortableAttribute(attribute, point_ids,
                                    target_attribute->size(), target_attribute);
 }
 
 bool AttributeOctahedronTransform::InverseTransformAttribute(
-    const PointAttribute &attribute, PointAttribute *target_attribute) {
+    const PointAttribute& attribute, PointAttribute* target_attribute) {
   if (target_attribute->data_type() != DT_FLOAT32) {
     return false;
   }
@@ -58,9 +58,9 @@ bool AttributeOctahedronTransform::InverseTransformAttribute(
   }
   constexpr int kEntrySize = sizeof(float) * 3;
   float att_val[3];
-  const int32_t *source_attribute_data = reinterpret_cast<const int32_t *>(
+  const int32_t* source_attribute_data = reinterpret_cast<const int32_t*>(
       attribute.GetAddress(AttributeValueIndex(0)));
-  uint8_t *target_address =
+  uint8_t* target_address =
       target_attribute->GetAddress(AttributeValueIndex(0));
   OctahedronToolBox octahedron_tool_box;
   if (!octahedron_tool_box.SetQuantizationBits(quantization_bits_)) {
@@ -83,7 +83,7 @@ void AttributeOctahedronTransform::SetParameters(int quantization_bits) {
 }
 
 bool AttributeOctahedronTransform::EncodeParameters(
-    EncoderBuffer *encoder_buffer) const {
+    EncoderBuffer* encoder_buffer) const {
   if (is_initialized()) {
     encoder_buffer->Encode(static_cast<uint8_t>(quantization_bits_));
     return true;
@@ -92,7 +92,7 @@ bool AttributeOctahedronTransform::EncodeParameters(
 }
 
 bool AttributeOctahedronTransform::DecodeParameters(
-    const PointAttribute &attribute, DecoderBuffer *decoder_buffer) {
+    const PointAttribute& attribute, DecoderBuffer* decoder_buffer) {
   uint8_t quantization_bits;
   if (!decoder_buffer->Decode(&quantization_bits)) {
     return false;
@@ -102,13 +102,13 @@ bool AttributeOctahedronTransform::DecodeParameters(
 }
 
 bool AttributeOctahedronTransform::GeneratePortableAttribute(
-    const PointAttribute &attribute, const std::vector<PointIndex> &point_ids,
-    int num_points, PointAttribute *target_attribute) const {
+    const PointAttribute& attribute, const std::vector<PointIndex>& point_ids,
+    int num_points, PointAttribute* target_attribute) const {
   DRACO_DCHECK(is_initialized());
 
   // Quantize all values in the order given by point_ids into portable
   // attribute.
-  int32_t *const portable_attribute_data = reinterpret_cast<int32_t *>(
+  int32_t* const portable_attribute_data = reinterpret_cast<int32_t*>(
       target_attribute->GetAddress(AttributeValueIndex(0)));
   float att_val[3];
   int32_t dst_index = 0;

@@ -24,7 +24,7 @@ bool StdioFileWriter::registered_in_factory_ =
 StdioFileWriter::~StdioFileWriter() { fclose(file_); }
 
 std::unique_ptr<FileWriterInterface> StdioFileWriter::Open(
-    const std::string &file_name) {
+    const std::string& file_name) {
   if (file_name.empty()) {
     return nullptr;
   }
@@ -32,7 +32,7 @@ std::unique_ptr<FileWriterInterface> StdioFileWriter::Open(
     return nullptr;
   }
 
-  FILE *raw_file_ptr = fopen(file_name.c_str(), "wb");
+  FILE* raw_file_ptr = fopen(file_name.c_str(), "wb");
   if (raw_file_ptr == nullptr) {
     return nullptr;
   }
@@ -52,7 +52,7 @@ std::unique_ptr<FileWriterInterface> StdioFileWriter::Open(
 #endif
 }
 
-bool StdioFileWriter::Write(const char *buffer, size_t size) {
+bool StdioFileWriter::Write(const char* buffer, size_t size) {
   return fwrite(buffer, 1, size, file_) == size;
 }
 

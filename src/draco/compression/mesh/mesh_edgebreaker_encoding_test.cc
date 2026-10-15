@@ -29,16 +29,16 @@ namespace draco {
 
 class MeshEdgebreakerEncodingTest : public ::testing::Test {
  protected:
-  void TestFile(const std::string &file_name) { TestFile(file_name, -1); }
+  void TestFile(const std::string& file_name) { TestFile(file_name, -1); }
 
-  void TestFile(const std::string &file_name, int compression_level) {
+  void TestFile(const std::string& file_name, int compression_level) {
     const std::unique_ptr<Mesh> mesh(ReadMeshFromTestFile(file_name));
     ASSERT_NE(mesh, nullptr) << "Failed to load test model " << file_name;
 
     TestMesh(mesh.get(), compression_level);
   }
 
-  void TestMesh(Mesh *mesh, int compression_level) {
+  void TestMesh(Mesh* mesh, int compression_level) {
     EncoderBuffer buffer;
     MeshEdgebreakerEncoder encoder;
     EncoderOptions encoder_options = EncoderOptions::CreateDefaultOptions();

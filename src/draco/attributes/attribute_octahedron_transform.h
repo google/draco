@@ -32,45 +32,45 @@ class AttributeOctahedronTransform : public AttributeTransform {
     return ATTRIBUTE_OCTAHEDRON_TRANSFORM;
   }
   // Try to init transform from attribute.
-  bool InitFromAttribute(const PointAttribute &attribute) override;
+  bool InitFromAttribute(const PointAttribute& attribute) override;
   // Copy parameter values into the provided AttributeTransformData instance.
   void CopyToAttributeTransformData(
-      AttributeTransformData *out_data) const override;
+      AttributeTransformData* out_data) const override;
 
-  bool TransformAttribute(const PointAttribute &attribute,
-                          const std::vector<PointIndex> &point_ids,
-                          PointAttribute *target_attribute) override;
+  bool TransformAttribute(const PointAttribute& attribute,
+                          const std::vector<PointIndex>& point_ids,
+                          PointAttribute* target_attribute) override;
 
-  bool InverseTransformAttribute(const PointAttribute &attribute,
-                                 PointAttribute *target_attribute) override;
+  bool InverseTransformAttribute(const PointAttribute& attribute,
+                                 PointAttribute* target_attribute) override;
 
   // Set number of quantization bits.
   void SetParameters(int quantization_bits);
 
   // Encode relevant parameters into buffer.
-  bool EncodeParameters(EncoderBuffer *encoder_buffer) const override;
+  bool EncodeParameters(EncoderBuffer* encoder_buffer) const override;
 
-  bool DecodeParameters(const PointAttribute &attribute,
-                        DecoderBuffer *decoder_buffer) override;
+  bool DecodeParameters(const PointAttribute& attribute,
+                        DecoderBuffer* decoder_buffer) override;
 
   bool is_initialized() const { return quantization_bits_ != -1; }
   int32_t quantization_bits() const { return quantization_bits_; }
 
  protected:
   DataType GetTransformedDataType(
-      const PointAttribute &attribute) const override {
+      const PointAttribute& attribute) const override {
     return DT_UINT32;
   }
   int GetTransformedNumComponents(
-      const PointAttribute &attribute) const override {
+      const PointAttribute& attribute) const override {
     return 2;
   }
 
   // Perform the actual transformation.
-  bool GeneratePortableAttribute(const PointAttribute &attribute,
-                                 const std::vector<PointIndex> &point_ids,
+  bool GeneratePortableAttribute(const PointAttribute& attribute,
+                                 const std::vector<PointIndex>& point_ids,
                                  int num_points,
-                                 PointAttribute *target_attribute) const;
+                                 PointAttribute* target_attribute) const;
 
  private:
   int32_t quantization_bits_;

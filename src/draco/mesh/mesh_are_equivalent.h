@@ -28,35 +28,35 @@ class MeshAreEquivalent {
  public:
   // Returns true if both meshes are equivalent up to permutation of
   // the internal order of vertices. This includes all attributes.
-  bool operator()(const Mesh &mesh0, const Mesh &mesh1);
+  bool operator()(const Mesh& mesh0, const Mesh& mesh1);
 
  private:
   // Internal type to keep overview.
   struct MeshInfo {
-    explicit MeshInfo(const Mesh &in_mesh) : mesh(in_mesh) {}
-    const Mesh &mesh;
+    explicit MeshInfo(const Mesh& in_mesh) : mesh(in_mesh) {}
+    const Mesh& mesh;
     std::vector<FaceIndex> ordered_index_of_face;
     IndexTypeVector<FaceIndex, int> corner_index_of_smallest_vertex;
   };
 
   // Prepare functor for actual comparison.
-  void Init(const Mesh &mesh0, const Mesh &mesh1);
+  void Init(const Mesh& mesh0, const Mesh& mesh1);
 
   // Get position as Vector3f of corner c of face f.
-  static Vector3f GetPosition(const Mesh &mesh, FaceIndex f, int32_t c);
+  static Vector3f GetPosition(const Mesh& mesh, FaceIndex f, int32_t c);
   // Internal helper function mostly for debugging.
-  void PrintPosition(const Mesh &mesh, FaceIndex f, int32_t c);
+  void PrintPosition(const Mesh& mesh, FaceIndex f, int32_t c);
   // Get the corner index of the lex smallest vertex of face f.
-  static int32_t ComputeCornerIndexOfSmallestPointXYZ(const Mesh &mesh,
+  static int32_t ComputeCornerIndexOfSmallestPointXYZ(const Mesh& mesh,
                                                       FaceIndex f);
 
   // Less compare functor for two faces (represented by their indices)
   // with respect to their lex order.
   struct FaceIndexLess {
-    explicit FaceIndexLess(const MeshInfo &in_mesh_info)
+    explicit FaceIndexLess(const MeshInfo& in_mesh_info)
         : mesh_info(in_mesh_info) {}
     bool operator()(FaceIndex f0, FaceIndex f1) const;
-    const MeshInfo &mesh_info;
+    const MeshInfo& mesh_info;
   };
 
   void InitCornerIndexOfSmallestPointXYZ();

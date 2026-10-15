@@ -33,9 +33,9 @@ class PredictionSchemeWrapDecodingTransform
 
   // Computes the original value from the input predicted value and the decoded
   // corrections. Values out of the bounds of the input values are unwrapped.
-  inline void ComputeOriginalValue(const DataTypeT *predicted_vals,
-                                   const CorrTypeT *corr_vals,
-                                   DataTypeT *out_original_vals) const {
+  inline void ComputeOriginalValue(const DataTypeT* predicted_vals,
+                                   const CorrTypeT* corr_vals,
+                                   DataTypeT* out_original_vals) const {
     // For now we assume both |DataTypeT| and |CorrTypeT| are equal.
     static_assert(std::is_same<DataTypeT, CorrTypeT>::value,
                   "Predictions and corrections must have the same type.");
@@ -62,7 +62,7 @@ class PredictionSchemeWrapDecodingTransform
     }
   }
 
-  bool DecodeTransformData(DecoderBuffer *buffer) {
+  bool DecodeTransformData(DecoderBuffer* buffer) {
     DataTypeT min_value, max_value;
     if (!buffer->Decode(&min_value)) {
       return false;

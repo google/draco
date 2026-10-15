@@ -33,7 +33,7 @@ class MeshEdgebreakerTraversalDecoder {
       : attribute_connectivity_decoders_(nullptr),
         num_attribute_data_(0),
         decoder_impl_(nullptr) {}
-  void Init(MeshEdgebreakerDecoderImplInterface *decoder) {
+  void Init(MeshEdgebreakerDecoderImplInterface* decoder) {
     decoder_impl_ = decoder;
     buffer_.Init(decoder->GetDecoder()->buffer()->data_head(),
                  decoder->GetDecoder()->buffer()->remaining_size(),
@@ -56,7 +56,7 @@ class MeshEdgebreakerTraversalDecoder {
   // Called before the traversal decoding is started.
   // Returns a buffer decoder that points to data that was encoded after the
   // traversal.
-  bool Start(DecoderBuffer *out_buffer) {
+  bool Start(DecoderBuffer* out_buffer) {
     // Decode symbols from the main buffer decoder and face configurations from
     // the start_face_buffer decoder.
     if (!DecodeTraversalSymbols()) {
@@ -135,7 +135,7 @@ class MeshEdgebreakerTraversalDecoder {
   }
 
  protected:
-  DecoderBuffer *buffer() { return &buffer_; }
+  DecoderBuffer* buffer() { return &buffer_; }
 
   bool DecodeTraversalSymbols() {
     uint64_t traversal_size;
@@ -193,7 +193,7 @@ class MeshEdgebreakerTraversalDecoder {
   DecoderBuffer start_face_buffer_;
   std::unique_ptr<BinaryDecoder[]> attribute_connectivity_decoders_;
   int num_attribute_data_;
-  const MeshEdgebreakerDecoderImplInterface *decoder_impl_;
+  const MeshEdgebreakerDecoderImplInterface* decoder_impl_;
 };
 
 }  // namespace draco

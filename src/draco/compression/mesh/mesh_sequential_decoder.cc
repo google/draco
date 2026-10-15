@@ -24,7 +24,7 @@
 
 namespace draco {
 
-MeshSequentialDecoder::MeshSequentialDecoder() {}
+MeshSequentialDecoder::MeshSequentialDecoder() = default;
 
 bool MeshSequentialDecoder::DecodeConnectivity() {
   uint32_t num_faces;
@@ -180,8 +180,7 @@ bool MeshSequentialDecoder::DecodeAndDecompressIndices(uint32_t num_faces,
         }
       }
       const int32_t index_value = index_diff + last_index_value;
-      if (index_value < 0 ||
-          static_cast<uint32_t>(index_value) >= num_points) {
+      if (index_value < 0 || static_cast<uint32_t>(index_value) >= num_points) {
         return false;
       }
       face[j] = index_value;

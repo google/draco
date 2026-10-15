@@ -24,7 +24,7 @@ RAnsBitDecoder::RAnsBitDecoder() : prob_zero_(0) {}
 
 RAnsBitDecoder::~RAnsBitDecoder() { Clear(); }
 
-bool RAnsBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
+bool RAnsBitDecoder::StartDecoding(DecoderBuffer* source_buffer) {
   Clear();
 
   if (!source_buffer->Decode(&prob_zero_)) {
@@ -51,8 +51,8 @@ bool RAnsBitDecoder::StartDecoding(DecoderBuffer *source_buffer) {
   }
 
   if (ans_read_init(&ans_decoder_,
-                    reinterpret_cast<uint8_t *>(
-                        const_cast<char *>(source_buffer->data_head())),
+                    reinterpret_cast<uint8_t*>(
+                        const_cast<char*>(source_buffer->data_head())),
                     size_in_bytes) != 0) {
     return false;
   }
@@ -65,7 +65,7 @@ bool RAnsBitDecoder::DecodeNextBit() {
   return bit > 0;
 }
 
-void RAnsBitDecoder::DecodeLeastSignificantBits32(int nbits, uint32_t *value) {
+void RAnsBitDecoder::DecodeLeastSignificantBits32(int nbits, uint32_t* value) {
   DRACO_DCHECK_EQ(true, nbits <= 32);
   DRACO_DCHECK_EQ(true, nbits > 0);
 

@@ -23,6 +23,8 @@
 #include <sstream>
 #include <string>
 
+#include "draco/metadata/json_entity.h"
+
 namespace draco {
 
 // Class used to store integer or float values supported by glTF.
@@ -42,13 +44,16 @@ class GltfValue {
   explicit GltfValue(uint16_t value)
       : type_(INT), value_int_(value), value_double_(-1.0) {}
 
+  explicit GltfValue(int32_t value)
+      : type_(INT), value_int_(value), value_double_(-1.0) {}
+
   explicit GltfValue(uint32_t value)
       : type_(INT), value_int_(value), value_double_(-1.0) {}
 
   explicit GltfValue(float value)
       : type_(DOUBLE), value_int_(-1), value_double_(value) {}
 
-  friend std::ostream &operator<<(std::ostream &os, const GltfValue &value);
+  friend std::ostream& operator<<(std::ostream& os, const GltfValue& value);
 
  private:
   ValueType type_;
@@ -64,7 +69,7 @@ class Indent {
   void Increase();
   void Decrease();
 
-  friend std::ostream &operator<<(std::ostream &os, const Indent &indent);
+  friend std::ostream& operator<<(std::ostream& os, const Indent& indent);
 
  private:
   // Variables used for spacing of the glTF file.
@@ -87,32 +92,32 @@ class JsonWriter {
 
   // Every call to BeginObject should have a matching call to EndObject.
   void BeginObject();
-  void BeginObject(const std::string &name);
+  void BeginObject(const std::string& name);
   void EndObject();
 
   // Every call to BeginArray should have a matching call to EndArray.
   void BeginArray();
-  void BeginArray(const std::string &name);
+  void BeginArray(const std::string& name);
   void EndArray();
 
   template <typename T>
-  void OutputValue(const T &value) {
+  void OutputValue(const T& value) {
     FinishPreviousLine(VALUE);
     o_ << indent_ << std::setprecision(17) << value;
   }
 
-  void OutputValue(const bool &value) {
+  void OutputValue(const bool& value) {
     FinishPreviousLine(VALUE);
     o_ << indent_ << ToString(value);
   }
 
-  void OutputValue(const std::string &name) {
+  void OutputValue(const std::string& name) {
     const std::string escaped_name = EscapeJsonSpecialCharacters(name);
     FinishPreviousLine(VALUE);
     o_ << indent_ << "\"" << escaped_name << "\"";
   }
 
-  void OutputValue(const std::string &name, const std::string &value) {
+  void OutputValue(const std::string& name, const std::string& value) {
     const std::string escaped_name = EscapeJsonSpecialCharacters(name);
     const std::string escaped_value = EscapeJsonSpecialCharacters(value);
     FinishPreviousLine(VALUE);
@@ -120,7 +125,7 @@ class JsonWriter {
        << escaped_value << "\"";
   }
 
-  void OutputValue(const std::string &name, const char *value) {
+  void OutputValue(const std::string& name, const char* value) {
     const std::string escaped_name = EscapeJsonSpecialCharacters(name);
     const std::string escaped_value = EscapeJsonSpecialCharacters(value);
     FinishPreviousLine(VALUE);
@@ -129,17 +134,58 @@ class JsonWriter {
   }
 
   template <typename T>
-  void OutputValue(const std::string &name, const T &value) {
+  void OutputValue(const std::string& name, const T& value) {
     const std::string escaped_name = EscapeJsonSpecialCharacters(name);
     FinishPreviousLine(VALUE);
     o_ << indent_ << "\"" << escaped_name << "\":" << separator_ << value;
   }
 
-  void OutputValue(const std::string &name, const bool &value) {
+  void OutputValue(const std::string& name, const bool& value) {
     const std::string escaped_name = EscapeJsonSpecialCharacters(name);
     FinishPreviousLine(VALUE);
     o_ << indent_ << "\"" << escaped_name << "\":" << separator_
        << ToString(value);
+  }
+
+  void OutputValue(const JsonEntity& value) {
+    // Output the JSON object |value| according to its type.
+    switch (value.GetType()) {
+      case JsonEntity::OBJECT:
+        BeginObject(value.GetName());
+        for (const auto& field : value.GetObject()) {
+          OutputValue(field);
+        }
+        EndObject();
+        break;
+      case JsonEntity::ARRAY:
+        // TODO(vytyaz): Only call BeginArray(name) once it supports empty name.
+        value.GetName().empty() ? BeginArray() : BeginArray(value.GetName());
+        for (const auto& item : value.GetArray()) {
+          OutputValue(item);
+        }
+        EndArray();
+        break;
+      case JsonEntity::STRING:
+        value.GetName().empty()
+            ? OutputValue(value.GetString())
+            : OutputValue(value.GetName(), value.GetString());
+        break;
+      case JsonEntity::INTEGER:
+        value.GetName().empty()
+            ? OutputValue(value.GetInteger())
+            : OutputValue(value.GetName(), value.GetInteger());
+        break;
+      case JsonEntity::DOUBLE:
+        value.GetName().empty()
+            ? OutputValue(value.GetDouble())
+            : OutputValue(value.GetName(), value.GetDouble());
+        break;
+      case JsonEntity::BOOLEAN:
+        value.GetName().empty()
+            ? OutputValue(value.GetBoolean())
+            : OutputValue(value.GetName(), value.GetBoolean());
+        break;
+    }
   }
 
   // Return the current output and then clear the stringstream.
@@ -150,29 +196,29 @@ class JsonWriter {
   void FinishPreviousLine(OutputType curr_type);
 
   // Returns a string escaping all instances of |character| in |str|.
-  std::string EscapeCharacter(const std::string &str, const char character);
+  std::string EscapeCharacter(const std::string& str, const char character);
 
   // Returns a string escaping all of the Json special characters in |str|.
   // Carriage return is not handled.
-  std::string EscapeJsonSpecialCharacters(const std::string &str);
+  std::string EscapeJsonSpecialCharacters(const std::string& str);
 
   // Returns string representation of a Boolean |value|.
   static std::string ToString(bool value) { return value ? "true" : "false"; }
 
   // Helper struct used for conditional indent writing to the output stream.
   struct IndentWrapper {
-    explicit IndentWrapper(const JsonWriter &writer) : writer(writer) {}
-    const JsonWriter &writer;
+    explicit IndentWrapper(const JsonWriter& writer) : writer(writer) {}
+    const JsonWriter& writer;
   };
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const IndentWrapper &indent);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const IndentWrapper& indent);
 
   // Helper struct used for conditional separator writing to the output stream.
   struct Separator {
-    explicit Separator(const JsonWriter &writer) : writer(writer) {}
-    const JsonWriter &writer;
+    explicit Separator(const JsonWriter& writer) : writer(writer) {}
+    const JsonWriter& writer;
   };
-  friend std::ostream &operator<<(std::ostream &os, const Separator &separator);
+  friend std::ostream& operator<<(std::ostream& os, const Separator& separator);
 
   std::stringstream o_;
   Indent indent_writer_;

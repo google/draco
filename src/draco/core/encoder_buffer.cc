@@ -49,9 +49,9 @@ bool EncoderBuffer::StartBitEncoding(int64_t required_bits, bool encode_size) {
   // Resize buffer to fit the maximum size of encoded bit data.
   buffer_.resize(buffer_start_size + required_bytes);
   // Get the buffer data pointer for the bit encoder.
-  const char *const data = buffer_.data() + buffer_start_size;
+  const char* const data = buffer_.data() + buffer_start_size;
   bit_encoder_ =
-      std::unique_ptr<BitEncoder>(new BitEncoder(const_cast<char *>(data)));
+      std::unique_ptr<BitEncoder>(new BitEncoder(const_cast<char*>(data)));
   return true;
 }
 
@@ -66,15 +66,15 @@ void EncoderBuffer::EndBitEncoding() {
   bit_encoder_->Flush(0);
   // Encode size if needed.
   if (encode_bit_sequence_size_) {
-    char *out_mem = const_cast<char *>(data() + size());
+    char* out_mem = const_cast<char*>(data() + size());
     // Make the out_mem point to the memory reserved for storing the size.
     out_mem = out_mem - (bit_encoder_reserved_bytes_ + sizeof(uint64_t));
 
     EncoderBuffer var_size_buffer;
     EncodeVarint(encoded_bytes, &var_size_buffer);
     const uint32_t size_len = static_cast<uint32_t>(var_size_buffer.size());
-    char *const dst = out_mem + size_len;
-    const char *const src = out_mem + sizeof(uint64_t);
+    char* const dst = out_mem + size_len;
+    const char* const src = out_mem + sizeof(uint64_t);
     memmove(dst, src, encoded_bytes);
 
     // Store the size of the encoded data.

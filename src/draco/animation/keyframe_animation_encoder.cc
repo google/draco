@@ -16,11 +16,11 @@
 
 namespace draco {
 
-KeyframeAnimationEncoder::KeyframeAnimationEncoder() {}
+KeyframeAnimationEncoder::KeyframeAnimationEncoder() = default;
 
 Status KeyframeAnimationEncoder::EncodeKeyframeAnimation(
-    const KeyframeAnimation &animation, const EncoderOptions &options,
-    EncoderBuffer *out_buffer) {
+    const KeyframeAnimation& animation, const EncoderOptions& options,
+    EncoderBuffer* out_buffer) {
   SetPointCloud(animation);
   return Encode(options, out_buffer);
 }

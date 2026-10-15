@@ -35,23 +35,23 @@ class SourceImage {
   SourceImage() {}
 
   // No copy constructors.
-  SourceImage(const SourceImage &) = delete;
-  SourceImage &operator=(const SourceImage &) = delete;
+  SourceImage(const SourceImage&) = delete;
+  SourceImage& operator=(const SourceImage&) = delete;
   // No move constructors.
-  SourceImage(SourceImage &&) = delete;
-  SourceImage &operator=(SourceImage &&) = delete;
+  SourceImage(SourceImage&&) = delete;
+  SourceImage& operator=(SourceImage&&) = delete;
 
-  void Copy(const SourceImage &src);
+  void Copy(const SourceImage& src);
 
   // Sets the name of the source image file.
-  void set_filename(const std::string &filename) { filename_ = filename; }
-  const std::string &filename() const { return filename_; }
+  void set_filename(const std::string& filename) { filename_ = filename; }
+  const std::string& filename() const { return filename_; }
 
-  void set_mime_type(const std::string &mime_type) { mime_type_ = mime_type; }
-  const std::string &mime_type() const { return mime_type_; }
+  void set_mime_type(const std::string& mime_type) { mime_type_ = mime_type; }
+  const std::string& mime_type() const { return mime_type_; }
 
-  std::vector<uint8_t> &MutableEncodedData() { return encoded_data_; }
-  const std::vector<uint8_t> &encoded_data() const { return encoded_data_; }
+  std::vector<uint8_t>& MutableEncodedData() { return encoded_data_; }
+  const std::vector<uint8_t>& encoded_data() const { return encoded_data_; }
 
  private:
   // The filename of the image. This field can be empty as long as |mime_type_|

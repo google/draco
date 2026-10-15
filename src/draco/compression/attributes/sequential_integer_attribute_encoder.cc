@@ -21,9 +21,10 @@
 
 namespace draco {
 
-SequentialIntegerAttributeEncoder::SequentialIntegerAttributeEncoder() {}
+SequentialIntegerAttributeEncoder::SequentialIntegerAttributeEncoder() =
+    default;
 
-bool SequentialIntegerAttributeEncoder::Init(PointCloudEncoder *encoder,
+bool SequentialIntegerAttributeEncoder::Init(PointCloudEncoder* encoder,
                                              int attribute_id) {
   if (!SequentialAttributeEncoder::Init(encoder, attribute_id)) {
     return false;
@@ -57,7 +58,7 @@ bool SequentialIntegerAttributeEncoder::Init(PointCloudEncoder *encoder,
 }
 
 bool SequentialIntegerAttributeEncoder::TransformAttributeToPortableFormat(
-    const std::vector<PointIndex> &point_ids) {
+    const std::vector<PointIndex>& point_ids) {
   if (encoder()) {
     if (!PrepareValues(point_ids, encoder()->point_cloud()->num_points())) {
       return false;
@@ -73,8 +74,8 @@ bool SequentialIntegerAttributeEncoder::TransformAttributeToPortableFormat(
   if (is_parent_encoder()) {
     // First create map between original attribute value indices and new ones
     // (determined by the encoding order).
-    const PointAttribute *const orig_att = attribute();
-    PointAttribute *const portable_att = portable_attribute();
+    const PointAttribute* const orig_att = attribute();
+    PointAttribute* const portable_att = portable_attribute();
     IndexTypeVector<AttributeValueIndex, AttributeValueIndex>
         value_to_value_map(orig_att->size());
     for (int i = 0; i < point_ids.size(); ++i) {
@@ -103,9 +104,9 @@ SequentialIntegerAttributeEncoder::CreateIntPredictionScheme(
 }
 
 bool SequentialIntegerAttributeEncoder::EncodeValues(
-    const std::vector<PointIndex> &point_ids, EncoderBuffer *out_buffer) {
+    const std::vector<PointIndex>& point_ids, EncoderBuffer* out_buffer) {
   // Initialize general quantization data.
-  const PointAttribute *const attrib = attribute();
+  const PointAttribute* const attrib = attribute();
   if (attrib->size() == 0) {
     return true;
   }
@@ -127,7 +128,7 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
   const int num_components = portable_attribute()->num_components();
   const int num_values =
       static_cast<int>(num_components * portable_attribute()->size());
-  const int32_t *const portable_attribute_data = GetPortableAttributeData();
+  const int32_t* const portable_attribute_data = GetPortableAttributeData();
 
   // We need to keep the portable data intact, but several encoding steps can
   // result in changes of this data, e.g., by applying prediction schemes that
@@ -147,10 +148,10 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
 
   if (prediction_scheme_ == nullptr ||
       !prediction_scheme_->AreCorrectionsPositive()) {
-    const int32_t *const input =
+    const int32_t* const input =
         prediction_scheme_ ? encoded_data.data() : portable_attribute_data;
     ConvertSignedIntsToSymbols(input, num_values,
-                               reinterpret_cast<uint32_t *>(&encoded_data[0]));
+                               reinterpret_cast<uint32_t*>(&encoded_data[0]));
   }
 
   if (encoder() == nullptr || encoder()->options()->GetGlobalBool(
@@ -161,7 +162,7 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
       SetSymbolEncodingCompressionLevel(&symbol_encoding_options,
                                         10 - encoder()->options()->GetSpeed());
     }
-    if (!EncodeSymbols(reinterpret_cast<uint32_t *>(encoded_data.data()),
+    if (!EncodeSymbols(reinterpret_cast<uint32_t*>(encoded_data.data()),
                        static_cast<int>(point_ids.size()) * num_components,
                        num_components, &symbol_encoding_options, out_buffer)) {
       return false;
@@ -200,14 +201,14 @@ bool SequentialIntegerAttributeEncoder::EncodeValues(
 }
 
 bool SequentialIntegerAttributeEncoder::PrepareValues(
-    const std::vector<PointIndex> &point_ids, int num_points) {
+    const std::vector<PointIndex>& point_ids, int num_points) {
   // Convert all values to int32_t format.
-  const PointAttribute *const attrib = attribute();
+  const PointAttribute* const attrib = attribute();
   const int num_components = attrib->num_components();
   const int num_entries = static_cast<int>(point_ids.size());
   PreparePortableAttribute(num_entries, num_components, num_points);
   int32_t dst_index = 0;
-  int32_t *const portable_attribute_data = GetPortableAttributeData();
+  int32_t* const portable_attribute_data = GetPortableAttributeData();
   for (PointIndex pi : point_ids) {
     const AttributeValueIndex att_id = attrib->mapped_index(pi);
     if (!attrib->ConvertValue<int32_t>(att_id,

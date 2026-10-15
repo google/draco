@@ -34,15 +34,15 @@ class ExpertEncoder : public EncoderBase<EncoderOptions> {
   typedef EncoderBase<EncoderOptions> Base;
   typedef EncoderOptions OptionsType;
 
-  explicit ExpertEncoder(const PointCloud &point_cloud);
-  explicit ExpertEncoder(const Mesh &mesh);
+  explicit ExpertEncoder(const PointCloud& point_cloud);
+  explicit ExpertEncoder(const Mesh& mesh);
 
   // Encodes the geometry provided in the constructor to the target buffer.
-  Status EncodeToBuffer(EncoderBuffer *out_buffer);
+  Status EncodeToBuffer(EncoderBuffer* out_buffer);
 
   // Set encoder options used during the geometry encoding. Note that this call
   // overwrites any modifications to the options done with the functions below.
-  void Reset(const EncoderOptions &options);
+  void Reset(const EncoderOptions& options);
   void Reset();
 
   // Sets the desired encoding and decoding speed for the given options.
@@ -73,7 +73,7 @@ class ExpertEncoder : public EncoderBase<EncoderOptions> {
   // <origin, origin + range>).
   void SetAttributeExplicitQuantization(int32_t attribute_id,
                                         int quantization_bits, int num_dims,
-                                        const float *origin, float range);
+                                        const float* origin, float range);
 
   // Enables/disables built in entropy coding of attribute values. Disabling
   // this option may be useful to improve the performance when third party
@@ -135,24 +135,24 @@ class ExpertEncoder : public EncoderBase<EncoderOptions> {
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Applies grid quantization to position attribute in point cloud |pc| at
   // |attribute_index| with a given grid |spacing|.
-  Status SetAttributeGridQuantization(const PointCloud &pc, int attribute_index,
+  Status SetAttributeGridQuantization(const PointCloud& pc, int attribute_index,
                                       float spacing);
 #endif  // DRACO_TRANSCODER_SUPPORTED
 
  private:
-  Status EncodePointCloudToBuffer(const PointCloud &pc,
-                                  EncoderBuffer *out_buffer);
+  Status EncodePointCloudToBuffer(const PointCloud& pc,
+                                  EncoderBuffer* out_buffer);
 
-  Status EncodeMeshToBuffer(const Mesh &m, EncoderBuffer *out_buffer);
+  Status EncodeMeshToBuffer(const Mesh& m, EncoderBuffer* out_buffer);
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
   // Applies compression options stored in |pc|.
-  Status ApplyCompressionOptions(const PointCloud &pc);
-  Status ApplyGridQuantization(const PointCloud &pc, int attribute_index);
+  Status ApplyCompressionOptions(const PointCloud& pc);
+  Status ApplyGridQuantization(const PointCloud& pc, int attribute_index);
 #endif  // DRACO_TRANSCODER_SUPPORTED
 
-  const PointCloud *point_cloud_;
-  const Mesh *mesh_;
+  const PointCloud* point_cloud_;
+  const Mesh* mesh_;
 };
 
 }  // namespace draco

@@ -30,7 +30,7 @@ class PredictionSchemeInterface {
   virtual PredictionSchemeMethod GetPredictionMethod() const = 0;
 
   // Returns the encoded attribute.
-  virtual const PointAttribute *GetAttribute() const = 0;
+  virtual const PointAttribute* GetAttribute() const = 0;
 
   // Returns true when the prediction scheme is initialized with all data it
   // needs.
@@ -45,7 +45,7 @@ class PredictionSchemeInterface {
   // Sets the required parent attribute.
   // Returns false if the attribute doesn't meet the requirements of the
   // prediction scheme.
-  virtual bool SetParentAttribute(const PointAttribute *att) = 0;
+  virtual bool SetParentAttribute(const PointAttribute* att) = 0;
 
   // Method should return true if the prediction scheme guarantees that all
   // correction values are always positive (or at least non-negative).

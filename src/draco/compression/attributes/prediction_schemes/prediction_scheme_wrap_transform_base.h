@@ -59,8 +59,8 @@ class PredictionSchemeWrapTransformBase {
 
   bool AreCorrectionsPositive() const { return false; }
 
-  inline const DataTypeT *ClampPredictedValue(
-      const DataTypeT *predicted_val) const {
+  inline const DataTypeT* ClampPredictedValue(
+      const DataTypeT* predicted_val) const {
     for (int i = 0; i < this->num_components(); ++i) {
       if (predicted_val[i] > max_value_) {
         clamped_value_[i] = max_value_;
@@ -97,9 +97,9 @@ class PredictionSchemeWrapTransformBase {
 
   inline int num_components() const { return num_components_; }
   inline DataTypeT min_value() const { return min_value_; }
-  inline void set_min_value(const DataTypeT &v) { min_value_ = v; }
+  inline void set_min_value(const DataTypeT& v) { min_value_ = v; }
   inline DataTypeT max_value() const { return max_value_; }
-  inline void set_max_value(const DataTypeT &v) { max_value_ = v; }
+  inline void set_max_value(const DataTypeT& v) { max_value_ = v; }
   inline DataTypeT max_dif() const { return max_dif_; }
   inline DataTypeT min_correction() const { return min_correction_; }
   inline DataTypeT max_correction() const { return max_correction_; }

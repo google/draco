@@ -9,7 +9,7 @@
 namespace draco {
 namespace {
 
-void CheckFileWriter(const std::string &data, const std::string &filename) {
+void CheckFileWriter(const std::string& data, const std::string& filename) {
   auto writer = StdioFileWriter::Open(filename);
   ASSERT_NE(writer, nullptr);
   ASSERT_TRUE(writer->Write(data.data(), data.size()));
@@ -18,7 +18,7 @@ void CheckFileWriter(const std::string &data, const std::string &filename) {
                                                 fclose);
   ASSERT_NE(file, nullptr);
   std::string read_buffer(data.size(), ' ');
-  ASSERT_EQ(fread(reinterpret_cast<void *>(&read_buffer[0]), 1, data.size(),
+  ASSERT_EQ(fread(reinterpret_cast<void*>(&read_buffer[0]), 1, data.size(),
                   file.get()),
             data.size());
   ASSERT_EQ(read_buffer, data);
