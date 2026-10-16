@@ -14,9 +14,22 @@
 //
 #include "draco/compression/point_cloud/point_cloud_encoder.h"
 
+#include "draco/core/macros.h"
 #include "draco/metadata/metadata_encoder.h"
 
 namespace draco {
+namespace {
+
+size_t ComputeTotalStatsBytes(const PointCloudEncodeStats& stats) {
+  size_t sum = stats.header_and_metadata_bytes + stats.connectivity_bytes +
+               stats.joint_portable_attributes_bytes;
+  for (const AttributeEncodeStats& att : stats.attributes) {
+    sum += att.total_attribute_bytes();
+  }
+  return sum;
+}
+
+}  // namespace
 
 PointCloudEncoder::PointCloudEncoder()
     : point_cloud_(nullptr), buffer_(nullptr), num_encoded_points_(0) {}
@@ -27,6 +40,7 @@ void PointCloudEncoder::SetPointCloud(const PointCloud& pc) {
 
 Status PointCloudEncoder::Encode(const EncoderOptions& options,
                                  EncoderBuffer* out_buffer) {
+  encode_stats_.Clear();
   options_ = &options;
   buffer_ = out_buffer;
 
@@ -38,6 +52,22 @@ Status PointCloudEncoder::Encode(const EncoderOptions& options,
   if (!point_cloud_) {
     return Status(Status::DRACO_ERROR, "Invalid input geometry.");
   }
+  if (!out_buffer) {
+    return Status(Status::DRACO_ERROR, "Invalid output buffer.");
+  }
+  const size_t initial_buffer_size = out_buffer->size();
+  const Status status = EncodeInternal(initial_buffer_size);
+  if (!status.ok()) {
+    encode_stats_.Clear();
+    return status;
+  }
+  if (options.GetGlobalBool("store_number_of_encoded_points", false)) {
+    ComputeNumberOfEncodedPoints();
+  }
+  return OkStatus();
+}
+
+Status PointCloudEncoder::EncodeInternal(size_t initial_buffer_size) {
   DRACO_RETURN_IF_ERROR(EncodeHeader())
   DRACO_RETURN_IF_ERROR(EncodeMetadata())
   if (!InitializeEncoder()) {
@@ -46,13 +76,24 @@ Status PointCloudEncoder::Encode(const EncoderOptions& options,
   if (!EncodeEncoderData()) {
     return Status(Status::DRACO_ERROR, "Failed to encode internal data.");
   }
+  const size_t before_geometry_bytes = buffer_->size();
+  encode_stats_.header_and_metadata_bytes +=
+      before_geometry_bytes - initial_buffer_size;
+
   DRACO_RETURN_IF_ERROR(EncodeGeometryData());
+  const size_t geometry_data_bytes = buffer_->size() - before_geometry_bytes;
+  if (GetGeometryType() == POINT_CLOUD) {
+    encode_stats_.header_and_metadata_bytes += geometry_data_bytes;
+  } else {
+    encode_stats_.connectivity_bytes += geometry_data_bytes;
+  }
+
   if (!EncodePointAttributes()) {
     return Status(Status::DRACO_ERROR, "Failed to encode point attributes.");
   }
-  if (options.GetGlobalBool("store_number_of_encoded_points", false)) {
-    ComputeNumberOfEncodedPoints();
-  }
+  encode_stats_.total_bytes = buffer_->size() - initial_buffer_size;
+  DRACO_DCHECK_EQ(ComputeTotalStatsBytes(encode_stats_),
+                  encode_stats_.total_bytes);
   return OkStatus();
 }
 
@@ -99,9 +140,23 @@ Status PointCloudEncoder::EncodeMetadata() {
 }
 
 bool PointCloudEncoder::EncodePointAttributes() {
+  const int32_t num_atts = point_cloud_->num_attributes();
+  encode_stats_.attributes.resize(num_atts);
+  for (int32_t i = 0; i < num_atts; ++i) {
+    const PointAttribute* const att = point_cloud_->attribute(i);
+    AttributeEncodeStats& att_stats = encode_stats_.attributes[i];
+    att_stats.point_attribute_id = i;
+    if (att != nullptr) {
+      att_stats.attribute_type = att->attribute_type();
+      att_stats.unique_id = att->unique_id();
+    }
+  }
+
   if (!GenerateAttributesEncoders()) {
     return false;
   }
+
+  const size_t before_att_headers_bytes = buffer_->size();
 
   // Encode the number of attribute encoders.
   buffer_->Encode(static_cast<uint8_t>(attributes_encoders_.size()));
@@ -136,6 +191,18 @@ bool PointCloudEncoder::EncodePointAttributes() {
     }
   }
 
+  encode_stats_.header_and_metadata_bytes +=
+      buffer_->size() - before_att_headers_bytes;
+
+  bool exact_portable_bytes = true;
+  for (const auto& att_enc : attributes_encoders_) {
+    if (!att_enc->HasExactPerAttributePortableBytes()) {
+      exact_portable_bytes = false;
+      break;
+    }
+  }
+  encode_stats_.per_attribute_portable_bytes_exact = exact_portable_bytes;
+
   // Lastly encode all the attributes using the provided attribute encoders.
   if (!EncodeAllAttributes()) {
     return false;
@@ -160,8 +227,18 @@ bool PointCloudEncoder::GenerateAttributesEncoders() {
 
 bool PointCloudEncoder::EncodeAllAttributes() {
   for (int att_encoder_id : attributes_encoder_ids_order_) {
+    const size_t before_buffer_bytes = buffer_->size();
+    const size_t before_total_bytes = ComputeTotalStatsBytes(encode_stats_);
     if (!attributes_encoders_[att_encoder_id]->EncodeAttributes(buffer_)) {
       return false;
+    }
+    const size_t actual_delta = buffer_->size() - before_buffer_bytes;
+    const size_t total_stats_delta =
+        ComputeTotalStatsBytes(encode_stats_) - before_total_bytes;
+    if (actual_delta > total_stats_delta) {
+      encode_stats_.joint_portable_attributes_bytes +=
+          actual_delta - total_stats_delta;
+      encode_stats_.per_attribute_portable_bytes_exact = false;
     }
   }
   return true;

@@ -72,6 +72,20 @@ macro(draco_get_required_emscripten_flags)
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sFILESYSTEM=0")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER}
                 "-sEXPORTED_FUNCTIONS=[\"_free\",\"_malloc\"]")
+    set(em_heap_exports "\"HEAP8\",\"HEAPU8\",\"HEAP16\",\"HEAPU16\"")
+    string(APPEND em_heap_exports
+           ",\"HEAP32\",\"HEAPU32\",\"HEAPF32\",\"HEAPF64\"")
+    list(APPEND ${em_FLAG_LIST_VAR_COMPILER}
+                "-sEXPORTED_RUNTIME_METHODS=[${em_heap_exports}]")
+    set(em_incoming_api
+        "\"instantiateWasm\",\"locateFile\",\"monitorRunDependencies\"")
+    string(APPEND em_incoming_api
+           ",\"onAbort\",\"onRuntimeInitialized\",\"postRun\"")
+    string(APPEND em_incoming_api
+           ",\"preInit\",\"preRun\",\"print\",\"printErr\"")
+    string(APPEND em_incoming_api ",\"setStatus\",\"wasmBinary\"")
+    list(APPEND ${em_FLAG_LIST_VAR_COMPILER}
+                "-sINCOMING_MODULE_JS_API=[${em_incoming_api}]")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sPRECISE_F32=1")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sNODEJS_CATCH_EXIT=0")
     list(APPEND ${em_FLAG_LIST_VAR_COMPILER} "-sNODEJS_CATCH_REJECTION=0")

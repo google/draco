@@ -18,6 +18,7 @@
 #include "draco/compression/config/compression_shared.h"
 #include "draco/compression/config/encoder_options.h"
 #include "draco/compression/encode_base.h"
+#include "draco/compression/point_cloud/point_cloud_encode_stats.h"
 #include "draco/core/encoder_buffer.h"
 #include "draco/core/status.h"
 #include "draco/mesh/mesh.h"
@@ -39,6 +40,11 @@ class ExpertEncoder : public EncoderBase<EncoderOptions> {
 
   // Encodes the geometry provided in the constructor to the target buffer.
   Status EncodeToBuffer(EncoderBuffer* out_buffer);
+
+  // Returns byte-level breakdown statistics from the most recent
+  // EncodeToBuffer() call. If the most recent EncodeToBuffer() call failed, all
+  // fields are reset to zero/empty.
+  const PointCloudEncodeStats& encode_stats() const { return encode_stats_; }
 
   // Set encoder options used during the geometry encoding. Note that this call
   // overwrites any modifications to the options done with the functions below.
@@ -153,6 +159,7 @@ class ExpertEncoder : public EncoderBase<EncoderOptions> {
 
   const PointCloud* point_cloud_;
   const Mesh* mesh_;
+  PointCloudEncodeStats encode_stats_;
 };
 
 }  // namespace draco

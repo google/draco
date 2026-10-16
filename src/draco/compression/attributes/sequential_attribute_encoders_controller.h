@@ -39,6 +39,7 @@ class SequentialAttributeEncodersController : public AttributesEncoder {
   bool EncodeAttributesEncoderData(EncoderBuffer* out_buffer) override;
   bool EncodeAttributes(EncoderBuffer* buffer) override;
   uint8_t GetUniqueId() const override { return BASIC_ATTRIBUTE_ENCODER; }
+  bool HasExactPerAttributePortableBytes() const override { return true; }
 
   int NumParentAttributes(int32_t point_attribute_id) const override {
     const int32_t loc_id = GetLocalIdForPointAttribute(point_attribute_id);
