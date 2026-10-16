@@ -81,9 +81,15 @@ bool SequentialAttributeEncodersController::
 bool SequentialAttributeEncodersController::EncodePortableAttributes(
     EncoderBuffer* out_buffer) {
   for (uint32_t i = 0; i < sequential_encoders_.size(); ++i) {
+    const size_t before_bytes = out_buffer->size();
     if (!sequential_encoders_[i]->EncodePortableAttribute(point_ids_,
                                                           out_buffer)) {
       return false;
+    }
+    if (encoder() != nullptr) {
+      encoder()->AddAttributePortableBytes(
+          sequential_encoders_[i]->attribute_id(),
+          out_buffer->size() - before_bytes);
     }
   }
   return true;
@@ -92,9 +98,15 @@ bool SequentialAttributeEncodersController::EncodePortableAttributes(
 bool SequentialAttributeEncodersController::
     EncodeDataNeededByPortableTransforms(EncoderBuffer* out_buffer) {
   for (uint32_t i = 0; i < sequential_encoders_.size(); ++i) {
+    const size_t before_bytes = out_buffer->size();
     if (!sequential_encoders_[i]->EncodeDataNeededByPortableTransform(
             out_buffer)) {
       return false;
+    }
+    if (encoder() != nullptr) {
+      encoder()->AddAttributeTransformBytes(
+          sequential_encoders_[i]->attribute_id(),
+          out_buffer->size() - before_bytes);
     }
   }
   return true;

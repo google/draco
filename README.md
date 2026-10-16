@@ -14,6 +14,14 @@ delays can result in transient errors that can be difficult to diagnose when
 new Draco releases are launched. To avoid the issue pin your sites to a
 versioned release.
 
+### Version 1.5.9 release:
+* Using the versioned www.gstatic.com WASM and Javascript decoders continues
+  to be recommended. To use v1.5.9, use this URL:
+  * https://www.gstatic.com/draco/versioned/decoders/1.5.9/*
+* Fixed missing `HEAP*` exports and `wasmBinary` support in JavaScript and WASM
+  builds (https://github.com/google/draco/issues/1251).
+* Bug fixes.
+
 ### Version 1.5.8 release:
 * Using the versioned www.gstatic.com WASM and Javascript decoders continues
   to be recommended. To use v1.5.8, use this URL:

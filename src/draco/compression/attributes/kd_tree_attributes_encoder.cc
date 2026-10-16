@@ -29,6 +29,10 @@ KdTreeAttributesEncoder::KdTreeAttributesEncoder(int att_id)
     : AttributesEncoder(att_id), num_components_(0) {}
 
 bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
+  attribute_quantization_transforms_.clear();
+  min_signed_values_.clear();
+  quantized_portable_attributes_.clear();
+
   // Convert any of the input attributes into a format that can be processed by
   // the kd tree encoder (quantization of floating attributes for now).
   const size_t num_points = encoder()->point_cloud()->num_points();
@@ -113,20 +117,50 @@ bool KdTreeAttributesEncoder::TransformAttributesToPortableFormat() {
 
 bool KdTreeAttributesEncoder::EncodeDataNeededByPortableTransforms(
     EncoderBuffer* out_buffer) {
-  // Store quantization settings for all attributes that need it.
-  for (int i = 0; i < attribute_quantization_transforms_.size(); ++i) {
-    attribute_quantization_transforms_[i].EncodeParameters(out_buffer);
+  // Store quantization settings for all attributes that need it, attributing
+  // the written parameter bytes to each corresponding float attribute.
+  size_t quant_transform_idx = 0;
+  for (uint32_t i = 0; i < num_attributes(); ++i) {
+    const int32_t att_id = GetAttributeId(i);
+    const PointAttribute* const att =
+        encoder()->point_cloud()->attribute(att_id);
+    if (att != nullptr && att->data_type() == DT_FLOAT32 &&
+        quant_transform_idx < attribute_quantization_transforms_.size()) {
+      const size_t before_bytes = out_buffer->size();
+      attribute_quantization_transforms_[quant_transform_idx++]
+          .EncodeParameters(out_buffer);
+      encoder()->AddAttributeTransformBytes(att_id,
+                                            out_buffer->size() - before_bytes);
+    }
   }
 
-  // Encode data needed for transforming signed integers to unsigned ones.
-  for (int i = 0; i < min_signed_values_.size(); ++i) {
-    EncodeVarint<int32_t>(min_signed_values_[i], out_buffer);
+  // Encode data needed for transforming signed integers to unsigned ones,
+  // attributing the varint bytes to each corresponding signed integer
+  // attribute.
+  size_t signed_val_idx = 0;
+  for (uint32_t i = 0; i < num_attributes(); ++i) {
+    const int32_t att_id = GetAttributeId(i);
+    const PointAttribute* const att =
+        encoder()->point_cloud()->attribute(att_id);
+    if (att != nullptr &&
+        (att->data_type() == DT_INT32 || att->data_type() == DT_INT16 ||
+         att->data_type() == DT_INT8)) {
+      const size_t before_bytes = out_buffer->size();
+      for (int c = 0; c < att->num_components() &&
+                      signed_val_idx < min_signed_values_.size();
+           ++c) {
+        EncodeVarint<int32_t>(min_signed_values_[signed_val_idx++], out_buffer);
+      }
+      encoder()->AddAttributeTransformBytes(att_id,
+                                            out_buffer->size() - before_bytes);
+    }
   }
   return true;
 }
 
 bool KdTreeAttributesEncoder::EncodePortableAttributes(
     EncoderBuffer* out_buffer) {
+  const size_t before_bytes = out_buffer->size();
   // Encode the data using the kd tree encoder algorithm. The data is first
   // copied to a PointDVector that provides all the API expected by the core
   // encoding algorithm.
@@ -299,6 +333,7 @@ bool KdTreeAttributesEncoder::EncodePortableAttributes(
     default:
       return false;
   }
+  encoder()->AddJointPortableAttributesBytes(out_buffer->size() - before_bytes);
   return true;
 }
 

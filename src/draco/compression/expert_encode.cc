@@ -39,8 +39,12 @@ ExpertEncoder::ExpertEncoder(const Mesh& mesh)
     : point_cloud_(&mesh), mesh_(&mesh) {}
 
 Status ExpertEncoder::EncodeToBuffer(EncoderBuffer* out_buffer) {
+  encode_stats_.Clear();
   if (point_cloud_ == nullptr) {
     return Status(Status::DRACO_ERROR, "Invalid input geometry.");
+  }
+  if (out_buffer == nullptr) {
+    return Status(Status::DRACO_ERROR, "Invalid output buffer.");
   }
   if (mesh_ == nullptr) {
     return EncodePointCloudToBuffer(*point_cloud_, out_buffer);
@@ -104,6 +108,7 @@ Status ExpertEncoder::EncodePointCloudToBuffer(const PointCloud& pc,
   }
   encoder->SetPointCloud(pc);
   DRACO_RETURN_IF_ERROR(encoder->Encode(options(), out_buffer));
+  encode_stats_ = encoder->encode_stats();
 
   set_num_encoded_points(encoder->num_encoded_points());
   set_num_encoded_faces(0);
@@ -139,6 +144,7 @@ Status ExpertEncoder::EncodeMeshToBuffer(const Mesh& m,
   encoder->SetMesh(m);
 
   DRACO_RETURN_IF_ERROR(encoder->Encode(options(), out_buffer));
+  encode_stats_ = encoder->encode_stats();
 
   set_num_encoded_points(encoder->num_encoded_points());
   set_num_encoded_faces(encoder->num_encoded_faces());
@@ -146,10 +152,14 @@ Status ExpertEncoder::EncodeMeshToBuffer(const Mesh& m,
 }
 
 void ExpertEncoder::Reset(const EncoderOptions& options) {
+  encode_stats_.Clear();
   Base::Reset(options);
 }
 
-void ExpertEncoder::Reset() { Base::Reset(); }
+void ExpertEncoder::Reset() {
+  encode_stats_.Clear();
+  Base::Reset();
+}
 
 void ExpertEncoder::SetSpeedOptions(int encoding_speed, int decoding_speed) {
   Base::SetSpeedOptions(encoding_speed, decoding_speed);

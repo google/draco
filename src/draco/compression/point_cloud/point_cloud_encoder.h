@@ -15,9 +15,16 @@
 #ifndef DRACO_COMPRESSION_POINT_CLOUD_POINT_CLOUD_ENCODER_H_
 #define DRACO_COMPRESSION_POINT_CLOUD_POINT_CLOUD_ENCODER_H_
 
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <utility>
+#include <vector>
+
 #include "draco/compression/attributes/attributes_encoder.h"
 #include "draco/compression/config/compression_shared.h"
 #include "draco/compression/config/encoder_options.h"
+#include "draco/compression/point_cloud/point_cloud_encode_stats.h"
 #include "draco/core/encoder_buffer.h"
 #include "draco/core/status.h"
 #include "draco/point_cloud/point_cloud.h"
@@ -48,6 +55,35 @@ class PointCloudEncoder {
   // function call. Valid only if "store_number_of_encoded_points" flag was set
   // in the provided EncoderOptions.
   size_t num_encoded_points() const { return num_encoded_points_; }
+
+  // Returns byte-level breakdown statistics from the most recent Encode() call.
+  // If the most recent Encode() call failed, all fields are reset to
+  // zero/empty.
+  const PointCloudEncodeStats& encode_stats() const { return encode_stats_; }
+
+  // Internal encoder-implementation hooks (not part of the user-facing API).
+  // Called by AttributesEncoder implementations during Encode() to attribute
+  // written bytes to encode_stats_.
+  void AddAttributePortableBytes(int32_t point_attribute_id, size_t num_bytes) {
+    if (point_attribute_id >= 0 && static_cast<size_t>(point_attribute_id) <
+                                       encode_stats_.attributes.size()) {
+      encode_stats_.attributes[point_attribute_id].portable_attribute_bytes +=
+          num_bytes;
+    }
+  }
+
+  void AddAttributeTransformBytes(int32_t point_attribute_id,
+                                  size_t num_bytes) {
+    if (point_attribute_id >= 0 && static_cast<size_t>(point_attribute_id) <
+                                       encode_stats_.attributes.size()) {
+      encode_stats_.attributes[point_attribute_id].transform_data_bytes +=
+          num_bytes;
+    }
+  }
+
+  void AddJointPortableAttributesBytes(size_t num_bytes) {
+    encode_stats_.joint_portable_attributes_bytes += num_bytes;
+  }
 
   int num_attributes_encoders() const {
     return static_cast<int>(attributes_encoders_.size());
@@ -123,6 +159,8 @@ class PointCloudEncoder {
   }
 
  private:
+  Status EncodeInternal(size_t initial_buffer_size);
+
   // Encodes Draco header that is the same for all encoders.
   Status EncodeHeader();
 
@@ -151,6 +189,8 @@ class PointCloudEncoder {
   const EncoderOptions* options_;
 
   size_t num_encoded_points_;
+
+  PointCloudEncodeStats encode_stats_;
 };
 
 }  // namespace draco
