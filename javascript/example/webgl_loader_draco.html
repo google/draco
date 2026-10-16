@@ -37,14 +37,14 @@
     <a href="http://threejs.org" target="_blank" rel="noopener">three.js</a> -
     <a href="https://github.com/google/draco" target="_blank" rel="noopener">DRACO</a> loader
   </div>
-  <script src="https://cdn.rawgit.com/mrdoob/three.js/dev/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.127.0/build/three.min.js"></script>
   <script src="DRACOLoader.js"></script>
   <script>
 
     var camera, scene, renderer;
 
     // Configure decoder and create loader.
-    var dracoLoader = new THREE.DRACOLoader();
+    var dracoLoader = new THREE.DRACOLoader().setDecoderPath( '../' );
 
     init();
     animate();
