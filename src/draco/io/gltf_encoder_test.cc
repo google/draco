@@ -17,6 +17,7 @@
 #include <cstring>
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
+#include <algorithm>
 #include <array>
 #include <iostream>
 #include <map>

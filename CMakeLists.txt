@@ -323,6 +323,7 @@ list(
 list(
   APPEND
     draco_compression_point_cloud_enc_sources
+    "${draco_src_root}/compression/point_cloud/point_cloud_encode_stats.h"
     "${draco_src_root}/compression/point_cloud/point_cloud_encoder.cc"
     "${draco_src_root}/compression/point_cloud/point_cloud_encoder.h"
     "${draco_src_root}/compression/point_cloud/point_cloud_kd_tree_encoder.cc"
@@ -672,8 +673,9 @@ if(EMSCRIPTEN AND DRACO_JS_GLUE)
               "${draco_src_root}/javascript/emscripten/version.js")
   list(APPEND draco_post_link_js_sources
               "${draco_src_root}/javascript/emscripten/finalize.js")
-  list(APPEND draco_post_link_js_decoder_sources ${draco_post_link_js_sources}
-              "${draco_src_root}/javascript/emscripten/decoder_functions.js")
+  list(APPEND draco_post_link_js_decoder_sources
+              "${draco_src_root}/javascript/emscripten/decoder_functions.js"
+              ${draco_post_link_js_sources})
 
   set(draco_decoder_glue_path "${draco_build}/glue_decoder")
   set(draco_encoder_glue_path "${draco_build}/glue_encoder")

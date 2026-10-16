@@ -46,6 +46,10 @@ class AttributesEncoder {
   // decoding to construct the corresponding attribute decoder.
   virtual uint8_t GetUniqueId() const = 0;
 
+  // Returns true if this attribute encoder encodes each attribute's portable
+  // data separately and reports exact per-attribute portable byte counts.
+  virtual bool HasExactPerAttributePortableBytes() const { return false; }
+
   // Encode attribute data to the target buffer.
   virtual bool EncodeAttributes(EncoderBuffer* out_buffer) {
     if (!TransformAttributesToPortableFormat()) {
