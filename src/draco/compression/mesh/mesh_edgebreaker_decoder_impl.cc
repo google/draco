@@ -296,6 +296,18 @@ bool MeshEdgebreakerDecoderImpl<TraversalDecoder>::DecodeConnectivity() {
   if (num_faces > std::numeric_limits<CornerIndex::ValueType>::max() / 3) {
     return false;  // Draco cannot handle this many faces.
   }
+  if (num_faces > 0) {
+    if (decoder_->buffer()->remaining_size() <= 0) {
+      return false;
+    }
+    // Theoretical max symbols per byte in Edgebreaker is 64 (via rANS run-length
+    // coding), and max faces cannot exceed 4/3 of that. Check that num_faces
+    // can physically fit into the remaining buffer.
+    if (static_cast<uint64_t>(num_faces) >
+        static_cast<uint64_t>(decoder_->buffer()->remaining_size()) * 128) {
+      return false;
+    }
+  }
 
   if (static_cast<uint32_t>(num_encoded_vertices_) > num_faces * 3) {
     return false;  // There cannot be more vertices than 3 * num_faces.
