@@ -139,6 +139,11 @@ Status TinyGltfUtils::AddChannelToAnimation(
     Animation* animation) {
   std::unique_ptr<AnimationChannel> new_channel(new AnimationChannel());
 
+  if (channel.sampler < 0 ||
+      channel.sampler >=
+          static_cast<int>(input_animation.samplers.size())) {
+    return Status(Status::DRACO_ERROR, "Sampler index out of bounds.");
+  }
   const tinygltf::AnimationSampler& sampler =
       input_animation.samplers[channel.sampler];
   // Add the sampler associated with the channel.
@@ -171,6 +176,10 @@ Status TinyGltfUtils::AddSamplerToAnimation(
   // TODO(fgalligan): Add support to not copy the accessor data if it is
   // referenced more than once. Currently we duplicate all animation data so
   // that it is referenced only once in the glTF file.
+  if (sampler.input < 0 ||
+      sampler.input >= static_cast<int>(model.accessors.size())) {
+    return Status(Status::DRACO_ERROR, "Input accessor index out of bounds.");
+  }
   const tinygltf::Accessor& input_accessor = model.accessors[sampler.input];
   DRACO_RETURN_IF_ERROR(AddAccessorToAnimationData(model, input_accessor,
                                                    node_animation_data.get()));
@@ -179,6 +188,10 @@ Status TinyGltfUtils::AddSamplerToAnimation(
   new_sampler->input_index = animation->NumNodeAnimationData() - 1;
 
   node_animation_data.reset(new NodeAnimationData());
+  if (sampler.output < 0 ||
+      sampler.output >= static_cast<int>(model.accessors.size())) {
+    return Status(Status::DRACO_ERROR, "Output accessor index out of bounds.");
+  }
   const tinygltf::Accessor& output_accessor = model.accessors[sampler.output];
   DRACO_RETURN_IF_ERROR(AddAccessorToAnimationData(model, output_accessor,
                                                    node_animation_data.get()));
