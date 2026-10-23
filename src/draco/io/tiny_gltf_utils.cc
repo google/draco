@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+//
 #include "draco/io/tiny_gltf_utils.h"
 
 #ifdef DRACO_TRANSCODER_SUPPORTED
@@ -39,281 +39,282 @@ int TinyGltfUtils::GetNumComponentsForType(int type) {
     case TINYGLTF_TYPE_VEC3:
       return 3;
     case TINYGLTF_TYPE_VEC4:
-      return 4;
     case TINYGLTF_TYPE_MAT2:
       return 4;
     case TINYGLTF_TYPE_MAT3:
       return 9;
     case TINYGLTF_TYPE_MAT4:
       return 16;
-    default:
-      return 0;
   }
+  return 0;
 }
 
-int TinyGltfUtils::GetComponentSize(int component_type) {
-  switch (component_type) {
-    case TINYGLTF_COMPONENT_TYPE_BYTE:
-    case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
-      return 1;
-    case TINYGLTF_COMPONENT_TYPE_SHORT:
-    case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-      return 2;
-    case TINYGLTF_COMPONENT_TYPE_INT:
-    case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
-    case TINYGLTF_COMPONENT_TYPE_FLOAT:
-      return 4;
-    case TINYGLTF_COMPONENT_TYPE_DOUBLE:
-      return 8;
-    default:
-      return 0;
-  }
-}
-
-StatusOr<int> TinyGltfUtils::GetRequiredBytes(const tinygltf::Accessor &accessor) {
-  const int num_components = GetNumComponentsForType(accessor.type);
-  const int component_size = GetComponentSize(accessor.componentType);
-  if (num_components == 0 || component_size == 0) {
-    return Status(Status::DRACO_ERROR, "Invalid accessor.");
-  }
-  return num_components * component_size * accessor.count;
-}
-
-Status TinyGltfUtils::CheckAccessorBounds(const tinygltf::Model &model,
-                                           const tinygltf::Accessor &accessor) {
+Status TinyGltfUtils::CheckAccessorBounds(const tinygltf::Model& model,
+                                          const tinygltf::Accessor& accessor) {
   if (accessor.bufferView < 0 ||
       accessor.bufferView >= model.bufferViews.size()) {
-    return Status(Status::DRACO_ERROR, "BufferView index out of bounds.");
+    return Status(Status::DRACO_ERROR, "Error bufferView out of bounds.");
   }
-  const tinygltf::BufferView &buffer_view =
+  const tinygltf::BufferView& buffer_view =
       model.bufferViews[accessor.bufferView];
+
   if (buffer_view.buffer < 0 || buffer_view.buffer >= model.buffers.size()) {
-    return Status(Status::DRACO_ERROR, "Buffer index out of bounds.");
+    return Status(Status::DRACO_ERROR, "Error buffer out of bounds.");
   }
-  const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
+  const tinygltf::Buffer& buffer = model.buffers[buffer_view.buffer];
+
+  const int byte_stride = accessor.ByteStride(buffer_view);
+  if (byte_stride <= 0) {
+    return Status(Status::DRACO_ERROR, "Invalid accessor byte stride.");
+  }
+  const int component_size =
+      tinygltf::GetComponentSizeInBytes(accessor.componentType);
+  const int num_components =
+      TinyGltfUtils::GetNumComponentsForType(accessor.type);
+  const size_t element_size =
+      static_cast<size_t>(num_components) * component_size;
+
+  if (accessor.count > 0) {
+    const size_t required_bytes =
+        (accessor.count - 1) * byte_stride + element_size;
+    if (accessor.byteOffset > buffer_view.byteLength ||
+        required_bytes > buffer_view.byteLength - accessor.byteOffset) {
+      return Status(Status::DRACO_ERROR,
+                    "Accessor reading past the end of the bufferView.");
+    }
+    if (required_bytes >
+        buffer.data.size() - buffer_view.byteOffset - accessor.byteOffset) {
+      return Status(Status::DRACO_ERROR,
+                    "Accessor reading past the end of the buffer.");
+    }
+  }
   if (buffer_view.byteOffset > buffer.data.size() ||
       buffer_view.byteLength > buffer.data.size() - buffer_view.byteOffset) {
-    return Status(Status::DRACO_ERROR, "BufferView out of bounds.");
+    return Status(Status::DRACO_ERROR,
+                  "BufferView reading past the end of the buffer.");
   }
-  if (accessor.byteOffset > buffer_view.byteLength) {
-    return Status(Status::DRACO_ERROR, "Accessor out of bounds.");
-  }
-  DRACO_ASSIGN_OR_RETURN(const int required_bytes, GetRequiredBytes(accessor));
-  const size_t accessor_byte_stride =
-      accessor.ByteStride(buffer_view) == 0 ? required_bytes / accessor.count
-                                            : accessor.ByteStride(buffer_view);
-  if (accessor.count == 0) {
-    return Status::Ok();
-  }
-  if (accessor_byte_stride > 0 &&
-      (accessor.count - 1) * accessor_byte_stride + required_bytes / accessor.count >
-          buffer_view.byteLength - accessor.byteOffset) {
-    return Status(Status::DRACO_ERROR, "Accessor out of bounds.");
-  }
-  if (required_bytes >
-      buffer.data.size() - buffer_view.byteOffset - accessor.byteOffset) {
-    return Status(Status::DRACO_ERROR, "Accessor out of bounds.");
-  }
-  if (accessor.sparse.count > 0) {
-    const size_t required_sparse_indices_bytes =
-        GetRequiredBytes(accessor.sparse.indices);
-    if (required_sparse_indices_bytes >
-        buffer.data.size() - buffer_view.byteOffset - accessor.byteOffset) {
-      return Status(Status::DRACO_ERROR, "Sparse accessor out of bounds.");
-    }
-    const size_t required_sparse_values_bytes =
-        GetRequiredBytes(accessor.sparse.values);
-    if (required_sparse_values_bytes >
-        buffer.data.size() - buffer_view.byteOffset - accessor.byteOffset) {
-      return Status(Status::DRACO_ERROR, "Sparse accessor out of bounds.");
-    }
-  }
-  return Status::Ok();
+  return OkStatus();
 }
 
-Status TinyGltfUtils::AddAccessorToAnimationData(
-    const tinygltf::Model &model, const tinygltf::Accessor &accessor,
-    AnimationData::Sampler::ValueVector *values,
-    AnimationData::Sampler::Interpolation interpolation) {
-  // Add all the values to the animation data.
-  DRACO_RETURN_IF_ERROR(CheckAccessorBounds(model, accessor));
-  const tinygltf::BufferView &buffer_view =
-      model.bufferViews[accessor.bufferView];
-  const tinygltf::Buffer &buffer = model.buffers[buffer_view.buffer];
-  const size_t byte_stride = accessor.ByteStride(buffer_view);
-  const uint8_t *const data = buffer.data.data() + buffer_view.byteOffset +
-                              accessor.byteOffset;
-  const int component_size = GetComponentSize(accessor.componentType);
-  const int num_components = GetNumComponentsForType(accessor.type);
-  values->reserve(accessor.count);
-  for (int i = 0; i < accessor.count; ++i) {
-    const uint8_t *const value_data = data + i * byte_stride;
-    Eigen::VectorXd value = Eigen::VectorXd::Zero(num_components);
-    for (int j = 0; j < num_components; ++j) {
-      const uint8_t *const component_data = value_data + j * component_size;
-      switch (accessor.componentType) {
-        case TINYGLTF_COMPONENT_TYPE_BYTE:
-          value[j] = *reinterpret_cast<const int8_t *>(component_data);
-          break;
-        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
-          value[j] = *reinterpret_cast<const uint8_t *>(component_data);
-          break;
-        case TINYGLTF_COMPONENT_TYPE_SHORT:
-          value[j] = *reinterpret_cast<const int16_t *>(component_data);
-          break;
-        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-          value[j] = *reinterpret_cast<const uint16_t *>(component_data);
-          break;
-        case TINYGLTF_COMPONENT_TYPE_INT:
-          value[j] = *reinterpret_cast<const int32_t *>(component_data);
-          break;
-        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
-          value[j] = *reinterpret_cast<const uint32_t *>(component_data);
-          break;
-        case TINYGLTF_COMPONENT_TYPE_FLOAT:
-          value[j] = *reinterpret_cast<const float *>(component_data);
-          break;
-        case TINYGLTF_COMPONENT_TYPE_DOUBLE:
-          value[j] = *reinterpret_cast<const double *>(component_data);
-          break;
-        default:
-          return Status(Status::DRACO_ERROR, "Invalid component type.");
-      }
-    }
-    values->push_back(value);
+Material::TransparencyMode TinyGltfUtils::TextToMaterialMode(
+    const std::string& mode) {
+  if (mode == "MASK") {
+    return Material::TRANSPARENCY_MASK;
+  } else if (mode == "BLEND") {
+    return Material::TRANSPARENCY_BLEND;
+  } else {
+    return Material::TRANSPARENCY_OPAQUE;
   }
-  return Status::Ok();
 }
 
-Status TinyGltfUtils::AddSamplerToAnimation(
-    const tinygltf::Model &model, const tinygltf::Animation &input_animation,
-    const tinygltf::AnimationChannel &channel, Scene *target_scene,
-    Scene *output_scene) {
-  const tinygltf::AnimationSampler &sampler =
-      input_animation.samplers[channel.sampler];
-  return AddSamplerToAnimation(model, sampler, channel, target_scene,
-                               output_scene);
+AnimationSampler::SamplerInterpolation
+TinyGltfUtils::TextToSamplerInterpolation(const std::string& interpolation) {
+  if (interpolation == "STEP") {
+    return AnimationSampler::SamplerInterpolation::STEP;
+  } else if (interpolation == "CUBICSPLINE") {
+    return AnimationSampler::SamplerInterpolation::CUBICSPLINE;
+  } else {
+    return AnimationSampler::SamplerInterpolation::LINEAR;
+  }
 }
 
-Status TinyGltfUtils::AddSamplerToAnimation(
-    const tinygltf::Model &model, const tinygltf::AnimationSampler &sampler,
-    const tinygltf::AnimationChannel &channel, Scene *target_scene,
-    Scene *output_scene) {
-  // Add the sampler data to the animation.
-  if (channel.target_node >= 0 &&
-      channel.target_node < model.nodes.size()) {
-    const int node_id = channel.target_node;
-    // Get the target node from the target scene.
-    SceneNodeIndex target_node_index = target_scene->GetNodeIndex(node_id);
-    if (target_node_index == -1) {
-      // Target node not found. It may have been removed during processing.
-      return Status::Ok();
-    }
-    // Get the animation data for the target node.
-    NodeAnimationData *node_animation_data =
-        output_scene->GetNodeAnimationData(target_node_index);
-    if (node_animation_data == nullptr) {
-      // Node animation data not found. It may have been removed during
-      // processing.
-      return Status::Ok();
-    }
-    // Get the sampler id.
-    const int sampler_id = node_animation_data->AddSampler();
-    AnimationData::Sampler *output_sampler =
-        node_animation_data->GetSampler(sampler_id);
-    if (output_sampler == nullptr) {
-      return Status(Status::DRACO_ERROR, "Failed to add sampler.");
-    }
-    if (sampler.input < 0 ||
-        sampler.input >= static_cast<int>(model.accessors.size())) {
-      return Status(Status::DRACO_ERROR, "Input accessor index out of bounds.");
-    }
-    const tinygltf::Accessor &input_accessor = model.accessors[sampler.input];
-    AnimationData::Sampler::Interpolation interpolation;
-    if (sampler.interpolation == "LINEAR") {
-      interpolation = AnimationData::Sampler::Interpolation::kLinear;
-    } else if (sampler.interpolation == "STEP") {
-      interpolation = AnimationData::Sampler::Interpolation::kStep;
-    } else if (sampler.interpolation == "CUBICSPLINE") {
-      interpolation = AnimationData::Sampler::Interpolation::kCubicSpline;
-    } else {
-      return Status(Status::DRACO_ERROR, "Invalid interpolation type.");
-    }
-    DRACO_RETURN_IF_ERROR(AddAccessorToAnimationData(
-        model, input_accessor, output_sampler->GetSamplerTimes(sampler_id),
-        AnimationData::Sampler::Interpolation::kLinear));
-    if (sampler.output < 0 ||
-        sampler.output >= static_cast<int>(model.accessors.size())) {
-      return Status(Status::DRACO_ERROR, "Output accessor index out of bounds.");
-    }
-    const tinygltf::Accessor &output_accessor = model.accessors[sampler.output];
-    DRACO_RETURN_IF_ERROR(AddAccessorToAnimationData(
-        model, output_accessor, output_sampler->GetSamplerValues(sampler_id),
-        interpolation));
-    return Status::Ok();
+AnimationChannel::ChannelTransformation
+TinyGltfUtils::TextToChannelTransformation(const std::string& path) {
+  if (path == "rotation") {
+    return AnimationChannel::ChannelTransformation::ROTATION;
+  } else if (path == "scale") {
+    return AnimationChannel::ChannelTransformation::SCALE;
+  } else if (path == "weights") {
+    return AnimationChannel::ChannelTransformation::WEIGHTS;
+  } else if (path == "pointer") {
+    return AnimationChannel::ChannelTransformation::POINTER;
+  } else {
+    return AnimationChannel::ChannelTransformation::TRANSLATION;
   }
-  return Status(Status::DRACO_ERROR, "Invalid target node.");
 }
 
 Status TinyGltfUtils::AddChannelToAnimation(
-    const tinygltf::Model &model, const tinygltf::Animation &input_animation,
-    const tinygltf::AnimationChannel &channel, Scene *target_scene,
-    Scene *output_scene) {
-  // Add the channel data to the animation.
+    const tinygltf::Model& model, const tinygltf::Animation& input_animation,
+    const tinygltf::AnimationChannel& channel, int node_index,
+    Animation* animation) {
+  std::unique_ptr<AnimationChannel> new_channel(new AnimationChannel());
+
   if (channel.sampler < 0 ||
       channel.sampler >=
           static_cast<int>(input_animation.samplers.size())) {
     return Status(Status::DRACO_ERROR, "Sampler index out of bounds.");
   }
-  const tinygltf::AnimationSampler &sampler =
+  const tinygltf::AnimationSampler& sampler =
       input_animation.samplers[channel.sampler];
-  // Get the target node.
-  if (channel.target_node >= 0 &&
-      channel.target_node < model.nodes.size()) {
-    const int node_id = channel.target_node;
-    // Get the target node from the target scene.
-    SceneNodeIndex target_node_index = target_scene->GetNodeIndex(node_id);
-    if (target_node_index == -1) {
-      // Target node not found. It may have been removed during processing.
-      return Status::Ok();
+  // Add the sampler associated with the channel.
+  DRACO_RETURN_IF_ERROR(
+      TinyGltfUtils::AddSamplerToAnimation(model, sampler, animation));
+  new_channel->sampler_index = animation->NumSamplers() - 1;
+  new_channel->target_index = node_index;
+  new_channel->transformation_type =
+      TinyGltfUtils::TextToChannelTransformation(channel.target_path);
+
+  if (new_channel->transformation_type ==
+      AnimationChannel::ChannelTransformation::POINTER) {
+    const auto ext_it = channel.target_extensions.find("KHR_animation_pointer");
+    if (ext_it != channel.target_extensions.end()) {
+      if (ext_it->second.Has("pointer")) {
+        new_channel->pointer = ext_it->second.Get("pointer").Get<std::string>();
+      }
     }
-    // Get the animation data for the target node.
-    NodeAnimationData *node_animation_data =
-        output_scene->GetNodeAnimationData(target_node_index);
-    if (node_animation_data == nullptr) {
-      // Node animation data not found. It may have been removed during
-      // processing.
-      return Status::Ok();
-    }
-    // Get the sampler id.
-    const int sampler_id = node_animation_data->AddSampler();
-    AnimationData::Sampler *output_sampler =
-        node_animation_data->GetSampler(sampler_id);
-    if (output_sampler == nullptr) {
-      return Status(Status::DRACO_ERROR, "Failed to add sampler.");
-    }
-    // Add the sampler data to the animation.
-    DRACO_RETURN_IF_ERROR(AddSamplerToAnimation(model, sampler, channel,
-                                                target_scene, output_scene));
-    return Status::Ok();
   }
-  return Status(Status::DRACO_ERROR, "Invalid target node.");
+
+  animation->AddChannel(std::move(new_channel));
+  return OkStatus();
 }
 
-Status TinyGltfUtils::AddAnimationsToScene(const tinygltf::Model &model,
-                                           Scene *target_scene,
-                                           Scene *output_scene) {
-  // Add all the animations to the scene.
-  for (const auto &input_animation : model.animations) {
-    for (const auto &channel : input_animation.channels) {
-      DRACO_RETURN_IF_ERROR(AddChannelToAnimation(model, input_animation,
-                                                  channel, target_scene,
-                                                  output_scene));
-    }
+Status TinyGltfUtils::AddSamplerToAnimation(
+    const tinygltf::Model& model, const tinygltf::AnimationSampler& sampler,
+    Animation* animation) {
+  std::unique_ptr<NodeAnimationData> node_animation_data(
+      new NodeAnimationData());
+  // TODO(fgalligan): Add support to not copy the accessor data if it is
+  // referenced more than once. Currently we duplicate all animation data so
+  // that it is referenced only once in the glTF file.
+  if (sampler.input < 0 ||
+      sampler.input >= static_cast<int>(model.accessors.size())) {
+    return Status(Status::DRACO_ERROR, "Input accessor index out of bounds.");
   }
-  return Status::Ok();
+  const tinygltf::Accessor& input_accessor = model.accessors[sampler.input];
+  DRACO_RETURN_IF_ERROR(AddAccessorToAnimationData(model, input_accessor,
+                                                   node_animation_data.get()));
+  animation->AddNodeAnimationData(std::move(node_animation_data));
+  std::unique_ptr<AnimationSampler> new_sampler(new AnimationSampler());
+  new_sampler->input_index = animation->NumNodeAnimationData() - 1;
+
+  node_animation_data.reset(new NodeAnimationData());
+  if (sampler.output < 0 ||
+      sampler.output >= static_cast<int>(model.accessors.size())) {
+    return Status(Status::DRACO_ERROR, "Output accessor index out of bounds.");
+  }
+  const tinygltf::Accessor& output_accessor = model.accessors[sampler.output];
+  DRACO_RETURN_IF_ERROR(AddAccessorToAnimationData(model, output_accessor,
+                                                   node_animation_data.get()));
+  animation->AddNodeAnimationData(std::move(node_animation_data));
+  new_sampler->output_index = animation->NumNodeAnimationData() - 1;
+
+  new_sampler->interpolation_type =
+      TinyGltfUtils::TextToSamplerInterpolation(sampler.interpolation);
+  animation->AddSampler(std::move(new_sampler));
+  return OkStatus();
+}
+
+// Specialization for returning the data from |accessor| as a vector of float.
+template <>
+StatusOr<std::vector<float>> TinyGltfUtils::CopyDataAsFloat(
+    const tinygltf::Model& model, const tinygltf::Accessor& accessor) {
+  const int num_components = GetNumComponentsForType(accessor.type);
+  if (num_components != 1) {
+    return Status(Status::DRACO_ERROR,
+                  "Dimension does not equal num components.");
+  }
+  return CopyDataAsFloatImpl<float>(model, accessor);
+}
+
+// Specialization for returing the data from |accessor| as a vector of
+// Matrix4x4.
+template <>
+StatusOr<std::vector<Eigen::Matrix4f>> TinyGltfUtils::CopyDataAsFloat(
+    const tinygltf::Model& model, const tinygltf::Accessor& accessor) {
+  const int num_components = GetNumComponentsForType(accessor.type);
+  if (num_components != 16) {
+    return Status(Status::DRACO_ERROR,
+                  "Dimension does not equal num components.");
+  }
+  return CopyDataAsFloatImpl<Eigen::Matrix4f>(model, accessor);
+}
+
+Status TinyGltfUtils::AddAccessorToAnimationData(
+    const tinygltf::Model& model, const tinygltf::Accessor& accessor,
+    NodeAnimationData* node_animation_data) {
+  if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT) {
+    return Status(Status::DRACO_ERROR,
+                  "Unsupported ComponentType for NodeAnimationData.");
+  }
+
+  std::vector<float>* dest_data = node_animation_data->GetMutableData();
+  if (accessor.type == TINYGLTF_TYPE_SCALAR) {
+    DRACO_ASSIGN_OR_RETURN(std::vector<float> data,
+                           CopyDataAsFloat<float>(model, accessor));
+
+    for (int i = 0; i < data.size(); ++i) {
+      dest_data->push_back(data[i]);
+    }
+    node_animation_data->SetType(NodeAnimationData::Type::SCALAR);
+  } else if (accessor.type == TINYGLTF_TYPE_VEC2) {
+    DRACO_ASSIGN_OR_RETURN(std::vector<Vector2f> data,
+                           CopyDataAsFloat<Vector2f>(model, accessor));
+
+    for (int i = 0; i < data.size(); ++i) {
+      for (int j = 0; j < 2; ++j) {
+        dest_data->push_back(data[i][j]);
+      }
+    }
+    node_animation_data->SetType(NodeAnimationData::Type::VEC2);
+  } else if (accessor.type == TINYGLTF_TYPE_VEC3) {
+    DRACO_ASSIGN_OR_RETURN(std::vector<Vector3f> data,
+                           CopyDataAsFloat<Vector3f>(model, accessor));
+
+    for (int i = 0; i < data.size(); ++i) {
+      for (int j = 0; j < 3; ++j) {
+        dest_data->push_back(data[i][j]);
+      }
+    }
+    node_animation_data->SetType(NodeAnimationData::Type::VEC3);
+  } else if (accessor.type == TINYGLTF_TYPE_VEC4) {
+    DRACO_ASSIGN_OR_RETURN(std::vector<Vector4f> data,
+                           CopyDataAsFloat<Vector4f>(model, accessor));
+
+    for (int i = 0; i < data.size(); ++i) {
+      for (int j = 0; j < 4; ++j) {
+        dest_data->push_back(data[i][j]);
+      }
+    }
+    node_animation_data->SetType(NodeAnimationData::Type::VEC4);
+  } else if (accessor.type == TINYGLTF_TYPE_MAT4) {
+    DRACO_ASSIGN_OR_RETURN(std::vector<Eigen::Matrix4f> data,
+                           CopyDataAsFloat<Eigen::Matrix4f>(model, accessor));
+
+    for (int i = 0; i < data.size(); ++i) {
+      for (int j = 0; j < 16; ++j) {
+        dest_data->push_back(data[i](j));
+      }
+    }
+    node_animation_data->SetType(NodeAnimationData::Type::MAT4);
+  } else {
+    return Status(Status::DRACO_ERROR,
+                  "Unsupported Type for GltfNodeAnimationData.");
+  }
+  node_animation_data->SetCount(accessor.count);
+  node_animation_data->SetNormalized(accessor.normalized);
+  return OkStatus();
+}
+
+template <>
+void TinyGltfUtils::SetDataImpl(float value, int index, float* values) {
+  *values = value;
+}
+
+template <>
+void TinyGltfUtils::SetDataImpl(float value, int index,
+                                Eigen::Matrix4f* values) {
+  (*values)(index) = value;
 }
 
 }  // namespace draco
+
+// Actual definitions needed by the tinygltf library using our configuration.
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define TINYGLTF_ENABLE_DRACO
+
+#define TINYGLTF_IMPLEMENTATION
+
+#include "tiny_gltf.h"
 
 #endif  // DRACO_TRANSCODER_SUPPORTED
