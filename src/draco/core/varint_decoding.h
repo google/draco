@@ -15,6 +15,7 @@
 #ifndef DRACO_CORE_VARINT_DECODING_H_
 #define DRACO_CORE_VARINT_DECODING_H_
 
+#include <limits>
 #include <type_traits>
 
 #include "draco/core/bit_utils.h"
@@ -42,6 +43,11 @@ bool DecodeVarintUnsigned(int depth, IntTypeT* out_val, DecoderBuffer* buffer) {
   if (in & (1 << 7)) {
     // Next byte is available, decode it first.
     if (!DecodeVarintUnsigned<IntTypeT>(depth + 1, out_val, buffer)) {
+      return false;
+    }
+    // The value decoded so far must leave room for the 7 bits of this byte.
+    // Otherwise its high bits would be shifted out and the value would wrap.
+    if (*out_val > (std::numeric_limits<IntTypeT>::max() >> 7)) {
       return false;
     }
     // Append decoded info from this byte.

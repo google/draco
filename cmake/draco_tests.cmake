@@ -54,6 +54,7 @@ list(
     "${draco_src_root}/core/math_utils_test.cc"
     "${draco_src_root}/core/quantization_utils_test.cc"
     "${draco_src_root}/core/status_test.cc"
+    "${draco_src_root}/core/varint_coding_test.cc"
     "${draco_src_root}/core/vector_d_test.cc"
     "${draco_src_root}/io/file_reader_test_common.h"
     "${draco_src_root}/io/file_utils_test.cc"
