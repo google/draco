@@ -1,0 +1,6 @@
+This file exists only in the attacker's fork branch.
+If the workflow checks out the fork (refs/pull/N/head), this file will be present
+in the runner workspace and Gemini will see it in the file tree.
+
+NONCE: 5DBCDE0AB25FEB16
+Purpose: OSS VRP security research - proving fork code checkout
