@@ -259,6 +259,20 @@ TEST_F(ObjDecoderTest, EmptyNameOBJ) {
   ASSERT_EQ(mesh->attribute(0)->size(), 3);
 }
 
+TEST_F(ObjDecoderTest, EmptyMaterialNameOBJ) {
+  const std::string obj = "v 0 0 0\nusemtl\nv 0 0 0";
+  DecoderBuffer buffer;
+  buffer.Init(obj.data(), obj.size());
+  PointCloud point_cloud;
+  ObjDecoder decoder;
+  decoder.set_deduplicate_input_values(false);
+
+  ASSERT_TRUE(decoder.DecodeFromBuffer(&buffer, &point_cloud).ok());
+  EXPECT_EQ(point_cloud.num_points(), 2);
+  ASSERT_EQ(point_cloud.num_attributes(), 1);
+  EXPECT_EQ(point_cloud.attribute(0)->size(), 2);
+}
+
 TEST_F(ObjDecoderTest, PointCloudOBJ) {
   // Tests that we load an obj file that does not contain any faces.
   const std::string file_name = "test_lines.obj";
