@@ -147,12 +147,18 @@ bool ParseSignedInt(DecoderBuffer* buffer, int32_t* value) {
     buffer->Advance(1);
   }
 
+  const uint32_t max_magnitude =
+      (sign < 0)
+          ? static_cast<uint32_t>(std::numeric_limits<int32_t>::max()) + 1
+          : static_cast<uint32_t>(std::numeric_limits<int32_t>::max());
+
   // Attempt to parse integer body.
   uint32_t v;
-  if (!ParseUnsignedInt(buffer, &v)) {
+  if (!ParseUnsignedInt(buffer, &v) || v > max_magnitude) {
     return false;
   }
-  *value = (sign < 0) ? -v : v;
+  *value = (sign < 0) ? static_cast<int32_t>(-static_cast<int64_t>(v))
+                      : static_cast<int32_t>(v);
   return true;
 }
 
@@ -162,8 +168,11 @@ bool ParseUnsignedInt(DecoderBuffer* buffer, uint32_t* value) {
   char ch;
   bool have_digits = false;
   while (buffer->Peek(&ch) && ch >= '0' && ch <= '9') {
-    v *= 10;
-    v += (ch - '0');
+    const uint32_t digit = ch - '0';
+    if (v > (std::numeric_limits<uint32_t>::max() - digit) / 10) {
+      return false;  // The number does not fit in uint32_t.
+    }
+    v = v * 10 + digit;
     buffer->Advance(1);
     have_digits = true;
   }

@@ -62,6 +62,7 @@ list(
     "${draco_src_root}/io/stdio_file_writer_test.cc"
     "${draco_src_root}/io/obj_decoder_test.cc"
     "${draco_src_root}/io/obj_encoder_test.cc"
+    "${draco_src_root}/io/parser_utils_test.cc"
     "${draco_src_root}/io/ply_decoder_test.cc"
     "${draco_src_root}/io/ply_reader_test.cc"
     "${draco_src_root}/io/stl_decoder_test.cc"
