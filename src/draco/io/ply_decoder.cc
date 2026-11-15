@@ -171,6 +171,10 @@ Status PlyDecoder::DecodeVertexData(const PlyElement* vertex_element) {
     // later on).
     return Status(Status::INVALID_PARAMETER, "x, y, or z property is missing");
   }
+  if (x_prop->is_list() || y_prop->is_list() || z_prop->is_list()) {
+    return Status(Status::INVALID_PARAMETER,
+                  "x, y, and z properties must not be lists");
+  }
   const PointIndex::ValueType num_vertices = vertex_element->num_entries();
   out_point_cloud_->set_num_points(num_vertices);
   // Decode vertex positions.
@@ -213,7 +217,8 @@ Status PlyDecoder::DecodeVertexData(const PlyElement* vertex_element) {
     // For now, all normal properties must be set and of type float32
     if (n_x_prop->data_type() == DT_FLOAT32 &&
         n_y_prop->data_type() == DT_FLOAT32 &&
-        n_z_prop->data_type() == DT_FLOAT32) {
+        n_z_prop->data_type() == DT_FLOAT32 && !n_x_prop->is_list() &&
+        !n_y_prop->is_list() && !n_z_prop->is_list()) {
       PlyPropertyReader<float> x_reader(n_x_prop);
       PlyPropertyReader<float> y_reader(n_y_prop);
       PlyPropertyReader<float> z_reader(n_z_prop);
@@ -262,6 +267,10 @@ Status PlyDecoder::DecodeVertexData(const PlyElement* vertex_element) {
         return Status(Status::INVALID_PARAMETER,
                       "Type of 'red' property must be uint8");
       }
+      if (p->is_list()) {
+        return Status(Status::INVALID_PARAMETER,
+                      "'red' property must not be a list");
+      }
       color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
           new PlyPropertyReader<uint8_t>(p)));
     }
@@ -272,6 +281,10 @@ Status PlyDecoder::DecodeVertexData(const PlyElement* vertex_element) {
       if (p->data_type() != DT_UINT8) {
         return Status(Status::INVALID_PARAMETER,
                       "Type of 'green' property must be uint8");
+      }
+      if (p->is_list()) {
+        return Status(Status::INVALID_PARAMETER,
+                      "'green' property must not be a list");
       }
       color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
           new PlyPropertyReader<uint8_t>(p)));
@@ -284,6 +297,10 @@ Status PlyDecoder::DecodeVertexData(const PlyElement* vertex_element) {
         return Status(Status::INVALID_PARAMETER,
                       "Type of 'blue' property must be uint8");
       }
+      if (p->is_list()) {
+        return Status(Status::INVALID_PARAMETER,
+                      "'blue' property must not be a list");
+      }
       color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
           new PlyPropertyReader<uint8_t>(p)));
     }
@@ -294,6 +311,10 @@ Status PlyDecoder::DecodeVertexData(const PlyElement* vertex_element) {
       if (p->data_type() != DT_UINT8) {
         return Status(Status::INVALID_PARAMETER,
                       "Type of 'alpha' property must be uint8");
+      }
+      if (p->is_list()) {
+        return Status(Status::INVALID_PARAMETER,
+                      "'alpha' property must not be a list");
       }
       color_readers.push_back(std::unique_ptr<PlyPropertyReader<uint8_t>>(
           new PlyPropertyReader<uint8_t>(p)));

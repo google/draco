@@ -88,4 +88,26 @@ TEST_F(PlyDecoderTest, TestPlyDecodingAll) {
   test_decoding("delim_test.ply");
 }
 
+TEST_F(PlyDecoderTest, TestListVertexPropertyRejected) {
+  // Vertex coordinates declared as list properties with no values must not be
+  // read as one value per vertex.
+  const std::string ply =
+      "ply\n"
+      "format ascii 1.0\n"
+      "element vertex 4\n"
+      "property list uchar float x\n"
+      "property float y\n"
+      "property float z\n"
+      "end_header\n"
+      "0 1 2\n"
+      "0 1 2\n"
+      "0 1 2\n"
+      "0 1 2\n";
+  DecoderBuffer buffer;
+  buffer.Init(ply.data(), ply.size());
+  PlyDecoder decoder;
+  PointCloud pc;
+  ASSERT_FALSE(decoder.DecodeFromBuffer(&buffer, &pc).ok());
+}
+
 }  // namespace draco
