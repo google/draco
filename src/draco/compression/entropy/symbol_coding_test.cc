@@ -167,4 +167,22 @@ TEST_F(SymbolCodingTest, TestConversionFullRange) {
   TestConvertToSymbolAndBack(static_cast<int8_t>(127));
 }
 
+TEST_F(SymbolCodingTest, TestLargestSymbolValues) {
+  // Values at and above 2^31 can only use the tagged scheme. They encode and
+  // decode like any other value.
+  const uint32_t in[] = {0xffffffffu, 0x80000000u, 7, 0};
+  const int num_values = sizeof(in) / sizeof(uint32_t);
+  EncoderBuffer eb;
+  ASSERT_TRUE(EncodeSymbols(in, num_values, 1, nullptr, &eb));
+
+  std::vector<uint32_t> out(num_values);
+  DecoderBuffer db;
+  db.Init(eb.data(), eb.size());
+  db.set_bitstream_version(bitstream_version_);
+  ASSERT_TRUE(DecodeSymbols(num_values, 1, &db, &out[0]));
+  for (int i = 0; i < num_values; ++i) {
+    EXPECT_EQ(in[i], out[i]);
+  }
+}
+
 }  // namespace draco
