@@ -42,10 +42,7 @@ StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromBuffer(
   if (buffer->remaining_size() < 84) {
     return Status(Status::IO_ERROR, "STL file too small.");
   }
-  if (!strncmp(buffer->data_head(), "solid ", 6)) {
-    return Status(Status::IO_ERROR,
-                  "Currently only binary STL files are supported.");
-  }
+  const bool has_solid_header = !strncmp(buffer->data_head(), "solid ", 6);
   buffer->Advance(80);
   uint32_t face_count;
   if (!buffer->Decode(&face_count, 4)) {
@@ -54,6 +51,15 @@ StatusOr<std::unique_ptr<Mesh>> StlDecoder::DecodeFromBuffer(
 
   // Each face is 50 bytes (12 floats = 48 bytes + 2-byte attribute).
   constexpr int64_t kBytesPerFace = 50;
+  // ASCII STL files start with "solid ", but some tools also write this into
+  // the header of binary STL files. Treat such files as binary only when the
+  // size matches the binary layout exactly.
+  if (has_solid_header &&
+      static_cast<uint64_t>(buffer->remaining_size()) !=
+          static_cast<uint64_t>(face_count) * kBytesPerFace) {
+    return Status(Status::IO_ERROR,
+                  "Currently only binary STL files are supported.");
+  }
   if (face_count >
       static_cast<uint64_t>(buffer->remaining_size()) / kBytesPerFace) {
     return Status(Status::IO_ERROR, "STL face count exceeds available data.");

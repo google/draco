@@ -22,6 +22,7 @@
 
 #include "draco/core/draco_test_base.h"
 #include "draco/core/draco_test_utils.h"
+#include "draco/io/file_utils.h"
 
 namespace draco {
 
@@ -73,6 +74,33 @@ TEST_F(StlDecoderTest, TestFaceCountExceedsBuffer) {
   StlDecoder decoder;
   auto status_or_mesh = decoder.DecodeFromBuffer(&buffer);
   EXPECT_FALSE(status_or_mesh.ok());
+}
+
+TEST_F(StlDecoderTest, TestBinaryWithSolidHeader) {
+  // Some CAD tools write binary STL files whose 80-byte header starts with
+  // "solid ". Such files must still be decoded as binary when the file size
+  // matches the binary layout.
+  const std::string binary_path = GetTestFileFullPath("STL/test_sphere.stl");
+  std::vector<char> data;
+  ASSERT_TRUE(ReadFileToBuffer(binary_path, &data));
+  ASSERT_GT(data.size(), 84);
+  const char kHeader[] = "solid test_sphere";
+  memcpy(data.data(), kHeader, sizeof(kHeader) - 1);
+
+  StlDecoder decoder;
+  DecoderBuffer reference_buffer;
+  std::vector<char> reference_data;
+  ASSERT_TRUE(ReadFileToBuffer(binary_path, &reference_data));
+  reference_buffer.Init(reference_data.data(), reference_data.size());
+  DRACO_ASSIGN_OR_ASSERT(std::unique_ptr<Mesh> reference_mesh,
+                         decoder.DecodeFromBuffer(&reference_buffer));
+
+  DecoderBuffer buffer;
+  buffer.Init(data.data(), data.size());
+  DRACO_ASSIGN_OR_ASSERT(std::unique_ptr<Mesh> mesh,
+                         decoder.DecodeFromBuffer(&buffer));
+  ASSERT_EQ(mesh->num_faces(), reference_mesh->num_faces());
+  ASSERT_EQ(mesh->num_points(), reference_mesh->num_points());
 }
 
 TEST_F(StlDecoderTest, TestFaceCountMultiplicationOverflow) {
