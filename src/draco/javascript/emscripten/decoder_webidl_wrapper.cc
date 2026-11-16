@@ -206,12 +206,12 @@ bool Decoder::GetTrianglesUInt32Array(const draco::Mesh& m, int out_size,
 bool Decoder::GetAttributeFloat(const PointAttribute& pa,
                                 draco::AttributeValueIndex::ValueType val_index,
                                 DracoFloat32Array* out_values) {
-  const int kMaxAttributeFloatValues = 4;
   const int components = pa.num_components();
-  float values[kMaxAttributeFloatValues] = {-2.0, -2.0, -2.0, -2.0};
-  if (!pa.ConvertValue<float>(draco::AttributeValueIndex(val_index), values))
+  std::vector<float> values(components, -2.f);
+  if (!pa.ConvertValue<float>(draco::AttributeValueIndex(val_index),
+                              values.data()))
     return false;
-  out_values->MoveData({values, values + components});
+  out_values->MoveData(std::move(values));
   return true;
 }
 
