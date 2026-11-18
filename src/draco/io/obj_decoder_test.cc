@@ -358,4 +358,20 @@ TEST_F(ObjDecoderTest, TestFacesWithoutPositions) {
   EXPECT_FALSE(status.ok());
 }
 
+TEST_F(ObjDecoderTest, TestOutOfRangeVertexIndices) {
+  // Test that face indices that do not fit in int32_t are rejected instead of
+  // wrapping around to a valid vertex (4294967297 used to map to vertex 1).
+  const std::string faces[] = {"f 4294967297 2 3\n", "f -4294967295 2 3\n",
+                               "f 1/4294967297 2/1 3/1\n"};
+  for (const std::string& face : faces) {
+    const std::string obj_data = "v 0 0 0\nv 1 0 0\nv 0 1 0\nvt 0 0\n" + face;
+    DecoderBuffer buffer;
+    buffer.Init(obj_data.data(), obj_data.size());
+    ObjDecoder decoder;
+    std::unique_ptr<draco::Mesh> mesh(new draco::Mesh());
+    const Status status = decoder.DecodeFromBuffer(&buffer, mesh.get());
+    EXPECT_FALSE(status.ok()) << face;
+  }
+}
+
 }  // namespace draco
