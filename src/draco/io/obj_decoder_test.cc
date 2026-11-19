@@ -358,4 +358,37 @@ TEST_F(ObjDecoderTest, TestFacesWithoutPositions) {
   EXPECT_FALSE(status.ok());
 }
 
+TEST_F(ObjDecoderTest, TestMaterialLinesParsedSameInBothPasses) {
+  // Test that "mtllib" and "usemtl" lines span the same input in the counting
+  // and the decoding pass. Otherwise definitions hidden on those lines are
+  // decoded past the end of the attributes sized by the counting pass.
+  {
+    const std::string obj_data =
+        "mtllib missing.mtl\rv 1 1 1\rv 2 2 2\rv 3 3 3\rv 4 4 4\rf 1 2 3 4\n"
+        "v 0 0 0\nv 1 0 0\nv 0 1 0\n"
+        "usemtl mat\n"
+        "f 1 2 3\n";
+    DecoderBuffer buffer;
+    buffer.Init(obj_data.data(), obj_data.size());
+    ObjDecoder decoder;
+    std::unique_ptr<draco::Mesh> mesh(new draco::Mesh());
+    const Status status = decoder.DecodeFromBuffer(&buffer, mesh.get());
+    ASSERT_TRUE(status.ok()) << status.error_msg_string();
+    EXPECT_EQ(mesh->num_faces(), 1);
+  }
+  {
+    const std::string obj_data =
+        "usemtl mat\rv 1 1 1\n"
+        "usemtl\nv 2 2 2\n"
+        "v 0 0 0\n";
+    DecoderBuffer buffer;
+    buffer.Init(obj_data.data(), obj_data.size());
+    ObjDecoder decoder;
+    std::unique_ptr<draco::Mesh> mesh(new draco::Mesh());
+    const Status status = decoder.DecodeFromBuffer(&buffer, mesh.get());
+    ASSERT_TRUE(status.ok()) << status.error_msg_string();
+    EXPECT_EQ(mesh->num_points(), 2);
+  }
+}
+
 }  // namespace draco

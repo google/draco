@@ -514,10 +514,6 @@ bool ObjDecoder::ParseFace(Status* status) {
 }
 
 bool ObjDecoder::ParseMaterialLib(Status* status) {
-  // Allow only one material library per file for now.
-  if (!material_name_to_id_.empty()) {
-    return false;
-  }
   std::array<char, 6> c;
   if (!buffer()->Peek(&c)) {
     return false;
@@ -527,6 +523,11 @@ bool ObjDecoder::ParseMaterialLib(Status* status) {
   }
   buffer()->Advance(6);
   DecoderBuffer line_buffer = parser::ParseLineIntoDecoderBuffer(buffer());
+  // Allow only one material library per file for now. The line must still be
+  // consumed the same way in both passes so that they see the same input.
+  if (!material_name_to_id_.empty()) {
+    return true;
+  }
   parser::SkipWhitespace(&line_buffer);
   material_file_name_.clear();
   if (!parser::ParseString(&line_buffer, &material_file_name_)) {
@@ -548,10 +549,6 @@ bool ObjDecoder::ParseMaterialLib(Status* status) {
 }
 
 bool ObjDecoder::ParseMaterial(Status* /* status */) {
-  // In second pass, skip when we don't use materials.
-  if (!counting_mode_ && material_att_id_ < 0) {
-    return false;
-  }
   std::array<char, 6> c;
   if (!buffer()->Peek(&c)) {
     return false;
@@ -561,11 +558,16 @@ bool ObjDecoder::ParseMaterial(Status* /* status */) {
   }
   buffer()->Advance(6);
   DecoderBuffer line_buffer = parser::ParseLineIntoDecoderBuffer(buffer());
+  // In second pass, skip when we don't use materials. The line must still be
+  // consumed the same way in both passes so that they see the same input.
+  if (!counting_mode_ && material_att_id_ < 0) {
+    return true;
+  }
   parser::SkipWhitespace(&line_buffer);
   std::string mat_name;
   parser::ParseLine(&line_buffer, &mat_name);
   if (mat_name.empty()) {
-    return false;
+    return true;  // Ignore empty name entries.
   }
   auto it = material_name_to_id_.find(mat_name);
   if (it == material_name_to_id_.end()) {
